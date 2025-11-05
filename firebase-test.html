@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Connection Test - AIAS Basra</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .status {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .status.info {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-left: 4px solid #1976d2;
+        }
+
+        .status.success {
+            background: #e8f5e9;
+            color: #388e3c;
+            border-left: 4px solid #388e3c;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #c62828;
+        }
+
+        .log-container {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .log-entry {
+            padding: 0.5rem;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-entry.info {
+            color: #1976d2;
+        }
+
+        .log-entry.success {
+            color: #388e3c;
+        }
+
+        .log-entry.error {
+            color: #c62828;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-card {
+            background: #f5f5f5;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Firebase Connection Test</h1>
+        
+        <div id="statusMessage" class="status info">
+            Initializing Firebase connection...
+        </div>
+
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-number" id="eventsCount">-</div>
+                <div class="stat-label">Events</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="articlesCount">-</div>
+                <div class="stat-label">Articles</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="libraryCount">-</div>
+                <div class="stat-label">Library Items</div>
+            </div>
+        </div>
+
+        <button id="testButton" onclick="runTest()">Run Connection Test</button>
+
+        <div class="log-container" id="logContainer">
+            <div class="log-entry info">Console logs will appear here...</div>
+        </div>
+
+        <div style="margin-top: 1rem; text-align: center;">
+            <a href="index.html" style="color: #667eea; text-decoration: none;">← Back to Home</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
+            authDomain: "aias-bsr.firebaseapp.com",
+            projectId: "aias-bsr",
+            storageBucket: "aias-bsr.firebasestorage.app",
+            messagingSenderId: "78055223814",
+            appId: "1:78055223814:web:99460402c2b1fcd5ae8987",
+            measurementId: "G-6W50T4HXDV"
+        };
+
+        let logs = [];
+
+        function addLog(message, type = 'info') {
+            logs.push({ message, type, time: new Date() });
+            updateLogDisplay();
+        }
+
+        function updateLogDisplay() {
+            const container = document.getElementById('logContainer');
+            container.innerHTML = logs.map(log => 
+                `<div class="log-entry ${log.type}">
+                    [${log.time.toLocaleTimeString()}] ${log.message}
+                </div>`
+            ).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function setStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+
+        // Initialize Firebase
+        addLog('[Firebase] Initializing Firebase app...', 'info');
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        addLog('[Firebase] ✓ Firebase initialized successfully', 'success');
+        addLog(`[Firebase] Project ID: ${firebaseConfig.projectId}`, 'info');
+        addLog(`[Firebase] Auth Domain: ${firebaseConfig.authDomain}`, 'info');
+
+        setStatus('✓ Firebase initialized. Click button to test connection.', 'success');
+
+        window.runTest = async function() {
+            const button = document.getElementById('testButton');
+            button.disabled = true;
+            button.textContent = 'Testing...';
+            logs = [];
+            
+            setStatus('Testing Firestore connection...', 'info');
+            addLog('[Test] Starting Firebase Firestore connection test...', 'info');
+
+            try {
+                // Test 1: Read home content
+                addLog('[Test] Reading home content...', 'info');
+                const homeDoc = await getDoc(doc(db, 'content', 'home'));
+                if (homeDoc.exists()) {
+                    addLog('[Test] ✓ Home content retrieved successfully', 'success');
+                } else {
+                    addLog('[Test] ⚠ No home content found (expected for new setup)', 'info');
+                }
+
+                // Test 2: Read events collection
+                addLog('[Test] Reading events collection...', 'info');
+                const eventsSnapshot = await getDocs(collection(db, 'events'));
+                const eventsCount = eventsSnapshot.size;
+                addLog(`[Test] ✓ Events collection read successfully: ${eventsCount} events found`, 'success');
+                document.getElementById('eventsCount').textContent = eventsCount;
+
+                // Test 3: Read library collection
+                addLog('[Test] Reading library collection...', 'info');
+                const librarySnapshot = await getDocs(collection(db, 'library'));
+                const libraryCount = librarySnapshot.size;
+                addLog(`[Test] ✓ Library collection read successfully: ${libraryCount} items found`, 'success');
+                document.getElementById('libraryCount').textContent = libraryCount;
+
+                // Test 4: Read magazine content
+                addLog('[Test] Reading magazine content...', 'info');
+                const magazineDoc = await getDoc(doc(db, 'content', 'magazine'));
+                if (magazineDoc.exists()) {
+                    const articlesCount = magazineDoc.data().articles?.length || 0;
+                    addLog(`[Test] ✓ Magazine content retrieved: ${articlesCount} articles found`, 'success');
+                    document.getElementById('articlesCount').textContent = articlesCount;
+                } else {
+                    addLog('[Test] ⚠ No magazine content found (expected for new setup)', 'info');
+                    document.getElementById('articlesCount').textContent = 0;
+                }
+
+                // Test 5: Read education content
+                addLog('[Test] Reading education content...', 'info');
+                const educationDoc = await getDoc(doc(db, 'content', 'education'));
+                if (educationDoc.exists()) {
+                    addLog('[Test] ✓ Education content retrieved successfully', 'success');
+                } else {
+                    addLog('[Test] ⚠ No education content found (expected for new setup)', 'info');
+                }
+
+                // Test 6: Read about content
+                addLog('[Test] Reading about content...', 'info');
+                const aboutDoc = await getDoc(doc(db, 'content', 'about'));
+                if (aboutDoc.exists()) {
+                    addLog('[Test] ✓ About content retrieved successfully', 'success');
+                } else {
+                    addLog('[Test] ⚠ No about content found (expected for new setup)', 'info');
+                }
+
+                addLog('[Test] ═══════════════════════════════════', 'success');
+                addLog('[Test] ✓ All tests completed successfully!', 'success');
+                addLog('[Test] Firestore connection is working correctly', 'success');
+                setStatus('✓ All tests passed! Firestore connection is working correctly.', 'success');
+                
+                document.getElementById('stats').style.display = 'grid';
+
+            } catch (error) {
+                addLog(`[Test] ✗ Error occurred: ${error.message}`, 'error');
+                addLog(`[Test] Error code: ${error.code}`, 'error');
+                addLog(`[Test] Error name: ${error.name}`, 'error');
+                setStatus('✗ Connection test failed. Check logs for details.', 'error');
+                console.error('Firebase test error:', error);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Run Connection Test Again';
+            }
+        };
+
+        // Auto-run test on page load
+        setTimeout(() => {
+            document.getElementById('testButton').click();
+        }, 500);
+    </script>
+</body>
+</html>
