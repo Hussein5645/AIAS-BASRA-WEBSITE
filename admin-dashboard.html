@@ -710,27 +710,6 @@
             }
         };
 
-        window.loadHomeContent = async function() {
-            try {
-                const result = await firestoreAPI.getAllContent();
-                const data = result.success ? result.content : null;
-                
-                if (data && data.home) {
-                    if (data.home.hero) {
-                        document.getElementById('heroTitle').value = data.home.hero.title || '';
-                        document.getElementById('heroSubtitle').value = data.home.hero.subtitle || '';
-                    }
-                    
-                    if (data.home.mission) {
-                        document.getElementById('missionTitle').value = data.home.mission.title || '';
-                        document.getElementById('missionSubtitle').value = data.home.mission.subtitle || '';
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading home content:', error);
-            }
-        };
-
         window.deleteUser = function(email) {
             const currentLang = localStorage.getItem('language') || 'en';
             const confirmMsg = currentLang === 'ar' ? `هل أنت متأكد من حذف المستخدم: ${email}؟` : `Are you sure you want to delete the user: ${email}?`;
@@ -775,9 +754,7 @@
             event.target.classList.add('active');
             
             // Load content for specific tabs
-            if (tabName === 'home') {
-                loadHomeContent();
-            } else if (tabName === 'events') {
+            if (tabName === 'events') {
                 loadExistingEvents();
             } else if (tabName === 'articles') {
                 loadExistingArticles();
@@ -1285,83 +1262,6 @@
                 showMessage(errorMsg, 'error');
             }
         };
-
-        // Home Page Form Handler
-        document.getElementById('homeForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const homeContent = {
-                hero: {
-                    title: document.getElementById('heroTitle').value,
-                    subtitle: document.getElementById('heroSubtitle').value
-                },
-                mission: {
-                    title: document.getElementById('missionTitle').value,
-                    subtitle: document.getElementById('missionSubtitle').value,
-                    cards: [
-                        {
-                            icon: "education",
-                            title: "Education",
-                            description: "Providing quality architectural education and resources to aspiring architects"
-                        },
-                        {
-                            icon: "innovation",
-                            title: "Innovation",
-                            description: "Fostering creativity and innovative thinking in architectural design"
-                        },
-                        {
-                            icon: "community",
-                            title: "Community",
-                            description: "Building a strong network of passionate architecture students and professionals"
-                        }
-                    ]
-                }
-            };
-
-            const currentLang = localStorage.getItem('language') || 'en';
-            if (firestoreAPI.hasToken()) {
-                const updatingMsg = currentLang === 'ar' ? 'جاري تحديث الصفحة الرئيسية...' : 'Updating home page...';
-                showMessage(updatingMsg, 'success');
-                
-                try {
-                    // Get current data
-                    const contentResult = await firestoreAPI.getAllContent();
-                    const data = contentResult.success ? contentResult.content : {};
-                    
-                    // Update home content
-                    data.home = homeContent;
-                    
-                    // Update Firestore
-                    const result = await firestoreAPI.updateAllContent(data);
-                    
-                    if (result.success) {
-                        const successMsg = currentLang === 'ar' ? '✓ تم تحديث الصفحة الرئيسية بنجاح في المستودع!' : '✓ Home page updated successfully in the repository!';
-                        showMessage(successMsg, 'success');
-                    } else {
-                        const errorMsg = currentLang === 'ar' ? '✗ فشل تحديث الصفحة الرئيسية: ' + result.error : '✗ Failed to update home page: ' + result.error;
-                        showMessage(errorMsg, 'error');
-                    }
-                } catch (error) {
-                    const errorMsg = currentLang === 'ar' ? '✗ خطأ في تحديث الصفحة الرئيسية: ' + error.message : '✗ Error updating home page: ' + error.message;
-                    showMessage(errorMsg, 'error');
-                }
-            } else {
-                try {
-                    const result = await firestoreAPI.getAllContent();
-                    const data = result.success ? result.content : null;
-                    data.home = homeContent;
-                    
-                    console.log('Updated data.json:', JSON.stringify(data, null, 2));
-                    const prepMsg = currentLang === 'ar' ? 'تم إعداد محتوى الصفحة الرئيسية. قم بتكوين رمز GitHub في الإعدادات للحفظ تلقائياً.' : 'Home page content prepared. Configure GitHub token in Settings to save automatically.';
-                    showMessage(prepMsg, 'success');
-                    const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
-                    alert(alertMsg + JSON.stringify(data, null, 2));
-                } catch (error) {
-                    const errorMsg = currentLang === 'ar' ? 'خطأ في إعداد محتوى الصفحة الرئيسية: ' + error.message : 'Error preparing home page content: ' + error.message;
-                    showMessage(errorMsg, 'error');
-                }
-            }
-        });
 
         // Event Form Handler
         document.getElementById('eventForm').addEventListener('submit', async (e) => {
