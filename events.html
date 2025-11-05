@@ -93,7 +93,7 @@
 <section class="events-container" id="gridView">
 <div class="container">
 <div class="events-grid">
-<!-- Events will be loaded dynamically from data.json -->
+<!-- Events will be loaded dynamically from Firebase Firestore -->
 </div>
 </div>
 </section>
@@ -104,7 +104,7 @@
 <h2 class="section-title">Events Timeline</h2>
 </div>
 <div class="timeline" id="timelineContainer">
-<!-- Timeline items will be loaded dynamically from data.json -->
+<!-- Timeline items will be loaded dynamically from Firebase Firestore -->
 </div>
 </div>
 </section>
@@ -247,7 +247,6 @@
                         const status = isPast ? 'Completed' : 'Upcoming';
                         const statusClass = isPast ? 'status-past' : 'status-upcoming';
                         
-                        const eventCard = `<div class="event-card reveal">
                         const eventCard = `<div class="event-card reveal">
                             <div class="event-date-badge">
                                 <div class="event-day">${dateInfo.day}</div>
