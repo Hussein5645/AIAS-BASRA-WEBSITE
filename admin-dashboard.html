@@ -328,6 +328,7 @@
         <nav class="dashboard-nav">
             <ul>
                 <li><button class="active" onclick="showTab('users')" data-en="User Management" data-ar="إدارة المستخدمين">User Management</button></li>
+                <li><button onclick="showTab('home')" data-en="Home Page" data-ar="الصفحة الرئيسية">Home Page</button></li>
                 <li><button onclick="showTab('events')" data-en="Events" data-ar="الفعاليات">Events</button></li>
                 <li><button onclick="showTab('articles')" data-en="Magazine Articles" data-ar="مقالات المجلة">Magazine Articles</button></li>
                 <li><button onclick="showTab('library')" data-en="Library Resources" data-ar="موارد المكتبة">Library Resources</button></li>
@@ -342,6 +343,33 @@
             <div class="content-list" id="usersList">
                 <p data-en="Loading users..." data-ar="جاري تحميل المستخدمين...">Loading users...</p>
             </div>
+        </div>
+
+        <!-- Home Page Tab -->
+        <div id="home-tab" class="tab-content">
+            <h2 data-en="Update Home Page Content" data-ar="تحديث محتوى الصفحة الرئيسية">Update Home Page Content</h2>
+            <form id="homeForm" class="content-form">
+                <h3 data-en="Hero Section" data-ar="قسم البطل">Hero Section</h3>
+                <div class="form-group">
+                    <label for="heroTitle" data-en="Hero Title" data-ar="عنوان البطل">Hero Title</label>
+                    <input type="text" id="heroTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="heroSubtitle" data-en="Hero Subtitle" data-ar="العنوان الفرعي">Hero Subtitle</label>
+                    <textarea id="heroSubtitle" required></textarea>
+                </div>
+                
+                <h3 data-en="Mission Section" data-ar="قسم المهمة" style="margin-top: 2rem;">Mission Section</h3>
+                <div class="form-group">
+                    <label for="missionTitle" data-en="Mission Title" data-ar="عنوان المهمة">Mission Title</label>
+                    <input type="text" id="missionTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="missionSubtitle" data-en="Mission Subtitle" data-ar="العنوان الفرعي للمهمة">Mission Subtitle</label>
+                    <textarea id="missionSubtitle" required></textarea>
+                </div>
+                <button type="submit" class="submit-btn" data-en="Update Home Page" data-ar="تحديث الصفحة الرئيسية">Update Home Page</button>
+            </form>
         </div>
 
         <!-- Events Tab -->
@@ -645,6 +673,27 @@
             }
         };
 
+        window.loadHomeContent = async function() {
+            try {
+                const response = await fetch('data/data.json');
+                const data = await response.json();
+                
+                if (data && data.home) {
+                    if (data.home.hero) {
+                        document.getElementById('heroTitle').value = data.home.hero.title || '';
+                        document.getElementById('heroSubtitle').value = data.home.hero.subtitle || '';
+                    }
+                    
+                    if (data.home.mission) {
+                        document.getElementById('missionTitle').value = data.home.mission.title || '';
+                        document.getElementById('missionSubtitle').value = data.home.mission.subtitle || '';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading home content:', error);
+            }
+        };
+
         window.deleteUser = function(email) {
             const currentLang = localStorage.getItem('language') || 'en';
             const confirmMsg = currentLang === 'ar' ? `هل أنت متأكد من حذف المستخدم: ${email}؟` : `Are you sure you want to delete the user: ${email}?`;
@@ -687,6 +736,11 @@
             
             // Add active to clicked button
             event.target.classList.add('active');
+            
+            // Load content for specific tabs
+            if (tabName === 'home') {
+                loadHomeContent();
+            }
         };
 
         window.showMessage = function(text, type) {
@@ -780,6 +834,86 @@
                 showMessage(errorMsg, 'error');
             }
         }
+
+        // Home Page Form Handler
+        document.getElementById('homeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const homeContent = {
+                hero: {
+                    title: document.getElementById('heroTitle').value,
+                    subtitle: document.getElementById('heroSubtitle').value
+                },
+                mission: {
+                    title: document.getElementById('missionTitle').value,
+                    subtitle: document.getElementById('missionSubtitle').value,
+                    cards: [
+                        {
+                            icon: "education",
+                            title: "Education",
+                            description: "Providing quality architectural education and resources to aspiring architects"
+                        },
+                        {
+                            icon: "innovation",
+                            title: "Innovation",
+                            description: "Fostering creativity and innovative thinking in architectural design"
+                        },
+                        {
+                            icon: "community",
+                            title: "Community",
+                            description: "Building a strong network of passionate architecture students and professionals"
+                        }
+                    ]
+                }
+            };
+
+            const currentLang = localStorage.getItem('language') || 'en';
+            if (githubAPI.hasToken()) {
+                const updatingMsg = currentLang === 'ar' ? 'جاري تحديث الصفحة الرئيسية في المستودع...' : 'Updating home page in repository...';
+                showMessage(updatingMsg, 'success');
+                
+                try {
+                    // Get current data
+                    const fileInfo = await githubAPI.getFileContent('data/data.json');
+                    const data = JSON.parse(fileInfo.content);
+                    
+                    // Update home content
+                    data.home = homeContent;
+                    
+                    // Update file
+                    const result = await githubAPI.updateDataJson(
+                        data,
+                        'Update home page content'
+                    );
+                    
+                    if (result.success) {
+                        const successMsg = currentLang === 'ar' ? '✓ تم تحديث الصفحة الرئيسية بنجاح في المستودع!' : '✓ Home page updated successfully in the repository!';
+                        showMessage(successMsg, 'success');
+                    } else {
+                        const errorMsg = currentLang === 'ar' ? '✗ فشل تحديث الصفحة الرئيسية: ' + result.error : '✗ Failed to update home page: ' + result.error;
+                        showMessage(errorMsg, 'error');
+                    }
+                } catch (error) {
+                    const errorMsg = currentLang === 'ar' ? '✗ خطأ في تحديث الصفحة الرئيسية: ' + error.message : '✗ Error updating home page: ' + error.message;
+                    showMessage(errorMsg, 'error');
+                }
+            } else {
+                try {
+                    const response = await fetch('data/data.json');
+                    const data = await response.json();
+                    data.home = homeContent;
+                    
+                    console.log('Updated data.json:', JSON.stringify(data, null, 2));
+                    const prepMsg = currentLang === 'ar' ? 'تم إعداد محتوى الصفحة الرئيسية. قم بتكوين رمز GitHub في الإعدادات للحفظ تلقائياً.' : 'Home page content prepared. Configure GitHub token in Settings to save automatically.';
+                    showMessage(prepMsg, 'success');
+                    const alertMsg = currentLang === 'ar' ? 'انسخ هذا JSON وقم بتحديث data/data.json:\n\n' : 'Copy this JSON and update data/data.json:\n\n';
+                    alert(alertMsg + JSON.stringify(data, null, 2));
+                } catch (error) {
+                    const errorMsg = currentLang === 'ar' ? 'خطأ في إعداد محتوى الصفحة الرئيسية: ' + error.message : 'Error preparing home page content: ' + error.message;
+                    showMessage(errorMsg, 'error');
+                }
+            }
+        });
 
         // Event Form Handler
         document.getElementById('eventForm').addEventListener('submit', async (e) => {
