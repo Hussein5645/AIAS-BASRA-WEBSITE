@@ -542,15 +542,13 @@ class FirestoreAPI {
             console.log('[Firestore API] ✓ Connection test successful');
             return {
                 success: true,
-                message: 'Connection successful',
-                connected: true
+                message: 'Connection successful'
             };
         } catch (error) {
             console.error('[Firestore API] ✗ Connection test failed:', error);
             return {
                 success: false,
-                error: error.message,
-                connected: false
+                error: error.message
             };
         }
     }

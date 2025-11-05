@@ -1127,7 +1127,8 @@
                 resultsContent.textContent = '';
                 const errorP = document.createElement('p');
                 errorP.style.color = '#e53e3e';
-                errorP.textContent = 'Error: ' + error.message;
+                const errorPrefix = currentLang === 'ar' ? 'خطأ: ' : 'Error: ';
+                errorP.textContent = errorPrefix + error.message;
                 resultsContent.appendChild(errorP);
                 
                 resultsDiv.style.display = 'block';
@@ -1171,7 +1172,7 @@
                         removeBtn.className = 'delete-btn';
                         removeBtn.style.padding = '0.25rem 0.75rem';
                         removeBtn.style.fontSize = '0.875rem';
-                        removeBtn.textContent = 'Remove';
+                        removeBtn.textContent = currentLang === 'ar' ? 'إزالة' : 'Remove';
                         removeBtn.setAttribute('data-en', 'Remove');
                         removeBtn.setAttribute('data-ar', 'إزالة');
                         removeBtn.addEventListener('click', () => removeAdminEmail(email));
