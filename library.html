@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library - AIAS Basra Chapter</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .library-hero {
+            background: var(--gradient-1);
+            color: var(--white);
+            padding: 8rem 0 4rem;
+            text-align: center;
+        }
+        
+        .library-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .search-section {
+            padding: 3rem 0;
+            background: var(--light-bg);
+        }
+        
+        .search-box {
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 1rem 3rem 1rem 1.5rem;
+            border: 2px solid var(--accent-light);
+            border-radius: 50px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+        }
+        
+        .categories {
+            padding: 3rem 0;
+        }
+        
+        .category-filters {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+        }
+        
+        .filter-btn {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--accent-light);
+            background: var(--white);
+            color: var(--primary-color);
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--gradient-1);
+            color: var(--white);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .resource-card {
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .resource-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .resource-thumbnail {
+            height: 200px;
+            background: var(--gradient-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            position: relative;
+        }
+        
+        .resource-type {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .resource-content {
+            padding: 1.5rem;
+        }
+        
+        .resource-title {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .resource-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+        
+        .resource-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .resource-size {
+            color: var(--text-light);
+            font-size: 0.85rem;
+        }
+        
+        .download-btn {
+            padding: 0.5rem 1rem;
+            background: var(--gradient-1);
+            color: var(--white);
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .download-btn:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-md);
+        }
+        
+        @media (max-width: 768px) {
+            .library-hero h1 {
+                font-size: 2rem;
+            }
+            
+            .resources-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">
+                    <img src="LOGO.png" alt="AIAS Basra Logo">
+                    <span>AIAS Basra</span>
+                </div>
+                <button class="menu-toggle" id="menuToggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="library.html" class="active">Library</a></li>
+                    <li><a href="magazine.html">Magazine</a></li>
+                    <li><a href="events.html">Events</a></li>
+                    <li><a href="education.html">Education</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Library Hero -->
+    <section class="library-hero">
+        <div class="container">
+            <h1 class="fade-in-up">Resource Library</h1>
+            <p class="fade-in-up delay-1">Access educational materials, guides, and resources</p>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <section class="search-section">
+        <div class="container">
+            <div class="search-box">
+                <input type="text" placeholder="Search resources..." id="searchInput">
+                <span class="search-icon">🔍</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="categories">
+        <div class="container">
+            <div class="category-filters">
+                <button class="filter-btn active" data-category="all">All Resources</button>
+                <button class="filter-btn" data-category="books">Books</button>
+                <button class="filter-btn" data-category="guides">Guides</button>
+                <button class="filter-btn" data-category="templates">Templates</button>
+                <button class="filter-btn" data-category="research">Research</button>
+            </div>
+            
+            <div class="resources-grid">
+                <div class="resource-card reveal" data-category="books">
+                    <div class="resource-thumbnail">📚
+                        <span class="resource-type">Book</span>
+                    </div>
+                    <div class="resource-content">
+                        <h3 class="resource-title">Architectural Design Fundamentals</h3>
+                        <p class="resource-description">Comprehensive guide to basic architectural design principles and practices.</p>
+                        <div class="resource-meta">
+                            <span class="resource-size">15.2 MB</span>
+                            <a href="#" class="download-btn">Download</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="resource-card reveal" data-category="guides">
+                    <div class="resource-thumbnail">📖
+                        <span class="resource-type">Guide</span>
+                    </div>
+                    <div class="resource-content">
+                        <h3 class="resource-title">AutoCAD Complete Tutorial</h3>
+                        <p class="resource-description">Step-by-step guide to mastering AutoCAD for architectural drawings.</p>
+                        <div class="resource-meta">
+                            <span class="resource-size">8.5 MB</span>
+                            <a href="#" class="download-btn">Download</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="resource-card reveal" data-category="templates">
+                    <div class="resource-thumbnail">📄
+                        <span class="resource-type">Template</span>
+                    </div>
+                    <div class="resource-content">
+                        <h3 class="resource-title">Portfolio Layout Templates</h3>
+                        <p class="resource-description">Professional portfolio templates for architecture students.</p>
+                        <div class="resource-meta">
+                            <span class="resource-size">25.8 MB</span>
+                            <a href="#" class="download-btn">Download</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="resource-card reveal" data-category="research">
+                    <div class="resource-thumbnail">🔬
+                        <span class="resource-type">Research</span>
+                    </div>
+                    <div class="resource-content">
+                        <h3 class="resource-title">Sustainable Architecture Papers</h3>
+                        <p class="resource-description">Collection of research papers on sustainable building practices.</p>
+                        <div class="resource-meta">
+                            <span class="resource-size">12.3 MB</span>
+                            <a href="#" class="download-btn">Download</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="resource-card reveal" data-category="books">
+                    <div class="resource-thumbnail">📚
+                        <span class="resource-type">Book</span>
+                    </div>
+                    <div class="resource-content">
+                        <h3 class="resource-title">History of Modern Architecture</h3>
+                        <p class="resource-description">Explore the evolution of modern architectural movements.</p>
+                        <div class="resource-meta">
+                            <span class="resource-size">20.1 MB</span>
+                            <a href="#" class="download-btn">Download</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="resource-card reveal" data-category="guides">
+                    <div class="resource-thumbnail">📖
+                        <span class="resource-type">Guide</span>
+                    </div>
+                    <div class="resource-content">
+                        <h3 class="resource-title">Revit for Beginners</h3>
+                        <p class="resource-description">Complete guide to getting started with Autodesk Revit.</p>
+                        <div class="resource-meta">
+                            <span class="resource-size">18.7 MB</span>
+                            <a href="#" class="download-btn">Download</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="resource-card reveal" data-category="templates">
+                    <div class="resource-thumbnail">📄
+                        <span class="resource-type">Template</span>
+                    </div>
+                    <div class="resource-content">
+                        <h3 class="resource-title">Presentation Board Templates</h3>
+                        <p class="resource-description">Ready-to-use templates for architectural presentations.</p>
+                        <div class="resource-meta">
+                            <span class="resource-size">32.5 MB</span>
+                            <a href="#" class="download-btn">Download</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="resource-card reveal" data-category="research">
+                    <div class="resource-thumbnail">🔬
+                        <span class="resource-type">Research</span>
+                    </div>
+                    <div class="resource-content">
+                        <h3 class="resource-title">Urban Planning Studies</h3>
+                        <p class="resource-description">Research papers on contemporary urban planning challenges.</p>
+                        <div class="resource-meta">
+                            <span class="resource-size">16.9 MB</span>
+                            <a href="#" class="download-btn">Download</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>AIAS Basra Chapter</h3>
+                    <p>American Institute of Architecture Students - Basra Chapter</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="events.html">Events</a></li>
+                        <li><a href="library.html">Library</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook">📘</a>
+                        <a href="#" aria-label="Instagram">📷</a>
+                        <a href="#" aria-label="LinkedIn">💼</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 AIAS Basra Chapter. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Filter functionality
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const resourceCards = document.querySelectorAll('.resource-card');
+        
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const category = btn.dataset.category;
+                
+                resourceCards.forEach(card => {
+                    if (category === 'all' || card.dataset.category === category) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+        
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            resourceCards.forEach(card => {
+                const title = card.querySelector('.resource-title').textContent.toLowerCase();
+                const description = card.querySelector('.resource-description').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - AIAS Basra Chapter</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .about-hero {
+            background: var(--gradient-1);
+            color: var(--white);
+            padding: 8rem 0 4rem;
+            text-align: center;
+        }
+        
+        .about-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .story-section {
+            padding: 5rem 0;
+        }
+        
+        .story-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+        
+        .story-image {
+            background: var(--gradient-2);
+            border-radius: 12px;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+        }
+        
+        .story-text h2 {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+        
+        .story-text p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+        
+        .values-section {
+            background: var(--light-bg);
+            padding: 5rem 0;
+        }
+        
+        .values-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+        
+        .value-card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+        }
+        
+        .value-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .value-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+        
+        .value-card h3 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .team-section {
+            padding: 5rem 0;
+        }
+        
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        
+        .team-card {
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+        }
+        
+        .team-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .team-image {
+            height: 250px;
+            background: var(--gradient-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+        
+        .team-info {
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .team-info h3 {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .team-role {
+            color: var(--accent-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .team-info p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .story-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .about-hero h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">
+                    <img src="LOGO.png" alt="AIAS Basra Logo">
+                    <span>AIAS Basra</span>
+                </div>
+                <button class="menu-toggle" id="menuToggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="about.html" class="active">About Us</a></li>
+                    <li><a href="library.html">Library</a></li>
+                    <li><a href="magazine.html">Magazine</a></li>
+                    <li><a href="events.html">Events</a></li>
+                    <li><a href="education.html">Education</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- About Hero -->
+    <section class="about-hero">
+        <div class="container">
+            <h1 class="fade-in-up">About AIAS Basra Chapter</h1>
+            <p class="fade-in-up delay-1">Empowering the next generation of architects in Basra</p>
+        </div>
+    </section>
+
+    <!-- Story Section -->
+    <section class="story-section">
+        <div class="container">
+            <div class="story-content">
+                <div class="story-image reveal">🏛️</div>
+                <div class="story-text reveal">
+                    <h2>Our Story</h2>
+                    <p>
+                        The AIAS Basra Chapter was founded with a vision to create a vibrant community of 
+                        architecture students and professionals dedicated to advancing the field of architecture 
+                        in our region.
+                    </p>
+                    <p>
+                        We believe in the power of collaboration, innovation, and continuous learning. Our chapter 
+                        serves as a bridge between academic education and professional practice, providing students 
+                        with opportunities to grow, network, and make meaningful contributions to the architectural 
+                        community.
+                    </p>
+                    <p>
+                        Through workshops, lectures, competitions, and community projects, we strive to inspire 
+                        and support the next generation of architects who will shape the built environment of 
+                        tomorrow.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Values Section -->
+    <section class="values-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Our Core Values</h2>
+                <p class="section-subtitle">The principles that guide everything we do</p>
+            </div>
+            <div class="values-grid">
+                <div class="value-card reveal">
+                    <div class="value-number">01</div>
+                    <h3>Excellence</h3>
+                    <p>We strive for excellence in architectural education and practice, setting high standards for ourselves and our members.</p>
+                </div>
+                <div class="value-card reveal">
+                    <div class="value-number">02</div>
+                    <h3>Innovation</h3>
+                    <p>We embrace new ideas, technologies, and approaches to push the boundaries of architectural design.</p>
+                </div>
+                <div class="value-card reveal">
+                    <div class="value-number">03</div>
+                    <h3>Collaboration</h3>
+                    <p>We believe in the power of working together, fostering a supportive and inclusive community.</p>
+                </div>
+                <div class="value-card reveal">
+                    <div class="value-number">04</div>
+                    <h3>Sustainability</h3>
+                    <p>We are committed to promoting sustainable design practices that respect our environment.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="team-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Meet Our Team</h2>
+                <p class="section-subtitle">Dedicated leaders working to make a difference</p>
+            </div>
+            <div class="team-grid">
+                <div class="team-card reveal">
+                    <div class="team-image">👤</div>
+                    <div class="team-info">
+                        <h3>Chapter President</h3>
+                        <div class="team-role">Leadership</div>
+                        <p>Leading the chapter with vision and dedication to student success.</p>
+                    </div>
+                </div>
+                <div class="team-card reveal">
+                    <div class="team-image">👤</div>
+                    <div class="team-info">
+                        <h3>Vice President</h3>
+                        <div class="team-role">Operations</div>
+                        <p>Managing daily operations and member engagement programs.</p>
+                    </div>
+                </div>
+                <div class="team-card reveal">
+                    <div class="team-image">👤</div>
+                    <div class="team-info">
+                        <h3>Education Director</h3>
+                        <div class="team-role">Programs</div>
+                        <p>Organizing workshops, lectures, and educational initiatives.</p>
+                    </div>
+                </div>
+                <div class="team-card reveal">
+                    <div class="team-image">👤</div>
+                    <div class="team-info">
+                        <h3>Events Coordinator</h3>
+                        <div class="team-role">Events</div>
+                        <p>Planning and executing chapter events and activities.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>AIAS Basra Chapter</h3>
+                    <p>American Institute of Architecture Students - Basra Chapter</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="events.html">Events</a></li>
+                        <li><a href="library.html">Library</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook">📘</a>
+                        <a href="#" aria-label="Instagram">📷</a>
+                        <a href="#" aria-label="LinkedIn">💼</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 AIAS Basra Chapter. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
