@@ -668,6 +668,7 @@ class FirestoreAPI {
             }
 
             // Check collections exist (events and library)
+            // Note: We use a simple read to check existence without fetching all documents
             for (const collectionName of expected.collections) {
                 try {
                     const collectionRef = collection(this.db, collectionName);

@@ -1132,17 +1132,43 @@
                 const result = await firestoreAPI.getAdmins();
                 
                 if (result.success && result.admins.length > 0) {
-                    let html = '<ul style="margin: 0; padding: 0; list-style: none;">';
+                    adminsList.innerHTML = '';
+                    const ul = document.createElement('ul');
+                    ul.style.margin = '0';
+                    ul.style.padding = '0';
+                    ul.style.listStyle = 'none';
+                    
                     result.admins.forEach(email => {
-                        html += `
-                            <li style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border-bottom: 1px solid #e2e8f0; background: white; margin-bottom: 0.5rem; border-radius: 6px;">
-                                <span style="color: #2d3748; font-weight: 500;">${email}</span>
-                                <button class="delete-btn" onclick="removeAdminEmail('${email}')" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;" data-en="Remove" data-ar="إزالة">Remove</button>
-                            </li>
-                        `;
+                        const li = document.createElement('li');
+                        li.style.display = 'flex';
+                        li.style.justifyContent = 'space-between';
+                        li.style.alignItems = 'center';
+                        li.style.padding = '0.75rem';
+                        li.style.borderBottom = '1px solid #e2e8f0';
+                        li.style.background = 'white';
+                        li.style.marginBottom = '0.5rem';
+                        li.style.borderRadius = '6px';
+                        
+                        const emailSpan = document.createElement('span');
+                        emailSpan.style.color = '#2d3748';
+                        emailSpan.style.fontWeight = '500';
+                        emailSpan.textContent = email;
+                        
+                        const removeBtn = document.createElement('button');
+                        removeBtn.className = 'delete-btn';
+                        removeBtn.style.padding = '0.25rem 0.75rem';
+                        removeBtn.style.fontSize = '0.875rem';
+                        removeBtn.textContent = 'Remove';
+                        removeBtn.setAttribute('data-en', 'Remove');
+                        removeBtn.setAttribute('data-ar', 'إزالة');
+                        removeBtn.addEventListener('click', () => removeAdminEmail(email));
+                        
+                        li.appendChild(emailSpan);
+                        li.appendChild(removeBtn);
+                        ul.appendChild(li);
                     });
-                    html += '</ul>';
-                    adminsList.innerHTML = html;
+                    
+                    adminsList.appendChild(ul);
                     reapplyTranslations();
                 } else if (result.success) {
                     const noAdminsMsg = currentLang === 'ar' ? 'لا يوجد مسؤولون حالياً.' : 'No admins currently.';
