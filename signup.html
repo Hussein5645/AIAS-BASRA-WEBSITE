@@ -7,7 +7,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         * {
             margin: 0;
@@ -215,14 +214,9 @@
             height: 20px;
         }
 
-        .info-message {
-            padding: 0.75rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            font-size: 0.85rem;
-            background: #e6f2ff;
-            color: #0066cc;
-            border-left: 4px solid #0066cc;
+        .google-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         @media (max-width: 480px) {
@@ -257,50 +251,36 @@
             Sign up with Google
         </button>
 
-        <div class="divider">
-            <span>or sign up with email</span>
-        </div>
-
-        <div class="info-message">
-            📧 Email signups require admin verification before you can login.
-        </div>
-
-        <form id="signupForm">
-            <div class="form-group">
-                <label for="fullName">Full Name</label>
-                <input type="text" id="fullName" name="fullName" required>
-            </div>
-
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required minlength="6">
-            </div>
-
-            <div class="form-group">
-                <label for="confirmPassword">Confirm Password</label>
-                <input type="password" id="confirmPassword" name="confirmPassword" required>
-            </div>
-
-            <button type="submit" class="submit-btn">Sign Up</button>
-        </form>
-
         <div class="login-link">
             Already have an account? <a href="login.html">Login here</a>
         </div>
     </div>
 
-    <script>
-        const signupForm = document.getElementById('signupForm');
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
+            authDomain: "aias-bsr.firebaseapp.com",
+            projectId: "aias-bsr",
+            storageBucket: "aias-bsr.firebasestorage.app",
+            messagingSenderId: "78055223814",
+            appId: "1:78055223814:web:99460402c2b1fcd5ae8987",
+            measurementId: "G-6W50T4HXDV"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
         const messageDiv = document.getElementById('message');
         const googleSignUpBtn = document.getElementById('googleSignUp');
-
-        // Google OAuth Client ID - Replace with actual client ID
-        const GOOGLE_CLIENT_ID = '1067277829831-10l6jhke5i4lsu1p65tub7kpjh5n6p3l.apps.googleusercontent.com';
 
         function showMessage(text, type) {
             messageDiv.textContent = text;
@@ -308,151 +288,96 @@
             messageDiv.style.display = 'block';
         }
 
+        // Check if user is already logged in
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is signed in, redirect to appropriate page
+                checkUserRoleAndRedirect(user);
+            }
+        });
+
         async function checkIfAdmin(email) {
             try {
                 const response = await fetch('data/admin.json');
                 const data = await response.json();
-                return data.admins.includes(email);
+                return data.admins.includes(email.toLowerCase());
             } catch (error) {
                 console.error('Error checking admin status:', error);
                 return false;
             }
         }
 
-        async function saveUserToRepo(user) {
-            // In a real implementation, this would make an API call to save to the repository
-            // For now, we'll save to localStorage
-            let users = JSON.parse(localStorage.getItem('aias_users') || '{}');
-            users[user.email] = user;
-            localStorage.setItem('aias_users', JSON.stringify(users));
-        }
-
-        async function handleGoogleSignUp(response) {
+        async function checkUserRoleAndRedirect(user) {
             try {
-                // Decode the JWT token
-                const payload = JSON.parse(atob(response.credential.split('.')[1]));
-                const email = payload.email.toLowerCase();
-                const fullName = payload.name;
-                const picture = payload.picture;
-
-                // Get existing users
-                let users = JSON.parse(localStorage.getItem('aias_users') || '{}');
-
-                // Check if user already exists
-                if (users[email]) {
-                    showMessage('An account with this email already exists. Please login instead.', 'error');
-                    setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 2000);
-                    return;
-                }
-
-                // Create new user
-                users[email] = {
-                    fullName: fullName,
-                    email: email,
-                    picture: picture,
-                    authProvider: 'google',
-                    verified: true, // Google accounts are automatically verified
-                    createdAt: new Date().toISOString()
-                };
-
-                await saveUserToRepo(users[email]);
-
-                // Check if user is admin
-                const isAdmin = await checkIfAdmin(email);
-
-                // Store session data with persistent login
-                localStorage.setItem('aias_authenticated', 'true');
-                localStorage.setItem('aias_user_email', email);
-                localStorage.setItem('aias_user_name', fullName);
-                localStorage.setItem('aias_user_picture', picture || '');
-                localStorage.setItem('aias_is_admin', isAdmin.toString());
-
-                showMessage('Account created successfully! Redirecting...', 'success');
+                const isAdmin = await checkIfAdmin(user.email);
                 
-                setTimeout(() => {
-                    if (isAdmin) {
-                        window.location.href = 'admin-dashboard.html';
-                    } else {
-                        window.location.href = 'index.html';
-                    }
-                }, 1000);
+                // Store session data
+                localStorage.setItem('aias_authenticated', 'true');
+                localStorage.setItem('aias_user_email', user.email);
+                localStorage.setItem('aias_user_name', user.displayName || '');
+                localStorage.setItem('aias_user_picture', user.photoURL || '');
+                localStorage.setItem('aias_is_admin', isAdmin.toString());
+                localStorage.setItem('aias_user_uid', user.uid);
+
+                // Redirect based on admin status
+                if (isAdmin) {
+                    window.location.href = 'admin-dashboard.html';
+                } else {
+                    window.location.href = 'index.html';
+                }
             } catch (error) {
-                console.error('Google Sign-Up error:', error);
-                showMessage('Google Sign-Up failed. Please try again.', 'error');
+                console.error('Error checking user role:', error);
+                showMessage('Error checking user permissions. Please try again.', 'error');
             }
         }
-
-        // Initialize Google Sign-In
-        window.onload = function() {
-            if (window.google && window.google.accounts) {
-                google.accounts.id.initialize({
-                    client_id: GOOGLE_CLIENT_ID,
-                    callback: handleGoogleSignUp
-                });
-            }
-        };
 
         // Handle Google Sign-Up button click
-        googleSignUpBtn.addEventListener('click', () => {
-            if (window.google && window.google.accounts) {
-                google.accounts.id.prompt();
-            } else {
-                showMessage('Google Sign-Up is not available. Please try again later.', 'error');
+        googleSignUpBtn.addEventListener('click', async () => {
+            try {
+                googleSignUpBtn.disabled = true;
+                showMessage('Signing up...', 'success');
+
+                const provider = new GoogleAuthProvider();
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+
+                // Check if user already exists in Firestore
+                const userRef = doc(db, 'users', user.uid);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists()) {
+                    // User already exists, treat as login
+                    showMessage('Account already exists. Logging you in...', 'success');
+                    await setDoc(userRef, {
+                        lastLogin: new Date().toISOString()
+                    }, { merge: true });
+                } else {
+                    // New user - create document
+                    await setDoc(userRef, {
+                        email: user.email,
+                        displayName: user.displayName,
+                        photoURL: user.photoURL,
+                        createdAt: new Date().toISOString(),
+                        lastLogin: new Date().toISOString()
+                    });
+                    showMessage('Account created successfully! Redirecting...', 'success');
+                }
+
+                // Check role and redirect
+                await checkUserRoleAndRedirect(user);
+
+            } catch (error) {
+                console.error('Google Sign-Up error:', error);
+                googleSignUpBtn.disabled = false;
+                
+                if (error.code === 'auth/popup-closed-by-user') {
+                    showMessage('Sign-up cancelled. Please try again.', 'error');
+                } else if (error.code === 'auth/popup-blocked') {
+                    showMessage('Pop-up blocked. Please allow pop-ups and try again.', 'error');
+                } else {
+                    showMessage('Sign-up failed: ' + error.message, 'error');
+                }
             }
-        });
-
-        signupForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-
-            const fullName = document.getElementById('fullName').value.trim();
-            const email = document.getElementById('email').value.trim().toLowerCase();
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-
-            // Validation
-            if (!fullName || !email || !password || !confirmPassword) {
-                showMessage('Please fill in all fields', 'error');
-                return;
-            }
-
-            if (password.length < 6) {
-                showMessage('Password must be at least 6 characters long', 'error');
-                return;
-            }
-
-            if (password !== confirmPassword) {
-                showMessage('Passwords do not match', 'error');
-                return;
-            }
-
-            // Get existing users
-            let users = JSON.parse(localStorage.getItem('aias_users') || '{}');
-
-            // Check if user already exists
-            if (users[email]) {
-                showMessage('An account with this email already exists', 'error');
-                return;
-            }
-
-            // Save user with unverified status
-            users[email] = {
-                fullName: fullName,
-                email: email,
-                password: password,
-                authProvider: 'email',
-                verified: false, // Email signups require admin verification
-                createdAt: new Date().toISOString()
-            };
-
-            localStorage.setItem('aias_users', JSON.stringify(users));
-
-            showMessage('Account created successfully! Your account is pending admin verification. Please contact the administrator.', 'success');
-            
-            setTimeout(() => {
-                window.location.href = 'login.html';
-            }, 3000);
         });
     </script>
 </body>
