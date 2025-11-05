@@ -255,12 +255,14 @@ if (languageToggle) {
 // Check authentication status and update navigation
 function updateNavigation() {
     const isAuthenticated = localStorage.getItem('aias_authenticated') === 'true';
+    const isAdmin = localStorage.getItem('aias_is_admin') === 'true';
     const userName = localStorage.getItem('aias_user_name');
     
     const loginBtn = document.getElementById('loginBtn');
     const signupBtn = document.getElementById('signupBtn');
     const userProfile = document.getElementById('userProfile');
     const userNameElement = document.getElementById('userName');
+    const dashboardBtn = document.getElementById('dashboardBtn');
     
     if (isAuthenticated && userName) {
         // User is logged in - hide login/signup, show user profile
@@ -268,11 +270,17 @@ function updateNavigation() {
         if (signupBtn) signupBtn.style.display = 'none';
         if (userProfile) userProfile.style.display = 'flex';
         if (userNameElement) userNameElement.textContent = userName;
+        
+        // Show dashboard button if user is admin
+        if (dashboardBtn) {
+            dashboardBtn.style.display = isAdmin ? 'block' : 'none';
+        }
     } else {
         // User is not logged in - show login/signup, hide user profile
         if (loginBtn) loginBtn.style.display = 'block';
         if (signupBtn) signupBtn.style.display = 'block';
         if (userProfile) userProfile.style.display = 'none';
+        if (dashboardBtn) dashboardBtn.style.display = 'none';
     }
 }
 
