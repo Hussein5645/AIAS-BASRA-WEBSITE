@@ -210,6 +210,78 @@
             background: #c53030;
         }
 
+        .verify-btn {
+            padding: 0.5rem 1rem;
+            background: #38a169;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 0.5rem;
+        }
+
+        .verify-btn:hover {
+            background: #2f855a;
+        }
+
+        .verify-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+        }
+
+        .user-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.25rem;
+        }
+
+        .user-email {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .user-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 1rem;
+        }
+
+        .user-status.verified {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .user-status.unverified {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
         .home-link {
             padding: 0.5rem 1.5rem;
             background: white;
@@ -246,15 +318,24 @@
         <!-- Dashboard Navigation -->
         <nav class="dashboard-nav">
             <ul>
-                <li><button class="active" onclick="showTab('events')">Events</button></li>
+                <li><button class="active" onclick="showTab('users')">User Management</button></li>
+                <li><button onclick="showTab('events')">Events</button></li>
                 <li><button onclick="showTab('articles')">Magazine Articles</button></li>
                 <li><button onclick="showTab('library')">Library Resources</button></li>
                 <li><button onclick="showTab('education')">Education Content</button></li>
             </ul>
         </nav>
 
+        <!-- User Management Tab -->
+        <div id="users-tab" class="tab-content active">
+            <h2>User Management</h2>
+            <div class="content-list" id="usersList">
+                <p>Loading users...</p>
+            </div>
+        </div>
+
         <!-- Events Tab -->
-        <div id="events-tab" class="tab-content active">
+        <div id="events-tab" class="tab-content">
             <h2>Add New Event</h2>
             <form id="eventForm" class="content-form">
                 <div class="form-group">
@@ -381,9 +462,9 @@
     <script>
         // Check admin authentication
         (function() {
-            const isAuthenticated = sessionStorage.getItem('aias_authenticated') === 'true';
-            const isAdmin = sessionStorage.getItem('aias_is_admin') === 'true';
-            const userName = sessionStorage.getItem('aias_user_name');
+            const isAuthenticated = localStorage.getItem('aias_authenticated') === 'true';
+            const isAdmin = localStorage.getItem('aias_is_admin') === 'true';
+            const userName = localStorage.getItem('aias_user_name');
 
             if (!isAuthenticated || !isAdmin) {
                 window.location.href = 'login.html';
@@ -391,11 +472,79 @@
             }
 
             document.getElementById('adminName').textContent = userName || 'Admin';
+            
+            // Load users on page load
+            loadUsers();
         })();
 
         function logout() {
-            sessionStorage.clear();
+            localStorage.removeItem('aias_authenticated');
+            localStorage.removeItem('aias_user_email');
+            localStorage.removeItem('aias_user_name');
+            localStorage.removeItem('aias_user_picture');
+            localStorage.removeItem('aias_is_admin');
             window.location.href = 'login.html';
+        }
+
+        function loadUsers() {
+            const users = JSON.parse(localStorage.getItem('aias_users') || '{}');
+            const usersList = document.getElementById('usersList');
+            
+            if (Object.keys(users).length === 0) {
+                usersList.innerHTML = '<p>No users registered yet.</p>';
+                return;
+            }
+            
+            let html = '';
+            for (const [email, user] of Object.entries(users)) {
+                const isVerified = user.verified === true;
+                const authProvider = user.authProvider || 'email';
+                const statusClass = isVerified ? 'verified' : 'unverified';
+                const statusText = isVerified ? '✓ Verified' : '✗ Unverified';
+                
+                html += `
+                    <div class="user-item">
+                        <div class="user-info">
+                            <div class="user-name">${user.fullName || 'Unknown'}</div>
+                            <div class="user-email">${email}</div>
+                            <span class="user-status ${statusClass}">${statusText}</span>
+                            <span style="margin-left: 0.5rem; color: #718096; font-size: 0.85rem;">(${authProvider === 'google' ? 'Google' : 'Email'})</span>
+                        </div>
+                        <div class="user-actions">
+                            ${!isVerified ? `<button class="verify-btn" onclick="verifyUser('${email}')">Verify User</button>` : ''}
+                            <button class="delete-btn" onclick="deleteUser('${email}')">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            usersList.innerHTML = html;
+        }
+
+        function verifyUser(email) {
+            const users = JSON.parse(localStorage.getItem('aias_users') || '{}');
+            
+            if (users[email]) {
+                users[email].verified = true;
+                localStorage.setItem('aias_users', JSON.stringify(users));
+                showMessage('User verified successfully!', 'success');
+                loadUsers();
+            }
+        }
+
+        function deleteUser(email) {
+            if (!confirm(`Are you sure you want to delete the user: ${email}?`)) {
+                return;
+            }
+            
+            const users = JSON.parse(localStorage.getItem('aias_users') || '{}');
+            
+            if (users[email]) {
+                delete users[email];
+                localStorage.setItem('aias_users', JSON.stringify(users));
+                showMessage('User deleted successfully!', 'success');
+                loadUsers();
+            }
         }
 
         function showTab(tabName) {
