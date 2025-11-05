@@ -245,12 +245,21 @@
                     <span></span>
                 </button>
                 <ul class="nav-links" id="navLinks">
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="about.html">About Us</a></li>
-                    <li><a href="library.html">Library</a></li>
-                    <li><a href="magazine.html" class="active">Magazine</a></li>
-                    <li><a href="events.html">Events</a></li>
-                    <li><a href="education.html">Education</a></li>
+                    <li><a href="index.html" data-en="Home" data-ar="الرئيسية">Home</a></li>
+                    <li><a href="about.html" data-en="About Us" data-ar="من نحن">About Us</a></li>
+                    <li><a href="library.html" data-en="Library" data-ar="المكتبة">Library</a></li>
+                    <li><a href="magazine.html" class="active" data-en="Magazine" data-ar="المجلة">Magazine</a></li>
+                    <li><a href="events.html" data-en="Events" data-ar="الفعاليات">Events</a></li>
+                    <li><a href="education.html" data-en="Education" data-ar="التعليم">Education</a></li>
+                    <li>
+                        <button class="language-toggle" id="languageToggle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                            </svg>
+                            <span id="currentLang">EN</span>
+                        </button>
+                    </li>
                 </ul>
             </div>
         </div>

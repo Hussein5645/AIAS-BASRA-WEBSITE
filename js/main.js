@@ -209,4 +209,47 @@ grids.forEach(grid => {
     });
 });
 
+// Language Toggle Functionality
+let currentLanguage = localStorage.getItem('language') || 'en';
+
+function setLanguage(lang) {
+    currentLanguage = lang;
+    localStorage.setItem('language', lang);
+    
+    // Update HTML lang attribute
+    document.documentElement.lang = lang === 'ar' ? 'ar' : 'en';
+    
+    // Update body direction for RTL
+    document.body.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+    
+    // Update language toggle button
+    const langButton = document.getElementById('currentLang');
+    if (langButton) {
+        langButton.textContent = lang === 'ar' ? 'AR' : 'EN';
+    }
+    
+    // Update all elements with translations
+    const elements = document.querySelectorAll('[data-en][data-ar]');
+    elements.forEach(element => {
+        const translation = lang === 'ar' ? element.getAttribute('data-ar') : element.getAttribute('data-en');
+        if (translation) {
+            element.textContent = translation;
+        }
+    });
+}
+
+// Initialize language on page load
+document.addEventListener('DOMContentLoaded', () => {
+    setLanguage(currentLanguage);
+});
+
+// Language toggle button event
+const languageToggle = document.getElementById('languageToggle');
+if (languageToggle) {
+    languageToggle.addEventListener('click', () => {
+        const newLang = currentLanguage === 'en' ? 'ar' : 'en';
+        setLanguage(newLang);
+    });
+}
+
 console.log('AIAS Basra Website Loaded Successfully');
