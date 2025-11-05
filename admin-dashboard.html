@@ -374,6 +374,17 @@
 
         <!-- Events Tab -->
         <div id="events-tab" class="tab-content">
+            <h2 data-en="Manage Events" data-ar="إدارة الفعاليات">Manage Events</h2>
+            
+            <!-- Existing Events List -->
+            <div class="content-list" style="margin-bottom: 2rem;">
+                <h3 data-en="Existing Events" data-ar="الفعاليات الحالية">Existing Events</h3>
+                <div id="existingEventsList">
+                    <p data-en="Loading events..." data-ar="جاري تحميل الفعاليات...">Loading events...</p>
+                </div>
+            </div>
+            
+            <!-- Add New Event Form -->
             <h2 data-en="Add New Event" data-ar="إضافة فعالية جديدة">Add New Event</h2>
             <form id="eventForm" class="content-form">
                 <div class="form-group">
@@ -414,6 +425,17 @@
 
         <!-- Articles Tab -->
         <div id="articles-tab" class="tab-content">
+            <h2 data-en="Manage Magazine Articles" data-ar="إدارة مقالات المجلة">Manage Magazine Articles</h2>
+            
+            <!-- Existing Articles List -->
+            <div class="content-list" style="margin-bottom: 2rem;">
+                <h3 data-en="Existing Articles" data-ar="المقالات الحالية">Existing Articles</h3>
+                <div id="existingArticlesList">
+                    <p data-en="Loading articles..." data-ar="جاري تحميل المقالات...">Loading articles...</p>
+                </div>
+            </div>
+            
+            <!-- Add New Article Form -->
             <h2 data-en="Add New Article" data-ar="إضافة مقال جديد">Add New Article</h2>
             <form id="articleForm" class="content-form">
                 <div class="form-group">
@@ -442,6 +464,17 @@
 
         <!-- Library Tab -->
         <div id="library-tab" class="tab-content">
+            <h2 data-en="Manage Library Resources" data-ar="إدارة موارد المكتبة">Manage Library Resources</h2>
+            
+            <!-- Existing Library Resources List -->
+            <div class="content-list" style="margin-bottom: 2rem;">
+                <h3 data-en="Existing Resources" data-ar="الموارد الحالية">Existing Resources</h3>
+                <div id="existingLibraryList">
+                    <p data-en="Loading resources..." data-ar="جاري تحميل الموارد...">Loading resources...</p>
+                </div>
+            </div>
+            
+            <!-- Add New Library Resource Form -->
             <h2 data-en="Add New Library Resource" data-ar="إضافة مورد مكتبي جديد">Add New Library Resource</h2>
             <form id="libraryForm" class="content-form">
                 <div class="form-group">
@@ -737,6 +770,228 @@
             // Load content for specific tabs
             if (tabName === 'home') {
                 loadHomeContent();
+            } else if (tabName === 'events') {
+                loadExistingEvents();
+            } else if (tabName === 'articles') {
+                loadExistingArticles();
+            } else if (tabName === 'library') {
+                loadExistingLibraryResources();
+            } else if (tabName === 'education') {
+                loadEducationContent();
+            }
+        };
+
+        // Load existing events
+        window.loadExistingEvents = async function() {
+            console.log('[Admin Dashboard] Loading existing events...');
+            const listContainer = document.getElementById('existingEventsList');
+            listContainer.innerHTML = '<p>Loading events...</p>';
+            
+            try {
+                const result = await firestoreAPI.getAllContent();
+                if (!result.success || !result.content.events) {
+                    listContainer.innerHTML = '<p>No events found.</p>';
+                    return;
+                }
+                
+                const events = result.content.events;
+                console.log(`[Admin Dashboard] Loaded ${events.length} events`);
+                
+                if (events.length === 0) {
+                    listContainer.innerHTML = '<p>No events found.</p>';
+                    return;
+                }
+                
+                let html = '';
+                events.forEach(event => {
+                    html += `
+                        <div class="content-item">
+                            <div>
+                                <strong>${event.title}</strong><br>
+                                <small>${new Date(event.time).toLocaleDateString()} - ${event.location}</small>
+                            </div>
+                            <div class="user-actions">
+                                <button class="delete-btn" onclick="deleteEvent('${event.id}')">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                listContainer.innerHTML = html;
+                reapplyTranslations();
+            } catch (error) {
+                console.error('[Admin Dashboard] Error loading events:', error);
+                listContainer.innerHTML = '<p style="color: red;">Error loading events</p>';
+            }
+        };
+
+        // Delete event
+        window.deleteEvent = async function(eventId) {
+            const currentLang = localStorage.getItem('language') || 'en';
+            const confirmMsg = currentLang === 'ar' ? 'هل أنت متأكد من حذف هذه الفعالية؟' : 'Are you sure you want to delete this event?';
+            
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+            
+            console.log(`[Admin Dashboard] Deleting event ${eventId}...`);
+            const result = await firestoreAPI.deleteEvent(eventId);
+            
+            if (result.success) {
+                const message = currentLang === 'ar' ? 'تم حذف الفعالية بنجاح!' : 'Event deleted successfully!';
+                showMessage(message, 'success');
+                loadExistingEvents();
+            } else {
+                const message = currentLang === 'ar' ? 'فشل حذف الفعالية: ' + result.error : 'Failed to delete event: ' + result.error;
+                showMessage(message, 'error');
+            }
+        };
+
+        // Load existing articles
+        window.loadExistingArticles = async function() {
+            console.log('[Admin Dashboard] Loading existing articles...');
+            const listContainer = document.getElementById('existingArticlesList');
+            listContainer.innerHTML = '<p>Loading articles...</p>';
+            
+            try {
+                const result = await firestoreAPI.getAllContent();
+                if (!result.success || !result.content.magazine || !result.content.magazine.articles) {
+                    listContainer.innerHTML = '<p>No articles found.</p>';
+                    return;
+                }
+                
+                const articles = result.content.magazine.articles;
+                console.log(`[Admin Dashboard] Loaded ${articles.length} articles`);
+                
+                if (articles.length === 0) {
+                    listContainer.innerHTML = '<p>No articles found.</p>';
+                    return;
+                }
+                
+                let html = '';
+                articles.forEach(article => {
+                    html += `
+                        <div class="content-item">
+                            <div>
+                                <strong>${article.title}</strong><br>
+                                <small>by ${article.author} - ${article.date}</small>
+                            </div>
+                            <div class="user-actions">
+                                <button class="delete-btn" onclick="deleteArticle('${article.id}')">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                listContainer.innerHTML = html;
+                reapplyTranslations();
+            } catch (error) {
+                console.error('[Admin Dashboard] Error loading articles:', error);
+                listContainer.innerHTML = '<p style="color: red;">Error loading articles</p>';
+            }
+        };
+
+        // Delete article
+        window.deleteArticle = async function(articleId) {
+            const currentLang = localStorage.getItem('language') || 'en';
+            const confirmMsg = currentLang === 'ar' ? 'هل أنت متأكد من حذف هذا المقال؟' : 'Are you sure you want to delete this article?';
+            
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+            
+            console.log(`[Admin Dashboard] Deleting article ${articleId}...`);
+            const result = await firestoreAPI.deleteArticle(articleId);
+            
+            if (result.success) {
+                const message = currentLang === 'ar' ? 'تم حذف المقال بنجاح!' : 'Article deleted successfully!';
+                showMessage(message, 'success');
+                loadExistingArticles();
+            } else {
+                const message = currentLang === 'ar' ? 'فشل حذف المقال: ' + result.error : 'Failed to delete article: ' + result.error;
+                showMessage(message, 'error');
+            }
+        };
+
+        // Load existing library resources
+        window.loadExistingLibraryResources = async function() {
+            console.log('[Admin Dashboard] Loading existing library resources...');
+            const listContainer = document.getElementById('existingLibraryList');
+            listContainer.innerHTML = '<p>Loading resources...</p>';
+            
+            try {
+                const result = await firestoreAPI.getAllContent();
+                if (!result.success || !result.content.library) {
+                    listContainer.innerHTML = '<p>No resources found.</p>';
+                    return;
+                }
+                
+                const resources = result.content.library;
+                console.log(`[Admin Dashboard] Loaded ${resources.length} library resources`);
+                
+                if (resources.length === 0) {
+                    listContainer.innerHTML = '<p>No resources found.</p>';
+                    return;
+                }
+                
+                let html = '';
+                resources.forEach(resource => {
+                    html += `
+                        <div class="content-item">
+                            <div>
+                                <strong>${resource.name}</strong><br>
+                                <small>${resource.type} - ${resource.tags ? resource.tags.join(', ') : ''}</small>
+                            </div>
+                            <div class="user-actions">
+                                <button class="delete-btn" onclick="deleteLibraryResource('${resource.id}')">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                listContainer.innerHTML = html;
+                reapplyTranslations();
+            } catch (error) {
+                console.error('[Admin Dashboard] Error loading library resources:', error);
+                listContainer.innerHTML = '<p style="color: red;">Error loading resources</p>';
+            }
+        };
+
+        // Delete library resource
+        window.deleteLibraryResource = async function(resourceId) {
+            const currentLang = localStorage.getItem('language') || 'en';
+            const confirmMsg = currentLang === 'ar' ? 'هل أنت متأكد من حذف هذا المورد؟' : 'Are you sure you want to delete this resource?';
+            
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+            
+            console.log(`[Admin Dashboard] Deleting library resource ${resourceId}...`);
+            const result = await firestoreAPI.deleteLibraryResource(resourceId);
+            
+            if (result.success) {
+                const message = currentLang === 'ar' ? 'تم حذف المورد بنجاح!' : 'Resource deleted successfully!';
+                showMessage(message, 'success');
+                loadExistingLibraryResources();
+            } else {
+                const message = currentLang === 'ar' ? 'فشل حذف المورد: ' + result.error : 'Failed to delete resource: ' + result.error;
+                showMessage(message, 'error');
+            }
+        };
+
+        // Load education content for editing
+        window.loadEducationContent = async function() {
+            console.log('[Admin Dashboard] Loading education content...');
+            try {
+                const result = await firestoreAPI.getAllContent();
+                if (result.success && result.content.education && result.content.education.weeklyWorkshop) {
+                    const workshop = result.content.education.weeklyWorkshop;
+                    document.getElementById('weekTitle').value = workshop.weekTitle || '';
+                    document.getElementById('lecturerName').value = workshop.lecturerName || '';
+                    document.getElementById('weekDescription').value = workshop.description || '';
+                }
+            } catch (error) {
+                console.error('[Admin Dashboard] Error loading education content:', error);
             }
         };
 
@@ -892,6 +1147,7 @@
                         const successMsg = currentLang === 'ar' ? '✓ تم إضافة الفعالية بنجاح إلى المستودع!' : '✓ Event added successfully to the repository!';
                         showMessage(successMsg, 'success');
                         document.getElementById('eventForm').reset();
+                        loadExistingEvents(); // Reload the events list
                     } else {
                         const errorMsg = currentLang === 'ar' ? '✗ فشل إضافة الفعالية: ' + result.error : '✗ Failed to add event: ' + result.error;
                         showMessage(errorMsg, 'error');
@@ -913,6 +1169,7 @@
                     const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
                     alert(alertMsg + JSON.stringify(data, null, 2));
                     document.getElementById('eventForm').reset();
+                    loadExistingEvents(); // Reload the events list
                 } catch (error) {
                     const errorMsg = currentLang === 'ar' ? 'خطأ في إعداد الفعالية: ' + error.message : 'Error preparing event: ' + error.message;
                     showMessage(errorMsg, 'error');
@@ -945,6 +1202,7 @@
                         const successMsg = currentLang === 'ar' ? '✓ تم إضافة المقال بنجاح إلى المستودع!' : '✓ Article added successfully to the repository!';
                         showMessage(successMsg, 'success');
                         document.getElementById('articleForm').reset();
+                        loadExistingArticles(); // Reload the articles list
                     } else {
                         const errorMsg = currentLang === 'ar' ? '✗ فشل إضافة المقال: ' + result.error : '✗ Failed to add article: ' + result.error;
                         showMessage(errorMsg, 'error');
@@ -965,6 +1223,7 @@
                     const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
                     alert(alertMsg + JSON.stringify(data, null, 2));
                     document.getElementById('articleForm').reset();
+                    loadExistingArticles(); // Reload the articles list
                 } catch (error) {
                     const errorMsg = currentLang === 'ar' ? 'خطأ في إعداد المقال: ' + error.message : 'Error preparing article: ' + error.message;
                     showMessage(errorMsg, 'error');
@@ -1000,6 +1259,7 @@
                         const successMsg = currentLang === 'ar' ? '✓ تم إضافة مورد المكتبة بنجاح إلى المستودع!' : '✓ Library resource added successfully to the repository!';
                         showMessage(successMsg, 'success');
                         document.getElementById('libraryForm').reset();
+                        loadExistingLibraryResources(); // Reload the library resources list
                     } else {
                         const errorMsg = currentLang === 'ar' ? '✗ فشل إضافة المورد: ' + result.error : '✗ Failed to add resource: ' + result.error;
                         showMessage(errorMsg, 'error');
@@ -1020,6 +1280,7 @@
                     const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
                     alert(alertMsg + JSON.stringify(data, null, 2));
                     document.getElementById('libraryForm').reset();
+                    loadExistingLibraryResources(); // Reload the library resources list
                 } catch (error) {
                     const errorMsg = currentLang === 'ar' ? 'خطأ في إعداد المورد: ' + error.message : 'Error preparing resource: ' + error.message;
                     showMessage(errorMsg, 'error');

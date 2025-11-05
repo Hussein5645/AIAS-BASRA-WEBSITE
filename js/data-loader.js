@@ -16,18 +16,25 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
+console.log('[Data Loader] Initializing Firebase app...');
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+console.log('[Data Loader] Firebase initialized successfully');
+console.log('[Data Loader] Firestore instance created');
 
 const DataLoader = (function() {
     let cachedData = null;
 
     // Fetch data from Firestore
     async function fetchData() {
+        console.log('[Data Loader] fetchData() called');
+        
         if (cachedData) {
+            console.log('[Data Loader] Returning cached data');
             return cachedData;
         }
 
+        console.log('[Data Loader] Fetching fresh data from Firestore...');
         try {
             // Fetch all collections from Firestore
             const data = {
@@ -57,41 +64,67 @@ const DataLoader = (function() {
             };
 
             // Fetch home data
+            console.log('[Data Loader] Fetching home content...');
             const homeDoc = await getDoc(doc(db, 'content', 'home'));
             if (homeDoc.exists()) {
                 data.home = homeDoc.data();
+                console.log('[Data Loader] ✓ Home content loaded');
+            } else {
+                console.log('[Data Loader] ⚠ No home content found in Firestore');
             }
 
             // Fetch events
+            console.log('[Data Loader] Fetching events...');
             const eventsSnapshot = await getDocs(collection(db, 'events'));
             data.events = eventsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            console.log(`[Data Loader] ✓ Loaded ${data.events.length} events`);
 
             // Fetch magazine data
+            console.log('[Data Loader] Fetching magazine content...');
             const magazineDoc = await getDoc(doc(db, 'content', 'magazine'));
             if (magazineDoc.exists()) {
                 data.magazine = magazineDoc.data();
+                console.log('[Data Loader] ✓ Magazine content loaded');
+            } else {
+                console.log('[Data Loader] ⚠ No magazine content found in Firestore');
             }
 
             // Fetch library items
+            console.log('[Data Loader] Fetching library items...');
             const librarySnapshot = await getDocs(collection(db, 'library'));
             data.library = librarySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            console.log(`[Data Loader] ✓ Loaded ${data.library.length} library items`);
 
             // Fetch education data
+            console.log('[Data Loader] Fetching education content...');
             const educationDoc = await getDoc(doc(db, 'content', 'education'));
             if (educationDoc.exists()) {
                 data.education = educationDoc.data();
+                console.log('[Data Loader] ✓ Education content loaded');
+            } else {
+                console.log('[Data Loader] ⚠ No education content found in Firestore');
             }
 
             // Fetch about data
+            console.log('[Data Loader] Fetching about content...');
             const aboutDoc = await getDoc(doc(db, 'content', 'about'));
             if (aboutDoc.exists()) {
                 data.about = aboutDoc.data();
+                console.log('[Data Loader] ✓ About content loaded');
+            } else {
+                console.log('[Data Loader] ⚠ No about content found in Firestore');
             }
 
             cachedData = data;
+            console.log('[Data Loader] ✓ All data loaded and cached successfully');
             return cachedData;
         } catch (error) {
-            console.error('Error loading data from Firestore:', error);
+            console.error('[Data Loader] ✗ Error loading data from Firestore:', error);
+            console.error('[Data Loader] Error details:', {
+                code: error.code,
+                message: error.message,
+                name: error.name
+            });
             return null;
         }
     }

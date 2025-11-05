@@ -10,6 +10,13 @@ const firebaseConfig = {
   measurementId: "G-6W50T4HXDV"
 };
 
+// Log Firebase configuration (without sensitive data)
+console.log('[Firebase Config] Initializing with:', {
+  projectId: firebaseConfig.projectId,
+  authDomain: firebaseConfig.authDomain,
+  storageBucket: firebaseConfig.storageBucket
+});
+
 // Export for use in other files
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = firebaseConfig;
