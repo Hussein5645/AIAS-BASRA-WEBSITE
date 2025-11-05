@@ -96,6 +96,92 @@
       "lecturerName": "Sample Lecturer Name",
       "description": "This is a sample weekly workshop entry. Update this content through the admin dashboard with current workshop information."
     },
+    "courses": [
+      {
+        "id": "course-001",
+        "title": "Design Fundamentals",
+        "level": "Beginner",
+        "icon": "📐",
+        "description": "Master the core principles of architectural design, composition, and spatial thinking.",
+        "features": [
+          "Basic design theory",
+          "Sketching techniques",
+          "Spatial composition",
+          "Design process"
+        ],
+        "duration": "8 Weeks"
+      },
+      {
+        "id": "course-002",
+        "title": "Digital Design Tools",
+        "level": "Intermediate",
+        "icon": "💻",
+        "description": "Learn industry-standard software including AutoCAD, Revit, and SketchUp.",
+        "features": [
+          "AutoCAD 2D & 3D",
+          "Revit BIM modeling",
+          "SketchUp rendering",
+          "Photoshop for architects"
+        ],
+        "duration": "12 Weeks"
+      },
+      {
+        "id": "course-003",
+        "title": "Sustainable Design",
+        "level": "Advanced",
+        "icon": "🌿",
+        "description": "Explore green building strategies and sustainable architectural practices.",
+        "features": [
+          "LEED principles",
+          "Energy efficiency",
+          "Material selection",
+          "Climate-responsive design"
+        ],
+        "duration": "10 Weeks"
+      },
+      {
+        "id": "course-004",
+        "title": "Construction & Materials",
+        "level": "Intermediate",
+        "icon": "🏗️",
+        "description": "Understand construction methods, materials, and building systems.",
+        "features": [
+          "Building systems",
+          "Material properties",
+          "Construction techniques",
+          "Structural basics"
+        ],
+        "duration": "10 Weeks"
+      },
+      {
+        "id": "course-005",
+        "title": "Visualization & Rendering",
+        "level": "Advanced",
+        "icon": "🎨",
+        "description": "Create stunning architectural visualizations and presentations.",
+        "features": [
+          "3D rendering techniques",
+          "V-Ray & Lumion",
+          "Post-production",
+          "Portfolio development"
+        ],
+        "duration": "8 Weeks"
+      },
+      {
+        "id": "course-006",
+        "title": "Urban Planning",
+        "level": "Advanced",
+        "icon": "🏙️",
+        "description": "Study city planning, urban design principles, and community development.",
+        "features": [
+          "Urban design theory",
+          "Master planning",
+          "Community engagement",
+          "Smart city concepts"
+        ],
+        "duration": "12 Weeks"
+      }
+    ],
     "fbd": {
       "pageTitle": "Friday by Design",
       "about": "Friday by Design is our weekly series dedicated to exploring architectural concepts and bringing together students for collaborative learning. This is sample content - update through the admin dashboard.",
@@ -103,9 +189,11 @@
         {
           "id": "fbd-sample-001",
           "title": "Sample FBD Event: Architectural Sketching",
-          "date": "2025-12-20T16:00:00Z",
+          "time": "2025-12-20T16:00:00Z",
           "description": "Sample Friday by Design event entry.",
-          "location": "Main Hall"
+          "location": "Main Hall",
+          "image": "✏️",
+          "seatsAvailable": 25
         }
       ]
     }
