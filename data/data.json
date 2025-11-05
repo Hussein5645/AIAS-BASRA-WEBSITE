@@ -63,25 +63,19 @@
     "founders": [
       {
         "id": "founder-001",
-        "name": "Ahmed Al-Basri",
+        "name": "montader jamal",
         "role": "Founder & President",
-        "image": "content/founders/founder1.svg",
+        "image": "content/founders/montader.png",
         "bio": "Passionate about architectural education and community building."
       },
       {
         "id": "founder-002",
-        "name": "Sara Al-Zubaidi",
+        "name": "hussein mustafa ",
         "role": "Co-Founder & Vice President",
-        "image": "content/founders/founder2.svg",
+        "image": "content/founders/hussein.png",
         "bio": "Dedicated to promoting sustainable design practices."
       },
-      {
-        "id": "founder-003",
-        "name": "Mohammed Hassan",
-        "role": "Co-Founder & Education Director",
-        "image": "content/founders/founder3.svg",
-        "bio": "Committed to providing quality architectural education."
-      }
+
     ],
     "team": [
       {
