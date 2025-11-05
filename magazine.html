@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magazine - AIAS Basra Chapter</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .magazine-hero {
+            background: var(--gradient-1);
+            color: var(--white);
+            padding: 8rem 0 4rem;
+            text-align: center;
+        }
+        
+        .magazine-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .featured-article {
+            padding: 5rem 0;
+            background: var(--light-bg);
+        }
+        
+        .featured-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+        
+        .featured-image {
+            height: 400px;
+            background: var(--gradient-2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 6rem;
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .featured-text h2 {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .article-date {
+            color: var(--accent-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .featured-text p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+        
+        .articles-section {
+            padding: 5rem 0;
+        }
+        
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+        
+        .article-card {
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            perspective: 1000px;
+        }
+        
+        .article-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .article-image {
+            height: 220px;
+            background: var(--gradient-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .article-image::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.3) 100%);
+        }
+        
+        .article-category {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: var(--white);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            z-index: 1;
+        }
+        
+        .article-content {
+            padding: 1.5rem;
+        }
+        
+        .article-meta {
+            display: flex;
+            gap: 1rem;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+        
+        .article-title {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+        
+        .article-excerpt {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+        
+        .read-more {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--accent-color);
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .read-more:hover {
+            gap: 1rem;
+        }
+        
+        .newsletter-section {
+            background: var(--gradient-1);
+            color: var(--white);
+            padding: 4rem 0;
+            text-align: center;
+        }
+        
+        .newsletter-content h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .newsletter-content p {
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .newsletter-form {
+            max-width: 500px;
+            margin: 0 auto;
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .newsletter-form input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+        }
+        
+        .newsletter-form button {
+            padding: 1rem 2rem;
+            background: var(--white);
+            color: var(--primary-color);
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .newsletter-form button:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        @media (max-width: 768px) {
+            .magazine-hero h1 {
+                font-size: 2rem;
+            }
+            
+            .featured-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .newsletter-form {
+                flex-direction: column;
+            }
+            
+            .newsletter-form button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">
+                    <img src="LOGO.png" alt="AIAS Basra Logo">
+                    <span>AIAS Basra</span>
+                </div>
+                <button class="menu-toggle" id="menuToggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="library.html">Library</a></li>
+                    <li><a href="magazine.html" class="active">Magazine</a></li>
+                    <li><a href="events.html">Events</a></li>
+                    <li><a href="education.html">Education</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Magazine Hero -->
+    <section class="magazine-hero">
+        <div class="container">
+            <h1 class="fade-in-up">Magazine & Articles</h1>
+            <p class="fade-in-up delay-1">Explore insights, trends, and stories from the world of architecture</p>
+        </div>
+    </section>
+
+    <!-- Featured Article -->
+    <section class="featured-article">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Featured Article</h2>
+            </div>
+            <div class="featured-content">
+                <div class="featured-image reveal">🏗️</div>
+                <div class="featured-text reveal">
+                    <div class="article-date">📅 December 2024</div>
+                    <h2>The Future of Sustainable Architecture in Iraq</h2>
+                    <p>
+                        Exploring innovative approaches to sustainable building design in the Middle East. 
+                        This comprehensive article examines how architects in Iraq are adapting global 
+                        sustainability practices to local climate conditions and cultural contexts.
+                    </p>
+                    <p>
+                        From traditional passive cooling techniques to modern green building technologies, 
+                        discover how the next generation of architects is shaping a more sustainable future 
+                        for our built environment.
+                    </p>
+                    <a href="#" class="btn btn-primary">Read Full Article</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Articles Section -->
+    <section class="articles-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Latest Articles</h2>
+                <p class="section-subtitle">Stay updated with our latest publications</p>
+            </div>
+            <div class="articles-grid">
+                <div class="article-card reveal">
+                    <div class="article-image">
+                        📐
+                        <span class="article-category">Design</span>
+                    </div>
+                    <div class="article-content">
+                        <div class="article-meta">
+                            <span>📅 Nov 28, 2024</span>
+                            <span>⏱️ 5 min read</span>
+                        </div>
+                        <h3 class="article-title">Modern Design Principles for Urban Spaces</h3>
+                        <p class="article-excerpt">
+                            Exploring contemporary approaches to creating vibrant and functional urban environments.
+                        </p>
+                        <a href="#" class="read-more">Read More →</a>
+                    </div>
+                </div>
+
+                <div class="article-card reveal">
+                    <div class="article-image">
+                        🌿
+                        <span class="article-category">Sustainability</span>
+                    </div>
+                    <div class="article-content">
+                        <div class="article-meta">
+                            <span>📅 Nov 25, 2024</span>
+                            <span>⏱️ 8 min read</span>
+                        </div>
+                        <h3 class="article-title">Green Building Materials: A Comprehensive Guide</h3>
+                        <p class="article-excerpt">
+                            Discover eco-friendly building materials that are reshaping sustainable architecture.
+                        </p>
+                        <a href="#" class="read-more">Read More →</a>
+                    </div>
+                </div>
+
+                <div class="article-card reveal">
+                    <div class="article-image">
+                        💻
+                        <span class="article-category">Technology</span>
+                    </div>
+                    <div class="article-content">
+                        <div class="article-meta">
+                            <span>📅 Nov 22, 2024</span>
+                            <span>⏱️ 6 min read</span>
+                        </div>
+                        <h3 class="article-title">BIM Technology in Modern Architecture</h3>
+                        <p class="article-excerpt">
+                            How Building Information Modeling is transforming the architectural workflow.
+                        </p>
+                        <a href="#" class="read-more">Read More →</a>
+                    </div>
+                </div>
+
+                <div class="article-card reveal">
+                    <div class="article-image">
+                        🏛️
+                        <span class="article-category">History</span>
+                    </div>
+                    <div class="article-content">
+                        <div class="article-meta">
+                            <span>📅 Nov 20, 2024</span>
+                            <span>⏱️ 7 min read</span>
+                        </div>
+                        <h3 class="article-title">Iraqi Architecture: Heritage and Innovation</h3>
+                        <p class="article-excerpt">
+                            A journey through Iraq's rich architectural heritage and its influence on modern design.
+                        </p>
+                        <a href="#" class="read-more">Read More →</a>
+                    </div>
+                </div>
+
+                <div class="article-card reveal">
+                    <div class="article-image">
+                        🎨
+                        <span class="article-category">Inspiration</span>
+                    </div>
+                    <div class="article-content">
+                        <div class="article-meta">
+                            <span>📅 Nov 18, 2024</span>
+                            <span>⏱️ 4 min read</span>
+                        </div>
+                        <h3 class="article-title">Color Theory in Architectural Design</h3>
+                        <p class="article-excerpt">
+                            Understanding how color influences mood and perception in built environments.
+                        </p>
+                        <a href="#" class="read-more">Read More →</a>
+                    </div>
+                </div>
+
+                <div class="article-card reveal">
+                    <div class="article-image">
+                        👥
+                        <span class="article-category">Community</span>
+                    </div>
+                    <div class="article-content">
+                        <div class="article-meta">
+                            <span>📅 Nov 15, 2024</span>
+                            <span>⏱️ 5 min read</span>
+                        </div>
+                        <h3 class="article-title">Student Projects Showcase 2024</h3>
+                        <p class="article-excerpt">
+                            Highlighting exceptional work from our talented architecture students.
+                        </p>
+                        <a href="#" class="read-more">Read More →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section class="newsletter-section">
+        <div class="container">
+            <div class="newsletter-content">
+                <h2>Subscribe to Our Newsletter</h2>
+                <p>Get the latest articles and updates delivered straight to your inbox</p>
+                <form class="newsletter-form">
+                    <input type="email" placeholder="Enter your email address" required>
+                    <button type="submit">Subscribe</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>AIAS Basra Chapter</h3>
+                    <p>American Institute of Architecture Students - Basra Chapter</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="events.html">Events</a></li>
+                        <li><a href="library.html">Library</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook">📘</a>
+                        <a href="#" aria-label="Instagram">📷</a>
+                        <a href="#" aria-label="LinkedIn">💼</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 AIAS Basra Chapter. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

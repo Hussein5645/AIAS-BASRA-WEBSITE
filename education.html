@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Education - AIAS Basra Chapter</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .education-hero {
+            background: var(--gradient-1);
+            color: var(--white);
+            padding: 8rem 0 4rem;
+            text-align: center;
+        }
+        
+        .education-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .programs-section {
+            padding: 5rem 0;
+        }
+        
+        .programs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+        
+        .program-card {
+            background: var(--white);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .program-card:hover {
+            transform: translateY(-15px) rotate(1deg);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .program-header {
+            height: 180px;
+            background: var(--gradient-2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .program-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            animation: ripple 8s ease-in-out infinite;
+        }
+        
+        @keyframes ripple {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            50% {
+                transform: translate(-10%, -10%) scale(1.1);
+            }
+        }
+        
+        .program-icon {
+            font-size: 4rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .program-level {
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--primary-color);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .program-body {
+            padding: 2rem;
+        }
+        
+        .program-title {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        .program-description {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+        
+        .program-features {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+        
+        .program-features li {
+            padding: 0.5rem 0;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .program-features li::before {
+            content: '✓';
+            color: var(--accent-color);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .program-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .program-duration {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .enroll-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--gradient-1);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .enroll-btn:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .learning-paths {
+            background: var(--light-bg);
+            padding: 5rem 0;
+        }
+        
+        .paths-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+        
+        .path-card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            border-top: 4px solid var(--accent-color);
+        }
+        
+        .path-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .path-number {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-1);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 auto 1rem;
+        }
+        
+        .path-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+        
+        .path-card p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        
+        .stats-section {
+            padding: 5rem 0;
+            background: var(--gradient-1);
+            color: var(--white);
+            text-align: center;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .stat-item {
+            padding: 2rem;
+        }
+        
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        @media (max-width: 768px) {
+            .education-hero h1 {
+                font-size: 2rem;
+            }
+            
+            .programs-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">
+                    <img src="LOGO.png" alt="AIAS Basra Logo">
+                    <span>AIAS Basra</span>
+                </div>
+                <button class="menu-toggle" id="menuToggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="library.html">Library</a></li>
+                    <li><a href="magazine.html">Magazine</a></li>
+                    <li><a href="events.html">Events</a></li>
+                    <li><a href="education.html" class="active">Education</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Education Hero -->
+    <section class="education-hero">
+        <div class="container">
+            <h1 class="fade-in-up">Educational Programs</h1>
+            <p class="fade-in-up delay-1">Enhance your skills with our comprehensive learning programs</p>
+        </div>
+    </section>
+
+    <!-- Programs Section -->
+    <section class="programs-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Our Programs</h2>
+                <p class="section-subtitle">Choose from a variety of specialized courses and workshops</p>
+            </div>
+            <div class="programs-grid">
+                <div class="program-card reveal">
+                    <div class="program-header">
+                        <div class="program-icon">📐</div>
+                        <div class="program-level">Beginner</div>
+                    </div>
+                    <div class="program-body">
+                        <h3 class="program-title">Design Fundamentals</h3>
+                        <p class="program-description">
+                            Master the core principles of architectural design, composition, and spatial thinking.
+                        </p>
+                        <ul class="program-features">
+                            <li>Basic design theory</li>
+                            <li>Sketching techniques</li>
+                            <li>Spatial composition</li>
+                            <li>Design process</li>
+                        </ul>
+                        <div class="program-footer">
+                            <div class="program-duration">
+                                <span>⏱️</span>
+                                <span>8 Weeks</span>
+                            </div>
+                            <button class="enroll-btn">Enroll Now</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="program-card reveal">
+                    <div class="program-header">
+                        <div class="program-icon">💻</div>
+                        <div class="program-level">Intermediate</div>
+                    </div>
+                    <div class="program-body">
+                        <h3 class="program-title">Digital Design Tools</h3>
+                        <p class="program-description">
+                            Learn industry-standard software including AutoCAD, Revit, and SketchUp.
+                        </p>
+                        <ul class="program-features">
+                            <li>AutoCAD 2D & 3D</li>
+                            <li>Revit BIM modeling</li>
+                            <li>SketchUp rendering</li>
+                            <li>Photoshop for architects</li>
+                        </ul>
+                        <div class="program-footer">
+                            <div class="program-duration">
+                                <span>⏱️</span>
+                                <span>12 Weeks</span>
+                            </div>
+                            <button class="enroll-btn">Enroll Now</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="program-card reveal">
+                    <div class="program-header">
+                        <div class="program-icon">🌿</div>
+                        <div class="program-level">Advanced</div>
+                    </div>
+                    <div class="program-body">
+                        <h3 class="program-title">Sustainable Design</h3>
+                        <p class="program-description">
+                            Explore green building strategies and sustainable architectural practices.
+                        </p>
+                        <ul class="program-features">
+                            <li>LEED principles</li>
+                            <li>Energy efficiency</li>
+                            <li>Material selection</li>
+                            <li>Climate-responsive design</li>
+                        </ul>
+                        <div class="program-footer">
+                            <div class="program-duration">
+                                <span>⏱️</span>
+                                <span>10 Weeks</span>
+                            </div>
+                            <button class="enroll-btn">Enroll Now</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="program-card reveal">
+                    <div class="program-header">
+                        <div class="program-icon">🏗️</div>
+                        <div class="program-level">Intermediate</div>
+                    </div>
+                    <div class="program-body">
+                        <h3 class="program-title">Construction & Materials</h3>
+                        <p class="program-description">
+                            Understand construction methods, materials, and building systems.
+                        </p>
+                        <ul class="program-features">
+                            <li>Building systems</li>
+                            <li>Material properties</li>
+                            <li>Construction techniques</li>
+                            <li>Structural basics</li>
+                        </ul>
+                        <div class="program-footer">
+                            <div class="program-duration">
+                                <span>⏱️</span>
+                                <span>10 Weeks</span>
+                            </div>
+                            <button class="enroll-btn">Enroll Now</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="program-card reveal">
+                    <div class="program-header">
+                        <div class="program-icon">🎨</div>
+                        <div class="program-level">Advanced</div>
+                    </div>
+                    <div class="program-body">
+                        <h3 class="program-title">Visualization & Rendering</h3>
+                        <p class="program-description">
+                            Create stunning architectural visualizations and presentations.
+                        </p>
+                        <ul class="program-features">
+                            <li>3D rendering techniques</li>
+                            <li>V-Ray & Lumion</li>
+                            <li>Post-production</li>
+                            <li>Portfolio development</li>
+                        </ul>
+                        <div class="program-footer">
+                            <div class="program-duration">
+                                <span>⏱️</span>
+                                <span>8 Weeks</span>
+                            </div>
+                            <button class="enroll-btn">Enroll Now</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="program-card reveal">
+                    <div class="program-header">
+                        <div class="program-icon">🏙️</div>
+                        <div class="program-level">Advanced</div>
+                    </div>
+                    <div class="program-body">
+                        <h3 class="program-title">Urban Planning</h3>
+                        <p class="program-description">
+                            Study city planning, urban design principles, and community development.
+                        </p>
+                        <ul class="program-features">
+                            <li>Urban design theory</li>
+                            <li>Master planning</li>
+                            <li>Community engagement</li>
+                            <li>Smart city concepts</li>
+                        </ul>
+                        <div class="program-footer">
+                            <div class="program-duration">
+                                <span>⏱️</span>
+                                <span>12 Weeks</span>
+                            </div>
+                            <button class="enroll-btn">Enroll Now</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Learning Paths -->
+    <section class="learning-paths">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Your Learning Journey</h2>
+                <p class="section-subtitle">Follow a structured path to architectural excellence</p>
+            </div>
+            <div class="paths-container">
+                <div class="path-card reveal">
+                    <div class="path-number" style="display: flex;">1</div>
+                    <h3>Foundation</h3>
+                    <p>Build a strong base with design fundamentals and basic software skills</p>
+                </div>
+                <div class="path-card reveal">
+                    <div class="path-number" style="display: flex;">2</div>
+                    <h3>Development</h3>
+                    <p>Expand your knowledge with specialized courses and practical projects</p>
+                </div>
+                <div class="path-card reveal">
+                    <div class="path-number" style="display: flex;">3</div>
+                    <h3>Specialization</h3>
+                    <p>Master advanced topics and develop your unique architectural voice</p>
+                </div>
+                <div class="path-card reveal">
+                    <div class="path-number" style="display: flex;">4</div>
+                    <h3>Excellence</h3>
+                    <p>Achieve professional-level skills and contribute to the community</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <h2 class="section-title" style="color: var(--white);">Our Impact</h2>
+            <div class="stats-grid">
+                <div class="stat-item reveal">
+                    <div class="stat-number counter" data-target="500">0</div>
+                    <div class="stat-label">Students Trained</div>
+                </div>
+                <div class="stat-item reveal">
+                    <div class="stat-number counter" data-target="25">0</div>
+                    <div class="stat-label">Programs Offered</div>
+                </div>
+                <div class="stat-item reveal">
+                    <div class="stat-number counter" data-target="50">0</div>
+                    <div class="stat-label">Expert Instructors</div>
+                </div>
+                <div class="stat-item reveal">
+                    <div class="stat-number counter" data-target="95">0</div>
+                    <div class="stat-label">% Satisfaction Rate</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>AIAS Basra Chapter</h3>
+                    <p>American Institute of Architecture Students - Basra Chapter</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="events.html">Events</a></li>
+                        <li><a href="library.html">Library</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook">📘</a>
+                        <a href="#" aria-label="Instagram">📷</a>
+                        <a href="#" aria-label="LinkedIn">💼</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 AIAS Basra Chapter. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
