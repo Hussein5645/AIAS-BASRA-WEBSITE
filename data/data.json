@@ -1,0 +1,281 @@
+{
+  "events": [
+    {
+      "id": "evt-001",
+      "title": "Design Thinking Workshop",
+      "time": "2024-12-15T14:00:00",
+      "location": "Architecture Department",
+      "eventType": "Workshop",
+      "seatsAvailable": 30,
+      "image": "🎨",
+      "description": "Learn innovative design thinking methodologies and apply them to real architectural challenges. This hands-on workshop will guide you through the design thinking process."
+    },
+    {
+      "id": "evt-002",
+      "title": "Sustainable Architecture Seminar",
+      "time": "2024-12-20T10:00:00",
+      "location": "Main Auditorium",
+      "eventType": "Lecture",
+      "seatsAvailable": 50,
+      "image": "🏗️",
+      "description": "Explore sustainable building practices with industry experts and learn about green architecture. Discover how to integrate environmental considerations into your designs."
+    },
+    {
+      "id": "evt-003",
+      "title": "Revit Advanced Training",
+      "time": "2024-12-28T09:00:00",
+      "location": "Computer Lab",
+      "eventType": "Workshop",
+      "seatsAvailable": 20,
+      "image": "💻",
+      "description": "Master advanced Revit techniques for complex architectural modeling and documentation. Learn BIM workflows and collaboration strategies."
+    },
+    {
+      "id": "evt-004",
+      "title": "Annual Architecture Exhibition",
+      "time": "2024-11-10T09:00:00",
+      "location": "Gallery Hall",
+      "eventType": "Social",
+      "seatsAvailable": 0,
+      "image": "🎭",
+      "description": "Student work showcase featuring the best architectural projects of the year. A celebration of creativity and innovation."
+    },
+    {
+      "id": "evt-005",
+      "title": "New Year Networking Event",
+      "time": "2025-01-05T18:00:00",
+      "location": "Main Hall",
+      "eventType": "Social",
+      "seatsAvailable": 100,
+      "image": "🌟",
+      "description": "Connect with fellow students, alumni, and professionals in the architecture community. Build valuable relationships and share experiences."
+    },
+    {
+      "id": "evt-006",
+      "title": "Design Competition 2025",
+      "time": "2025-01-12T00:00:00",
+      "location": "Online Submission",
+      "eventType": "Workshop",
+      "seatsAvailable": 999,
+      "image": "🏆",
+      "description": "Annual design competition with exciting themes and valuable prizes for winners. Showcase your skills and compete with the best."
+    }
+  ],
+  "magazine": {
+    "articles": [
+      {
+        "id": "art-001",
+        "title": "The Future of Sustainable Architecture in Iraq",
+        "author": "Dr. Ahmed Al-Basri",
+        "date": "2024-12-01",
+        "summary": "Exploring innovative approaches to sustainable building design in the Middle East. This comprehensive article examines how architects in Iraq are adapting global sustainability practices.",
+        "content": "Full article content about sustainable architecture practices in Iraq..."
+      },
+      {
+        "id": "art-002",
+        "title": "Modern Design Principles for Urban Spaces",
+        "author": "Sarah Al-Zubaidi",
+        "date": "2024-11-28",
+        "summary": "Exploring contemporary approaches to creating vibrant and functional urban environments.",
+        "content": "Full article content about modern urban design..."
+      },
+      {
+        "id": "art-003",
+        "title": "Green Building Materials: A Comprehensive Guide",
+        "author": "Eng. Mohammed Hassan",
+        "date": "2024-11-25",
+        "summary": "Discover eco-friendly building materials that are reshaping sustainable architecture.",
+        "content": "Full article content about green building materials..."
+      },
+      {
+        "id": "art-004",
+        "title": "BIM Technology in Modern Architecture",
+        "author": "Fatima Al-Najjar",
+        "date": "2024-11-22",
+        "summary": "How Building Information Modeling is transforming the architectural workflow.",
+        "content": "Full article content about BIM technology..."
+      },
+      {
+        "id": "art-005",
+        "title": "Iraqi Architecture: Heritage and Innovation",
+        "author": "Prof. Ali Al-Tamimi",
+        "date": "2024-11-20",
+        "summary": "A journey through Iraq's rich architectural heritage and its influence on modern design.",
+        "content": "Full article content about Iraqi architecture..."
+      },
+      {
+        "id": "art-006",
+        "title": "Color Theory in Architectural Design",
+        "author": "Zainab Kadhim",
+        "date": "2024-11-18",
+        "summary": "Understanding how color influences mood and perception in built environments.",
+        "content": "Full article content about color theory..."
+      }
+    ],
+    "releases": [
+      {
+        "id": "rel-001",
+        "title": "Issue 5 - Fall 2024",
+        "date": "2024-12-01",
+        "coverImage": "📰",
+        "pdfUrl": "#"
+      },
+      {
+        "id": "rel-002",
+        "title": "Issue 4 - Summer 2024",
+        "date": "2024-09-01",
+        "coverImage": "📰",
+        "pdfUrl": "#"
+      },
+      {
+        "id": "rel-003",
+        "title": "Issue 3 - Spring 2024",
+        "date": "2024-06-01",
+        "coverImage": "📰",
+        "pdfUrl": "#"
+      }
+    ]
+  },
+  "library": [
+    {
+      "id": "lib-001",
+      "name": "Architectural Design Fundamentals",
+      "type": "Book",
+      "tags": ["Design", "Fundamentals", "Theory"],
+      "image": "📚",
+      "description": "Comprehensive guide to basic architectural design principles and practices.",
+      "link": "#"
+    },
+    {
+      "id": "lib-002",
+      "name": "AutoCAD Complete Tutorial",
+      "type": "Tutorial",
+      "tags": ["AutoCAD", "Software", "3D-Modeling"],
+      "image": "📖",
+      "description": "Step-by-step guide to mastering AutoCAD for architectural drawings.",
+      "link": "#"
+    },
+    {
+      "id": "lib-003",
+      "name": "Portfolio Layout Templates",
+      "type": "Software",
+      "tags": ["Portfolio", "Templates", "Design"],
+      "image": "📄",
+      "description": "Professional portfolio templates for architecture students.",
+      "link": "#"
+    },
+    {
+      "id": "lib-004",
+      "name": "Sustainable Architecture Papers",
+      "type": "Book",
+      "tags": ["Sustainability", "Research", "Green-Design"],
+      "image": "🔬",
+      "description": "Collection of research papers on sustainable building practices.",
+      "link": "#"
+    },
+    {
+      "id": "lib-005",
+      "name": "History of Modern Architecture",
+      "type": "Book",
+      "tags": ["History", "Modern", "Architecture"],
+      "image": "📚",
+      "description": "Explore the evolution of modern architectural movements.",
+      "link": "#"
+    },
+    {
+      "id": "lib-006",
+      "name": "Revit for Beginners",
+      "type": "Tutorial",
+      "tags": ["Revit", "BIM", "Software"],
+      "image": "📖",
+      "description": "Complete guide to getting started with Autodesk Revit.",
+      "link": "#"
+    },
+    {
+      "id": "lib-007",
+      "name": "Presentation Board Templates",
+      "type": "Software",
+      "tags": ["Presentation", "Templates", "Graphics"],
+      "image": "📄",
+      "description": "Ready-to-use templates for architectural presentations.",
+      "link": "#"
+    },
+    {
+      "id": "lib-008",
+      "name": "Urban Planning Studies",
+      "type": "Book",
+      "tags": ["Urban-Planning", "Research", "Community"],
+      "image": "🔬",
+      "description": "Research papers on contemporary urban planning challenges.",
+      "link": "#"
+    }
+  ],
+  "education": {
+    "weeklyWorkshop": {
+      "weekTitle": "Week 8: Parametric Design",
+      "lecturerName": "Dr. Hassan Al-Maliki",
+      "description": "This week we explore the fundamentals of parametric design using Grasshopper for Rhino. Learn how to create complex geometric forms through algorithmic thinking and how to apply these techniques to real-world architectural projects. Topics include: data trees, components, parameters, and practical applications in facade design."
+    },
+    "fbd": {
+      "pageTitle": "Freedom By Design (FBD)",
+      "about": "Freedom By Design (FBD) is a community service program that connects architecture students with community members in need of design services. Through FBD, students work on real projects that improve accessibility and quality of life for underserved populations. Our chapter is committed to using design as a tool for positive social change, working on projects that address barriers to accessibility in homes, schools, and community spaces.",
+      "events": [
+        {
+          "id": "fbd-001",
+          "title": "Community Center Accessibility Project",
+          "time": "2025-01-20T09:00:00",
+          "location": "Local Community Center",
+          "eventType": "Workshop",
+          "seatsAvailable": 15,
+          "image": "♿",
+          "description": "Join us in designing accessibility improvements for a local community center. We'll work with community members to identify barriers and develop practical design solutions."
+        },
+        {
+          "id": "fbd-002",
+          "title": "Residential Ramp Design Workshop",
+          "time": "2025-02-10T10:00:00",
+          "location": "Architecture Studio",
+          "eventType": "Workshop",
+          "seatsAvailable": 20,
+          "image": "🏠",
+          "description": "Learn how to design safe and accessible residential ramps. This hands-on workshop covers regulations, best practices, and construction details."
+        },
+        {
+          "id": "fbd-003",
+          "title": "FBD Orientation Session",
+          "time": "2025-01-15T14:00:00",
+          "location": "Online",
+          "eventType": "Lecture",
+          "seatsAvailable": 50,
+          "image": "🎓",
+          "description": "Introduction to Freedom By Design program, its mission, and how you can get involved. Learn about past projects and upcoming opportunities."
+        }
+      ]
+    }
+  },
+  "about": {
+    "founders": [
+      {
+        "id": "founder-001",
+        "name": "Ahmed Al-Basri",
+        "role": "Founder & President",
+        "image": "content/founders/founder1.svg",
+        "bio": "Passionate about architectural education and community building."
+      },
+      {
+        "id": "founder-002",
+        "name": "Sara Al-Zubaidi",
+        "role": "Co-Founder & Vice President",
+        "image": "content/founders/founder2.svg",
+        "bio": "Dedicated to promoting sustainable design practices."
+      },
+      {
+        "id": "founder-003",
+        "name": "Mohammed Hassan",
+        "role": "Co-Founder & Education Director",
+        "image": "content/founders/founder3.svg",
+        "bio": "Committed to providing quality architectural education."
+      }
+    ]
+  }
+}
