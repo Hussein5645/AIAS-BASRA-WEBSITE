@@ -308,7 +308,7 @@
                     // Sign out so user can login with different account
                     try {
                         await auth.signOut();
-                        showMessage('Signed out successfully. Please sign in with your preferred account.', 'success');
+                        showMessage('Signed out successfully. Please sign in with a different account.', 'success');
                     } catch (error) {
                         console.error('Sign out error:', error);
                         showMessage('Error signing out. Please try again.', 'error');
