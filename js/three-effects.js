@@ -90,8 +90,6 @@ function initCustomEffects() {
     
     // Create 3D-like geometric shapes using CSS
     function createGeometricShapes() {
-        const shapeTypes = ['cube', 'pyramid', 'octagon'];
-        
         for (let i = 0; i < 5; i++) {
             const shape = document.createElement('div');
             shape.className = 'geometric-shape';
@@ -119,8 +117,8 @@ function initCustomEffects() {
         particles.push(new Particle());
     }
     
-    // Mouse tracking
-    document.addEventListener('mousemove', (e) => {
+    // Mouse tracking - only for hero section
+    heroSection.addEventListener('mousemove', (e) => {
         const rect = canvas.getBoundingClientRect();
         mouseX = e.clientX - rect.left;
         mouseY = e.clientY - rect.top;
@@ -136,9 +134,13 @@ function initCustomEffects() {
             particle.draw();
         });
         
-        // Draw connecting lines
+        // Draw connecting lines (optimized - limit connections per particle)
         particles.forEach((p1, i) => {
-            particles.slice(i + 1).forEach(p2 => {
+            let connections = 0;
+            const maxConnections = 3; // Limit connections per particle for performance
+            
+            for (let j = i + 1; j < particles.length && connections < maxConnections; j++) {
+                const p2 = particles[j];
                 const dx = p1.x - p2.x;
                 const dy = p1.y - p2.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
@@ -152,8 +154,9 @@ function initCustomEffects() {
                     ctx.lineWidth = 1;
                     ctx.stroke();
                     ctx.globalAlpha = 1;
+                    connections++;
                 }
-            });
+            }
         });
         
         requestAnimationFrame(animate);
