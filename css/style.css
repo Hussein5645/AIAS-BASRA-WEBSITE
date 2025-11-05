@@ -536,6 +536,17 @@ section {
         visibility: visible;
     }
 
+    .nav-links li {
+        padding: 0.5rem 1rem;
+    }
+
+    .nav-btn {
+        display: block;
+        text-align: center;
+        width: calc(100% - 2rem);
+        margin: 0.5rem 1rem;
+    }
+
     .hero-title {
         font-size: 2.5rem;
     }
@@ -596,6 +607,41 @@ section {
 .language-toggle span {
     font-weight: 600;
     font-size: 0.9rem;
+}
+
+/* Navigation Auth Buttons */
+.nav-btn {
+    padding: 0.5rem 1.25rem !important;
+    border-radius: 8px;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    transition: all 0.3s ease !important;
+    border: 2px solid transparent;
+}
+
+.nav-btn::after {
+    display: none !important;
+}
+
+.nav-btn-login {
+    color: var(--primary-color) !important;
+    background: transparent;
+    border-color: var(--primary-color);
+}
+
+.nav-btn-login:hover {
+    background: var(--primary-color);
+    color: var(--white) !important;
+}
+
+.nav-btn-signup {
+    background: var(--gradient-1);
+    color: var(--white) !important;
+}
+
+.nav-btn-signup:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
 /* RTL Support for Arabic */
