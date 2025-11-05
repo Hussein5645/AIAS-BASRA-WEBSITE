@@ -62,6 +62,15 @@
     }
   ],
   "magazine": {
+    "featuredArticle": {
+      "id": "art-001",
+      "title": "The Future of Sustainable Architecture in Iraq",
+      "author": "Dr. Ahmed Al-Basri",
+      "date": "2024-12-01",
+      "summary": "Exploring innovative approaches to sustainable building design in the Middle East. This comprehensive article examines how architects in Iraq are adapting global sustainability practices to local climate conditions and cultural contexts.",
+      "content": "From traditional passive cooling techniques to modern green building technologies, discover how the next generation of architects is shaping a more sustainable future for our built environment.",
+      "image": "🏗️"
+    },
     "articles": [
       {
         "id": "art-001",
@@ -254,6 +263,39 @@
     }
   },
   "about": {
+    "story": {
+      "paragraphs": [
+        "The AIAS Basra Chapter was founded with a vision to create a vibrant community of architecture students and professionals dedicated to advancing the field of architecture in our region.",
+        "We believe in the power of collaboration, innovation, and continuous learning. Our chapter serves as a bridge between academic education and professional practice, providing students with opportunities to grow, network, and make meaningful contributions to the architectural community.",
+        "Through workshops, lectures, competitions, and community projects, we strive to inspire and support the next generation of architects who will shape the built environment of tomorrow."
+      ]
+    },
+    "values": [
+      {
+        "id": "value-001",
+        "number": "01",
+        "title": "Excellence",
+        "description": "We strive for excellence in architectural education and practice, setting high standards for ourselves and our members."
+      },
+      {
+        "id": "value-002",
+        "number": "02",
+        "title": "Innovation",
+        "description": "We embrace new ideas, technologies, and approaches to push the boundaries of architectural design."
+      },
+      {
+        "id": "value-003",
+        "number": "03",
+        "title": "Collaboration",
+        "description": "We believe in the power of working together, fostering a supportive and inclusive community."
+      },
+      {
+        "id": "value-004",
+        "number": "04",
+        "title": "Sustainability",
+        "description": "We are committed to promoting sustainable design practices that respect our environment."
+      }
+    ],
     "founders": [
       {
         "id": "founder-001",
@@ -275,6 +317,32 @@
         "role": "Co-Founder & Education Director",
         "image": "content/founders/founder3.svg",
         "bio": "Committed to providing quality architectural education."
+      }
+    ],
+    "team": [
+      {
+        "id": "team-001",
+        "name": "Chapter President",
+        "role": "Leadership",
+        "description": "Leading the chapter with vision and dedication to student success."
+      },
+      {
+        "id": "team-002",
+        "name": "Vice President",
+        "role": "Operations",
+        "description": "Managing daily operations and member engagement programs."
+      },
+      {
+        "id": "team-003",
+        "name": "Education Director",
+        "role": "Programs",
+        "description": "Organizing workshops, lectures, and educational initiatives."
+      },
+      {
+        "id": "team-004",
+        "name": "Events Coordinator",
+        "role": "Events",
+        "description": "Planning and executing chapter events and activities."
       }
     ]
   }

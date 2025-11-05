@@ -562,39 +562,8 @@
             <div class="section-header">
                 <h2 class="section-title">Events Timeline</h2>
             </div>
-            <div class="timeline">
-                <div class="timeline-item reveal">
-                    <div class="timeline-content">
-                        <h3>Design Thinking Workshop</h3>
-                        <p><strong>December 15, 2024</strong></p>
-                        <p>2:00 PM - 5:00 PM | Architecture Department</p>
-                    </div>
-                    <div class="timeline-dot"></div>
-                </div>
-                <div class="timeline-item reveal">
-                    <div class="timeline-content">
-                        <h3>Sustainable Architecture Seminar</h3>
-                        <p><strong>December 20, 2024</strong></p>
-                        <p>10:00 AM - 1:00 PM | Main Auditorium</p>
-                    </div>
-                    <div class="timeline-dot"></div>
-                </div>
-                <div class="timeline-item reveal">
-                    <div class="timeline-content">
-                        <h3>Revit Advanced Training</h3>
-                        <p><strong>December 28, 2024</strong></p>
-                        <p>9:00 AM - 4:00 PM | Computer Lab</p>
-                    </div>
-                    <div class="timeline-dot"></div>
-                </div>
-                <div class="timeline-item reveal">
-                    <div class="timeline-content">
-                        <h3>New Year Networking Event</h3>
-                        <p><strong>January 5, 2025</strong></p>
-                        <p>6:00 PM - 9:00 PM | Main Hall</p>
-                    </div>
-                    <div class="timeline-dot"></div>
-                </div>
+            <div class="timeline" id="timelineContainer">
+                <!-- Timeline items will be loaded dynamically from data.json -->
             </div>
         </div>
     </section>
@@ -645,7 +614,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 AIAS Basra Chapter. All rights reserved.</p>
+                <p>&copy; 2025 AIAS Basra Chapter. All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -675,7 +644,7 @@
         async function loadEvents() {
             const events = await DataLoader.getEvents();
             const gridContainer = document.querySelector('#gridView .events-grid');
-            const timelineContainer = document.querySelector('.timeline');
+            const timelineContainer = document.getElementById('timelineContainer');
             
             if (events && events.length > 0) {
                 // Clear existing content

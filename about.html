@@ -218,24 +218,9 @@
         <div class="container">
             <div class="story-content">
                 <div class="story-image reveal">🏛️</div>
-                <div class="story-text reveal">
+                <div class="story-text reveal" id="storyText">
                     <h2 data-en="Our Story" data-ar="قصتنا">Our Story</h2>
-                    <p data-en="The AIAS Basra Chapter was founded with a vision to create a vibrant community of architecture students and professionals dedicated to advancing the field of architecture in our region." data-ar="تم تأسيس فرع AIAS البصرة برؤية لإنشاء مجتمع نابض بالحياة من طلاب الهندسة المعمارية والمحترفين المكرسين للنهوض بمجال الهندسة المعمارية في منطقتنا.">
-                        The AIAS Basra Chapter was founded with a vision to create a vibrant community of 
-                        architecture students and professionals dedicated to advancing the field of architecture 
-                        in our region.
-                    </p>
-                    <p>
-                        We believe in the power of collaboration, innovation, and continuous learning. Our chapter 
-                        serves as a bridge between academic education and professional practice, providing students 
-                        with opportunities to grow, network, and make meaningful contributions to the architectural 
-                        community.
-                    </p>
-                    <p>
-                        Through workshops, lectures, competitions, and community projects, we strive to inspire 
-                        and support the next generation of architects who will shape the built environment of 
-                        tomorrow.
-                    </p>
+                    <!-- Story content will be loaded dynamically -->
                 </div>
             </div>
         </div>
@@ -248,27 +233,8 @@
                 <h2 class="section-title" data-en="Our Core Values" data-ar="قيمنا الأساسية">Our Core Values</h2>
                 <p class="section-subtitle" data-en="The principles that guide everything we do" data-ar="المبادئ التي توجه كل ما نقوم به">The principles that guide everything we do</p>
             </div>
-            <div class="values-grid">
-                <div class="value-card reveal">
-                    <div class="value-number">01</div>
-                    <h3 data-en="Excellence" data-ar="التميز">Excellence</h3>
-                    <p data-en="We strive for excellence in architectural education and practice, setting high standards for ourselves and our members." data-ar="نسعى للتميز في التعليم والممارسة المعمارية، ونضع معايير عالية لأنفسنا ولأعضائنا.">We strive for excellence in architectural education and practice, setting high standards for ourselves and our members.</p>
-                </div>
-                <div class="value-card reveal">
-                    <div class="value-number">02</div>
-                    <h3 data-en="Innovation" data-ar="الابتكار">Innovation</h3>
-                    <p data-en="We embrace new ideas, technologies, and approaches to push the boundaries of architectural design." data-ar="نحتضن الأفكار والتقنيات والأساليب الجديدة لدفع حدود التصميم المعماري.">We embrace new ideas, technologies, and approaches to push the boundaries of architectural design.</p>
-                </div>
-                <div class="value-card reveal">
-                    <div class="value-number">03</div>
-                    <h3 data-en="Collaboration" data-ar="التعاون">Collaboration</h3>
-                    <p data-en="We believe in the power of working together, fostering a supportive and inclusive community." data-ar="نؤمن بقوة العمل معًا، وتعزيز مجتمع داعم وشامل.">We believe in the power of working together, fostering a supportive and inclusive community.</p>
-                </div>
-                <div class="value-card reveal">
-                    <div class="value-number">04</div>
-                    <h3 data-en="Sustainability" data-ar="الاستدامة">Sustainability</h3>
-                    <p data-en="We are committed to promoting sustainable design practices that respect our environment." data-ar="نحن ملتزمون بتعزيز ممارسات التصميم المستدام التي تحترم بيئتنا.">We are committed to promoting sustainable design practices that respect our environment.</p>
-                </div>
+            <div class="values-grid" id="valuesGrid">
+                <!-- Values will be loaded dynamically -->
             </div>
         </div>
     </section>
@@ -293,39 +259,8 @@
                 <h2 class="section-title" data-en="Meet Our Team" data-ar="تعرف على فريقنا">Meet Our Team</h2>
                 <p class="section-subtitle" data-en="Dedicated leaders working to make a difference" data-ar="قادة متفانون يعملون لإحداث فرق">Dedicated leaders working to make a difference</p>
             </div>
-            <div class="team-grid">
-                <div class="team-card reveal">
-                    <div class="team-image">👤</div>
-                    <div class="team-info">
-                        <h3>Chapter President</h3>
-                        <div class="team-role">Leadership</div>
-                        <p>Leading the chapter with vision and dedication to student success.</p>
-                    </div>
-                </div>
-                <div class="team-card reveal">
-                    <div class="team-image">👤</div>
-                    <div class="team-info">
-                        <h3>Vice President</h3>
-                        <div class="team-role">Operations</div>
-                        <p>Managing daily operations and member engagement programs.</p>
-                    </div>
-                </div>
-                <div class="team-card reveal">
-                    <div class="team-image">👤</div>
-                    <div class="team-info">
-                        <h3>Education Director</h3>
-                        <div class="team-role">Programs</div>
-                        <p>Organizing workshops, lectures, and educational initiatives.</p>
-                    </div>
-                </div>
-                <div class="team-card reveal">
-                    <div class="team-image">👤</div>
-                    <div class="team-info">
-                        <h3>Events Coordinator</h3>
-                        <div class="team-role">Events</div>
-                        <p>Planning and executing chapter events and activities.</p>
-                    </div>
-                </div>
+            <div class="team-grid" id="teamGrid">
+                <!-- Team members will be loaded dynamically -->
             </div>
         </div>
     </section>
@@ -376,7 +311,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 AIAS Basra Chapter. All rights reserved.</p>
+                <p>&copy; 2025 AIAS Basra Chapter. All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -385,34 +320,88 @@
     <script src="js/three-effects.js"></script>
     <script src="js/main.js"></script>
     <script>
-        // Load founders data from data.json
-        async function loadFounders() {
+        // Load all about page content from data.json
+        async function loadAboutContent() {
             const aboutData = await DataLoader.getAbout();
-            const foundersGrid = document.getElementById('foundersGrid');
             
-            if (aboutData && aboutData.founders && aboutData.founders.length > 0) {
-                foundersGrid.innerHTML = '';
+            if (aboutData) {
+                // Load story content
+                if (aboutData.story && aboutData.story.paragraphs) {
+                    const storyText = document.getElementById('storyText');
+                    const h2 = storyText.querySelector('h2');
+                    storyText.innerHTML = '';
+                    storyText.appendChild(h2);
+                    
+                    aboutData.story.paragraphs.forEach(paragraph => {
+                        const p = document.createElement('p');
+                        p.textContent = paragraph;
+                        storyText.appendChild(p);
+                    });
+                }
                 
-                aboutData.founders.forEach(founder => {
-                    const founderCard = `
-                        <div class="team-card reveal">
-                            <div class="team-image" style="background-image: url('${founder.image}'); background-size: cover; background-position: center;">
-                                <img src="${founder.image}" alt="${founder.name}" style="width: 100%; height: 100%; object-fit: cover;">
+                // Load values content
+                if (aboutData.values && aboutData.values.length > 0) {
+                    const valuesGrid = document.getElementById('valuesGrid');
+                    valuesGrid.innerHTML = '';
+                    
+                    aboutData.values.forEach(value => {
+                        const valueCard = `
+                            <div class="value-card reveal">
+                                <div class="value-number">${value.number}</div>
+                                <h3>${value.title}</h3>
+                                <p>${value.description}</p>
                             </div>
-                            <div class="team-info">
-                                <h3>${founder.name}</h3>
-                                <div class="team-role">${founder.role}</div>
-                                <p>${founder.bio}</p>
+                        `;
+                        valuesGrid.innerHTML += valueCard;
+                    });
+                }
+                
+                // Load founders content
+                if (aboutData.founders && aboutData.founders.length > 0) {
+                    const foundersGrid = document.getElementById('foundersGrid');
+                    foundersGrid.innerHTML = '';
+                    
+                    aboutData.founders.forEach(founder => {
+                        const founderCard = `
+                            <div class="team-card reveal">
+                                <div class="team-image" style="background-image: url('${founder.image}'); background-size: cover; background-position: center;">
+                                    <img src="${founder.image}" alt="${founder.name}" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                                <div class="team-info">
+                                    <h3>${founder.name}</h3>
+                                    <div class="team-role">${founder.role}</div>
+                                    <p>${founder.bio}</p>
+                                </div>
                             </div>
-                        </div>
-                    `;
-                    foundersGrid.innerHTML += founderCard;
-                });
+                        `;
+                        foundersGrid.innerHTML += founderCard;
+                    });
+                }
+                
+                // Load team content
+                if (aboutData.team && aboutData.team.length > 0) {
+                    const teamGrid = document.getElementById('teamGrid');
+                    teamGrid.innerHTML = '';
+                    
+                    aboutData.team.forEach(member => {
+                        const teamCard = `
+                            <div class="team-card reveal">
+                                <div class="team-image">👤</div>
+                                <div class="team-info">
+                                    <h3>${member.name}</h3>
+                                    <div class="team-role">${member.role}</div>
+                                    <p>${member.description}</p>
+                                </div>
+                            </div>
+                        `;
+                        teamGrid.innerHTML += teamCard;
+                    });
+                }
             }
         }
         
-        // Load founders when page loads
-        document.addEventListener('DOMContentLoaded', loadFounders);
+        // Load content when page loads
+        document.addEventListener('DOMContentLoaded', loadAboutContent);
     </script>
 </body>
 </html>
