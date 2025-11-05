@@ -70,7 +70,7 @@ class FirestoreAPI {
             // Fetch events
             console.log('[Firestore API] Reading events collection...');
             const eventsSnapshot = await getDocs(collection(this.db, 'events'));
-            data.events = eventsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            data.events = eventsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
             console.log(`[Firestore API] ✓ Retrieved ${data.events.length} events`);
 
             // Fetch magazine data
@@ -84,7 +84,7 @@ class FirestoreAPI {
             // Fetch library items
             console.log('[Firestore API] Reading library collection...');
             const librarySnapshot = await getDocs(collection(this.db, 'library'));
-            data.library = librarySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            data.library = librarySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
             console.log(`[Firestore API] ✓ Retrieved ${data.library.length} library items`);
 
             // Fetch education data

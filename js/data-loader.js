@@ -76,7 +76,7 @@ const DataLoader = (function() {
             // Fetch events
             console.log('[Data Loader] Fetching events...');
             const eventsSnapshot = await getDocs(collection(db, 'events'));
-            data.events = eventsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            data.events = eventsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
             console.log(`[Data Loader] ✓ Loaded ${data.events.length} events`);
 
             // Fetch magazine data
@@ -92,7 +92,7 @@ const DataLoader = (function() {
             // Fetch library items
             console.log('[Data Loader] Fetching library items...');
             const librarySnapshot = await getDocs(collection(db, 'library'));
-            data.library = librarySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            data.library = librarySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
             console.log(`[Data Loader] ✓ Loaded ${data.library.length} library items`);
 
             // Fetch education data
