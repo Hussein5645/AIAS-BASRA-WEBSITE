@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="js/github-api.js"></script>
+    <script src="js/main.js" defer></script>
     <style>
         .admin-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -303,11 +304,18 @@
     <!-- Admin Header -->
     <div class="admin-header">
         <div class="container">
-            <h1>Admin Dashboard</h1>
+            <h1 data-en="Admin Dashboard" data-ar="لوحة التحكم الإدارية">Admin Dashboard</h1>
             <div class="admin-info">
+                <button class="language-toggle" id="languageToggle" style="margin-right: 1rem; padding: 0.5rem 1rem; background: rgba(255, 255, 255, 0.2); color: white; border: 2px solid white; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    </svg>
+                    <span id="currentLang">EN</span>
+                </button>
                 <span id="adminName"></span>
-                <a href="index.html" class="home-link">View Site</a>
-                <button class="logout-btn" onclick="logout()">Logout</button>
+                <a href="index.html" class="home-link" data-en="View Site" data-ar="عرض الموقع">View Site</a>
+                <button class="logout-btn" onclick="logout()" data-en="Logout" data-ar="تسجيل الخروج">Logout</button>
             </div>
         </div>
     </div>
@@ -319,181 +327,181 @@
         <!-- Dashboard Navigation -->
         <nav class="dashboard-nav">
             <ul>
-                <li><button class="active" onclick="showTab('users')">User Management</button></li>
-                <li><button onclick="showTab('events')">Events</button></li>
-                <li><button onclick="showTab('articles')">Magazine Articles</button></li>
-                <li><button onclick="showTab('library')">Library Resources</button></li>
-                <li><button onclick="showTab('education')">Education Content</button></li>
-                <li><button onclick="showTab('settings')">⚙️ Settings</button></li>
+                <li><button class="active" onclick="showTab('users')" data-en="User Management" data-ar="إدارة المستخدمين">User Management</button></li>
+                <li><button onclick="showTab('events')" data-en="Events" data-ar="الفعاليات">Events</button></li>
+                <li><button onclick="showTab('articles')" data-en="Magazine Articles" data-ar="مقالات المجلة">Magazine Articles</button></li>
+                <li><button onclick="showTab('library')" data-en="Library Resources" data-ar="موارد المكتبة">Library Resources</button></li>
+                <li><button onclick="showTab('education')" data-en="Education Content" data-ar="المحتوى التعليمي">Education Content</button></li>
+                <li><button onclick="showTab('settings')" data-en="⚙️ Settings" data-ar="⚙️ الإعدادات">⚙️ Settings</button></li>
             </ul>
         </nav>
 
         <!-- User Management Tab -->
         <div id="users-tab" class="tab-content active">
-            <h2>User Management</h2>
+            <h2 data-en="User Management" data-ar="إدارة المستخدمين">User Management</h2>
             <div class="content-list" id="usersList">
-                <p>Loading users...</p>
+                <p data-en="Loading users..." data-ar="جاري تحميل المستخدمين...">Loading users...</p>
             </div>
         </div>
 
         <!-- Events Tab -->
         <div id="events-tab" class="tab-content">
-            <h2>Add New Event</h2>
+            <h2 data-en="Add New Event" data-ar="إضافة فعالية جديدة">Add New Event</h2>
             <form id="eventForm" class="content-form">
                 <div class="form-group">
-                    <label for="eventTitle">Event Title</label>
+                    <label for="eventTitle" data-en="Event Title" data-ar="عنوان الفعالية">Event Title</label>
                     <input type="text" id="eventTitle" required>
                 </div>
                 <div class="form-group">
-                    <label for="eventTime">Date and Time</label>
+                    <label for="eventTime" data-en="Date and Time" data-ar="التاريخ والوقت">Date and Time</label>
                     <input type="datetime-local" id="eventTime" required>
                 </div>
                 <div class="form-group">
-                    <label for="eventLocation">Location</label>
+                    <label for="eventLocation" data-en="Location" data-ar="الموقع">Location</label>
                     <input type="text" id="eventLocation" required>
                 </div>
                 <div class="form-group">
-                    <label for="eventType">Event Type</label>
+                    <label for="eventType" data-en="Event Type" data-ar="نوع الفعالية">Event Type</label>
                     <select id="eventType" required>
-                        <option value="Workshop">Workshop</option>
-                        <option value="Lecture">Lecture</option>
-                        <option value="Social">Social</option>
+                        <option value="Workshop" data-en="Workshop" data-ar="ورشة عمل">Workshop</option>
+                        <option value="Lecture" data-en="Lecture" data-ar="محاضرة">Lecture</option>
+                        <option value="Social" data-en="Social" data-ar="اجتماعي">Social</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="eventSeats">Available Seats</label>
+                    <label for="eventSeats" data-en="Available Seats" data-ar="المقاعد المتاحة">Available Seats</label>
                     <input type="number" id="eventSeats" required min="0">
                 </div>
                 <div class="form-group">
-                    <label for="eventImage">Emoji Icon</label>
+                    <label for="eventImage" data-en="Emoji Icon" data-ar="أيقونة إيموجي">Emoji Icon</label>
                     <input type="text" id="eventImage" placeholder="🎨" required>
                 </div>
                 <div class="form-group">
-                    <label for="eventDescription">Description</label>
+                    <label for="eventDescription" data-en="Description" data-ar="الوصف">Description</label>
                     <textarea id="eventDescription" required></textarea>
                 </div>
-                <button type="submit" class="submit-btn">Add Event</button>
+                <button type="submit" class="submit-btn" data-en="Add Event" data-ar="إضافة الفعالية">Add Event</button>
             </form>
         </div>
 
         <!-- Articles Tab -->
         <div id="articles-tab" class="tab-content">
-            <h2>Add New Article</h2>
+            <h2 data-en="Add New Article" data-ar="إضافة مقال جديد">Add New Article</h2>
             <form id="articleForm" class="content-form">
                 <div class="form-group">
-                    <label for="articleTitle">Article Title</label>
+                    <label for="articleTitle" data-en="Article Title" data-ar="عنوان المقال">Article Title</label>
                     <input type="text" id="articleTitle" required>
                 </div>
                 <div class="form-group">
-                    <label for="articleAuthor">Author Name</label>
+                    <label for="articleAuthor" data-en="Author Name" data-ar="اسم الكاتب">Author Name</label>
                     <input type="text" id="articleAuthor" required>
                 </div>
                 <div class="form-group">
-                    <label for="articleDate">Publication Date</label>
+                    <label for="articleDate" data-en="Publication Date" data-ar="تاريخ النشر">Publication Date</label>
                     <input type="date" id="articleDate" required>
                 </div>
                 <div class="form-group">
-                    <label for="articleSummary">Summary</label>
+                    <label for="articleSummary" data-en="Summary" data-ar="الملخص">Summary</label>
                     <textarea id="articleSummary" required></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="articleContent">Full Content</label>
+                    <label for="articleContent" data-en="Full Content" data-ar="المحتوى الكامل">Full Content</label>
                     <textarea id="articleContent" required></textarea>
                 </div>
-                <button type="submit" class="submit-btn">Add Article</button>
+                <button type="submit" class="submit-btn" data-en="Add Article" data-ar="إضافة المقال">Add Article</button>
             </form>
         </div>
 
         <!-- Library Tab -->
         <div id="library-tab" class="tab-content">
-            <h2>Add New Library Resource</h2>
+            <h2 data-en="Add New Library Resource" data-ar="إضافة مورد مكتبي جديد">Add New Library Resource</h2>
             <form id="libraryForm" class="content-form">
                 <div class="form-group">
-                    <label for="libName">Resource Name</label>
+                    <label for="libName" data-en="Resource Name" data-ar="اسم المورد">Resource Name</label>
                     <input type="text" id="libName" required>
                 </div>
                 <div class="form-group">
-                    <label for="libType">Type</label>
+                    <label for="libType" data-en="Type" data-ar="النوع">Type</label>
                     <select id="libType" required>
-                        <option value="Book">Book</option>
-                        <option value="Tutorial">Tutorial</option>
-                        <option value="Software">Software</option>
+                        <option value="Book" data-en="Book" data-ar="كتاب">Book</option>
+                        <option value="Tutorial" data-en="Tutorial" data-ar="درس تعليمي">Tutorial</option>
+                        <option value="Software" data-en="Software" data-ar="برنامج">Software</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="libTags">Tags (comma-separated)</label>
+                    <label for="libTags" data-en="Tags (comma-separated)" data-ar="الوسوم (مفصولة بفاصلة)">Tags (comma-separated)</label>
                     <input type="text" id="libTags" placeholder="Design, Fundamentals, Theory" required>
                 </div>
                 <div class="form-group">
-                    <label for="libImage">Emoji Icon</label>
+                    <label for="libImage" data-en="Emoji Icon" data-ar="أيقونة إيموجي">Emoji Icon</label>
                     <input type="text" id="libImage" placeholder="📚" required>
                 </div>
                 <div class="form-group">
-                    <label for="libDescription">Description</label>
+                    <label for="libDescription" data-en="Description" data-ar="الوصف">Description</label>
                     <textarea id="libDescription" required></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="libLink">Download Link</label>
+                    <label for="libLink" data-en="Download Link" data-ar="رابط التحميل">Download Link</label>
                     <input type="url" id="libLink" placeholder="https://" required>
                 </div>
-                <button type="submit" class="submit-btn">Add Resource</button>
+                <button type="submit" class="submit-btn" data-en="Add Resource" data-ar="إضافة المورد">Add Resource</button>
             </form>
         </div>
 
         <!-- Education Tab -->
         <div id="education-tab" class="tab-content">
-            <h2>Update Education Content</h2>
+            <h2 data-en="Update Education Content" data-ar="تحديث المحتوى التعليمي">Update Education Content</h2>
             <form id="educationForm" class="content-form">
                 <div class="form-group">
-                    <label for="weekTitle">Weekly Workshop Title</label>
+                    <label for="weekTitle" data-en="Weekly Workshop Title" data-ar="عنوان ورشة الأسبوع">Weekly Workshop Title</label>
                     <input type="text" id="weekTitle" required>
                 </div>
                 <div class="form-group">
-                    <label for="lecturerName">Lecturer Name</label>
+                    <label for="lecturerName" data-en="Lecturer Name" data-ar="اسم المحاضر">Lecturer Name</label>
                     <input type="text" id="lecturerName" required>
                 </div>
                 <div class="form-group">
-                    <label for="weekDescription">Workshop Description</label>
+                    <label for="weekDescription" data-en="Workshop Description" data-ar="وصف الورشة">Workshop Description</label>
                     <textarea id="weekDescription" required></textarea>
                 </div>
-                <button type="submit" class="submit-btn">Update Education Content</button>
+                <button type="submit" class="submit-btn" data-en="Update Education Content" data-ar="تحديث المحتوى التعليمي">Update Education Content</button>
             </form>
         </div>
 
         <!-- Settings Tab -->
         <div id="settings-tab" class="tab-content">
-            <h2>GitHub Integration Settings</h2>
+            <h2 data-en="GitHub Integration Settings" data-ar="إعدادات التكامل مع GitHub">GitHub Integration Settings</h2>
             <div class="content-form">
                 <div id="tokenStatus" style="padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
-                    <p style="margin: 0;"><strong>Status:</strong> <span id="tokenStatusText">Checking...</span></p>
+                    <p style="margin: 0;"><strong data-en="Status:" data-ar="الحالة:">Status:</strong> <span id="tokenStatusText" data-en="Checking..." data-ar="جاري الفحص...">Checking...</span></p>
                 </div>
                 
                 <div class="form-group">
-                    <label for="githubToken">GitHub Personal Access Token</label>
+                    <label for="githubToken" data-en="GitHub Personal Access Token" data-ar="رمز الوصول الشخصي لـ GitHub">GitHub Personal Access Token</label>
                     <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
                     <p style="font-size: 0.85rem; color: #718096; margin-top: 0.5rem;">
-                        To enable direct repository updates, create a Personal Access Token with <code>repo</code> scope at 
-                        <a href="https://github.com/settings/tokens" target="_blank" style="color: #667eea;">GitHub Settings</a>
+                        <span data-en="To enable direct repository updates, create a Personal Access Token with" data-ar="لتمكين تحديثات المستودع المباشرة، قم بإنشاء رمز وصول شخصي مع">To enable direct repository updates, create a Personal Access Token with</span> <code>repo</code> <span data-en="scope at" data-ar="نطاق في">scope at</span>
+                        <a href="https://github.com/settings/tokens" target="_blank" style="color: #667eea;" data-en="GitHub Settings" data-ar="إعدادات GitHub">GitHub Settings</a>
                     </p>
                 </div>
                 
-                <button type="button" class="submit-btn" onclick="saveGitHubToken()">Save Token</button>
-                <button type="button" class="submit-btn" onclick="testGitHubConnection()" style="background: #38a169; margin-left: 1rem;">Test Connection</button>
-                <button type="button" class="submit-btn" onclick="clearGitHubToken()" style="background: #e53e3e; margin-left: 1rem;">Clear Token</button>
+                <button type="button" class="submit-btn" onclick="saveGitHubToken()" data-en="Save Token" data-ar="حفظ الرمز">Save Token</button>
+                <button type="button" class="submit-btn" onclick="testGitHubConnection()" style="background: #38a169; margin-left: 1rem;" data-en="Test Connection" data-ar="اختبار الاتصال">Test Connection</button>
+                <button type="button" class="submit-btn" onclick="clearGitHubToken()" style="background: #e53e3e; margin-left: 1rem;" data-en="Clear Token" data-ar="مسح الرمز">Clear Token</button>
             </div>
 
             <div style="margin-top: 2rem; padding: 1.5rem; background: #f7fafc; border-radius: 12px;">
-                <h3 style="margin-bottom: 1rem; color: #2d3748;">How to Set Up GitHub Token:</h3>
+                <h3 style="margin-bottom: 1rem; color: #2d3748;" data-en="How to Set Up GitHub Token:" data-ar="كيفية إعداد رمز GitHub:">How to Set Up GitHub Token:</h3>
                 <ol style="color: #4a5568; line-height: 1.8;">
-                    <li>Go to <a href="https://github.com/settings/tokens" target="_blank" style="color: #667eea;">GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)</a></li>
-                    <li>Click "Generate new token" → "Generate new token (classic)"</li>
-                    <li>Give it a descriptive name (e.g., "AIAS Dashboard")</li>
-                    <li>Select the <strong>repo</strong> scope (full control of private repositories)</li>
-                    <li>Click "Generate token" at the bottom</li>
-                    <li>Copy the token (you won't be able to see it again!)</li>
-                    <li>Paste it in the field above and click "Save Token"</li>
+                    <li data-en='Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)' data-ar='انتقل إلى إعدادات GitHub ← إعدادات المطور ← رموز الوصول الشخصية ← الرموز (الكلاسيكية)'>Go to <a href="https://github.com/settings/tokens" target="_blank" style="color: #667eea;">GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)</a></li>
+                    <li data-en='Click "Generate new token" → "Generate new token (classic)"' data-ar='انقر على "إنشاء رمز جديد" ← "إنشاء رمز جديد (كلاسيكي)"'>Click "Generate new token" → "Generate new token (classic)"</li>
+                    <li data-en='Give it a descriptive name (e.g., "AIAS Dashboard")' data-ar='أعطه اسماً وصفياً (مثل "لوحة تحكم AIAS")'>Give it a descriptive name (e.g., "AIAS Dashboard")</li>
+                    <li data-en='Select the repo scope (full control of private repositories)' data-ar='حدد نطاق repo (التحكم الكامل في المستودعات الخاصة)'>Select the <strong>repo</strong> scope (full control of private repositories)</li>
+                    <li data-en='Click "Generate token" at the bottom' data-ar='انقر على "إنشاء الرمز" في الأسفل'>Click "Generate token" at the bottom</li>
+                    <li data-en="Copy the token (you won't be able to see it again!)" data-ar="انسخ الرمز (لن تتمكن من رؤيته مرة أخرى!)">Copy the token (you won't be able to see it again!)</li>
+                    <li data-en='Paste it in the field above and click "Save Token"' data-ar='الصقه في الحقل أعلاه وانقر على "حفظ الرمز"'>Paste it in the field above and click "Save Token"</li>
                 </ol>
-                <p style="color: #e53e3e; margin-top: 1rem; font-weight: 600;">⚠️ Keep your token secure! Never share it or commit it to the repository.</p>
+                <p style="color: #e53e3e; margin-top: 1rem; font-weight: 600;" data-en="⚠️ Keep your token secure! Never share it or commit it to the repository." data-ar="⚠️ حافظ على أمان رمزك! لا تشاركه أو تضمّنه في المستودع.">⚠️ Keep your token secure! Never share it or commit it to the repository.</p>
             </div>
         </div>
     </div>
@@ -589,7 +597,12 @@
             const usersList = document.getElementById('usersList');
             
             if (Object.keys(users).length === 0) {
-                usersList.innerHTML = '<p>No users registered yet.</p>';
+                usersList.innerHTML = '<p data-en="No users registered yet." data-ar="لا يوجد مستخدمون مسجلون بعد.">No users registered yet.</p>';
+                // Re-apply translations to newly added content
+                if (typeof setLanguage === 'function') {
+                    const currentLang = localStorage.getItem('language') || 'en';
+                    setTimeout(() => setLanguage(currentLang), 100);
+                }
                 return;
             }
             
@@ -599,24 +612,30 @@
                 const authProvider = user.authProvider || 'email';
                 const statusClass = isVerified ? 'verified' : 'unverified';
                 const statusText = isVerified ? '✓ Verified' : '✗ Unverified';
+                const statusTextAr = isVerified ? '✓ مُثبت' : '✗ غير مُثبت';
                 
                 html += `
                     <div class="user-item">
                         <div class="user-info">
                             <div class="user-name">${user.fullName || 'Unknown'}</div>
                             <div class="user-email">${email}</div>
-                            <span class="user-status ${statusClass}">${statusText}</span>
+                            <span class="user-status ${statusClass}" data-en="${statusText}" data-ar="${statusTextAr}">${statusText}</span>
                             <span style="margin-left: 0.5rem; color: #718096; font-size: 0.85rem;">(${authProvider === 'google' ? 'Google' : 'Email'})</span>
                         </div>
                         <div class="user-actions">
-                            ${!isVerified ? `<button class="verify-btn" onclick="verifyUser('${email}')">Verify User</button>` : ''}
-                            <button class="delete-btn" onclick="deleteUser('${email}')">Delete</button>
+                            ${!isVerified ? `<button class="verify-btn" onclick="verifyUser('${email}')" data-en="Verify User" data-ar="تثبيت المستخدم">Verify User</button>` : ''}
+                            <button class="delete-btn" onclick="deleteUser('${email}')" data-en="Delete" data-ar="حذف">Delete</button>
                         </div>
                     </div>
                 `;
             }
             
             usersList.innerHTML = html;
+            // Re-apply translations to newly added content
+            if (typeof setLanguage === 'function') {
+                const currentLang = localStorage.getItem('language') || 'en';
+                setTimeout(() => setLanguage(currentLang), 100);
+            }
         };
 
         window.verifyUser = function(email) {
@@ -625,13 +644,17 @@
             if (users[email]) {
                 users[email].verified = true;
                 localStorage.setItem('aias_users', JSON.stringify(users));
-                showMessage('User verified successfully!', 'success');
+                const currentLang = localStorage.getItem('language') || 'en';
+                const message = currentLang === 'ar' ? 'تم تثبيت المستخدم بنجاح!' : 'User verified successfully!';
+                showMessage(message, 'success');
                 loadUsers();
             }
         };
 
         window.deleteUser = function(email) {
-            if (!confirm(`Are you sure you want to delete the user: ${email}?`)) {
+            const currentLang = localStorage.getItem('language') || 'en';
+            const confirmMsg = currentLang === 'ar' ? `هل أنت متأكد من حذف المستخدم: ${email}؟` : `Are you sure you want to delete the user: ${email}?`;
+            if (!confirm(confirmMsg)) {
                 return;
             }
             
@@ -640,7 +663,8 @@
             if (users[email]) {
                 delete users[email];
                 localStorage.setItem('aias_users', JSON.stringify(users));
-                showMessage('User deleted successfully!', 'success');
+                const message = currentLang === 'ar' ? 'تم حذف المستخدم بنجاح!' : 'User deleted successfully!';
+                showMessage(message, 'success');
                 loadUsers();
             }
         };
@@ -684,56 +708,74 @@
         window.updateTokenStatus = function() {
             const statusDiv = document.getElementById('tokenStatus');
             const statusText = document.getElementById('tokenStatusText');
+            const currentLang = localStorage.getItem('language') || 'en';
             
             if (githubAPI.hasToken()) {
                 statusDiv.style.background = '#f0fff4';
                 statusDiv.style.borderLeft = '4px solid #38a169';
-                statusText.innerHTML = '✓ Token configured. You can now add content directly to the repository.';
+                const msg = currentLang === 'ar' ? '✓ تم تكوين الرمز. يمكنك الآن إضافة المحتوى مباشرة إلى المستودع.' : '✓ Token configured. You can now add content directly to the repository.';
+                statusText.innerHTML = msg;
+                statusText.setAttribute('data-en', '✓ Token configured. You can now add content directly to the repository.');
+                statusText.setAttribute('data-ar', '✓ تم تكوين الرمز. يمكنك الآن إضافة المحتوى مباشرة إلى المستودع.');
             } else {
                 statusDiv.style.background = '#fff5f5';
                 statusDiv.style.borderLeft = '4px solid #e53e3e';
-                statusText.innerHTML = '✗ No token configured. Content will be shown as JSON for manual update.';
+                const msg = currentLang === 'ar' ? '✗ لم يتم تكوين الرمز. سيتم عرض المحتوى كـ JSON للتحديث اليدوي.' : '✗ No token configured. Content will be shown as JSON for manual update.';
+                statusText.innerHTML = msg;
+                statusText.setAttribute('data-en', '✗ No token configured. Content will be shown as JSON for manual update.');
+                statusText.setAttribute('data-ar', '✗ لم يتم تكوين الرمز. سيتم عرض المحتوى كـ JSON للتحديث اليدوي.');
             }
         };
 
         window.saveGitHubToken = function() {
             const token = document.getElementById('githubToken').value.trim();
+            const currentLang = localStorage.getItem('language') || 'en';
             
             if (!token) {
-                showMessage('Please enter a GitHub token', 'error');
+                const msg = currentLang === 'ar' ? 'الرجاء إدخال رمز GitHub' : 'Please enter a GitHub token';
+                showMessage(msg, 'error');
                 return;
             }
             
             githubAPI.setToken(token);
             updateTokenStatus();
             document.getElementById('githubToken').value = '';
-            showMessage('GitHub token saved successfully!', 'success');
+            const msg = currentLang === 'ar' ? 'تم حفظ رمز GitHub بنجاح!' : 'GitHub token saved successfully!';
+            showMessage(msg, 'success');
         };
 
         window.clearGitHubToken = function() {
-            if (!confirm('Are you sure you want to clear the GitHub token?')) {
+            const currentLang = localStorage.getItem('language') || 'en';
+            const confirmMsg = currentLang === 'ar' ? 'هل أنت متأكد من أنك تريد مسح رمز GitHub؟' : 'Are you sure you want to clear the GitHub token?';
+            if (!confirm(confirmMsg)) {
                 return;
             }
             
             localStorage.removeItem('github_token');
             githubAPI.setToken('');
             updateTokenStatus();
-            showMessage('GitHub token cleared', 'success');
+            const msg = currentLang === 'ar' ? 'تم مسح رمز GitHub' : 'GitHub token cleared';
+            showMessage(msg, 'success');
         };
 
         window.testGitHubConnection = async function() {
+            const currentLang = localStorage.getItem('language') || 'en';
             if (!githubAPI.hasToken()) {
-                showMessage('Please save a GitHub token first', 'error');
+                const msg = currentLang === 'ar' ? 'الرجاء حفظ رمز GitHub أولاً' : 'Please save a GitHub token first';
+                showMessage(msg, 'error');
                 return;
             }
             
-            showMessage('Testing connection...', 'success');
+            const testingMsg = currentLang === 'ar' ? 'جاري اختبار الاتصال...' : 'Testing connection...';
+            showMessage(testingMsg, 'success');
             
             try {
                 await githubAPI.getFileContent('data/data.json');
-                showMessage('✓ Connection successful! GitHub API is working correctly.', 'success');
+                const successMsg = currentLang === 'ar' ? '✓ نجح الاتصال! GitHub API يعمل بشكل صحيح.' : '✓ Connection successful! GitHub API is working correctly.';
+                showMessage(successMsg, 'success');
             } catch (error) {
-                showMessage('✗ Connection failed: ' + error.message, 'error');
+                const errorMsg = currentLang === 'ar' ? '✗ فشل الاتصال: ' + error.message : '✗ Connection failed: ' + error.message;
+                showMessage(errorMsg, 'error');
             }
         }
 
@@ -752,21 +794,26 @@
                 description: document.getElementById('eventDescription').value
             };
 
+            const currentLang = localStorage.getItem('language') || 'en';
             if (githubAPI.hasToken()) {
                 // Use GitHub API to add event directly
-                showMessage('Adding event to repository...', 'success');
+                const addingMsg = currentLang === 'ar' ? 'جاري إضافة الفعالية إلى المستودع...' : 'Adding event to repository...';
+                showMessage(addingMsg, 'success');
                 
                 try {
                     const result = await githubAPI.addEvent(newEvent);
                     
                     if (result.success) {
-                        showMessage('✓ Event added successfully to the repository!', 'success');
+                        const successMsg = currentLang === 'ar' ? '✓ تم إضافة الفعالية بنجاح إلى المستودع!' : '✓ Event added successfully to the repository!';
+                        showMessage(successMsg, 'success');
                         document.getElementById('eventForm').reset();
                     } else {
-                        showMessage('✗ Failed to add event: ' + result.error, 'error');
+                        const errorMsg = currentLang === 'ar' ? '✗ فشل إضافة الفعالية: ' + result.error : '✗ Failed to add event: ' + result.error;
+                        showMessage(errorMsg, 'error');
                     }
                 } catch (error) {
-                    showMessage('✗ Error adding event: ' + error.message, 'error');
+                    const errorMsg = currentLang === 'ar' ? '✗ خطأ في إضافة الفعالية: ' + error.message : '✗ Error adding event: ' + error.message;
+                    showMessage(errorMsg, 'error');
                 }
             } else {
                 // Fallback: Show JSON for manual update
@@ -776,11 +823,14 @@
                     data.events.push(newEvent);
                     
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
-                    showMessage('Event prepared. Configure GitHub token in Settings to save automatically.', 'success');
-                    alert('Copy this JSON and update data/data.json:\n\n' + JSON.stringify(data, null, 2));
+                    const prepMsg = currentLang === 'ar' ? 'تم إعداد الفعالية. قم بتكوين رمز GitHub في الإعدادات للحفظ تلقائياً.' : 'Event prepared. Configure GitHub token in Settings to save automatically.';
+                    showMessage(prepMsg, 'success');
+                    const alertMsg = currentLang === 'ar' ? 'انسخ هذا JSON وقم بتحديث data/data.json:\n\n' : 'Copy this JSON and update data/data.json:\n\n';
+                    alert(alertMsg + JSON.stringify(data, null, 2));
                     document.getElementById('eventForm').reset();
                 } catch (error) {
-                    showMessage('Error preparing event: ' + error.message, 'error');
+                    const errorMsg = currentLang === 'ar' ? 'خطأ في إعداد الفعالية: ' + error.message : 'Error preparing event: ' + error.message;
+                    showMessage(errorMsg, 'error');
                 }
             }
         });
@@ -798,20 +848,25 @@
                 content: document.getElementById('articleContent').value
             };
 
+            const currentLang = localStorage.getItem('language') || 'en';
             if (githubAPI.hasToken()) {
-                showMessage('Adding article to repository...', 'success');
+                const addingMsg = currentLang === 'ar' ? 'جاري إضافة المقال إلى المستودع...' : 'Adding article to repository...';
+                showMessage(addingMsg, 'success');
                 
                 try {
                     const result = await githubAPI.addArticle(newArticle);
                     
                     if (result.success) {
-                        showMessage('✓ Article added successfully to the repository!', 'success');
+                        const successMsg = currentLang === 'ar' ? '✓ تم إضافة المقال بنجاح إلى المستودع!' : '✓ Article added successfully to the repository!';
+                        showMessage(successMsg, 'success');
                         document.getElementById('articleForm').reset();
                     } else {
-                        showMessage('✗ Failed to add article: ' + result.error, 'error');
+                        const errorMsg = currentLang === 'ar' ? '✗ فشل إضافة المقال: ' + result.error : '✗ Failed to add article: ' + result.error;
+                        showMessage(errorMsg, 'error');
                     }
                 } catch (error) {
-                    showMessage('✗ Error adding article: ' + error.message, 'error');
+                    const errorMsg = currentLang === 'ar' ? '✗ خطأ في إضافة المقال: ' + error.message : '✗ Error adding article: ' + error.message;
+                    showMessage(errorMsg, 'error');
                 }
             } else {
                 try {
@@ -820,11 +875,14 @@
                     data.magazine.articles.push(newArticle);
                     
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
-                    showMessage('Article prepared. Configure GitHub token in Settings to save automatically.', 'success');
-                    alert('Copy this JSON and update data/data.json:\n\n' + JSON.stringify(data, null, 2));
+                    const prepMsg = currentLang === 'ar' ? 'تم إعداد المقال. قم بتكوين رمز GitHub في الإعدادات للحفظ تلقائياً.' : 'Article prepared. Configure GitHub token in Settings to save automatically.';
+                    showMessage(prepMsg, 'success');
+                    const alertMsg = currentLang === 'ar' ? 'انسخ هذا JSON وقم بتحديث data/data.json:\n\n' : 'Copy this JSON and update data/data.json:\n\n';
+                    alert(alertMsg + JSON.stringify(data, null, 2));
                     document.getElementById('articleForm').reset();
                 } catch (error) {
-                    showMessage('Error preparing article: ' + error.message, 'error');
+                    const errorMsg = currentLang === 'ar' ? 'خطأ في إعداد المقال: ' + error.message : 'Error preparing article: ' + error.message;
+                    showMessage(errorMsg, 'error');
                 }
             }
         });
@@ -845,20 +903,25 @@
                 link: document.getElementById('libLink').value
             };
 
+            const currentLang = localStorage.getItem('language') || 'en';
             if (githubAPI.hasToken()) {
-                showMessage('Adding library resource to repository...', 'success');
+                const addingMsg = currentLang === 'ar' ? 'جاري إضافة مورد المكتبة إلى المستودع...' : 'Adding library resource to repository...';
+                showMessage(addingMsg, 'success');
                 
                 try {
                     const result = await githubAPI.addLibraryResource(newResource);
                     
                     if (result.success) {
-                        showMessage('✓ Library resource added successfully to the repository!', 'success');
+                        const successMsg = currentLang === 'ar' ? '✓ تم إضافة مورد المكتبة بنجاح إلى المستودع!' : '✓ Library resource added successfully to the repository!';
+                        showMessage(successMsg, 'success');
                         document.getElementById('libraryForm').reset();
                     } else {
-                        showMessage('✗ Failed to add resource: ' + result.error, 'error');
+                        const errorMsg = currentLang === 'ar' ? '✗ فشل إضافة المورد: ' + result.error : '✗ Failed to add resource: ' + result.error;
+                        showMessage(errorMsg, 'error');
                     }
                 } catch (error) {
-                    showMessage('✗ Error adding resource: ' + error.message, 'error');
+                    const errorMsg = currentLang === 'ar' ? '✗ خطأ في إضافة المورد: ' + error.message : '✗ Error adding resource: ' + error.message;
+                    showMessage(errorMsg, 'error');
                 }
             } else {
                 try {
@@ -867,11 +930,14 @@
                     data.library.push(newResource);
                     
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
-                    showMessage('Resource prepared. Configure GitHub token in Settings to save automatically.', 'success');
-                    alert('Copy this JSON and update data/data.json:\n\n' + JSON.stringify(data, null, 2));
+                    const prepMsg = currentLang === 'ar' ? 'تم إعداد المورد. قم بتكوين رمز GitHub في الإعدادات للحفظ تلقائياً.' : 'Resource prepared. Configure GitHub token in Settings to save automatically.';
+                    showMessage(prepMsg, 'success');
+                    const alertMsg = currentLang === 'ar' ? 'انسخ هذا JSON وقم بتحديث data/data.json:\n\n' : 'Copy this JSON and update data/data.json:\n\n';
+                    alert(alertMsg + JSON.stringify(data, null, 2));
                     document.getElementById('libraryForm').reset();
                 } catch (error) {
-                    showMessage('Error preparing resource: ' + error.message, 'error');
+                    const errorMsg = currentLang === 'ar' ? 'خطأ في إعداد المورد: ' + error.message : 'Error preparing resource: ' + error.message;
+                    showMessage(errorMsg, 'error');
                 }
             }
         });
@@ -886,20 +952,25 @@
                 description: document.getElementById('weekDescription').value
             };
 
+            const currentLang = localStorage.getItem('language') || 'en';
             if (githubAPI.hasToken()) {
-                showMessage('Updating education content in repository...', 'success');
+                const updatingMsg = currentLang === 'ar' ? 'جاري تحديث المحتوى التعليمي في المستودع...' : 'Updating education content in repository...';
+                showMessage(updatingMsg, 'success');
                 
                 try {
                     const result = await githubAPI.updateEducation(education);
                     
                     if (result.success) {
-                        showMessage('✓ Education content updated successfully in the repository!', 'success');
+                        const successMsg = currentLang === 'ar' ? '✓ تم تحديث المحتوى التعليمي بنجاح في المستودع!' : '✓ Education content updated successfully in the repository!';
+                        showMessage(successMsg, 'success');
                         document.getElementById('educationForm').reset();
                     } else {
-                        showMessage('✗ Failed to update education content: ' + result.error, 'error');
+                        const errorMsg = currentLang === 'ar' ? '✗ فشل تحديث المحتوى التعليمي: ' + result.error : '✗ Failed to update education content: ' + result.error;
+                        showMessage(errorMsg, 'error');
                     }
                 } catch (error) {
-                    showMessage('✗ Error updating education content: ' + error.message, 'error');
+                    const errorMsg = currentLang === 'ar' ? '✗ خطأ في تحديث المحتوى التعليمي: ' + error.message : '✗ Error updating education content: ' + error.message;
+                    showMessage(errorMsg, 'error');
                 }
             } else {
                 try {
@@ -908,11 +979,14 @@
                     data.education.weeklyWorkshop = education;
                     
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
-                    showMessage('Education content prepared. Configure GitHub token in Settings to save automatically.', 'success');
-                    alert('Copy this JSON and update data/data.json:\n\n' + JSON.stringify(data, null, 2));
+                    const prepMsg = currentLang === 'ar' ? 'تم إعداد المحتوى التعليمي. قم بتكوين رمز GitHub في الإعدادات للحفظ تلقائياً.' : 'Education content prepared. Configure GitHub token in Settings to save automatically.';
+                    showMessage(prepMsg, 'success');
+                    const alertMsg = currentLang === 'ar' ? 'انسخ هذا JSON وقم بتحديث data/data.json:\n\n' : 'Copy this JSON and update data/data.json:\n\n';
+                    alert(alertMsg + JSON.stringify(data, null, 2));
                     document.getElementById('educationForm').reset();
                 } catch (error) {
-                    showMessage('Error preparing education content: ' + error.message, 'error');
+                    const errorMsg = currentLang === 'ar' ? 'خطأ في إعداد المحتوى التعليمي: ' + error.message : 'Error preparing education content: ' + error.message;
+                    showMessage(errorMsg, 'error');
                 }
             }
         });
