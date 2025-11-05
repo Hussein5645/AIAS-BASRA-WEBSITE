@@ -326,34 +326,34 @@
                     const gridContainer = document.querySelector('.articles-grid');
                     if (gridContainer) {
                         gridContainer.innerHTML = '';
-                    
-                    // Skip first article (featured) and show the rest
-                    magazineData.articles.slice(1).forEach((article, index) => {
-                        const dateInfo = DataLoader.formatDate(article.date);
-                        const categories = ['Design', 'Sustainability', 'Technology', 'History', 'Inspiration', 'Community'];
-                        const category = categories[index % categories.length];
                         
-                        const articleCard = `
-                            <div class="article-card reveal">
-                                <div class="article-image">
-                                    ${['📐', '🌿', '💻', '🏛️', '🎨', '👥'][index % 6]}
-                                    <span class="article-category">${category}</span>
-                                </div>
-                                <div class="article-content">
-                                    <div class="article-meta">
-                                        <span>📅 ${dateInfo.month} ${dateInfo.day}, ${dateInfo.year}</span>
-                                        <span>⏱️ 5 min read</span>
+                        // Skip first article (featured) and show the rest
+                        magazineData.articles.slice(1).forEach((article, index) => {
+                            const dateInfo = DataLoader.formatDate(article.date);
+                            const categories = ['Design', 'Sustainability', 'Technology', 'History', 'Inspiration', 'Community'];
+                            const category = categories[index % categories.length];
+                            
+                            const articleCard = `
+                                <div class="article-card reveal">
+                                    <div class="article-image">
+                                        ${['📐', '🌿', '💻', '🏛️', '🎨', '👥'][index % 6]}
+                                        <span class="article-category">${category}</span>
                                     </div>
-                                    <h3 class="article-title">${article.title}</h3>
-                                    <p class="article-excerpt">
-                                        ${article.summary}
-                                    </p>
-                                    <a href="#" class="read-more">Read More →</a>
+                                    <div class="article-content">
+                                        <div class="article-meta">
+                                            <span>📅 ${dateInfo.month} ${dateInfo.day}, ${dateInfo.year}</span>
+                                            <span>⏱️ 5 min read</span>
+                                        </div>
+                                        <h3 class="article-title">${article.title}</h3>
+                                        <p class="article-excerpt">
+                                            ${article.summary}
+                                        </p>
+                                        <a href="#" class="read-more">Read More →</a>
+                                    </div>
                                 </div>
-                            </div>
-                        `;
-                        gridContainer.innerHTML += articleCard;
-                    });
+                            `;
+                            gridContainer.innerHTML += articleCard;
+                        });
                     }
                 }
                 
