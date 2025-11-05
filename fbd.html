@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freedom By Design - AIAS Basra Chapter</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .fbd-hero {
+            background: var(--gradient-1);
+            color: var(--white);
+            padding: 8rem 0 4rem;
+            text-align: center;
+        }
+        
+        .fbd-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .about-section {
+            padding: 5rem 0;
+        }
+        
+        .about-content {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .about-content p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .impact-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .stat-box {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+        
+        .events-section {
+            background: var(--light-bg);
+            padding: 5rem 0;
+        }
+        
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+        
+        .event-card {
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .event-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .event-image {
+            height: 200px;
+            background: var(--gradient-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+        
+        .event-content {
+            padding: 2rem;
+        }
+        
+        .event-title {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        .event-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        
+        .event-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        
+        .event-actions {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .btn-register {
+            background: var(--gradient-1);
+            color: var(--white);
+        }
+        
+        .btn-register:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-md);
+        }
+        
+        @media (max-width: 768px) {
+            .fbd-hero h1 {
+                font-size: 2rem;
+            }
+            
+            .events-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Authentication Check -->
+    <script src="js/auth.js"></script>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">
+                    <img src="LOGO.png" alt="AIAS Basra Logo">
+                    <span>AIAS Basra</span>
+                </div>
+                <button class="menu-toggle" id="menuToggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="index.html" data-en="Home" data-ar="الرئيسية">Home</a></li>
+                    <li><a href="about.html" data-en="About Us" data-ar="من نحن">About Us</a></li>
+                    <li><a href="library.html" data-en="Library" data-ar="المكتبة">Library</a></li>
+                    <li><a href="magazine.html" data-en="Magazine" data-ar="المجلة">Magazine</a></li>
+                    <li><a href="events.html" data-en="Events" data-ar="الفعاليات">Events</a></li>
+                    <li><a href="education.html" data-en="Education" data-ar="التعليم">Education</a></li>
+                    <li>
+                        <button class="language-toggle" id="languageToggle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                            </svg>
+                            <span id="currentLang">EN</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- FBD Hero -->
+    <section class="fbd-hero">
+        <div class="container">
+            <h1 class="fade-in-up" id="fbdTitle" data-en="Freedom By Design" data-ar="الحرية بالتصميم">Freedom By Design</h1>
+            <p class="fade-in-up delay-1" data-en="Design for social impact and community service" data-ar="التصميم من أجل التأثير الاجتماعي وخدمة المجتمع">Design for social impact and community service</p>
+        </div>
+    </section>
+
+    <!-- About FBD Section -->
+    <section class="about-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title" data-en="About the Program" data-ar="عن البرنامج">About the Program</h2>
+            </div>
+            <div class="about-content">
+                <p id="fbdAbout"></p>
+                
+                <div class="impact-stats">
+                    <div class="stat-box reveal">
+                        <div class="stat-number">12</div>
+                        <div class="stat-label" data-en="Projects Completed" data-ar="مشاريع مكتملة">Projects Completed</div>
+                    </div>
+                    <div class="stat-box reveal">
+                        <div class="stat-number">45</div>
+                        <div class="stat-label" data-en="Students Involved" data-ar="طلاب مشاركين">Students Involved</div>
+                    </div>
+                    <div class="stat-box reveal">
+                        <div class="stat-number">200+</div>
+                        <div class="stat-label" data-en="Community Members Served" data-ar="أفراد المجتمع المخدومين">Community Members Served</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FBD Events Section -->
+    <section class="events-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title" data-en="Upcoming FBD Events" data-ar="فعاليات الحرية بالتصميم القادمة">Upcoming FBD Events</h2>
+                <p class="section-subtitle" data-en="Join us in making a difference through design" data-ar="انضم إلينا في إحداث فرق من خلال التصميم">Join us in making a difference through design</p>
+            </div>
+            <div class="events-grid" id="fbdEventsContainer">
+                <!-- Events will be loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>AIAS Basra Chapter</h3>
+                    <p data-en="American Institute of Architecture Students - Basra Chapter" data-ar="المعهد الأمريكي لطلاب الهندسة المعمارية - فرع البصرة">American Institute of Architecture Students - Basra Chapter</p>
+                </div>
+                <div class="footer-section">
+                    <h4 data-en="Quick Links" data-ar="روابط سريعة">Quick Links</h4>
+                    <ul>
+                        <li><a href="about.html" data-en="About Us" data-ar="من نحن">About Us</a></li>
+                        <li><a href="events.html" data-en="Events" data-ar="الفعاليات">Events</a></li>
+                        <li><a href="library.html" data-en="Library" data-ar="المكتبة">Library</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4 data-en="Connect" data-ar="تواصل معنا">Connect</h4>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook">📘</a>
+                        <a href="#" aria-label="Instagram">📷</a>
+                        <a href="#" aria-label="LinkedIn">💼</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p data-en="© 2024 AIAS Basra Chapter. All rights reserved." data-ar="© 2024 فرع AIAS البصرة. جميع الحقوق محفوظة.">&copy; 2024 AIAS Basra Chapter. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/data-loader.js"></script>
+    <script src="js/three-effects.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // Load FBD data and populate page
+        async function loadFBDData() {
+            const educationData = await DataLoader.getEducation();
+            
+            if (educationData && educationData.fbd) {
+                // Set about text
+                document.getElementById('fbdAbout').textContent = educationData.fbd.about;
+                
+                // Load events
+                const eventsContainer = document.getElementById('fbdEventsContainer');
+                const events = educationData.fbd.events;
+                
+                if (events && events.length > 0) {
+                    eventsContainer.innerHTML = events.map(event => {
+                        const dateInfo = DataLoader.formatDate(event.time);
+                        const isPast = DataLoader.isPastEvent(event.time);
+                        const status = isPast ? 'Completed' : 'Upcoming';
+                        const statusClass = isPast ? 'status-past' : 'status-upcoming';
+                        
+                        return `
+                            <div class="event-card reveal">
+                                <div class="event-image">
+                                    ${event.image}
+                                </div>
+                                <div class="event-content">
+                                    <h3 class="event-title">${event.title}</h3>
+                                    <div class="event-meta">
+                                        <div class="meta-item">
+                                            <span>📅</span>
+                                            <span>${dateInfo.fullDate}</span>
+                                        </div>
+                                        <div class="meta-item">
+                                            <span>📍</span>
+                                            <span>${event.location}</span>
+                                        </div>
+                                        <div class="meta-item">
+                                            <span>👥</span>
+                                            <span>${event.seatsAvailable} Seats Available</span>
+                                        </div>
+                                    </div>
+                                    <p class="event-description">${event.description}</p>
+                                    <div class="event-actions">
+                                        ${!isPast ? '<button class="action-btn btn-register">Register Now</button>' : '<button class="action-btn btn-register" disabled>Event Completed</button>'}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    eventsContainer.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No events scheduled at this time.</p>';
+                }
+            }
+        }
+        
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', loadFBDData);
+    </script>
+</body>
+</html>

@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Authentication Check -->
+    <script src="js/auth.js"></script>
     <style>
         .events-hero {
             background: var(--gradient-1);
@@ -320,15 +322,15 @@
     <!-- Events Hero -->
     <section class="events-hero">
         <div class="container">
-            <h1 class="fade-in-up">Upcoming Events</h1>
-            <p class="fade-in-up delay-1">Join us for workshops, lectures, and networking opportunities</p>
+            <h1 class="fade-in-up" data-en="Upcoming Events" data-ar="الفعاليات القادمة">Upcoming Events</h1>
+            <p class="fade-in-up delay-1" data-en="Join us for workshops, lectures, and networking opportunities" data-ar="انضم إلينا في ورش العمل والمحاضرات وفرص التواصل">Join us for workshops, lectures, and networking opportunities</p>
         </div>
     </section>
 
     <!-- View Toggle -->
     <section class="view-toggle">
-        <button class="view-btn active" onclick="showView('grid')">📅 Grid View</button>
-        <button class="view-btn" onclick="showView('timeline')">📊 Timeline View</button>
+        <button class="view-btn active" onclick="showView('grid')" data-en="📅 Grid View" data-ar="📅 عرض الشبكة">📅 Grid View</button>
+        <button class="view-btn" onclick="showView('timeline')" data-en="📊 Timeline View" data-ar="📊 عرض الجدول الزمني">📊 Timeline View</button>
     </section>
 
     <!-- Events Grid View -->
@@ -621,6 +623,7 @@
         </div>
     </footer>
 
+    <script src="js/data-loader.js"></script>
     <script src="js/main.js"></script>
     <script>
         function showView(view) {
@@ -640,6 +643,84 @@
                 buttons[1].classList.add('active');
             }
         }
+        
+        // Load events from data.json
+        async function loadEvents() {
+            const events = await DataLoader.getEvents();
+            const gridContainer = document.querySelector('#gridView .events-grid');
+            const timelineContainer = document.querySelector('.timeline');
+            
+            if (events && events.length > 0) {
+                // Clear existing content
+                gridContainer.innerHTML = '';
+                timelineContainer.innerHTML = '';
+                
+                // Populate grid view
+                events.forEach(event => {
+                    const dateInfo = DataLoader.formatDate(event.time);
+                    const isPast = DataLoader.isPastEvent(event.time);
+                    const status = isPast ? 'Completed' : 'Upcoming';
+                    const statusClass = isPast ? 'status-past' : 'status-upcoming';
+                    
+                    const eventCard = `
+                        <div class="event-card reveal">
+                            <div class="event-date-badge">
+                                <div class="event-day">${dateInfo.day}</div>
+                                <div class="event-month">${dateInfo.monthShort}</div>
+                            </div>
+                            <div class="event-image">
+                                ${event.image}
+                                <span class="event-status ${statusClass}">${status}</span>
+                            </div>
+                            <div class="event-content">
+                                <h3 class="event-title">${event.title}</h3>
+                                <div class="event-meta">
+                                    <div class="meta-item">
+                                        <span>🕐</span>
+                                        <span>${dateInfo.time}</span>
+                                    </div>
+                                    <div class="meta-item">
+                                        <span>📍</span>
+                                        <span>${event.location}</span>
+                                    </div>
+                                    <div class="meta-item">
+                                        <span>👥</span>
+                                        <span>${event.seatsAvailable} Seats Available</span>
+                                    </div>
+                                </div>
+                                <p class="event-description">
+                                    ${event.description}
+                                </p>
+                                <div class="event-actions">
+                                    ${!isPast ? `<a href="#" class="action-btn btn-register">Register Now</a>
+                                    <a href="#" class="action-btn btn-details">Details</a>` : 
+                                    `<a href="#" class="action-btn btn-details" style="flex: none; width: 100%;">View Gallery</a>`}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    gridContainer.innerHTML += eventCard;
+                    
+                    // Add to timeline view (only future events)
+                    if (!isPast) {
+                        const timelineItem = `
+                            <div class="timeline-item reveal">
+                                <div class="timeline-content">
+                                    <h3>${event.title}</h3>
+                                    <p><strong>${dateInfo.fullDate}</strong></p>
+                                    <p>${dateInfo.time} | ${event.location}</p>
+                                </div>
+                                <div class="timeline-dot"></div>
+                            </div>
+                        `;
+                        timelineContainer.innerHTML += timelineItem;
+                    }
+                });
+            }
+        }
+        
+        // Load events when page loads
+        document.addEventListener('DOMContentLoaded', loadEvents);
     </script>
     <script src="js/three-effects.js"></script>
 </body>

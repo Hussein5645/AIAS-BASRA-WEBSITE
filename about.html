@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Authentication Check -->
+    <script src="js/auth.js"></script>
     <style>
         .about-hero {
             background: var(--gradient-1);
@@ -199,8 +201,8 @@
     <!-- About Hero -->
     <section class="about-hero">
         <div class="container">
-            <h1 class="fade-in-up">About AIAS Basra Chapter</h1>
-            <p class="fade-in-up delay-1">Empowering the next generation of architects in Basra</p>
+            <h1 class="fade-in-up" data-en="About AIAS Basra Chapter" data-ar="عن فرع AIAS البصرة">About AIAS Basra Chapter</h1>
+            <p class="fade-in-up delay-1" data-en="Empowering the next generation of architects in Basra" data-ar="تمكين الجيل القادم من المهندسين المعماريين في البصرة">Empowering the next generation of architects in Basra</p>
         </div>
     </section>
 
@@ -210,8 +212,8 @@
             <div class="story-content">
                 <div class="story-image reveal">🏛️</div>
                 <div class="story-text reveal">
-                    <h2>Our Story</h2>
-                    <p>
+                    <h2 data-en="Our Story" data-ar="قصتنا">Our Story</h2>
+                    <p data-en="The AIAS Basra Chapter was founded with a vision to create a vibrant community of architecture students and professionals dedicated to advancing the field of architecture in our region." data-ar="تم تأسيس فرع AIAS البصرة برؤية لإنشاء مجتمع نابض بالحياة من طلاب الهندسة المعمارية والمحترفين المكرسين للنهوض بمجال الهندسة المعمارية في منطقتنا.">
                         The AIAS Basra Chapter was founded with a vision to create a vibrant community of 
                         architecture students and professionals dedicated to advancing the field of architecture 
                         in our region.
@@ -236,40 +238,53 @@
     <section class="values-section">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">Our Core Values</h2>
-                <p class="section-subtitle">The principles that guide everything we do</p>
+                <h2 class="section-title" data-en="Our Core Values" data-ar="قيمنا الأساسية">Our Core Values</h2>
+                <p class="section-subtitle" data-en="The principles that guide everything we do" data-ar="المبادئ التي توجه كل ما نقوم به">The principles that guide everything we do</p>
             </div>
             <div class="values-grid">
                 <div class="value-card reveal">
                     <div class="value-number">01</div>
-                    <h3>Excellence</h3>
-                    <p>We strive for excellence in architectural education and practice, setting high standards for ourselves and our members.</p>
+                    <h3 data-en="Excellence" data-ar="التميز">Excellence</h3>
+                    <p data-en="We strive for excellence in architectural education and practice, setting high standards for ourselves and our members." data-ar="نسعى للتميز في التعليم والممارسة المعمارية، ونضع معايير عالية لأنفسنا ولأعضائنا.">We strive for excellence in architectural education and practice, setting high standards for ourselves and our members.</p>
                 </div>
                 <div class="value-card reveal">
                     <div class="value-number">02</div>
-                    <h3>Innovation</h3>
-                    <p>We embrace new ideas, technologies, and approaches to push the boundaries of architectural design.</p>
+                    <h3 data-en="Innovation" data-ar="الابتكار">Innovation</h3>
+                    <p data-en="We embrace new ideas, technologies, and approaches to push the boundaries of architectural design." data-ar="نحتضن الأفكار والتقنيات والأساليب الجديدة لدفع حدود التصميم المعماري.">We embrace new ideas, technologies, and approaches to push the boundaries of architectural design.</p>
                 </div>
                 <div class="value-card reveal">
                     <div class="value-number">03</div>
-                    <h3>Collaboration</h3>
-                    <p>We believe in the power of working together, fostering a supportive and inclusive community.</p>
+                    <h3 data-en="Collaboration" data-ar="التعاون">Collaboration</h3>
+                    <p data-en="We believe in the power of working together, fostering a supportive and inclusive community." data-ar="نؤمن بقوة العمل معًا، وتعزيز مجتمع داعم وشامل.">We believe in the power of working together, fostering a supportive and inclusive community.</p>
                 </div>
                 <div class="value-card reveal">
                     <div class="value-number">04</div>
-                    <h3>Sustainability</h3>
-                    <p>We are committed to promoting sustainable design practices that respect our environment.</p>
+                    <h3 data-en="Sustainability" data-ar="الاستدامة">Sustainability</h3>
+                    <p data-en="We are committed to promoting sustainable design practices that respect our environment." data-ar="نحن ملتزمون بتعزيز ممارسات التصميم المستدام التي تحترم بيئتنا.">We are committed to promoting sustainable design practices that respect our environment.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Team Section -->
+    <!-- Founders Section -->
     <section class="team-section">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">Meet Our Team</h2>
-                <p class="section-subtitle">Dedicated leaders working to make a difference</p>
+                <h2 class="section-title" data-en="Our Founders" data-ar="مؤسسونا">Our Founders</h2>
+                <p class="section-subtitle" data-en="The visionaries who started it all" data-ar="الرؤساء الذين بدأوا كل شيء">The visionaries who started it all</p>
+            </div>
+            <div class="team-grid" id="foundersGrid">
+                <!-- Founders will be loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="team-section" style="background: var(--light-bg);">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title" data-en="Meet Our Team" data-ar="تعرف على فريقنا">Meet Our Team</h2>
+                <p class="section-subtitle" data-en="Dedicated leaders working to make a difference" data-ar="قادة متفانون يعملون لإحداث فرق">Dedicated leaders working to make a difference</p>
             </div>
             <div class="team-grid">
                 <div class="team-card reveal">
@@ -339,7 +354,38 @@
         </div>
     </footer>
 
+    <script src="js/data-loader.js"></script>
     <script src="js/three-effects.js"></script>
     <script src="js/main.js"></script>
+    <script>
+        // Load founders data from data.json
+        async function loadFounders() {
+            const aboutData = await DataLoader.getAbout();
+            const foundersGrid = document.getElementById('foundersGrid');
+            
+            if (aboutData && aboutData.founders && aboutData.founders.length > 0) {
+                foundersGrid.innerHTML = '';
+                
+                aboutData.founders.forEach(founder => {
+                    const founderCard = `
+                        <div class="team-card reveal">
+                            <div class="team-image" style="background-image: url('${founder.image}'); background-size: cover; background-position: center;">
+                                <img src="${founder.image}" alt="${founder.name}" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                            <div class="team-info">
+                                <h3>${founder.name}</h3>
+                                <div class="team-role">${founder.role}</div>
+                                <p>${founder.bio}</p>
+                            </div>
+                        </div>
+                    `;
+                    foundersGrid.innerHTML += founderCard;
+                });
+            }
+        }
+        
+        // Load founders when page loads
+        document.addEventListener('DOMContentLoaded', loadFounders);
+    </script>
 </body>
 </html>

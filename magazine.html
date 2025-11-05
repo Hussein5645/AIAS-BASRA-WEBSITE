@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Authentication Check -->
+    <script src="js/auth.js"></script>
     <style>
         .magazine-hero {
             background: var(--gradient-1);
@@ -268,8 +270,8 @@
     <!-- Magazine Hero -->
     <section class="magazine-hero">
         <div class="container">
-            <h1 class="fade-in-up">Magazine & Articles</h1>
-            <p class="fade-in-up delay-1">Explore insights, trends, and stories from the world of architecture</p>
+            <h1 class="fade-in-up" data-en="Magazine & Articles" data-ar="المجلة والمقالات">Magazine & Articles</h1>
+            <p class="fade-in-up delay-1" data-en="Explore insights, trends, and stories from the world of architecture" data-ar="استكشف الأفكار والاتجاهات والقصص من عالم الهندسة المعمارية">Explore insights, trends, and stories from the world of architecture</p>
         </div>
     </section>
 
@@ -277,7 +279,7 @@
     <section class="featured-article">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">Featured Article</h2>
+                <h2 class="section-title" data-en="Featured Article" data-ar="المقال المميز">Featured Article</h2>
             </div>
             <div class="featured-content">
                 <div class="featured-image reveal">🏗️</div>
@@ -304,8 +306,8 @@
     <section class="articles-section">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">Latest Articles</h2>
-                <p class="section-subtitle">Stay updated with our latest publications</p>
+                <h2 class="section-title" data-en="Latest Articles" data-ar="أحدث المقالات">Latest Articles</h2>
+                <p class="section-subtitle" data-en="Stay updated with our latest publications" data-ar="ابق على اطلاع بأحدث منشوراتنا">Stay updated with our latest publications</p>
             </div>
             <div class="articles-grid">
                 <div class="article-card reveal">
@@ -423,11 +425,11 @@
     <section class="newsletter-section">
         <div class="container">
             <div class="newsletter-content">
-                <h2>Subscribe to Our Newsletter</h2>
-                <p>Get the latest articles and updates delivered straight to your inbox</p>
+                <h2 data-en="Subscribe to Our Newsletter" data-ar="اشترك في نشرتنا الإخبارية">Subscribe to Our Newsletter</h2>
+                <p data-en="Get the latest articles and updates delivered straight to your inbox" data-ar="احصل على أحدث المقالات والتحديثات مباشرة إلى صندوق الوارد الخاص بك">Get the latest articles and updates delivered straight to your inbox</p>
                 <form class="newsletter-form">
                     <input type="email" placeholder="Enter your email address" required>
-                    <button type="submit">Subscribe</button>
+                    <button type="submit" data-en="Subscribe" data-ar="اشترك">Subscribe</button>
                 </form>
             </div>
         </div>
@@ -464,7 +466,68 @@
         </div>
     </footer>
 
+    <script src="js/data-loader.js"></script>
     <script src="js/three-effects.js"></script>
     <script src="js/main.js"></script>
+    <script>
+        // Load magazine data from data.json
+        async function loadMagazine() {
+            const magazineData = await DataLoader.getMagazine();
+            
+            if (magazineData) {
+                // Load featured article
+                if (magazineData.articles && magazineData.articles.length > 0) {
+                    const featured = magazineData.articles[0];
+                    const dateInfo = DataLoader.formatDate(featured.date);
+                    
+                    document.querySelector('.featured-text .article-date').textContent = `📅 ${dateInfo.month} ${dateInfo.year}`;
+                    document.querySelector('.featured-text h2').textContent = featured.title;
+                    const paragraphs = document.querySelectorAll('.featured-text p');
+                    if (paragraphs.length > 0) {
+                        paragraphs[0].textContent = featured.summary;
+                    }
+                }
+                
+                // Load articles grid
+                if (magazineData.articles && magazineData.articles.length > 1) {
+                    const gridContainer = document.querySelector('.articles-grid');
+                    gridContainer.innerHTML = '';
+                    
+                    // Skip first article (featured) and show the rest
+                    magazineData.articles.slice(1).forEach((article, index) => {
+                        const dateInfo = DataLoader.formatDate(article.date);
+                        const categories = ['Design', 'Sustainability', 'Technology', 'History', 'Inspiration', 'Community'];
+                        const category = categories[index % categories.length];
+                        
+                        const articleCard = `
+                            <div class="article-card reveal">
+                                <div class="article-image">
+                                    ${['📐', '🌿', '💻', '🏛️', '🎨', '👥'][index % 6]}
+                                    <span class="article-category">${category}</span>
+                                </div>
+                                <div class="article-content">
+                                    <div class="article-meta">
+                                        <span>📅 ${dateInfo.month} ${dateInfo.day}, ${dateInfo.year}</span>
+                                        <span>⏱️ 5 min read</span>
+                                    </div>
+                                    <h3 class="article-title">${article.title}</h3>
+                                    <p class="article-excerpt">
+                                        ${article.summary}
+                                    </p>
+                                    <a href="#" class="read-more">Read More →</a>
+                                </div>
+                            </div>
+                        `;
+                        gridContainer.innerHTML += articleCard;
+                    });
+                }
+                
+                // Note: Magazine releases (PDFs) are in the data but can be displayed separately if needed
+            }
+        }
+        
+        // Load magazine when page loads
+        document.addEventListener('DOMContentLoaded', loadMagazine);
+    </script>
 </body>
 </html>
