@@ -64,8 +64,8 @@
         </div>
         <div class="container">
             <div class="hero-content">
-                <h1 class="hero-title fade-in-up" data-en="Welcome to AIAS Basra Chapter" data-ar="مرحباً بكم في فرع AIAS البصرة">Welcome to AIAS Basra Chapter</h1>
-                <p class="hero-subtitle fade-in-up delay-1" data-en="Building the Future of Architecture Through Innovation, Education, and Community" data-ar="بناء مستقبل الهندسة المعمارية من خلال الابتكار والتعليم والمجتمع">
+                <h1 id="heroTitle" class="hero-title fade-in-up" data-en="Welcome to AIAS Basra Chapter" data-ar="مرحباً بكم في فرع AIAS البصرة">Welcome to AIAS Basra Chapter</h1>
+                <p id="heroSubtitle" class="hero-subtitle fade-in-up delay-1" data-en="Building the Future of Architecture Through Innovation, Education, and Community" data-ar="بناء مستقبل الهندسة المعمارية من خلال الابتكار والتعليم والمجتمع">
                     Building the Future of Architecture Through Innovation, Education, and Community
                 </p>
                 <div class="hero-buttons fade-in-up delay-2">
@@ -83,10 +83,10 @@
     <section class="mission">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title" data-en="Our Mission" data-ar="مهمتنا">Our Mission</h2>
-                <p class="section-subtitle" data-en="Empowering future architects through education, innovation, and collaboration" data-ar="تمكين المهندسين المعماريين المستقبليين من خلال التعليم والابتكار والتعاون">Empowering future architects through education, innovation, and collaboration</p>
+                <h2 id="missionTitle" class="section-title" data-en="Our Mission" data-ar="مهمتنا">Our Mission</h2>
+                <p id="missionSubtitle" class="section-subtitle" data-en="Empowering future architects through education, innovation, and collaboration" data-ar="تمكين المهندسين المعماريين المستقبليين من خلال التعليم والابتكار والتعاون">Empowering future architects through education, innovation, and collaboration</p>
             </div>
-            <div class="mission-grid">
+            <div id="missionGrid" class="mission-grid">
                 <div class="mission-card">
                     <div class="mission-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -210,6 +210,103 @@
         </div>
     </footer>
 
+    <script src="js/data-loader.js"></script>
+    <script>
+        // Load home page content from data.json
+        async function loadHomeContent() {
+            const data = await DataLoader.fetchData();
+            
+            if (data && data.home) {
+                // Load hero section
+                if (data.home.hero) {
+                    const heroTitle = document.getElementById('heroTitle');
+                    const heroSubtitle = document.getElementById('heroSubtitle');
+                    
+                    if (heroTitle && data.home.hero.title) {
+                        heroTitle.textContent = data.home.hero.title;
+                        heroTitle.setAttribute('data-en', data.home.hero.title);
+                        heroTitle.setAttribute('data-ar', data.home.hero.title);
+                    }
+                    
+                    if (heroSubtitle && data.home.hero.subtitle) {
+                        heroSubtitle.textContent = data.home.hero.subtitle;
+                        heroSubtitle.setAttribute('data-en', data.home.hero.subtitle);
+                        heroSubtitle.setAttribute('data-ar', data.home.hero.subtitle);
+                    }
+                }
+                
+                // Load mission section
+                if (data.home.mission) {
+                    const missionTitle = document.getElementById('missionTitle');
+                    const missionSubtitle = document.getElementById('missionSubtitle');
+                    
+                    if (missionTitle && data.home.mission.title) {
+                        missionTitle.textContent = data.home.mission.title;
+                        missionTitle.setAttribute('data-en', data.home.mission.title);
+                        missionTitle.setAttribute('data-ar', data.home.mission.title);
+                    }
+                    
+                    if (missionSubtitle && data.home.mission.subtitle) {
+                        missionSubtitle.textContent = data.home.mission.subtitle;
+                        missionSubtitle.setAttribute('data-en', data.home.mission.subtitle);
+                        missionSubtitle.setAttribute('data-ar', data.home.mission.subtitle);
+                    }
+                    
+                    // Load mission cards if available
+                    if (data.home.mission.cards && data.home.mission.cards.length > 0) {
+                        const missionGrid = document.getElementById('missionGrid');
+                        
+                        // Build complete HTML string first for better performance
+                        let cardsHtml = '';
+                        data.home.mission.cards.forEach(card => {
+                            const iconSvg = getIconSvg(card.icon);
+                            cardsHtml += `
+                                <div class="mission-card">
+                                    <div class="mission-icon">
+                                        ${iconSvg}
+                                    </div>
+                                    <h3 data-en="${card.title}" data-ar="${card.title}">${card.title}</h3>
+                                    <p data-en="${card.description}" data-ar="${card.description}">${card.description}</p>
+                                </div>
+                            `;
+                        });
+                        missionGrid.innerHTML = cardsHtml;
+                    }
+                }
+                
+                // Reapply language settings after loading content
+                if (typeof setLanguage === 'function') {
+                    const currentLang = localStorage.getItem('language') || 'en';
+                    setLanguage(currentLang);
+                }
+            }
+        }
+        
+        // Helper function to get icon SVG based on icon name
+        function getIconSvg(iconName) {
+            const icons = {
+                'education': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                    <path d="M2 17l10 5 10-5"/>
+                    <path d="M2 12l10 5 10-5"/>
+                </svg>`,
+                'innovation': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 6v6l4 2"/>
+                </svg>`,
+                'community': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>`
+            };
+            return icons[iconName] || icons['education'];
+        }
+        
+        // Load content when DOM is ready
+        document.addEventListener('DOMContentLoaded', loadHomeContent);
+    </script>
     <script src="js/three-effects.js"></script>
     <script src="js/main.js"></script>
 </body>

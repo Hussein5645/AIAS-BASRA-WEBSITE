@@ -78,6 +78,12 @@ const DataLoader = (function() {
         return data ? data.about : { founders: [] };
     }
 
+    // Get home page data
+    async function getHome() {
+        const data = await fetchData();
+        return data ? data.home : null;
+    }
+
     // Public API
     return {
         fetchData,
@@ -87,6 +93,7 @@ const DataLoader = (function() {
         getMagazine,
         getLibrary,
         getEducation,
-        getAbout
+        getAbout,
+        getHome
     };
 })();
