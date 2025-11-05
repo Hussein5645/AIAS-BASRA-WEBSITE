@@ -291,10 +291,29 @@
         }
 
         // Check if user is already logged in
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // User is signed in, redirect to appropriate page
-                checkUserRoleAndRedirect(user);
+                // User is signed in, ask if they want to continue or use different account
+                const continueWithCurrent = confirm(
+                    `You are already logged in as ${user.displayName || user.email}.\n\n` +
+                    `Do you want to continue with this account?\n\n` +
+                    `Click "OK" to continue with current account.\n` +
+                    `Click "Cancel" to sign out and login with a different account.`
+                );
+                
+                if (continueWithCurrent) {
+                    // Continue with current account
+                    checkUserRoleAndRedirect(user);
+                } else {
+                    // Sign out so user can login with different account
+                    try {
+                        await auth.signOut();
+                        showMessage('Signed out successfully. Please sign in with your preferred account.', 'success');
+                    } catch (error) {
+                        console.error('Sign out error:', error);
+                        showMessage('Error signing out. Please try again.', 'error');
+                    }
+                }
             }
         });
 
