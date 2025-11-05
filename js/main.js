@@ -252,4 +252,51 @@ if (languageToggle) {
     });
 }
 
+// Check authentication status and update navigation
+function updateNavigation() {
+    const isAuthenticated = localStorage.getItem('aias_authenticated') === 'true';
+    const userName = localStorage.getItem('aias_user_name');
+    
+    const loginBtn = document.getElementById('loginBtn');
+    const signupBtn = document.getElementById('signupBtn');
+    const userProfile = document.getElementById('userProfile');
+    const userNameElement = document.getElementById('userName');
+    
+    if (isAuthenticated && userName) {
+        // User is logged in - hide login/signup, show user profile
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (signupBtn) signupBtn.style.display = 'none';
+        if (userProfile) userProfile.style.display = 'flex';
+        if (userNameElement) userNameElement.textContent = userName;
+    } else {
+        // User is not logged in - show login/signup, hide user profile
+        if (loginBtn) loginBtn.style.display = 'block';
+        if (signupBtn) signupBtn.style.display = 'block';
+        if (userProfile) userProfile.style.display = 'none';
+    }
+}
+
+// Handle logout
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        // Clear authentication data
+        localStorage.removeItem('aias_authenticated');
+        localStorage.removeItem('aias_user_email');
+        localStorage.removeItem('aias_user_name');
+        localStorage.removeItem('aias_user_picture');
+        localStorage.removeItem('aias_is_admin');
+        
+        // Redirect to home page
+        window.location.href = 'index.html';
+    });
+}
+
+// Update navigation on page load
+document.addEventListener('DOMContentLoaded', () => {
+    updateNavigation();
+});
+
 console.log('AIAS Basra Website Loaded Successfully');

@@ -15,8 +15,8 @@
         return;
     }
     
-    // Check if user is authenticated
-    if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
+    // Check if user is authenticated (now using localStorage for persistent login)
+    if (localStorage.getItem(SESSION_KEY) !== 'true') {
         // Redirect to password page first (legacy behavior)
         const legacyAuth = sessionStorage.getItem('aias_authenticated');
         if (!legacyAuth) {
@@ -26,7 +26,7 @@
     
     // If on admin page, verify admin status
     if (currentPage === ADMIN_PAGE) {
-        const isAdmin = sessionStorage.getItem('aias_is_admin') === 'true';
+        const isAdmin = localStorage.getItem('aias_is_admin') === 'true';
         if (!isAdmin) {
             alert('Access denied. Admin privileges required.');
             window.location.href = 'index.html';
