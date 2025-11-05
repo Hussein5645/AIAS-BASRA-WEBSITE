@@ -252,6 +252,10 @@
         <div class="signup-link">
             Don't have an account? <a href="signup.html">Sign up here</a>
         </div>
+        <button type="button" class="google-btn" id="visitorBtn">
+            👀 Continue as Visitor
+        </button>
+
     </div>
 
     <!-- Firebase SDK -->
@@ -304,6 +308,12 @@
                 return false;
             }
         }
+        // Continue as visitor
+        const visitorBtn = document.getElementById('visitorBtn');
+        visitorBtn.addEventListener('click', () => {
+            localStorage.clear();
+            window.location.href = 'http://aiasbsr.com/index.html';
+        });
 
         async function checkUserRoleAndRedirect(user) {
             try {
@@ -353,11 +363,28 @@
                         lastLogin: new Date().toISOString()
                     });
                 } else {
-                    // Existing user - update last login
-                    await setDoc(userRef, {
-                        lastLogin: new Date().toISOString()
-                    }, { merge: true });
+                    // Existing user found
+                    const lastLoginData = userSnap.data().lastLogin
+                        ? new Date(userSnap.data().lastLogin).toLocaleString()
+                        : "unknown";
+                
+                    // Ask the user what to do
+                    const usePrevious = confirm(
+                        `Welcome back, ${user.displayName || "User"}!\n` +
+                        `Your last login was on: ${lastLoginData}.\n\n` +
+                        `Do you want to continue with your previous session?\n\n` +
+                        `Click "OK" to continue with previous session.\n` +
+                        `Click "Cancel" to start a new session.`
+                    );
+                
+                    if (!usePrevious) {
+                        // User wants a new session
+                        await setDoc(userRef, {
+                            lastLogin: new Date().toISOString()
+                        }, { merge: true });
+                    }
                 }
+
 
                 showMessage('Login successful! Redirecting...', 'success');
                 
