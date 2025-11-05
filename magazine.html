@@ -294,10 +294,48 @@
         </div>
     </footer>
 
-    <script type="module" src="js/data-loader.js"></script>
     <script src="js/three-effects.js"></script>
     <script src="js/main.js"></script>
-    <script>
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
+            authDomain: "aias-bsr.firebaseapp.com",
+            projectId: "aias-bsr",
+            storageBucket: "aias-bsr.firebasestorage.app",
+            messagingSenderId: "78055223814",
+            appId: "1:78055223814:web:99460402c2b1fcd5ae8987",
+            measurementId: "G-6W50T4HXDV"
+        };
+
+        // Initialize Firebase
+        console.log('[Magazine] Initializing Firebase for magazine page...');
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Format date string
+        function formatDate(isoString) {
+            const date = new Date(isoString);
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthsAr = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+            
+            const currentLang = localStorage.getItem('language') || 'en';
+            const monthNames = currentLang === 'ar' ? monthsAr : months;
+            
+            return {
+                day: date.getDate(),
+                month: monthNames[date.getMonth()],
+                year: date.getFullYear(),
+                monthShort: months[date.getMonth()].toUpperCase(),
+                time: date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                fullDate: date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+            };
+        }
+
         // Load magazine data from Firebase
         async function loadMagazine() {
             const featuredContent = document.getElementById('featuredContent');
@@ -322,13 +360,18 @@
             }
             
             try {
-                const magazineData = await DataLoader.getMagazine();
+                console.log('[Magazine] Fetching magazine content from Firestore...');
+                
+                // Fetch only magazine content - not all data
+                const magazineDoc = await getDoc(doc(db, 'content', 'magazine'));
+                const magazineData = magazineDoc.exists() ? magazineDoc.data() : null;
+                console.log('[Magazine] ✓ Magazine content loaded');
                 
                 if (magazineData) {
                     // Load featured article
                     if (magazineData.featuredArticle && featuredContent) {
                         const featured = magazineData.featuredArticle;
-                        const dateInfo = DataLoader.formatDate(featured.date);
+                        const dateInfo = formatDate(featured.date);
                         
                         featuredContent.innerHTML = `
                             <div class="featured-image reveal">${featured.image || '🏗️'}</div>
@@ -356,7 +399,7 @@
                         
                         // Skip first article (featured) and show the rest
                         magazineData.articles.slice(1).forEach((article, index) => {
-                            const dateInfo = DataLoader.formatDate(article.date);
+                            const dateInfo = formatDate(article.date);
                             const categories = ['Design', 'Sustainability', 'Technology', 'History', 'Inspiration', 'Community'];
                             const category = categories[index % categories.length];
                             
@@ -406,7 +449,7 @@
                     }
                 }
             } catch (error) {
-                console.error('Error loading magazine:', error);
+                console.error('[Magazine] ✗ Error loading magazine:', error);
                 // Show error state
                 if (featuredContent) {
                     featuredContent.innerHTML = `
