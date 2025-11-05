@@ -1,25 +1,97 @@
 // Data loader for AIAS Basra Website
-// This module handles loading and caching data from data.json
+// This module handles loading and caching data from Firebase Firestore
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
+    authDomain: "aias-bsr.firebaseapp.com",
+    projectId: "aias-bsr",
+    storageBucket: "aias-bsr.firebasestorage.app",
+    messagingSenderId: "78055223814",
+    appId: "1:78055223814:web:99460402c2b1fcd5ae8987",
+    measurementId: "G-6W50T4HXDV"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 const DataLoader = (function() {
     let cachedData = null;
-    const DATA_URL = 'data/data.json';
 
-    // Fetch data from JSON file
+    // Fetch data from Firestore
     async function fetchData() {
         if (cachedData) {
             return cachedData;
         }
 
         try {
-            const response = await fetch(DATA_URL);
-            if (!response.ok) {
-                throw new Error('Failed to load data');
+            // Fetch all collections from Firestore
+            const data = {
+                home: {},
+                events: [],
+                magazine: {
+                    featuredArticle: null,
+                    articles: [],
+                    releases: []
+                },
+                library: [],
+                education: {
+                    weeklyWorkshop: {},
+                    courses: [],
+                    fbd: {
+                        pageTitle: "",
+                        about: "",
+                        events: []
+                    }
+                },
+                about: {
+                    story: { paragraphs: [] },
+                    values: [],
+                    founders: [],
+                    team: []
+                }
+            };
+
+            // Fetch home data
+            const homeDoc = await getDoc(doc(db, 'content', 'home'));
+            if (homeDoc.exists()) {
+                data.home = homeDoc.data();
             }
-            cachedData = await response.json();
+
+            // Fetch events
+            const eventsSnapshot = await getDocs(collection(db, 'events'));
+            data.events = eventsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Fetch magazine data
+            const magazineDoc = await getDoc(doc(db, 'content', 'magazine'));
+            if (magazineDoc.exists()) {
+                data.magazine = magazineDoc.data();
+            }
+
+            // Fetch library items
+            const librarySnapshot = await getDocs(collection(db, 'library'));
+            data.library = librarySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Fetch education data
+            const educationDoc = await getDoc(doc(db, 'content', 'education'));
+            if (educationDoc.exists()) {
+                data.education = educationDoc.data();
+            }
+
+            // Fetch about data
+            const aboutDoc = await getDoc(doc(db, 'content', 'about'));
+            if (aboutDoc.exists()) {
+                data.about = aboutDoc.data();
+            }
+
+            cachedData = data;
             return cachedData;
         } catch (error) {
-            console.error('Error loading data:', error);
+            console.error('Error loading data from Firestore:', error);
             return null;
         }
     }
@@ -97,3 +169,6 @@ const DataLoader = (function() {
         getHome
     };
 })();
+
+// Export for use in other modules
+window.DataLoader = DataLoader;

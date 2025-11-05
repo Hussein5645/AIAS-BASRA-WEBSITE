@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="js/github-api.js"></script>
+    <script type="module" src="js/firestore-api.js"></script>
     <script src="js/main.js" defer></script>
     <style>
         .admin-header {
@@ -538,6 +538,8 @@
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import FirestoreAPI from "./js/firestore-api.js";
 
         // Firebase configuration
         const firebaseConfig = {
@@ -553,10 +555,10 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        // Check admin authentication
-        // Initialize GitHub API
-        const githubAPI = new GitHubAPI();
+        // Initialize Firestore API for content management
+        const firestoreAPI = new FirestoreAPI();
 
         // Make logout function globally accessible
         window.logout = async function() {
@@ -577,9 +579,13 @@
 
         async function checkIfAdmin(email) {
             try {
-                const response = await fetch('data/admin.json');
-                const data = await response.json();
-                return data.admins.includes(email.toLowerCase());
+                // Fetch admin list from Firestore
+                const adminDoc = await getDoc(doc(db, 'config', 'admins'));
+                if (adminDoc.exists()) {
+                    const data = adminDoc.data();
+                    return data.admins && data.admins.includes(email.toLowerCase());
+                }
+                return false;
             } catch (error) {
                 console.error('Error checking admin status:', error);
                 return false;
@@ -675,8 +681,8 @@
 
         window.loadHomeContent = async function() {
             try {
-                const response = await fetch('data/data.json');
-                const data = await response.json();
+                const result = await firestoreAPI.getAllContent();
+                const data = result.success ? result.content : null;
                 
                 if (data && data.home) {
                     if (data.home.hero) {
@@ -766,7 +772,7 @@
             const statusText = document.getElementById('tokenStatusText');
             const currentLang = localStorage.getItem('language') || 'en';
             
-            if (githubAPI.hasToken()) {
+            if (firestoreAPI.hasToken()) {
                 statusDiv.style.background = '#f0fff4';
                 statusDiv.style.borderLeft = '4px solid #38a169';
                 const msg = currentLang === 'ar' ? '✓ تم تكوين الرمز. يمكنك الآن إضافة المحتوى مباشرة إلى المستودع.' : '✓ Token configured. You can now add content directly to the repository.';
@@ -793,7 +799,7 @@
                 return;
             }
             
-            githubAPI.setToken(token);
+            firestoreAPI.setToken(token);
             updateTokenStatus();
             document.getElementById('githubToken').value = '';
             const msg = currentLang === 'ar' ? 'تم حفظ رمز GitHub بنجاح!' : 'GitHub token saved successfully!';
@@ -808,7 +814,7 @@
             }
             
             localStorage.removeItem('github_token');
-            githubAPI.setToken('');
+            firestoreAPI.setToken('');
             updateTokenStatus();
             const msg = currentLang === 'ar' ? 'تم مسح رمز GitHub' : 'GitHub token cleared';
             showMessage(msg, 'success');
@@ -816,7 +822,7 @@
 
         window.testGitHubConnection = async function() {
             const currentLang = localStorage.getItem('language') || 'en';
-            if (!githubAPI.hasToken()) {
+            if (!firestoreAPI.hasToken()) {
                 const msg = currentLang === 'ar' ? 'الرجاء حفظ رمز GitHub أولاً' : 'Please save a GitHub token first';
                 showMessage(msg, 'error');
                 return;
@@ -826,7 +832,7 @@
             showMessage(testingMsg, 'success');
             
             try {
-                await githubAPI.getFileContent('data/data.json');
+                await firestoreAPI.getFileContent('data/data.json');
                 const successMsg = currentLang === 'ar' ? '✓ نجح الاتصال! GitHub API يعمل بشكل صحيح.' : '✓ Connection successful! GitHub API is working correctly.';
                 showMessage(successMsg, 'success');
             } catch (error) {
@@ -868,20 +874,20 @@
             };
 
             const currentLang = localStorage.getItem('language') || 'en';
-            if (githubAPI.hasToken()) {
+            if (firestoreAPI.hasToken()) {
                 const updatingMsg = currentLang === 'ar' ? 'جاري تحديث الصفحة الرئيسية في المستودع...' : 'Updating home page in repository...';
                 showMessage(updatingMsg, 'success');
                 
                 try {
                     // Get current data
-                    const fileInfo = await githubAPI.getFileContent('data/data.json');
+                    const fileInfo = await firestoreAPI.getFileContent('data/data.json');
                     const data = JSON.parse(fileInfo.content);
                     
                     // Update home content
                     data.home = homeContent;
                     
                     // Update file
-                    const result = await githubAPI.updateDataJson(
+                    const result = await firestoreAPI.updateDataJson(
                         data,
                         'Update home page content'
                     );
@@ -899,8 +905,8 @@
                 }
             } else {
                 try {
-                    const response = await fetch('data/data.json');
-                    const data = await response.json();
+                    const result = await firestoreAPI.getAllContent();
+                    const data = result.success ? result.content : null;
                     data.home = homeContent;
                     
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
@@ -931,13 +937,13 @@
             };
 
             const currentLang = localStorage.getItem('language') || 'en';
-            if (githubAPI.hasToken()) {
+            if (firestoreAPI.hasToken()) {
                 // Use GitHub API to add event directly
                 const addingMsg = currentLang === 'ar' ? 'جاري إضافة الفعالية إلى المستودع...' : 'Adding event to repository...';
                 showMessage(addingMsg, 'success');
                 
                 try {
-                    const result = await githubAPI.addEvent(newEvent);
+                    const result = await firestoreAPI.addEvent(newEvent);
                     
                     if (result.success) {
                         const successMsg = currentLang === 'ar' ? '✓ تم إضافة الفعالية بنجاح إلى المستودع!' : '✓ Event added successfully to the repository!';
@@ -954,8 +960,8 @@
             } else {
                 // Fallback: Show JSON for manual update
                 try {
-                    const response = await fetch('data/data.json');
-                    const data = await response.json();
+                    const result = await firestoreAPI.getAllContent();
+                    const data = result.success ? result.content : null;
                     data.events.push(newEvent);
                     
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
@@ -985,12 +991,12 @@
             };
 
             const currentLang = localStorage.getItem('language') || 'en';
-            if (githubAPI.hasToken()) {
+            if (firestoreAPI.hasToken()) {
                 const addingMsg = currentLang === 'ar' ? 'جاري إضافة المقال إلى المستودع...' : 'Adding article to repository...';
                 showMessage(addingMsg, 'success');
                 
                 try {
-                    const result = await githubAPI.addArticle(newArticle);
+                    const result = await firestoreAPI.addArticle(newArticle);
                     
                     if (result.success) {
                         const successMsg = currentLang === 'ar' ? '✓ تم إضافة المقال بنجاح إلى المستودع!' : '✓ Article added successfully to the repository!';
@@ -1006,8 +1012,8 @@
                 }
             } else {
                 try {
-                    const response = await fetch('data/data.json');
-                    const data = await response.json();
+                    const result = await firestoreAPI.getAllContent();
+                    const data = result.success ? result.content : null;
                     data.magazine.articles.push(newArticle);
                     
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
@@ -1040,12 +1046,12 @@
             };
 
             const currentLang = localStorage.getItem('language') || 'en';
-            if (githubAPI.hasToken()) {
+            if (firestoreAPI.hasToken()) {
                 const addingMsg = currentLang === 'ar' ? 'جاري إضافة مورد المكتبة إلى المستودع...' : 'Adding library resource to repository...';
                 showMessage(addingMsg, 'success');
                 
                 try {
-                    const result = await githubAPI.addLibraryResource(newResource);
+                    const result = await firestoreAPI.addLibraryResource(newResource);
                     
                     if (result.success) {
                         const successMsg = currentLang === 'ar' ? '✓ تم إضافة مورد المكتبة بنجاح إلى المستودع!' : '✓ Library resource added successfully to the repository!';
@@ -1061,8 +1067,8 @@
                 }
             } else {
                 try {
-                    const response = await fetch('data/data.json');
-                    const data = await response.json();
+                    const result = await firestoreAPI.getAllContent();
+                    const data = result.success ? result.content : null;
                     data.library.push(newResource);
                     
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
@@ -1089,12 +1095,12 @@
             };
 
             const currentLang = localStorage.getItem('language') || 'en';
-            if (githubAPI.hasToken()) {
+            if (firestoreAPI.hasToken()) {
                 const updatingMsg = currentLang === 'ar' ? 'جاري تحديث المحتوى التعليمي في المستودع...' : 'Updating education content in repository...';
                 showMessage(updatingMsg, 'success');
                 
                 try {
-                    const result = await githubAPI.updateEducation(education);
+                    const result = await firestoreAPI.updateEducation(education);
                     
                     if (result.success) {
                         const successMsg = currentLang === 'ar' ? '✓ تم تحديث المحتوى التعليمي بنجاح في المستودع!' : '✓ Education content updated successfully in the repository!';
@@ -1110,8 +1116,8 @@
                 }
             } else {
                 try {
-                    const response = await fetch('data/data.json');
-                    const data = await response.json();
+                    const result = await firestoreAPI.getAllContent();
+                    const data = result.success ? result.content : null;
                     data.education.weeklyWorkshop = education;
                     
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
