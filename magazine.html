@@ -165,54 +165,6 @@
             gap: 1rem;
         }
         
-        .newsletter-section {
-            background: var(--gradient-1);
-            color: var(--white);
-            padding: 4rem 0;
-            text-align: center;
-        }
-        
-        .newsletter-content h2 {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
-        
-        .newsletter-content p {
-            margin-bottom: 2rem;
-            opacity: 0.9;
-        }
-        
-        .newsletter-form {
-            max-width: 500px;
-            margin: 0 auto;
-            display: flex;
-            gap: 1rem;
-        }
-        
-        .newsletter-form input {
-            flex: 1;
-            padding: 1rem 1.5rem;
-            border: none;
-            border-radius: 50px;
-            font-size: 1rem;
-        }
-        
-        .newsletter-form button {
-            padding: 1rem 2rem;
-            background: var(--white);
-            color: var(--primary-color);
-            border: none;
-            border-radius: 50px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .newsletter-form button:hover {
-            transform: scale(1.05);
-            box-shadow: var(--shadow-lg);
-        }
-        
         @media (max-width: 768px) {
             .magazine-hero h1 {
                 font-size: 2rem;
@@ -220,14 +172,6 @@
             
             .featured-content {
                 grid-template-columns: 1fr;
-            }
-            
-            .newsletter-form {
-                flex-direction: column;
-            }
-            
-            .newsletter-form button {
-                width: 100%;
             }
         }
     </style>
@@ -421,20 +365,6 @@
         </div>
     </section>
 
-    <!-- Newsletter Section -->
-    <section class="newsletter-section">
-        <div class="container">
-            <div class="newsletter-content">
-                <h2 data-en="Subscribe to Our Newsletter" data-ar="اشترك في نشرتنا الإخبارية">Subscribe to Our Newsletter</h2>
-                <p data-en="Get the latest articles and updates delivered straight to your inbox" data-ar="احصل على أحدث المقالات والتحديثات مباشرة إلى صندوق الوارد الخاص بك">Get the latest articles and updates delivered straight to your inbox</p>
-                <form class="newsletter-form">
-                    <input type="email" placeholder="Enter your email address" required>
-                    <button type="submit" data-en="Subscribe" data-ar="اشترك">Subscribe</button>
-                </form>
-            </div>
-        </div>
-    </section>
-
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
@@ -452,12 +382,17 @@
                     </ul>
                 </div>
                 <div class="footer-section">
-                    <h4>Connect</h4>
-                    <div class="social-links">
-                        <a href="#" aria-label="Facebook">📘</a>
-                        <a href="#" aria-label="Instagram">📷</a>
-                        <a href="#" aria-label="LinkedIn">💼</a>
-                    </div>
+                    <h4>Contact Us</h4>
+                    <p style="margin-bottom: 0.5rem;">
+                        <a href="mailto:basrah@aias.org" style="color: inherit; text-decoration: none;">
+                            📧 basrah@aias.org
+                        </a>
+                    </p>
+                    <p style="margin-bottom: 1rem;">
+                        <a href="https://instagram.com/aias.bsr" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;">
+                            📷 @aias.bsr
+                        </a>
+                    </p>
                 </div>
             </div>
             <div class="footer-bottom">
