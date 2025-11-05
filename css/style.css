@@ -1,17 +1,19 @@
-/* Root Variables - Color Palette inspired by AIAS branding */
+/* Root Variables - Color Palette from AIAS Logo */
 :root {
-    --primary-color: #661f22;
-    --secondary-color: #f0daa1;
-    --accent-color: #661f22;
-    --accent-light: #7b272b;
+    --primary-color: #661F22;
+    --secondary-color: #F0DAA1;
+    --accent-color: #945C50;
+    --accent-light: #C09775;
+    --accent-lighter: #CBAE9A;
     --dark-bg: #0f1419;
-    --light-bg: #f7fafc;
+    --light-bg: #EEEEED;
     --text-primary: #1a202c;
     --text-secondary: #4a5568;
     --text-light: #718096;
     --white: #ffffff;
-    --gradient-1: linear-gradient(135deg, #2596be 0%, #1d7a9e 100%);
-    --gradient-2: linear-gradient(135deg, #2596be 0%, #3db3d9 100%);
+    --gradient-1: linear-gradient(135deg, #661F22 0%, #945C50 100%);
+    --gradient-2: linear-gradient(135deg, #945C50 0%, #C09775 100%);
+    --gradient-3: linear-gradient(135deg, #F0DAA1 0%, #CBAE9A 100%);
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
     --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
@@ -183,7 +185,7 @@ body {
 .hero-shape.shape-1 {
     width: 600px;
     height: 600px;
-    background: var(--accent-light);
+    background: var(--accent-color);
     top: -200px;
     right: -200px;
     animation: float 20s ease-in-out infinite;
@@ -192,7 +194,7 @@ body {
 .hero-shape.shape-2 {
     width: 400px;
     height: 400px;
-    background: var(--accent-color);
+    background: var(--accent-light);
     bottom: -100px;
     left: -100px;
     animation: float 15s ease-in-out infinite reverse;
@@ -201,7 +203,7 @@ body {
 .hero-shape.shape-3 {
     width: 300px;
     height: 300px;
-    background: var(--secondary-color);
+    background: var(--accent-lighter);
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
