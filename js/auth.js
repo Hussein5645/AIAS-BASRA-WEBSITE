@@ -66,9 +66,17 @@ const auth = getAuth(app);
     
     async function checkIfAdmin(email) {
         try {
-            const response = await fetch('data/admin.json');
-            const data = await response.json();
-            return data.admins.includes(email.toLowerCase());
+            // Import Firestore functions
+            const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+            const db = getFirestore(app);
+            
+            // Fetch admin list from Firestore
+            const adminDoc = await getDoc(doc(db, 'config', 'admins'));
+            if (adminDoc.exists()) {
+                const data = adminDoc.data();
+                return data.admins && data.admins.includes(email.toLowerCase());
+            }
+            return false;
         } catch (error) {
             console.error('Error checking admin status:', error);
             return false;

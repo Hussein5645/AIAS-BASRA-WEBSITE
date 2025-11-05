@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="js/github-api.js"></script>
+    <script type="module" src="js/firestore-api.js"></script>
     <script src="js/main.js" defer></script>
     <style>
         .admin-header {
@@ -498,38 +498,29 @@
 
         <!-- Settings Tab -->
         <div id="settings-tab" class="tab-content">
-            <h2 data-en="GitHub Integration Settings" data-ar="إعدادات التكامل مع GitHub">GitHub Integration Settings</h2>
+            <h2 data-en="Firestore Settings" data-ar="إعدادات Firestore">Firestore Settings</h2>
             <div class="content-form">
                 <div id="tokenStatus" style="padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
                     <p style="margin: 0;"><strong data-en="Status:" data-ar="الحالة:">Status:</strong> <span id="tokenStatusText" data-en="Checking..." data-ar="جاري الفحص...">Checking...</span></p>
                 </div>
                 
-                <div class="form-group">
-                    <label for="githubToken" data-en="GitHub Personal Access Token" data-ar="رمز الوصول الشخصي لـ GitHub">GitHub Personal Access Token</label>
-                    <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
-                    <p style="font-size: 0.85rem; color: #718096; margin-top: 0.5rem;">
-                        <span data-en="To enable direct repository updates, create a Personal Access Token with" data-ar="لتمكين تحديثات المستودع المباشرة، قم بإنشاء رمز وصول شخصي مع">To enable direct repository updates, create a Personal Access Token with</span> <code>repo</code> <span data-en="scope at" data-ar="نطاق في">scope at</span>
-                        <a href="https://github.com/settings/tokens" target="_blank" style="color: #667eea;" data-en="GitHub Settings" data-ar="إعدادات GitHub">GitHub Settings</a>
-                    </p>
-                </div>
+                <p style="color: #4a5568; margin-bottom: 1.5rem;" data-en="Content is now stored in Firebase Firestore. No additional configuration needed." data-ar="يتم الآن تخزين المحتوى في Firebase Firestore. لا حاجة لإعدادات إضافية.">
+                    Content is now stored in Firebase Firestore. No additional configuration needed.
+                </p>
                 
-                <button type="button" class="submit-btn" onclick="saveGitHubToken()" data-en="Save Token" data-ar="حفظ الرمز">Save Token</button>
-                <button type="button" class="submit-btn" onclick="testGitHubConnection()" style="background: #38a169; margin-left: 1rem;" data-en="Test Connection" data-ar="اختبار الاتصال">Test Connection</button>
-                <button type="button" class="submit-btn" onclick="clearGitHubToken()" style="background: #e53e3e; margin-left: 1rem;" data-en="Clear Token" data-ar="مسح الرمز">Clear Token</button>
+                <button type="button" class="submit-btn" onclick="testFirestoreConnection()" style="background: #38a169;" data-en="Test Connection" data-ar="اختبار الاتصال">Test Connection</button>
             </div>
 
             <div style="margin-top: 2rem; padding: 1.5rem; background: #f7fafc; border-radius: 12px;">
-                <h3 style="margin-bottom: 1rem; color: #2d3748;" data-en="How to Set Up GitHub Token:" data-ar="كيفية إعداد رمز GitHub:">How to Set Up GitHub Token:</h3>
-                <ol style="color: #4a5568; line-height: 1.8;">
-                    <li data-en='Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)' data-ar='انتقل إلى إعدادات GitHub ← إعدادات المطور ← رموز الوصول الشخصية ← الرموز (الكلاسيكية)'>Go to <a href="https://github.com/settings/tokens" target="_blank" style="color: #667eea;">GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)</a></li>
-                    <li data-en='Click "Generate new token" → "Generate new token (classic)"' data-ar='انقر على "إنشاء رمز جديد" ← "إنشاء رمز جديد (كلاسيكي)"'>Click "Generate new token" → "Generate new token (classic)"</li>
-                    <li data-en='Give it a descriptive name (e.g., "AIAS Dashboard")' data-ar='أعطه اسماً وصفياً (مثل "لوحة تحكم AIAS")'>Give it a descriptive name (e.g., "AIAS Dashboard")</li>
-                    <li data-en='Select the repo scope (full control of private repositories)' data-ar='حدد نطاق repo (التحكم الكامل في المستودعات الخاصة)'>Select the <strong>repo</strong> scope (full control of private repositories)</li>
-                    <li data-en='Click "Generate token" at the bottom' data-ar='انقر على "إنشاء الرمز" في الأسفل'>Click "Generate token" at the bottom</li>
-                    <li data-en="Copy the token (you won't be able to see it again!)" data-ar="انسخ الرمز (لن تتمكن من رؤيته مرة أخرى!)">Copy the token (you won't be able to see it again!)</li>
-                    <li data-en='Paste it in the field above and click "Save Token"' data-ar='الصقه في الحقل أعلاه وانقر على "حفظ الرمز"'>Paste it in the field above and click "Save Token"</li>
-                </ol>
-                <p style="color: #e53e3e; margin-top: 1rem; font-weight: 600;" data-en="⚠️ Keep your token secure! Never share it or commit it to the repository." data-ar="⚠️ حافظ على أمان رمزك! لا تشاركه أو تضمّنه في المستودع.">⚠️ Keep your token secure! Never share it or commit it to the repository.</p>
+                <h3 style="margin-bottom: 1rem; color: #2d3748;" data-en="About Firestore Integration:" data-ar="حول التكامل مع Firestore:">About Firestore Integration:</h3>
+                <ul style="color: #4a5568; line-height: 1.8;">
+                    <li data-en="Content is automatically synchronized across all users" data-ar="يتم مزامنة المحتوى تلقائياً بين جميع المستخدمين">Content is automatically synchronized across all users</li>
+                    <li data-en="Changes are saved instantly to the cloud" data-ar="يتم حفظ التغييرات فوراً في السحابة">Changes are saved instantly to the cloud</li>
+                    <li data-en="No GitHub tokens required - authentication handled by Firebase" data-ar="لا حاجة لرموز GitHub - المصادقة تتم عبر Firebase">No GitHub tokens required - authentication handled by Firebase</li>
+                    <li data-en="Enhanced security with Firestore security rules" data-ar="أمان محسّن مع قواعد أمان Firestore">Enhanced security with Firestore security rules</li>
+                    <li data-en="Better performance with automatic caching" data-ar="أداء أفضل مع التخزين المؤقت التلقائي">Better performance with automatic caching</li>
+                </ul>
+                <p style="color: #38a169; margin-top: 1rem; font-weight: 600;" data-en="✓ All your changes are saved securely in Firebase Firestore" data-ar="✓ يتم حفظ جميع تغييراتك بشكل آمن في Firebase Firestore">✓ All your changes are saved securely in Firebase Firestore</p>
             </div>
         </div>
     </div>
@@ -538,6 +529,8 @@
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import FirestoreAPI from "./js/firestore-api.js";
 
         // Firebase configuration
         const firebaseConfig = {
@@ -553,10 +546,10 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        // Check admin authentication
-        // Initialize GitHub API
-        const githubAPI = new GitHubAPI();
+        // Initialize Firestore API for content management
+        const firestoreAPI = new FirestoreAPI();
 
         // Make logout function globally accessible
         window.logout = async function() {
@@ -577,9 +570,13 @@
 
         async function checkIfAdmin(email) {
             try {
-                const response = await fetch('data/admin.json');
-                const data = await response.json();
-                return data.admins.includes(email.toLowerCase());
+                // Fetch admin list from Firestore
+                const adminDoc = await getDoc(doc(db, 'config', 'admins'));
+                if (adminDoc.exists()) {
+                    const data = adminDoc.data();
+                    return data.admins && data.admins.includes(email.toLowerCase());
+                }
+                return false;
             } catch (error) {
                 console.error('Error checking admin status:', error);
                 return false;
@@ -675,8 +672,8 @@
 
         window.loadHomeContent = async function() {
             try {
-                const response = await fetch('data/data.json');
-                const data = await response.json();
+                const result = await firestoreAPI.getAllContent();
+                const data = result.success ? result.content : null;
                 
                 if (data && data.home) {
                     if (data.home.hero) {
@@ -760,74 +757,29 @@
             return `${prefix}-${timestamp}-${random}`;
         };
 
-        // GitHub Token Management
+        // Firestore Connection Management
         window.updateTokenStatus = function() {
             const statusDiv = document.getElementById('tokenStatus');
             const statusText = document.getElementById('tokenStatusText');
             const currentLang = localStorage.getItem('language') || 'en';
             
-            if (githubAPI.hasToken()) {
-                statusDiv.style.background = '#f0fff4';
-                statusDiv.style.borderLeft = '4px solid #38a169';
-                const msg = currentLang === 'ar' ? '✓ تم تكوين الرمز. يمكنك الآن إضافة المحتوى مباشرة إلى المستودع.' : '✓ Token configured. You can now add content directly to the repository.';
-                statusText.innerHTML = msg;
-                statusText.setAttribute('data-en', '✓ Token configured. You can now add content directly to the repository.');
-                statusText.setAttribute('data-ar', '✓ تم تكوين الرمز. يمكنك الآن إضافة المحتوى مباشرة إلى المستودع.');
-            } else {
-                statusDiv.style.background = '#fff5f5';
-                statusDiv.style.borderLeft = '4px solid #e53e3e';
-                const msg = currentLang === 'ar' ? '✗ لم يتم تكوين الرمز. سيتم عرض المحتوى كـ JSON للتحديث اليدوي.' : '✗ No token configured. Content will be shown as JSON for manual update.';
-                statusText.innerHTML = msg;
-                statusText.setAttribute('data-en', '✗ No token configured. Content will be shown as JSON for manual update.');
-                statusText.setAttribute('data-ar', '✗ لم يتم تكوين الرمز. سيتم عرض المحتوى كـ JSON للتحديث اليدوي.');
-            }
+            statusDiv.style.background = '#f0fff4';
+            statusDiv.style.borderLeft = '4px solid #38a169';
+            const msg = currentLang === 'ar' ? '✓ متصل بـ Firestore. جاهز لإدارة المحتوى.' : '✓ Connected to Firestore. Ready to manage content.';
+            statusText.innerHTML = msg;
+            statusText.setAttribute('data-en', '✓ Connected to Firestore. Ready to manage content.');
+            statusText.setAttribute('data-ar', '✓ متصل بـ Firestore. جاهز لإدارة المحتوى.');
         };
 
-        window.saveGitHubToken = function() {
-            const token = document.getElementById('githubToken').value.trim();
+        window.testFirestoreConnection = async function() {
             const currentLang = localStorage.getItem('language') || 'en';
-            
-            if (!token) {
-                const msg = currentLang === 'ar' ? 'الرجاء إدخال رمز GitHub' : 'Please enter a GitHub token';
-                showMessage(msg, 'error');
-                return;
-            }
-            
-            githubAPI.setToken(token);
-            updateTokenStatus();
-            document.getElementById('githubToken').value = '';
-            const msg = currentLang === 'ar' ? 'تم حفظ رمز GitHub بنجاح!' : 'GitHub token saved successfully!';
-            showMessage(msg, 'success');
-        };
-
-        window.clearGitHubToken = function() {
-            const currentLang = localStorage.getItem('language') || 'en';
-            const confirmMsg = currentLang === 'ar' ? 'هل أنت متأكد من أنك تريد مسح رمز GitHub؟' : 'Are you sure you want to clear the GitHub token?';
-            if (!confirm(confirmMsg)) {
-                return;
-            }
-            
-            localStorage.removeItem('github_token');
-            githubAPI.setToken('');
-            updateTokenStatus();
-            const msg = currentLang === 'ar' ? 'تم مسح رمز GitHub' : 'GitHub token cleared';
-            showMessage(msg, 'success');
-        };
-
-        window.testGitHubConnection = async function() {
-            const currentLang = localStorage.getItem('language') || 'en';
-            if (!githubAPI.hasToken()) {
-                const msg = currentLang === 'ar' ? 'الرجاء حفظ رمز GitHub أولاً' : 'Please save a GitHub token first';
-                showMessage(msg, 'error');
-                return;
-            }
             
             const testingMsg = currentLang === 'ar' ? 'جاري اختبار الاتصال...' : 'Testing connection...';
             showMessage(testingMsg, 'success');
             
             try {
-                await githubAPI.getFileContent('data/data.json');
-                const successMsg = currentLang === 'ar' ? '✓ نجح الاتصال! GitHub API يعمل بشكل صحيح.' : '✓ Connection successful! GitHub API is working correctly.';
+                await firestoreAPI.getAllContent();
+                const successMsg = currentLang === 'ar' ? '✓ نجح الاتصال! Firestore يعمل بشكل صحيح.' : '✓ Connection successful! Firestore is working correctly.';
                 showMessage(successMsg, 'success');
             } catch (error) {
                 const errorMsg = currentLang === 'ar' ? '✗ فشل الاتصال: ' + error.message : '✗ Connection failed: ' + error.message;
@@ -868,23 +820,20 @@
             };
 
             const currentLang = localStorage.getItem('language') || 'en';
-            if (githubAPI.hasToken()) {
-                const updatingMsg = currentLang === 'ar' ? 'جاري تحديث الصفحة الرئيسية في المستودع...' : 'Updating home page in repository...';
+            if (firestoreAPI.hasToken()) {
+                const updatingMsg = currentLang === 'ar' ? 'جاري تحديث الصفحة الرئيسية...' : 'Updating home page...';
                 showMessage(updatingMsg, 'success');
                 
                 try {
                     // Get current data
-                    const fileInfo = await githubAPI.getFileContent('data/data.json');
-                    const data = JSON.parse(fileInfo.content);
+                    const contentResult = await firestoreAPI.getAllContent();
+                    const data = contentResult.success ? contentResult.content : {};
                     
                     // Update home content
                     data.home = homeContent;
                     
-                    // Update file
-                    const result = await githubAPI.updateDataJson(
-                        data,
-                        'Update home page content'
-                    );
+                    // Update Firestore
+                    const result = await firestoreAPI.updateAllContent(data);
                     
                     if (result.success) {
                         const successMsg = currentLang === 'ar' ? '✓ تم تحديث الصفحة الرئيسية بنجاح في المستودع!' : '✓ Home page updated successfully in the repository!';
@@ -899,14 +848,14 @@
                 }
             } else {
                 try {
-                    const response = await fetch('data/data.json');
-                    const data = await response.json();
+                    const result = await firestoreAPI.getAllContent();
+                    const data = result.success ? result.content : null;
                     data.home = homeContent;
                     
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
                     const prepMsg = currentLang === 'ar' ? 'تم إعداد محتوى الصفحة الرئيسية. قم بتكوين رمز GitHub في الإعدادات للحفظ تلقائياً.' : 'Home page content prepared. Configure GitHub token in Settings to save automatically.';
                     showMessage(prepMsg, 'success');
-                    const alertMsg = currentLang === 'ar' ? 'انسخ هذا JSON وقم بتحديث data/data.json:\n\n' : 'Copy this JSON and update data/data.json:\n\n';
+                    const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
                     alert(alertMsg + JSON.stringify(data, null, 2));
                 } catch (error) {
                     const errorMsg = currentLang === 'ar' ? 'خطأ في إعداد محتوى الصفحة الرئيسية: ' + error.message : 'Error preparing home page content: ' + error.message;
@@ -931,13 +880,13 @@
             };
 
             const currentLang = localStorage.getItem('language') || 'en';
-            if (githubAPI.hasToken()) {
+            if (firestoreAPI.hasToken()) {
                 // Use GitHub API to add event directly
                 const addingMsg = currentLang === 'ar' ? 'جاري إضافة الفعالية إلى المستودع...' : 'Adding event to repository...';
                 showMessage(addingMsg, 'success');
                 
                 try {
-                    const result = await githubAPI.addEvent(newEvent);
+                    const result = await firestoreAPI.addEvent(newEvent);
                     
                     if (result.success) {
                         const successMsg = currentLang === 'ar' ? '✓ تم إضافة الفعالية بنجاح إلى المستودع!' : '✓ Event added successfully to the repository!';
@@ -954,14 +903,14 @@
             } else {
                 // Fallback: Show JSON for manual update
                 try {
-                    const response = await fetch('data/data.json');
-                    const data = await response.json();
+                    const result = await firestoreAPI.getAllContent();
+                    const data = result.success ? result.content : null;
                     data.events.push(newEvent);
                     
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
                     const prepMsg = currentLang === 'ar' ? 'تم إعداد الفعالية. قم بتكوين رمز GitHub في الإعدادات للحفظ تلقائياً.' : 'Event prepared. Configure GitHub token in Settings to save automatically.';
                     showMessage(prepMsg, 'success');
-                    const alertMsg = currentLang === 'ar' ? 'انسخ هذا JSON وقم بتحديث data/data.json:\n\n' : 'Copy this JSON and update data/data.json:\n\n';
+                    const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
                     alert(alertMsg + JSON.stringify(data, null, 2));
                     document.getElementById('eventForm').reset();
                 } catch (error) {
@@ -985,12 +934,12 @@
             };
 
             const currentLang = localStorage.getItem('language') || 'en';
-            if (githubAPI.hasToken()) {
+            if (firestoreAPI.hasToken()) {
                 const addingMsg = currentLang === 'ar' ? 'جاري إضافة المقال إلى المستودع...' : 'Adding article to repository...';
                 showMessage(addingMsg, 'success');
                 
                 try {
-                    const result = await githubAPI.addArticle(newArticle);
+                    const result = await firestoreAPI.addArticle(newArticle);
                     
                     if (result.success) {
                         const successMsg = currentLang === 'ar' ? '✓ تم إضافة المقال بنجاح إلى المستودع!' : '✓ Article added successfully to the repository!';
@@ -1006,14 +955,14 @@
                 }
             } else {
                 try {
-                    const response = await fetch('data/data.json');
-                    const data = await response.json();
+                    const result = await firestoreAPI.getAllContent();
+                    const data = result.success ? result.content : null;
                     data.magazine.articles.push(newArticle);
                     
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
                     const prepMsg = currentLang === 'ar' ? 'تم إعداد المقال. قم بتكوين رمز GitHub في الإعدادات للحفظ تلقائياً.' : 'Article prepared. Configure GitHub token in Settings to save automatically.';
                     showMessage(prepMsg, 'success');
-                    const alertMsg = currentLang === 'ar' ? 'انسخ هذا JSON وقم بتحديث data/data.json:\n\n' : 'Copy this JSON and update data/data.json:\n\n';
+                    const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
                     alert(alertMsg + JSON.stringify(data, null, 2));
                     document.getElementById('articleForm').reset();
                 } catch (error) {
@@ -1040,12 +989,12 @@
             };
 
             const currentLang = localStorage.getItem('language') || 'en';
-            if (githubAPI.hasToken()) {
+            if (firestoreAPI.hasToken()) {
                 const addingMsg = currentLang === 'ar' ? 'جاري إضافة مورد المكتبة إلى المستودع...' : 'Adding library resource to repository...';
                 showMessage(addingMsg, 'success');
                 
                 try {
-                    const result = await githubAPI.addLibraryResource(newResource);
+                    const result = await firestoreAPI.addLibraryResource(newResource);
                     
                     if (result.success) {
                         const successMsg = currentLang === 'ar' ? '✓ تم إضافة مورد المكتبة بنجاح إلى المستودع!' : '✓ Library resource added successfully to the repository!';
@@ -1061,14 +1010,14 @@
                 }
             } else {
                 try {
-                    const response = await fetch('data/data.json');
-                    const data = await response.json();
+                    const result = await firestoreAPI.getAllContent();
+                    const data = result.success ? result.content : null;
                     data.library.push(newResource);
                     
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
                     const prepMsg = currentLang === 'ar' ? 'تم إعداد المورد. قم بتكوين رمز GitHub في الإعدادات للحفظ تلقائياً.' : 'Resource prepared. Configure GitHub token in Settings to save automatically.';
                     showMessage(prepMsg, 'success');
-                    const alertMsg = currentLang === 'ar' ? 'انسخ هذا JSON وقم بتحديث data/data.json:\n\n' : 'Copy this JSON and update data/data.json:\n\n';
+                    const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
                     alert(alertMsg + JSON.stringify(data, null, 2));
                     document.getElementById('libraryForm').reset();
                 } catch (error) {
@@ -1089,12 +1038,12 @@
             };
 
             const currentLang = localStorage.getItem('language') || 'en';
-            if (githubAPI.hasToken()) {
+            if (firestoreAPI.hasToken()) {
                 const updatingMsg = currentLang === 'ar' ? 'جاري تحديث المحتوى التعليمي في المستودع...' : 'Updating education content in repository...';
                 showMessage(updatingMsg, 'success');
                 
                 try {
-                    const result = await githubAPI.updateEducation(education);
+                    const result = await firestoreAPI.updateEducation(education);
                     
                     if (result.success) {
                         const successMsg = currentLang === 'ar' ? '✓ تم تحديث المحتوى التعليمي بنجاح في المستودع!' : '✓ Education content updated successfully in the repository!';
@@ -1110,14 +1059,14 @@
                 }
             } else {
                 try {
-                    const response = await fetch('data/data.json');
-                    const data = await response.json();
+                    const result = await firestoreAPI.getAllContent();
+                    const data = result.success ? result.content : null;
                     data.education.weeklyWorkshop = education;
                     
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
                     const prepMsg = currentLang === 'ar' ? 'تم إعداد المحتوى التعليمي. قم بتكوين رمز GitHub في الإعدادات للحفظ تلقائياً.' : 'Education content prepared. Configure GitHub token in Settings to save automatically.';
                     showMessage(prepMsg, 'success');
-                    const alertMsg = currentLang === 'ar' ? 'انسخ هذا JSON وقم بتحديث data/data.json:\n\n' : 'Copy this JSON and update data/data.json:\n\n';
+                    const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
                     alert(alertMsg + JSON.stringify(data, null, 2));
                     document.getElementById('educationForm').reset();
                 } catch (error) {

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migrate Data to Firestore</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .status.info {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        .status.success {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        #log {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        .log-entry {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Migrate Data to Firestore</h1>
+        <p>This tool will migrate all data from the JSON files to Firebase Firestore.</p>
+        
+        <div class="status info">
+            <strong>What will be migrated:</strong>
+            <ul>
+                <li>All content from data/data.json → Firestore collections</li>
+                <li>Admin list from data/admin.json → Firestore config/admins document</li>
+            </ul>
+        </div>
+
+        <div class="status info">
+            <strong>⚠️ Important:</strong> Make sure you're logged in as an admin before running this migration.
+        </div>
+
+        <button id="migrateBtn" onclick="runMigration()">Start Migration</button>
+
+        <div id="log"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, collection, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
+            authDomain: "aias-bsr.firebaseapp.com",
+            projectId: "aias-bsr",
+            storageBucket: "aias-bsr.firebasestorage.app",
+            messagingSenderId: "78055223814",
+            appId: "1:78055223814:web:99460402c2b1fcd5ae8987",
+            measurementId: "G-6W50T4HXDV"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let isAuthenticated = false;
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                isAuthenticated = true;
+                log(`✓ Authenticated as: ${user.email}`, 'success');
+            } else {
+                log('⚠ Not authenticated. Please login first.', 'error');
+            }
+        });
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        window.runMigration = async function() {
+            if (!isAuthenticated) {
+                alert('Please login as an admin first!');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const btn = document.getElementById('migrateBtn');
+            btn.disabled = true;
+            btn.textContent = 'Migrating...';
+
+            try {
+                log('🚀 Starting migration...', 'info');
+
+                // Fetch data from JSON files
+                log('📥 Fetching data from data.json...', 'info');
+                const dataResponse = await fetch('data/data.json');
+                const data = await dataResponse.json();
+                log('✓ Loaded data.json', 'success');
+
+                log('📥 Fetching admin list from admin.json...', 'info');
+                const adminResponse = await fetch('data/admin.json');
+                const adminData = await adminResponse.json();
+                log('✓ Loaded admin.json', 'success');
+
+                // Migrate admin data
+                log('💾 Migrating admin list...', 'info');
+                await setDoc(doc(db, 'config', 'admins'), adminData);
+                log('✓ Admin list migrated', 'success');
+
+                // Migrate home data
+                if (data.home) {
+                    log('💾 Migrating home page content...', 'info');
+                    await setDoc(doc(db, 'content', 'home'), data.home);
+                    log('✓ Home page content migrated', 'success');
+                }
+
+                // Migrate events
+                if (data.events && data.events.length > 0) {
+                    log(`💾 Migrating ${data.events.length} events...`, 'info');
+                    const batch = writeBatch(db);
+                    data.events.forEach(event => {
+                        const eventRef = doc(collection(db, 'events'));
+                        batch.set(eventRef, event);
+                    });
+                    await batch.commit();
+                    log(`✓ ${data.events.length} events migrated`, 'success');
+                }
+
+                // Migrate magazine data
+                if (data.magazine) {
+                    log('💾 Migrating magazine content...', 'info');
+                    await setDoc(doc(db, 'content', 'magazine'), data.magazine);
+                    log('✓ Magazine content migrated', 'success');
+                }
+
+                // Migrate library items
+                if (data.library && data.library.length > 0) {
+                    log(`💾 Migrating ${data.library.length} library items...`, 'info');
+                    const batch = writeBatch(db);
+                    data.library.forEach(item => {
+                        const itemRef = doc(collection(db, 'library'));
+                        batch.set(itemRef, item);
+                    });
+                    await batch.commit();
+                    log(`✓ ${data.library.length} library items migrated`, 'success');
+                }
+
+                // Migrate education data
+                if (data.education) {
+                    log('💾 Migrating education content...', 'info');
+                    await setDoc(doc(db, 'content', 'education'), data.education);
+                    log('✓ Education content migrated', 'success');
+                }
+
+                // Migrate about data
+                if (data.about) {
+                    log('💾 Migrating about page content...', 'info');
+                    await setDoc(doc(db, 'content', 'about'), data.about);
+                    log('✓ About page content migrated', 'success');
+                }
+
+                log('', 'info');
+                log('🎉 Migration completed successfully!', 'success');
+                log('', 'info');
+                log('⚠️ Next steps:', 'info');
+                log('1. Verify the data in Firebase Console', 'info');
+                log('2. Test all pages to ensure they load correctly', 'info');
+                log('3. Once verified, delete data/data.json and data/admin.json', 'info');
+                
+                btn.textContent = 'Migration Complete ✓';
+                btn.style.background = '#4caf50';
+
+            } catch (error) {
+                log(`❌ Error during migration: ${error.message}`, 'error');
+                console.error('Migration error:', error);
+                btn.disabled = false;
+                btn.textContent = 'Retry Migration';
+            }
+        };
+    </script>
+</body>
+</html>
