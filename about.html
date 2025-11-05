@@ -9,7 +9,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Authentication Check -->
     <script type="module" src="js/auth.js"></script>
     <style>
         .about-hero {
@@ -164,7 +163,6 @@
     </style>
 </head>
 <body>
-    <!-- Navigation -->
     <nav class="navbar" id="navbar">
         <div class="container">
             <div class="nav-content">
@@ -205,7 +203,6 @@
         </div>
     </nav>
 
-    <!-- About Hero -->
     <section class="about-hero">
         <div class="container">
             <h1 class="fade-in-up" data-en="About AIAS Basra Chapter" data-ar="عن فرع AIAS البصرة">About AIAS Basra Chapter</h1>
@@ -213,59 +210,151 @@
         </div>
     </section>
 
-    <!-- Story Section -->
     <section class="story-section">
         <div class="container">
             <div class="story-content">
                 <div class="story-image reveal">🏛️</div>
-                <div class="story-text reveal" id="storyText">
+                <div class="story-text reveal">
                     <h2 data-en="Our Story" data-ar="قصتنا">Our Story</h2>
-                    <!-- Story content will be loaded dynamically -->
+                    <p>Founded by a passionate group of architecture students, the AIAS Basra Chapter was established to create a vibrant community for design, innovation, and collaboration.</p>
+                    <p>We aim to bridge the gap between academic learning and professional practice, offering workshops, lectures, and networking events that empower our members to become future leaders in architecture.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Values Section -->
     <section class="values-section">
         <div class="container">
             <div class="section-header">
                 <h2 class="section-title" data-en="Our Core Values" data-ar="قيمنا الأساسية">Our Core Values</h2>
                 <p class="section-subtitle" data-en="The principles that guide everything we do" data-ar="المبادئ التي توجه كل ما نقوم به">The principles that guide everything we do</p>
             </div>
-            <div class="values-grid" id="valuesGrid">
-                <!-- Values will be loaded dynamically -->
+            <div class="values-grid">
+                <div class="value-card reveal">
+                    <div class="value-number">01</div>
+                    <h3>Community</h3>
+                    <p>Fostering a supportive and inclusive network for all architecture students in Basra.</p>
+                </div>
+                <div class="value-card reveal">
+                    <div class="value-number">02</div>
+                    <h3>Innovation</h3>
+                    <p>Encouraging creative thinking and the exploration of new ideas in design and technology.</p>
+                </div>
+                <div class="value-card reveal">
+                    <div class="value-number">03</div>
+                    <h3>Growth</h3>
+                    <p>Providing opportunities for personal and professional development through workshops and mentorship.</p>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- Founders Section -->
     <section class="team-section">
         <div class="container">
             <div class="section-header">
                 <h2 class="section-title" data-en="Our Founders" data-ar="مؤسسونا">Our Founders</h2>
                 <p class="section-subtitle" data-en="The visionaries who started it all" data-ar="الرؤساء الذين بدأوا كل شيء">The visionaries who started it all</p>
             </div>
-            <div class="team-grid" id="foundersGrid">
-                <!-- Founders will be loaded dynamically -->
+            <div class="team-grid">
+                <div class="team-card reveal">
+                    <div class="team-image" style="background-image: url('content/founders/hussein.png'); background-size: cover; background-position: center;">
+                        <img src="content/founders/hussein.png" alt="Hussein" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="team-info">
+                        <h3>Hussein</h3>
+                        <div class="team-role">Co-Founder</div>
+                        <p>Visionary leader guiding the chapter's mission.</p>
+                    </div>
+                </div>
+                <div class="team-card reveal">
+                    <div class="team-image" style="background-image: url('content/founders/farah.png'); background-size: cover; background-position: center;">
+                        <img src="content/founders/farah.png" alt="Farah" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="team-info">
+                        <h3>Farah</h3>
+                        <div class="team-role">Co-Founder</div>
+                        <p>Organizing and managing chapter activities.</p>
+                    </div>
+                </div>
+                <div class="team-card reveal">
+                    <div class="team-image" style="background-image: url('content/founders/haider.png'); background-size: cover; background-position: center;">
+                        <img src="content/founders/haider.png" alt="Haider" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="team-info">
+                        <h3>Haider</h3>
+                        <div class="team-role">Founder</div>
+                        <p>Passionate about community building.</p>
+                    </div>
+                </div>
+                <div class="team-card reveal">
+                    <div class="team-image" style="background-image: url('content/founders/montader.png'); background-size: cover; background-position: center;">
+                        <img src="content/founders/montader.png" alt="Montader" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="team-info">
+                        <h3>Montader</h3>
+                        <div class="team-role">Founder</div>
+                        <p>Driving creative workshops and events.</p>
+                    </div>
+                </div>
+                <div class="team-card reveal">
+                    <div class="team-image" style="background-image: url('content/founders/mustafa.png'); background-size: cover; background-position: center;">
+                        <img src="content/founders/mustafa.png" alt="Mustafa" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="team-info">
+                        <h3>Mustafa</h3>
+                        <div class="team-role">Founder</div>
+                        <p>Focusing on technology and design.</p>
+                    </div>
+                </div>
+                <div class="team-card reveal">
+                    <div class="team-image" style="background-image: url('content/founders/sara.png'); background-size: cover; background-position: center;">
+                        <img src="content/founders/sara.png" alt="Sara" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="team-info">
+                        <h3>Sara</h3>
+                        <div class="team-role">Founder</div>
+                        <p>Leading outreach and member relations.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- Team Section -->
     <section class="team-section" style="background: var(--light-bg);">
         <div class="container">
             <div class="section-header">
                 <h2 class="section-title" data-en="Meet Our Team" data-ar="تعرف على فريقنا">Meet Our Team</h2>
                 <p class="section-subtitle" data-en="Dedicated leaders working to make a difference" data-ar="قادة متفانون يعملون لإحداث فرق">Dedicated leaders working to make a difference</p>
             </div>
-            <div class="team-grid" id="teamGrid">
-                <!-- Team members will be loaded dynamically -->
+            <div class="team-grid">
+                <div class="team-card reveal">
+                    <div class="team-image">👤</div>
+                    <div class="team-info">
+                        <h3>Ali Mohammed</h3>
+                        <div class="team-role">Events Coordinator</div>
+                        <p>Planning our next big workshop.</p>
+                    </div>
+                </div>
+                <div class="team-card reveal">
+                    <div class="team-image">👤</div>
+                    <div class="team-info">
+                        <h3>Zahraa Ahmed</h3>
+                        <div class="team-role">Media Lead</div>
+                        <p>Capturing our moments and managing social media.</p>
+                    </div>
+                </div>
+                <div class="team-card reveal">
+                    <div class="team-image">👤</div>
+                    <div class="team-info">
+                        <h3>Omar Khalid</h3>
+                        <div class="team-role">Education Lead</div>
+                        <p>Developing new learning resources for members.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
@@ -318,119 +407,6 @@
 
     <script src="js/three-effects.js"></script>
     <script src="js/main.js"></script>
-    <script type="module">
-        // Import Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
-            authDomain: "aias-bsr.firebaseapp.com",
-            projectId: "aias-bsr",
-            storageBucket: "aias-bsr.firebasestorage.app",
-            messagingSenderId: "78055223814",
-            appId: "1:78055223814:web:99460402c2b1fcd5ae8987",
-            measurementId: "G-6W50T4HXDV"
-        };
-
-        // Initialize Firebase
-        console.log('[About] Initializing Firebase for about page...');
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // Load all about page content from Firebase
-        async function loadAboutContent() {
-            try {
-                console.log('[About] Fetching about content from Firestore...');
-                
-                // Fetch only about content - not all data
-                const aboutDoc = await getDoc(doc(db, 'content', 'about'));
-                const aboutData = aboutDoc.exists() ? aboutDoc.data() : null;
-                console.log('[About] ✓ About content loaded');
-                
-                if (aboutData) {
-                    // Load story content
-                    if (aboutData.story && aboutData.story.paragraphs) {
-                        const storyText = document.getElementById('storyText');
-                        const h2 = storyText.querySelector('h2');
-                        storyText.innerHTML = '';
-                        storyText.appendChild(h2);
-                        
-                        aboutData.story.paragraphs.forEach(paragraph => {
-                            const p = document.createElement('p');
-                            p.textContent = paragraph;
-                            storyText.appendChild(p);
-                        });
-                    }
-                    
-                    // Load values content
-                    if (aboutData.values && aboutData.values.length > 0) {
-                        const valuesGrid = document.getElementById('valuesGrid');
-                        valuesGrid.innerHTML = '';
-                        
-                        aboutData.values.forEach(value => {
-                            const valueCard = `
-                                <div class="value-card reveal">
-                                    <div class="value-number">${value.number}</div>
-                                    <h3>${value.title}</h3>
-                                    <p>${value.description}</p>
-                                </div>
-                            `;
-                            valuesGrid.innerHTML += valueCard;
-                        });
-                    }
-                    
-                    // Load founders content
-                    if (aboutData.founders && aboutData.founders.length > 0) {
-                        const foundersGrid = document.getElementById('foundersGrid');
-                        foundersGrid.innerHTML = '';
-                        
-                        aboutData.founders.forEach(founder => {
-                            const founderCard = `
-                                <div class="team-card reveal">
-                                    <div class="team-image" style="background-image: url('${founder.image}'); background-size: cover; background-position: center;">
-                                        <img src="${founder.image}" alt="${founder.name}" style="width: 100%; height: 100%; object-fit: cover;">
-                                    </div>
-                                    <div class="team-info">
-                                        <h3>${founder.name}</h3>
-                                        <div class="team-role">${founder.role}</div>
-                                        <p>${founder.bio}</p>
-                                    </div>
-                                </div>
-                            `;
-                            foundersGrid.innerHTML += founderCard;
-                        });
-                    }
-                    
-                    // Load team content
-                    if (aboutData.team && aboutData.team.length > 0) {
-                        const teamGrid = document.getElementById('teamGrid');
-                        teamGrid.innerHTML = '';
-                        
-                        aboutData.team.forEach(member => {
-                            const teamCard = `
-                                <div class="team-card reveal">
-                                    <div class="team-image">👤</div>
-                                    <div class="team-info">
-                                        <h3>${member.name}</h3>
-                                        <div class="team-role">${member.role}</div>
-                                        <p>${member.description}</p>
-                                    </div>
-                                </div>
-                            `;
-                            teamGrid.innerHTML += teamCard;
-                        });
-                    }
-                }
-            } catch (error) {
-                console.error('[About] ✗ Error loading about content:', error);
-                // Content will remain as static fallback if error occurs
-            }
-        }
-        
-        // Load content when page loads
-        document.addEventListener('DOMContentLoaded', loadAboutContent);
-    </script>
-</body>
+    
+    </body>
 </html>
