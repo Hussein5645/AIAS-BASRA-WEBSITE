@@ -261,7 +261,7 @@
             </div>
             
             <div class="resources-grid">
-                <!-- Resources will be loaded dynamically from data.json -->
+                <!-- Resources will be loaded dynamically from Firebase Firestore -->
             </div>
         </div>
     </section>
@@ -322,36 +322,67 @@
     <script>
         let allResources = [];
         
-        // Load library items from data.json
+        // Load library items from Firebase
         async function loadLibrary() {
-            const libraryItems = await DataLoader.getLibrary();
             const gridContainer = document.querySelector('.resources-grid');
             
-            if (libraryItems && libraryItems.length > 0) {
-                allResources = libraryItems;
-                gridContainer.innerHTML = '';
+            // Show loading state
+            gridContainer.innerHTML = `
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p class="loading-text">Loading library resources...</p>
+                </div>
+            `;
+            
+            try {
+                const libraryItems = await DataLoader.getLibrary();
                 
-                libraryItems.forEach(item => {
-                    const resourceCard = `
-                        <div class="resource-card reveal" data-category="${item.type.toLowerCase()}">
-                            <div class="resource-thumbnail">${item.image}
-                                <span class="resource-type">${item.type}</span>
-                            </div>
-                            <div class="resource-content">
-                                <h3 class="resource-title">${item.name}</h3>
-                                <p class="resource-description">${item.description}</p>
-                                <div class="resource-meta">
-                                    <span class="resource-size">${item.tags.join(', ')}</span>
-                                    <a href="${item.link}" class="download-btn">Download</a>
+                if (libraryItems && libraryItems.length > 0) {
+                    allResources = libraryItems;
+                    gridContainer.innerHTML = '';
+                    
+                    libraryItems.forEach(item => {
+                        const resourceCard = `
+                            <div class="resource-card reveal" data-category="${item.type.toLowerCase()}">
+                                <div class="resource-thumbnail">${item.image}
+                                    <span class="resource-type">${item.type}</span>
+                                </div>
+                                <div class="resource-content">
+                                    <h3 class="resource-title">${item.name}</h3>
+                                    <p class="resource-description">${item.description}</p>
+                                    <div class="resource-meta">
+                                        <span class="resource-size">${item.tags.join(', ')}</span>
+                                        <a href="${item.link}" class="download-btn">Download</a>
+                                    </div>
                                 </div>
                             </div>
+                        `;
+                        gridContainer.innerHTML += resourceCard;
+                    });
+                    
+                    // Re-initialize filter and search after loading
+                    initializeFilters();
+                } else {
+                    // Show empty state
+                    gridContainer.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📚</div>
+                            <h3 class="empty-title">No Resources Available</h3>
+                            <p class="empty-message">The library is currently being updated. Check back soon for books, guides, templates, and research materials!</p>
                         </div>
                     `;
-                    gridContainer.innerHTML += resourceCard;
-                });
-                
-                // Re-initialize filter and search after loading
-                initializeFilters();
+                }
+            } catch (error) {
+                console.error('Error loading library:', error);
+                // Show error state
+                gridContainer.innerHTML = `
+                    <div class="error-container">
+                        <div class="error-icon">⚠️</div>
+                        <h3 class="error-title">Unable to Load Library</h3>
+                        <p class="error-message">There was a problem loading the library resources. Please check your connection and try again.</p>
+                        <button class="retry-btn" onclick="loadLibrary()">Try Again</button>
+                    </div>
+                `;
             }
         }
         

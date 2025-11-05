@@ -298,33 +298,60 @@
     <script src="js/three-effects.js"></script>
     <script src="js/main.js"></script>
     <script>
-        // Load magazine data from data.json
+        // Load magazine data from Firebase
         async function loadMagazine() {
-            const magazineData = await DataLoader.getMagazine();
+            const featuredContent = document.getElementById('featuredContent');
+            const gridContainer = document.querySelector('.articles-grid');
             
-            if (magazineData) {
-                // Load featured article
-                if (magazineData.featuredArticle) {
-                    const featured = magazineData.featuredArticle;
-                    const dateInfo = DataLoader.formatDate(featured.date);
-                    const featuredContent = document.getElementById('featuredContent');
-                    
-                    featuredContent.innerHTML = `
-                        <div class="featured-image reveal">${featured.image || '🏗️'}</div>
-                        <div class="featured-text reveal">
-                            <div class="article-date">📅 ${dateInfo.month} ${dateInfo.year}</div>
-                            <h2>${featured.title}</h2>
-                            <p>${featured.summary}</p>
-                            <p>${featured.content}</p>
-                            <a href="#" class="btn btn-primary">Read Full Article</a>
-                        </div>
-                    `;
-                }
+            // Show loading state
+            if (featuredContent) {
+                featuredContent.innerHTML = `
+                    <div class="loading-container">
+                        <div class="loading-spinner"></div>
+                        <p class="loading-text">Loading magazine content...</p>
+                    </div>
+                `;
+            }
+            if (gridContainer) {
+                gridContainer.innerHTML = `
+                    <div class="loading-container">
+                        <div class="loading-spinner"></div>
+                        <p class="loading-text">Loading articles...</p>
+                    </div>
+                `;
+            }
+            
+            try {
+                const magazineData = await DataLoader.getMagazine();
                 
-                // Load articles grid
-                if (magazineData.articles && magazineData.articles.length > 1) {
-                    const gridContainer = document.querySelector('.articles-grid');
-                    if (gridContainer) {
+                if (magazineData) {
+                    // Load featured article
+                    if (magazineData.featuredArticle && featuredContent) {
+                        const featured = magazineData.featuredArticle;
+                        const dateInfo = DataLoader.formatDate(featured.date);
+                        
+                        featuredContent.innerHTML = `
+                            <div class="featured-image reveal">${featured.image || '🏗️'}</div>
+                            <div class="featured-text reveal">
+                                <div class="article-date">📅 ${dateInfo.month} ${dateInfo.year}</div>
+                                <h2>${featured.title}</h2>
+                                <p>${featured.summary}</p>
+                                <p>${featured.content}</p>
+                                <a href="#" class="btn btn-primary">Read Full Article</a>
+                            </div>
+                        `;
+                    } else if (featuredContent) {
+                        featuredContent.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-icon">📰</div>
+                                <h3 class="empty-title">No Featured Article</h3>
+                                <p class="empty-message">Check back soon for our featured content!</p>
+                            </div>
+                        `;
+                    }
+                    
+                    // Load articles grid
+                    if (magazineData.articles && magazineData.articles.length > 1 && gridContainer) {
                         gridContainer.innerHTML = '';
                         
                         // Skip first article (featured) and show the rest
@@ -354,10 +381,46 @@
                             `;
                             gridContainer.innerHTML += articleCard;
                         });
+                    } else if (gridContainer) {
+                        gridContainer.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-icon">📄</div>
+                                <h3 class="empty-title">No Articles Available</h3>
+                                <p class="empty-message">New articles coming soon!</p>
+                            </div>
+                        `;
+                    }
+                } else {
+                    // Show empty state for all containers
+                    if (featuredContent) {
+                        featuredContent.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-icon">📰</div>
+                                <h3 class="empty-title">No Content Available</h3>
+                                <p class="empty-message">Magazine content is being prepared. Check back soon!</p>
+                            </div>
+                        `;
+                    }
+                    if (gridContainer) {
+                        gridContainer.innerHTML = '';
                     }
                 }
-                
-                // Note: Magazine releases (PDFs) are in the data but can be displayed separately if needed
+            } catch (error) {
+                console.error('Error loading magazine:', error);
+                // Show error state
+                if (featuredContent) {
+                    featuredContent.innerHTML = `
+                        <div class="error-container">
+                            <div class="error-icon">⚠️</div>
+                            <h3 class="error-title">Unable to Load Magazine</h3>
+                            <p class="error-message">There was a problem loading the magazine content. Please check your connection and try again.</p>
+                            <button class="retry-btn" onclick="loadMagazine()">Try Again</button>
+                        </div>
+                    `;
+                }
+                if (gridContainer) {
+                    gridContainer.innerHTML = '';
+                }
             }
         }
         

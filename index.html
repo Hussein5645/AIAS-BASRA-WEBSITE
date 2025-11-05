@@ -212,73 +212,78 @@
 
     <script type="module" src="js/data-loader.js"></script>
     <script>
-        // Load home page content from data.json
+        // Load home page content from Firebase
         async function loadHomeContent() {
-            const data = await DataLoader.fetchData();
-            
-            if (data && data.home) {
-                // Load hero section
-                if (data.home.hero) {
-                    const heroTitle = document.getElementById('heroTitle');
-                    const heroSubtitle = document.getElementById('heroSubtitle');
-                    
-                    if (heroTitle && data.home.hero.title) {
-                        heroTitle.textContent = data.home.hero.title;
-                        heroTitle.setAttribute('data-en', data.home.hero.title);
-                        heroTitle.setAttribute('data-ar', data.home.hero.title);
-                    }
-                    
-                    if (heroSubtitle && data.home.hero.subtitle) {
-                        heroSubtitle.textContent = data.home.hero.subtitle;
-                        heroSubtitle.setAttribute('data-en', data.home.hero.subtitle);
-                        heroSubtitle.setAttribute('data-ar', data.home.hero.subtitle);
-                    }
-                }
+            try {
+                const data = await DataLoader.fetchData();
                 
-                // Load mission section
-                if (data.home.mission) {
-                    const missionTitle = document.getElementById('missionTitle');
-                    const missionSubtitle = document.getElementById('missionSubtitle');
-                    
-                    if (missionTitle && data.home.mission.title) {
-                        missionTitle.textContent = data.home.mission.title;
-                        missionTitle.setAttribute('data-en', data.home.mission.title);
-                        missionTitle.setAttribute('data-ar', data.home.mission.title);
-                    }
-                    
-                    if (missionSubtitle && data.home.mission.subtitle) {
-                        missionSubtitle.textContent = data.home.mission.subtitle;
-                        missionSubtitle.setAttribute('data-en', data.home.mission.subtitle);
-                        missionSubtitle.setAttribute('data-ar', data.home.mission.subtitle);
-                    }
-                    
-                    // Load mission cards if available
-                    if (data.home.mission.cards && data.home.mission.cards.length > 0) {
-                        const missionGrid = document.getElementById('missionGrid');
+                if (data && data.home) {
+                    // Load hero section
+                    if (data.home.hero) {
+                        const heroTitle = document.getElementById('heroTitle');
+                        const heroSubtitle = document.getElementById('heroSubtitle');
                         
-                        // Build complete HTML string first for better performance
-                        let cardsHtml = '';
-                        data.home.mission.cards.forEach(card => {
-                            const iconSvg = getIconSvg(card.icon);
-                            cardsHtml += `
-                                <div class="mission-card">
-                                    <div class="mission-icon">
-                                        ${iconSvg}
+                        if (heroTitle && data.home.hero.title) {
+                            heroTitle.textContent = data.home.hero.title;
+                            heroTitle.setAttribute('data-en', data.home.hero.title);
+                            heroTitle.setAttribute('data-ar', data.home.hero.title);
+                        }
+                        
+                        if (heroSubtitle && data.home.hero.subtitle) {
+                            heroSubtitle.textContent = data.home.hero.subtitle;
+                            heroSubtitle.setAttribute('data-en', data.home.hero.subtitle);
+                            heroSubtitle.setAttribute('data-ar', data.home.hero.subtitle);
+                        }
+                    }
+                    
+                    // Load mission section
+                    if (data.home.mission) {
+                        const missionTitle = document.getElementById('missionTitle');
+                        const missionSubtitle = document.getElementById('missionSubtitle');
+                        
+                        if (missionTitle && data.home.mission.title) {
+                            missionTitle.textContent = data.home.mission.title;
+                            missionTitle.setAttribute('data-en', data.home.mission.title);
+                            missionTitle.setAttribute('data-ar', data.home.mission.title);
+                        }
+                        
+                        if (missionSubtitle && data.home.mission.subtitle) {
+                            missionSubtitle.textContent = data.home.mission.subtitle;
+                            missionSubtitle.setAttribute('data-en', data.home.mission.subtitle);
+                            missionSubtitle.setAttribute('data-ar', data.home.mission.subtitle);
+                        }
+                        
+                        // Load mission cards if available
+                        if (data.home.mission.cards && data.home.mission.cards.length > 0) {
+                            const missionGrid = document.getElementById('missionGrid');
+                            
+                            // Build complete HTML string first for better performance
+                            let cardsHtml = '';
+                            data.home.mission.cards.forEach(card => {
+                                const iconSvg = getIconSvg(card.icon);
+                                cardsHtml += `
+                                    <div class="mission-card">
+                                        <div class="mission-icon">
+                                            ${iconSvg}
+                                        </div>
+                                        <h3 data-en="${card.title}" data-ar="${card.title}">${card.title}</h3>
+                                        <p data-en="${card.description}" data-ar="${card.description}">${card.description}</p>
                                     </div>
-                                    <h3 data-en="${card.title}" data-ar="${card.title}">${card.title}</h3>
-                                    <p data-en="${card.description}" data-ar="${card.description}">${card.description}</p>
-                                </div>
-                            `;
-                        });
-                        missionGrid.innerHTML = cardsHtml;
+                                `;
+                            });
+                            missionGrid.innerHTML = cardsHtml;
+                        }
+                    }
+                    
+                    // Reapply language settings after loading content
+                    if (typeof setLanguage === 'function') {
+                        const currentLang = localStorage.getItem('language') || 'en';
+                        setLanguage(currentLang);
                     }
                 }
-                
-                // Reapply language settings after loading content
-                if (typeof setLanguage === 'function') {
-                    const currentLang = localStorage.getItem('language') || 'en';
-                    setLanguage(currentLang);
-                }
+            } catch (error) {
+                console.error('Error loading home content:', error);
+                // Content will remain as static fallback if error occurs
             }
         }
         
