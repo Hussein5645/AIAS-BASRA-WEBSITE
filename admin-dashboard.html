@@ -599,10 +599,7 @@
             if (Object.keys(users).length === 0) {
                 usersList.innerHTML = '<p data-en="No users registered yet." data-ar="لا يوجد مستخدمون مسجلون بعد.">No users registered yet.</p>';
                 // Re-apply translations to newly added content
-                if (typeof setLanguage === 'function') {
-                    const currentLang = localStorage.getItem('language') || 'en';
-                    setTimeout(() => setLanguage(currentLang), 100);
-                }
+                reapplyTranslations();
                 return;
             }
             
@@ -632,10 +629,7 @@
             
             usersList.innerHTML = html;
             // Re-apply translations to newly added content
-            if (typeof setLanguage === 'function') {
-                const currentLang = localStorage.getItem('language') || 'en';
-                setTimeout(() => setLanguage(currentLang), 100);
-            }
+            reapplyTranslations();
         };
 
         window.verifyUser = function(email) {
@@ -666,6 +660,14 @@
                 const message = currentLang === 'ar' ? 'تم حذف المستخدم بنجاح!' : 'User deleted successfully!';
                 showMessage(message, 'success');
                 loadUsers();
+            }
+        };
+
+        // Helper function to reapply translations to dynamically added content
+        window.reapplyTranslations = function() {
+            if (typeof setLanguage === 'function') {
+                const currentLang = localStorage.getItem('language') || 'en';
+                setLanguage(currentLang);
             }
         };
 
