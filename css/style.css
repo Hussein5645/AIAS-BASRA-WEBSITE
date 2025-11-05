@@ -1,17 +1,17 @@
 /* Root Variables - Color Palette inspired by AIAS branding */
 :root {
-    --primary-color: #1a365d;
-    --secondary-color: #2b6cb0;
-    --accent-color: #4299e1;
-    --accent-light: #63b3ed;
+    --primary-color: #2596be;
+    --secondary-color: #1d7a9e;
+    --accent-color: #2596be;
+    --accent-light: #3db3d9;
     --dark-bg: #0f1419;
     --light-bg: #f7fafc;
     --text-primary: #1a202c;
     --text-secondary: #4a5568;
     --text-light: #718096;
     --white: #ffffff;
-    --gradient-1: linear-gradient(135deg, #1a365d 0%, #2b6cb0 100%);
-    --gradient-2: linear-gradient(135deg, #4299e1 0%, #63b3ed 100%);
+    --gradient-1: linear-gradient(135deg, #2596be 0%, #1d7a9e 100%);
+    --gradient-2: linear-gradient(135deg, #2596be 0%, #3db3d9 100%);
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
     --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
@@ -564,5 +564,78 @@ section {
 
     .btn {
         width: 100%;
+    }
+}
+
+/* Language Toggle Styles */
+.language-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--light-bg);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.language-toggle:hover {
+    background: var(--primary-color);
+    color: var(--white);
+    border-color: var(--primary-color);
+}
+
+.language-toggle svg {
+    width: 20px;
+    height: 20px;
+}
+
+.language-toggle span {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* RTL Support for Arabic */
+body[dir="rtl"] {
+    direction: rtl;
+    text-align: right;
+}
+
+body[dir="rtl"] .nav-content {
+    flex-direction: row-reverse;
+}
+
+body[dir="rtl"] .logo {
+    flex-direction: row-reverse;
+}
+
+body[dir="rtl"] .nav-links {
+    flex-direction: row-reverse;
+}
+
+body[dir="rtl"] .hero-buttons {
+    flex-direction: row-reverse;
+}
+
+body[dir="rtl"] .link-arrow {
+    transform: rotate(180deg);
+}
+
+body[dir="rtl"] .link-card:hover .link-arrow {
+    transform: rotate(180deg) translateX(-5px);
+}
+
+body[dir="rtl"] .social-links {
+    flex-direction: row-reverse;
+}
+
+@media (max-width: 768px) {
+    .language-toggle {
+        padding: 0.4rem 0.8rem;
+    }
+    
+    body[dir="rtl"] .nav-links {
+        flex-direction: column;
     }
 }

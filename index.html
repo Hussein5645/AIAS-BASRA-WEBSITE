@@ -25,12 +25,21 @@
                     <span></span>
                 </button>
                 <ul class="nav-links" id="navLinks">
-                    <li><a href="index.html" class="active">Home</a></li>
-                    <li><a href="about.html">About Us</a></li>
-                    <li><a href="library.html">Library</a></li>
-                    <li><a href="magazine.html">Magazine</a></li>
-                    <li><a href="events.html">Events</a></li>
-                    <li><a href="education.html">Education</a></li>
+                    <li><a href="index.html" class="active" data-en="Home" data-ar="الرئيسية">Home</a></li>
+                    <li><a href="about.html" data-en="About Us" data-ar="من نحن">About Us</a></li>
+                    <li><a href="library.html" data-en="Library" data-ar="المكتبة">Library</a></li>
+                    <li><a href="magazine.html" data-en="Magazine" data-ar="المجلة">Magazine</a></li>
+                    <li><a href="events.html" data-en="Events" data-ar="الفعاليات">Events</a></li>
+                    <li><a href="education.html" data-en="Education" data-ar="التعليم">Education</a></li>
+                    <li>
+                        <button class="language-toggle" id="languageToggle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                            </svg>
+                            <span id="currentLang">EN</span>
+                        </button>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -45,13 +54,13 @@
         </div>
         <div class="container">
             <div class="hero-content">
-                <h1 class="hero-title fade-in-up">Welcome to AIAS Basra Chapter</h1>
-                <p class="hero-subtitle fade-in-up delay-1">
+                <h1 class="hero-title fade-in-up" data-en="Welcome to AIAS Basra Chapter" data-ar="مرحباً بكم في فرع AIAS البصرة">Welcome to AIAS Basra Chapter</h1>
+                <p class="hero-subtitle fade-in-up delay-1" data-en="Building the Future of Architecture Through Innovation, Education, and Community" data-ar="بناء مستقبل الهندسة المعمارية من خلال الابتكار والتعليم والمجتمع">
                     Building the Future of Architecture Through Innovation, Education, and Community
                 </p>
                 <div class="hero-buttons fade-in-up delay-2">
-                    <a href="about.html" class="btn btn-primary">Learn More</a>
-                    <a href="events.html" class="btn btn-secondary">Upcoming Events</a>
+                    <a href="about.html" class="btn btn-primary" data-en="Learn More" data-ar="اعرف المزيد">Learn More</a>
+                    <a href="events.html" class="btn btn-secondary" data-en="Upcoming Events" data-ar="الفعاليات القادمة">Upcoming Events</a>
                 </div>
             </div>
         </div>
@@ -64,8 +73,8 @@
     <section class="mission">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">Our Mission</h2>
-                <p class="section-subtitle">Empowering future architects through education, innovation, and collaboration</p>
+                <h2 class="section-title" data-en="Our Mission" data-ar="مهمتنا">Our Mission</h2>
+                <p class="section-subtitle" data-en="Empowering future architects through education, innovation, and collaboration" data-ar="تمكين المهندسين المعماريين المستقبليين من خلال التعليم والابتكار والتعاون">Empowering future architects through education, innovation, and collaboration</p>
             </div>
             <div class="mission-grid">
                 <div class="mission-card">
@@ -76,8 +85,8 @@
                             <path d="M2 12l10 5 10-5"/>
                         </svg>
                     </div>
-                    <h3>Education</h3>
-                    <p>Providing quality architectural education and resources to aspiring architects</p>
+                    <h3 data-en="Education" data-ar="التعليم">Education</h3>
+                    <p data-en="Providing quality architectural education and resources to aspiring architects" data-ar="توفير التعليم المعماري الجيد والموارد للمهندسين الطموحين">Providing quality architectural education and resources to aspiring architects</p>
                 </div>
                 <div class="mission-card">
                     <div class="mission-icon">
@@ -86,8 +95,8 @@
                             <path d="M12 6v6l4 2"/>
                         </svg>
                     </div>
-                    <h3>Innovation</h3>
-                    <p>Fostering creativity and innovative thinking in architectural design</p>
+                    <h3 data-en="Innovation" data-ar="الابتكار">Innovation</h3>
+                    <p data-en="Fostering creativity and innovative thinking in architectural design" data-ar="تعزيز الإبداع والتفكير الابتكاري في التصميم المعماري">Fostering creativity and innovative thinking in architectural design</p>
                 </div>
                 <div class="mission-card">
                     <div class="mission-icon">
@@ -98,8 +107,8 @@
                             <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                         </svg>
                     </div>
-                    <h3>Community</h3>
-                    <p>Building a strong network of passionate architecture students and professionals</p>
+                    <h3 data-en="Community" data-ar="المجتمع">Community</h3>
+                    <p data-en="Building a strong network of passionate architecture students and professionals" data-ar="بناء شبكة قوية من طلاب الهندسة المعمارية والمحترفين المتحمسين">Building a strong network of passionate architecture students and professionals</p>
                 </div>
             </div>
         </div>
@@ -109,31 +118,31 @@
     <section class="quick-links">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">Explore More</h2>
+                <h2 class="section-title" data-en="Explore More" data-ar="استكشف المزيد">Explore More</h2>
             </div>
             <div class="links-grid">
                 <a href="library.html" class="link-card">
                     <div class="link-icon">📚</div>
-                    <h3>Library</h3>
-                    <p>Access educational resources and materials</p>
+                    <h3 data-en="Library" data-ar="المكتبة">Library</h3>
+                    <p data-en="Access educational resources and materials" data-ar="الوصول إلى الموارد التعليمية والمواد">Access educational resources and materials</p>
                     <span class="link-arrow">→</span>
                 </a>
                 <a href="magazine.html" class="link-card">
                     <div class="link-icon">📰</div>
-                    <h3>Magazine</h3>
-                    <p>Read our latest articles and publications</p>
+                    <h3 data-en="Magazine" data-ar="المجلة">Magazine</h3>
+                    <p data-en="Read our latest articles and publications" data-ar="اقرأ أحدث مقالاتنا ومنشوراتنا">Read our latest articles and publications</p>
                     <span class="link-arrow">→</span>
                 </a>
                 <a href="events.html" class="link-card">
                     <div class="link-icon">📅</div>
-                    <h3>Events</h3>
-                    <p>Join our upcoming workshops and gatherings</p>
+                    <h3 data-en="Events" data-ar="الفعاليات">Events</h3>
+                    <p data-en="Join our upcoming workshops and gatherings" data-ar="انضم إلى ورش العمل والتجمعات القادمة">Join our upcoming workshops and gatherings</p>
                     <span class="link-arrow">→</span>
                 </a>
                 <a href="education.html" class="link-card">
                     <div class="link-icon">🎓</div>
-                    <h3>Education</h3>
-                    <p>Explore our learning programs</p>
+                    <h3 data-en="Education" data-ar="التعليم">Education</h3>
+                    <p data-en="Explore our learning programs" data-ar="استكشف برامجنا التعليمية">Explore our learning programs</p>
                     <span class="link-arrow">→</span>
                 </a>
             </div>
@@ -146,18 +155,18 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <h3>AIAS Basra Chapter</h3>
-                    <p>American Institute of Architecture Students - Basra Chapter</p>
+                    <p data-en="American Institute of Architecture Students - Basra Chapter" data-ar="المعهد الأمريكي لطلاب الهندسة المعمارية - فرع البصرة">American Institute of Architecture Students - Basra Chapter</p>
                 </div>
                 <div class="footer-section">
-                    <h4>Quick Links</h4>
+                    <h4 data-en="Quick Links" data-ar="روابط سريعة">Quick Links</h4>
                     <ul>
-                        <li><a href="about.html">About Us</a></li>
-                        <li><a href="events.html">Events</a></li>
-                        <li><a href="library.html">Library</a></li>
+                        <li><a href="about.html" data-en="About Us" data-ar="من نحن">About Us</a></li>
+                        <li><a href="events.html" data-en="Events" data-ar="الفعاليات">Events</a></li>
+                        <li><a href="library.html" data-en="Library" data-ar="المكتبة">Library</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
-                    <h4>Connect</h4>
+                    <h4 data-en="Connect" data-ar="تواصل معنا">Connect</h4>
                     <div class="social-links">
                         <a href="#" aria-label="Facebook">📘</a>
                         <a href="#" aria-label="Instagram">📷</a>
@@ -166,7 +175,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 AIAS Basra Chapter. All rights reserved.</p>
+                <p data-en="© 2024 AIAS Basra Chapter. All rights reserved." data-ar="© 2024 فرع AIAS البصرة. جميع الحقوق محفوظة.">&copy; 2024 AIAS Basra Chapter. All rights reserved.</p>
             </div>
         </div>
     </footer>
