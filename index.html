@@ -210,56 +210,82 @@
         </div>
     </footer>
 
-    <script type="module" src="js/data-loader.js"></script>
-    <script>
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
+            authDomain: "aias-bsr.firebaseapp.com",
+            projectId: "aias-bsr",
+            storageBucket: "aias-bsr.firebasestorage.app",
+            messagingSenderId: "78055223814",
+            appId: "1:78055223814:web:99460402c2b1fcd5ae8987",
+            measurementId: "G-6W50T4HXDV"
+        };
+
+        // Initialize Firebase
+        console.log('[Index] Initializing Firebase for home page...');
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         // Load home page content from Firebase
         async function loadHomeContent() {
             try {
-                const data = await DataLoader.fetchData();
+                console.log('[Index] Fetching home content from Firestore...');
                 
-                if (data && data.home) {
+                // Fetch only home content - not all data
+                const homeDoc = await getDoc(doc(db, 'content', 'home'));
+                
+                if (homeDoc.exists()) {
+                    const homeData = homeDoc.data();
+                    console.log('[Index] ✓ Home content loaded successfully');
+                
+                if (homeData) {
                     // Load hero section
-                    if (data.home.hero) {
+                    if (homeData.hero) {
                         const heroTitle = document.getElementById('heroTitle');
                         const heroSubtitle = document.getElementById('heroSubtitle');
                         
-                        if (heroTitle && data.home.hero.title) {
-                            heroTitle.textContent = data.home.hero.title;
-                            heroTitle.setAttribute('data-en', data.home.hero.title);
-                            heroTitle.setAttribute('data-ar', data.home.hero.title);
+                        if (heroTitle && homeData.hero.title) {
+                            heroTitle.textContent = homeData.hero.title;
+                            heroTitle.setAttribute('data-en', homeData.hero.title);
+                            heroTitle.setAttribute('data-ar', homeData.hero.title);
                         }
                         
-                        if (heroSubtitle && data.home.hero.subtitle) {
-                            heroSubtitle.textContent = data.home.hero.subtitle;
-                            heroSubtitle.setAttribute('data-en', data.home.hero.subtitle);
-                            heroSubtitle.setAttribute('data-ar', data.home.hero.subtitle);
+                        if (heroSubtitle && homeData.hero.subtitle) {
+                            heroSubtitle.textContent = homeData.hero.subtitle;
+                            heroSubtitle.setAttribute('data-en', homeData.hero.subtitle);
+                            heroSubtitle.setAttribute('data-ar', homeData.hero.subtitle);
                         }
                     }
                     
                     // Load mission section
-                    if (data.home.mission) {
+                    if (homeData.mission) {
                         const missionTitle = document.getElementById('missionTitle');
                         const missionSubtitle = document.getElementById('missionSubtitle');
                         
-                        if (missionTitle && data.home.mission.title) {
-                            missionTitle.textContent = data.home.mission.title;
-                            missionTitle.setAttribute('data-en', data.home.mission.title);
-                            missionTitle.setAttribute('data-ar', data.home.mission.title);
+                        if (missionTitle && homeData.mission.title) {
+                            missionTitle.textContent = homeData.mission.title;
+                            missionTitle.setAttribute('data-en', homeData.mission.title);
+                            missionTitle.setAttribute('data-ar', homeData.mission.title);
                         }
                         
-                        if (missionSubtitle && data.home.mission.subtitle) {
-                            missionSubtitle.textContent = data.home.mission.subtitle;
-                            missionSubtitle.setAttribute('data-en', data.home.mission.subtitle);
-                            missionSubtitle.setAttribute('data-ar', data.home.mission.subtitle);
+                        if (missionSubtitle && homeData.mission.subtitle) {
+                            missionSubtitle.textContent = homeData.mission.subtitle;
+                            missionSubtitle.setAttribute('data-en', homeData.mission.subtitle);
+                            missionSubtitle.setAttribute('data-ar', homeData.mission.subtitle);
                         }
                         
                         // Load mission cards if available
-                        if (data.home.mission.cards && data.home.mission.cards.length > 0) {
+                        if (homeData.mission.cards && homeData.mission.cards.length > 0) {
                             const missionGrid = document.getElementById('missionGrid');
                             
                             // Build complete HTML string first for better performance
                             let cardsHtml = '';
-                            data.home.mission.cards.forEach(card => {
+                            homeData.mission.cards.forEach(card => {
                                 const iconSvg = getIconSvg(card.icon);
                                 cardsHtml += `
                                     <div class="mission-card">
@@ -281,8 +307,11 @@
                         setLanguage(currentLang);
                     }
                 }
+                } else {
+                    console.log('[Index] ⚠ No home content found in Firestore');
+                }
             } catch (error) {
-                console.error('Error loading home content:', error);
+                console.error('[Index] ✗ Error loading home content:', error);
                 // Content will remain as static fallback if error occurs
             }
         }

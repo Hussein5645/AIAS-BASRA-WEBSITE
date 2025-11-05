@@ -301,13 +301,61 @@
         </div>
     </footer>
 
-    <script type="module" src="js/data-loader.js"></script>
     <script src="js/three-effects.js"></script>
     <script src="js/main.js"></script>
-    <script>
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
+            authDomain: "aias-bsr.firebaseapp.com",
+            projectId: "aias-bsr",
+            storageBucket: "aias-bsr.firebasestorage.app",
+            messagingSenderId: "78055223814",
+            appId: "1:78055223814:web:99460402c2b1fcd5ae8987",
+            measurementId: "G-6W50T4HXDV"
+        };
+
+        // Initialize Firebase
+        console.log('[FBD] Initializing Firebase for FBD page...');
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Format date string
+        function formatDate(isoString) {
+            const date = new Date(isoString);
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthsAr = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+            
+            const currentLang = localStorage.getItem('language') || 'en';
+            const monthNames = currentLang === 'ar' ? monthsAr : months;
+            
+            return {
+                day: date.getDate(),
+                month: monthNames[date.getMonth()],
+                year: date.getFullYear(),
+                monthShort: months[date.getMonth()].toUpperCase(),
+                time: date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                fullDate: date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+            };
+        }
+
+        // Check if event is past
+        function isPastEvent(isoString) {
+            return new Date(isoString) < new Date();
+        }
+
         // Load FBD data and populate page
         async function loadFBDData() {
-            const educationData = await DataLoader.getEducation();
+            console.log('[FBD] Fetching education content from Firestore...');
+            
+            // Fetch only education content (which contains FBD data) - not all data
+            const educationDoc = await getDoc(doc(db, 'content', 'education'));
+            const educationData = educationDoc.exists() ? educationDoc.data() : null;
+            console.log('[FBD] ✓ Education content loaded');
             
             if (educationData && educationData.fbd) {
                 // Set about text
@@ -319,8 +367,8 @@
                 
                 if (events && events.length > 0) {
                     eventsContainer.innerHTML = events.map(event => {
-                        const dateInfo = DataLoader.formatDate(event.time);
-                        const isPast = DataLoader.isPastEvent(event.time);
+                        const dateInfo = formatDate(event.time);
+                        const isPast = isPastEvent(event.time);
                         const status = isPast ? 'Completed' : 'Upcoming';
                         const statusClass = isPast ? 'status-past' : 'status-upcoming';
                         
