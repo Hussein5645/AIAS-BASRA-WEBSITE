@@ -2,6 +2,15 @@
 
 This guide explains how to migrate content from JSON files to Firebase Firestore.
 
+## ⚠️ Important Note
+
+**This migration has already been completed in the codebase.** The website now uses Firestore instead of JSON files. To activate this:
+
+1. **Deploy Firestore Security Rules** (see Step 1 below)
+2. **Run the Migration Tool** to transfer existing data (see Step 2 below)
+3. **Verify Everything Works** (see Step 3 below)
+4. The old JSON files have already been removed from the repository
+
 ## Overview
 
 The website has been updated to use Firebase Firestore instead of local JSON files for content management. This provides several benefits:

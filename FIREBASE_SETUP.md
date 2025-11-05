@@ -25,21 +25,21 @@ The Firebase configuration is already set up in the following files:
 
 ## Admin Access Control
 
-Admin access is controlled through the `data/admin.json` file, which contains a list of admin email addresses:
-
-```json
-{
-  "admins": [
-    "mklkoklpp@gmail.com",
-    "basrah@aias.org"
-  ]
-}
-```
+Admin access is controlled through Firestore in the `config/admins` document, which contains a list of admin email addresses.
 
 To add or remove admin users:
-1. Edit the `data/admin.json` file
-2. Add or remove email addresses from the `admins` array
-3. Commit and push the changes
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Select project: `aias-bsr`
+3. Go to Firestore Database
+4. Navigate to `config` collection → `admins` document
+5. Edit the `admins` array field to add or remove email addresses
+6. Click "Update"
+
+The document structure:
+```
+config/admins
+  └── admins: ["mklkoklpp@gmail.com", "basrah@aias.org"]
+```
 
 ## User Flow
 
@@ -63,8 +63,9 @@ To add or remove admin users:
 - No email/password authentication is available
 
 ### 2. Firebase Firestore
-User data is stored in Firestore with the following structure:
+Firestore stores both user data and all website content:
 
+**User Data:**
 ```javascript
 users/{uid}/
   - email: string
@@ -72,6 +73,22 @@ users/{uid}/
   - photoURL: string
   - createdAt: ISO timestamp
   - lastLogin: ISO timestamp
+```
+
+**Website Content:**
+```javascript
+config/
+  └── admins (admin email list)
+
+content/
+  ├── home (home page content)
+  ├── magazine (magazine articles and releases)
+  ├── education (education content)
+  └── about (about page content)
+
+events/{eventId}/ (event documents)
+
+library/{itemId}/ (library resource documents)
 ```
 
 ## Setting Up Firebase (For Developers)
@@ -105,20 +122,12 @@ Select:
 
 ### Firestore Rules
 
-Make sure to set up appropriate Firestore security rules:
+The Firestore security rules are defined in `firestore.rules`. These rules ensure:
+- Public read access to all content
+- Admin-only write access to content
+- Users can only read/write their own profile data
 
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Users can read their own data
-    match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if request.auth != null && request.auth.uid == userId;
-    }
-  }
-}
-```
+See `firestore.rules` for the complete rule set.
 
 ### Deploy Firestore Rules
 ```bash
@@ -161,9 +170,9 @@ If the Google Sign-in popup is blocked:
 - Check browser console for detailed error messages
 
 ### Admin Access Denied
-- Verify the user's email is in `data/admin.json`
+- Verify the user's email is in Firestore `config/admins` document
 - Email addresses are case-insensitive
-- Make sure the file is accessible at `/data/admin.json`
+- Make sure the admin list is accessible in Firestore
 
 ## Security Notes
 
