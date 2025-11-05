@@ -189,9 +189,11 @@
         {
           "id": "fbd-sample-001",
           "title": "Sample FBD Event: Architectural Sketching",
-          "date": "2025-12-20T16:00:00Z",
+          "time": "2025-12-20T16:00:00Z",
           "description": "Sample Friday by Design event entry.",
-          "location": "Main Hall"
+          "location": "Main Hall",
+          "image": "✏️",
+          "seatsAvailable": 25
         }
       ]
     }
