@@ -255,11 +255,12 @@
                     // Load mission cards if available
                     if (data.home.mission.cards && data.home.mission.cards.length > 0) {
                         const missionGrid = document.getElementById('missionGrid');
-                        missionGrid.innerHTML = '';
                         
+                        // Build complete HTML string first for better performance
+                        let cardsHtml = '';
                         data.home.mission.cards.forEach(card => {
                             const iconSvg = getIconSvg(card.icon);
-                            const cardHtml = `
+                            cardsHtml += `
                                 <div class="mission-card">
                                     <div class="mission-icon">
                                         ${iconSvg}
@@ -268,8 +269,8 @@
                                     <p data-en="${card.description}" data-ar="${card.description}">${card.description}</p>
                                 </div>
                             `;
-                            missionGrid.innerHTML += cardHtml;
                         });
+                        missionGrid.innerHTML = cardsHtml;
                     }
                 }
                 
