@@ -232,23 +232,8 @@
             <div class="section-header">
                 <h2 class="section-title" data-en="Featured Article" data-ar="المقال المميز">Featured Article</h2>
             </div>
-            <div class="featured-content">
-                <div class="featured-image reveal">🏗️</div>
-                <div class="featured-text reveal">
-                    <div class="article-date">📅 December 2024</div>
-                    <h2>The Future of Sustainable Architecture in Iraq</h2>
-                    <p>
-                        Exploring innovative approaches to sustainable building design in the Middle East. 
-                        This comprehensive article examines how architects in Iraq are adapting global 
-                        sustainability practices to local climate conditions and cultural contexts.
-                    </p>
-                    <p>
-                        From traditional passive cooling techniques to modern green building technologies, 
-                        discover how the next generation of architects is shaping a more sustainable future 
-                        for our built environment.
-                    </p>
-                    <a href="#" class="btn btn-primary">Read Full Article</a>
-                </div>
+            <div class="featured-content" id="featuredContent">
+                <!-- Featured article will be loaded dynamically -->
             </div>
         </div>
 
@@ -319,50 +304,57 @@
             
             if (magazineData) {
                 // Load featured article
-                if (magazineData.articles && magazineData.articles.length > 0) {
-                    const featured = magazineData.articles[0];
+                if (magazineData.featuredArticle) {
+                    const featured = magazineData.featuredArticle;
                     const dateInfo = DataLoader.formatDate(featured.date);
+                    const featuredContent = document.getElementById('featuredContent');
                     
-                    document.querySelector('.featured-text .article-date').textContent = `📅 ${dateInfo.month} ${dateInfo.year}`;
-                    document.querySelector('.featured-text h2').textContent = featured.title;
-                    const paragraphs = document.querySelectorAll('.featured-text p');
-                    if (paragraphs.length > 0) {
-                        paragraphs[0].textContent = featured.summary;
-                    }
+                    featuredContent.innerHTML = `
+                        <div class="featured-image reveal">${featured.image || '🏗️'}</div>
+                        <div class="featured-text reveal">
+                            <div class="article-date">📅 ${dateInfo.month} ${dateInfo.year}</div>
+                            <h2>${featured.title}</h2>
+                            <p>${featured.summary}</p>
+                            <p>${featured.content}</p>
+                            <a href="#" class="btn btn-primary">Read Full Article</a>
+                        </div>
+                    `;
                 }
                 
                 // Load articles grid
                 if (magazineData.articles && magazineData.articles.length > 1) {
                     const gridContainer = document.querySelector('.articles-grid');
-                    gridContainer.innerHTML = '';
-                    
-                    // Skip first article (featured) and show the rest
-                    magazineData.articles.slice(1).forEach((article, index) => {
-                        const dateInfo = DataLoader.formatDate(article.date);
-                        const categories = ['Design', 'Sustainability', 'Technology', 'History', 'Inspiration', 'Community'];
-                        const category = categories[index % categories.length];
+                    if (gridContainer) {
+                        gridContainer.innerHTML = '';
                         
-                        const articleCard = `
-                            <div class="article-card reveal">
-                                <div class="article-image">
-                                    ${['📐', '🌿', '💻', '🏛️', '🎨', '👥'][index % 6]}
-                                    <span class="article-category">${category}</span>
-                                </div>
-                                <div class="article-content">
-                                    <div class="article-meta">
-                                        <span>📅 ${dateInfo.month} ${dateInfo.day}, ${dateInfo.year}</span>
-                                        <span>⏱️ 5 min read</span>
+                        // Skip first article (featured) and show the rest
+                        magazineData.articles.slice(1).forEach((article, index) => {
+                            const dateInfo = DataLoader.formatDate(article.date);
+                            const categories = ['Design', 'Sustainability', 'Technology', 'History', 'Inspiration', 'Community'];
+                            const category = categories[index % categories.length];
+                            
+                            const articleCard = `
+                                <div class="article-card reveal">
+                                    <div class="article-image">
+                                        ${['📐', '🌿', '💻', '🏛️', '🎨', '👥'][index % 6]}
+                                        <span class="article-category">${category}</span>
                                     </div>
-                                    <h3 class="article-title">${article.title}</h3>
-                                    <p class="article-excerpt">
-                                        ${article.summary}
-                                    </p>
-                                    <a href="#" class="read-more">Read More →</a>
+                                    <div class="article-content">
+                                        <div class="article-meta">
+                                            <span>📅 ${dateInfo.month} ${dateInfo.day}, ${dateInfo.year}</span>
+                                            <span>⏱️ 5 min read</span>
+                                        </div>
+                                        <h3 class="article-title">${article.title}</h3>
+                                        <p class="article-excerpt">
+                                            ${article.summary}
+                                        </p>
+                                        <a href="#" class="read-more">Read More →</a>
+                                    </div>
                                 </div>
-                            </div>
-                        `;
-                        gridContainer.innerHTML += articleCard;
-                    });
+                            `;
+                            gridContainer.innerHTML += articleCard;
+                        });
+                    }
                 }
                 
                 // Note: Magazine releases (PDFs) are in the data but can be displayed separately if needed
