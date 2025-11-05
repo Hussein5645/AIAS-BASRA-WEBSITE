@@ -327,8 +327,6 @@
         <!-- Dashboard Navigation -->
         <nav class="dashboard-nav">
             <ul>
-                <li><button class="active" onclick="showTab('users')" data-en="User Management" data-ar="إدارة المستخدمين">User Management</button></li>
-                <li><button onclick="showTab('home')" data-en="Home Page" data-ar="الصفحة الرئيسية">Home Page</button></li>
                 <li><button onclick="showTab('events')" data-en="Events" data-ar="الفعاليات">Events</button></li>
                 <li><button onclick="showTab('articles')" data-en="Magazine Articles" data-ar="مقالات المجلة">Magazine Articles</button></li>
                 <li><button onclick="showTab('library')" data-en="Library Resources" data-ar="موارد المكتبة">Library Resources</button></li>
@@ -337,40 +335,6 @@
             </ul>
         </nav>
 
-        <!-- User Management Tab -->
-        <div id="users-tab" class="tab-content active">
-            <h2 data-en="User Management" data-ar="إدارة المستخدمين">User Management</h2>
-            <div class="content-list" id="usersList">
-                <p data-en="Loading users..." data-ar="جاري تحميل المستخدمين...">Loading users...</p>
-            </div>
-        </div>
-
-        <!-- Home Page Tab -->
-        <div id="home-tab" class="tab-content">
-            <h2 data-en="Update Home Page Content" data-ar="تحديث محتوى الصفحة الرئيسية">Update Home Page Content</h2>
-            <form id="homeForm" class="content-form">
-                <h3 data-en="Hero Section" data-ar="قسم البطل">Hero Section</h3>
-                <div class="form-group">
-                    <label for="heroTitle" data-en="Hero Title" data-ar="عنوان البطل">Hero Title</label>
-                    <input type="text" id="heroTitle" required>
-                </div>
-                <div class="form-group">
-                    <label for="heroSubtitle" data-en="Hero Subtitle" data-ar="العنوان الفرعي">Hero Subtitle</label>
-                    <textarea id="heroSubtitle" required></textarea>
-                </div>
-                
-                <h3 data-en="Mission Section" data-ar="قسم المهمة" style="margin-top: 2rem;">Mission Section</h3>
-                <div class="form-group">
-                    <label for="missionTitle" data-en="Mission Title" data-ar="عنوان المهمة">Mission Title</label>
-                    <input type="text" id="missionTitle" required>
-                </div>
-                <div class="form-group">
-                    <label for="missionSubtitle" data-en="Mission Subtitle" data-ar="العنوان الفرعي للمهمة">Mission Subtitle</label>
-                    <textarea id="missionSubtitle" required></textarea>
-                </div>
-                <button type="submit" class="submit-btn" data-en="Update Home Page" data-ar="تحديث الصفحة الرئيسية">Update Home Page</button>
-            </form>
-        </div>
 
         <!-- Events Tab -->
         <div id="events-tab" class="tab-content">
