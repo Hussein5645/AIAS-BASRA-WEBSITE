@@ -496,6 +496,8 @@
         <!-- Settings Tab -->
         <div id="settings-tab" class="tab-content">
             <h2 data-en="Firestore Settings" data-ar="إعدادات Firestore">Firestore Settings</h2>
+            
+            <!-- Connection Status -->
             <div class="content-form">
                 <div id="tokenStatus" style="padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
                     <p style="margin: 0;"><strong data-en="Status:" data-ar="الحالة:">Status:</strong> <span id="tokenStatusText" data-en="Checking..." data-ar="جاري الفحص...">Checking...</span></p>
@@ -508,6 +510,47 @@
                 <button type="button" class="submit-btn" onclick="testFirestoreConnection()" style="background: #38a169;" data-en="Test Connection" data-ar="اختبار الاتصال">Test Connection</button>
             </div>
 
+            <!-- Fix Firestore Structure Section -->
+            <div class="content-form" style="margin-top: 2rem;">
+                <h3 style="margin-bottom: 1rem; color: #2d3748;" data-en="Firestore Structure Management" data-ar="إدارة بنية Firestore">Firestore Structure Management</h3>
+                <p style="color: #4a5568; margin-bottom: 1.5rem;" data-en="Validate and fix the Firestore database structure. This will check for missing collections, documents, and fields, and repair them automatically." data-ar="التحقق من صحة بنية قاعدة بيانات Firestore وإصلاحها. سيتحقق من المجموعات والوثائق والحقول المفقودة ويصلحها تلقائياً.">
+                    Validate and fix the Firestore database structure. This will check for missing collections, documents, and fields, and repair them automatically.
+                </p>
+                
+                <div id="structureResults" style="display: none; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; max-height: 300px; overflow-y: auto;">
+                    <h4 style="margin-top: 0;" data-en="Structure Validation Results:" data-ar="نتائج التحقق من البنية:">Structure Validation Results:</h4>
+                    <div id="structureResultsContent"></div>
+                </div>
+                
+                <button type="button" class="submit-btn" onclick="fixFirestoreStructure()" style="background: #667eea;" data-en="Fix Firestore Structure" data-ar="إصلاح بنية Firestore">Fix Firestore Structure</button>
+            </div>
+
+            <!-- Admin Management Section -->
+            <div class="content-form" style="margin-top: 2rem;">
+                <h3 style="margin-bottom: 1rem; color: #2d3748;" data-en="Admin Management" data-ar="إدارة المسؤولين">Admin Management</h3>
+                <p style="color: #4a5568; margin-bottom: 1.5rem;" data-en="Add or remove admin users by email. Admins have full access to the dashboard and can manage content." data-ar="إضافة أو إزالة المسؤولين عبر البريد الإلكتروني. يمتلك المسؤولون الوصول الكامل إلى لوحة التحكم ويمكنهم إدارة المحتوى.">
+                    Add or remove admin users by email. Admins have full access to the dashboard and can manage content.
+                </p>
+                
+                <!-- Current Admins List -->
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #2d3748; margin-bottom: 0.5rem;" data-en="Current Admins:" data-ar="المسؤولون الحاليون:">Current Admins:</h4>
+                    <div id="adminsList" style="background: #f7fafc; padding: 1rem; border-radius: 8px; min-height: 60px;">
+                        <p data-en="Loading..." data-ar="جاري التحميل...">Loading...</p>
+                    </div>
+                </div>
+                
+                <!-- Add Admin Form -->
+                <div class="form-group">
+                    <label for="newAdminEmail" data-en="Add Admin Email" data-ar="إضافة بريد إلكتروني للمسؤول">Add Admin Email</label>
+                    <div style="display: flex; gap: 1rem;">
+                        <input type="email" id="newAdminEmail" placeholder="admin@example.com" style="flex: 1;">
+                        <button type="button" class="submit-btn" onclick="addNewAdmin()" style="flex-shrink: 0;" data-en="Add Admin" data-ar="إضافة مسؤول">Add Admin</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About Firestore Integration -->
             <div style="margin-top: 2rem; padding: 1.5rem; background: #f7fafc; border-radius: 12px;">
                 <h3 style="margin-bottom: 1rem; color: #2d3748;" data-en="About Firestore Integration:" data-ar="حول التكامل مع Firestore:">About Firestore Integration:</h3>
                 <ul style="color: #4a5568; line-height: 1.8;">
@@ -742,6 +785,8 @@
                 loadExistingLibraryResources();
             } else if (tabName === 'education') {
                 loadEducationContent();
+            } else if (tabName === 'settings') {
+                loadAdminsList();
             }
         };
 
@@ -1005,6 +1050,241 @@
                 showMessage(errorMsg, 'error');
             }
         }
+
+        // Helper function to escape HTML
+        window.escapeHtml = function(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        };
+
+        // Fix Firestore Structure
+        window.fixFirestoreStructure = async function() {
+            const currentLang = localStorage.getItem('language') || 'en';
+            const resultsDiv = document.getElementById('structureResults');
+            const resultsContent = document.getElementById('structureResultsContent');
+            
+            // Test connection first
+            const testingMsg = currentLang === 'ar' ? 'جاري اختبار الاتصال بـ Firestore...' : 'Testing Firestore connection...';
+            showMessage(testingMsg, 'success');
+            
+            try {
+                const connectionTest = await firestoreAPI.testConnection();
+                if (!connectionTest.success) {
+                    const errorMsg = currentLang === 'ar' ? '✗ فشل الاتصال بـ Firestore: ' + connectionTest.error : '✗ Failed to connect to Firestore: ' + connectionTest.error;
+                    showMessage(errorMsg, 'error');
+                    return;
+                }
+            } catch (error) {
+                const errorMsg = currentLang === 'ar' ? '✗ خطأ في الاتصال: ' + error.message : '✗ Connection error: ' + error.message;
+                showMessage(errorMsg, 'error');
+                return;
+            }
+            
+            // Validate and fix structure
+            const validatingMsg = currentLang === 'ar' ? 'جاري التحقق من صحة البنية وإصلاحها...' : 'Validating and fixing structure...';
+            showMessage(validatingMsg, 'success');
+            
+            try {
+                const result = await firestoreAPI.validateAndFixStructure();
+                
+                // Display results safely
+                let html = '';
+                
+                if (result.actions && result.actions.length > 0) {
+                    html += '<div style="margin-bottom: 1rem;"><strong style="color: #38a169;">✓ Actions Performed:</strong><ul style="margin: 0.5rem 0; padding-left: 1.5rem;">';
+                    result.actions.forEach(action => {
+                        html += `<li style="color: #4a5568; margin: 0.25rem 0;">${escapeHtml(action)}</li>`;
+                    });
+                    html += '</ul></div>';
+                }
+                
+                if (result.errors && result.errors.length > 0) {
+                    html += '<div><strong style="color: #e53e3e;">✗ Errors:</strong><ul style="margin: 0.5rem 0; padding-left: 1.5rem;">';
+                    result.errors.forEach(error => {
+                        html += `<li style="color: #e53e3e; margin: 0.25rem 0;">${escapeHtml(error)}</li>`;
+                    });
+                    html += '</ul></div>';
+                }
+                
+                resultsContent.innerHTML = html;
+                resultsDiv.style.display = 'block';
+                resultsDiv.style.background = result.success ? '#f0fff4' : '#fff5f5';
+                resultsDiv.style.borderLeft = result.success ? '4px solid #38a169' : '4px solid #e53e3e';
+                
+                if (result.success) {
+                    const successMsg = currentLang === 'ar' ? '✓ تم التحقق من بنية Firestore وإصلاحها بنجاح!' : '✓ Firestore structure validated and fixed successfully!';
+                    showMessage(successMsg, 'success');
+                } else {
+                    const warningMsg = currentLang === 'ar' ? '⚠ تم إكمال التحقق مع بعض الأخطاء. راجع التفاصيل أدناه.' : '⚠ Validation completed with some errors. See details below.';
+                    showMessage(warningMsg, 'error');
+                }
+                
+            } catch (error) {
+                const errorMsg = currentLang === 'ar' ? '✗ خطأ في التحقق من البنية: ' + error.message : '✗ Error validating structure: ' + error.message;
+                showMessage(errorMsg, 'error');
+                
+                resultsContent.textContent = '';
+                const errorP = document.createElement('p');
+                errorP.style.color = '#e53e3e';
+                const errorPrefix = currentLang === 'ar' ? 'خطأ: ' : 'Error: ';
+                errorP.textContent = errorPrefix + error.message;
+                resultsContent.appendChild(errorP);
+                
+                resultsDiv.style.display = 'block';
+                resultsDiv.style.background = '#fff5f5';
+                resultsDiv.style.borderLeft = '4px solid #e53e3e';
+            }
+        };
+
+        // Load and display admins list
+        window.loadAdminsList = async function() {
+            const adminsList = document.getElementById('adminsList');
+            const currentLang = localStorage.getItem('language') || 'en';
+            
+            try {
+                const result = await firestoreAPI.getAdmins();
+                
+                if (result.success && result.admins.length > 0) {
+                    adminsList.innerHTML = '';
+                    const ul = document.createElement('ul');
+                    ul.style.margin = '0';
+                    ul.style.padding = '0';
+                    ul.style.listStyle = 'none';
+                    
+                    result.admins.forEach(email => {
+                        const li = document.createElement('li');
+                        li.style.display = 'flex';
+                        li.style.justifyContent = 'space-between';
+                        li.style.alignItems = 'center';
+                        li.style.padding = '0.75rem';
+                        li.style.borderBottom = '1px solid #e2e8f0';
+                        li.style.background = 'white';
+                        li.style.marginBottom = '0.5rem';
+                        li.style.borderRadius = '6px';
+                        
+                        const emailSpan = document.createElement('span');
+                        emailSpan.style.color = '#2d3748';
+                        emailSpan.style.fontWeight = '500';
+                        emailSpan.textContent = email;
+                        
+                        const removeBtn = document.createElement('button');
+                        removeBtn.className = 'delete-btn';
+                        removeBtn.style.padding = '0.25rem 0.75rem';
+                        removeBtn.style.fontSize = '0.875rem';
+                        removeBtn.textContent = currentLang === 'ar' ? 'إزالة' : 'Remove';
+                        removeBtn.setAttribute('data-en', 'Remove');
+                        removeBtn.setAttribute('data-ar', 'إزالة');
+                        removeBtn.addEventListener('click', () => removeAdminEmail(email));
+                        
+                        li.appendChild(emailSpan);
+                        li.appendChild(removeBtn);
+                        ul.appendChild(li);
+                    });
+                    
+                    adminsList.appendChild(ul);
+                    reapplyTranslations();
+                } else if (result.success) {
+                    const noAdminsMsg = currentLang === 'ar' ? 'لا يوجد مسؤولون حالياً.' : 'No admins currently.';
+                    adminsList.textContent = '';
+                    const p = document.createElement('p');
+                    p.style.color = '#718096';
+                    p.textContent = noAdminsMsg;
+                    adminsList.appendChild(p);
+                } else {
+                    const errorMsg = currentLang === 'ar' ? 'خطأ في تحميل قائمة المسؤولين: ' : 'Error loading admins list: ';
+                    adminsList.textContent = '';
+                    const p = document.createElement('p');
+                    p.style.color = '#e53e3e';
+                    p.textContent = errorMsg + result.error;
+                    adminsList.appendChild(p);
+                }
+            } catch (error) {
+                const errorMsg = currentLang === 'ar' ? 'خطأ في تحميل قائمة المسؤولين: ' : 'Error loading admins list: ';
+                adminsList.textContent = '';
+                const p = document.createElement('p');
+                p.style.color = '#e53e3e';
+                p.textContent = errorMsg + error.message;
+                adminsList.appendChild(p);
+            }
+        };
+
+        // Add new admin
+        window.addNewAdmin = async function() {
+            const emailInput = document.getElementById('newAdminEmail');
+            const email = emailInput.value.trim();
+            const currentLang = localStorage.getItem('language') || 'en';
+            
+            if (!email) {
+                const msg = currentLang === 'ar' ? 'الرجاء إدخال بريد إلكتروني.' : 'Please enter an email address.';
+                showMessage(msg, 'error');
+                return;
+            }
+            
+            // Test connection first
+            try {
+                const connectionTest = await firestoreAPI.testConnection();
+                if (!connectionTest.success) {
+                    const errorMsg = currentLang === 'ar' ? '✗ فشل الاتصال بـ Firestore: ' + connectionTest.error : '✗ Failed to connect to Firestore: ' + connectionTest.error;
+                    showMessage(errorMsg, 'error');
+                    return;
+                }
+            } catch (error) {
+                const errorMsg = currentLang === 'ar' ? '✗ خطأ في الاتصال: ' + error.message : '✗ Connection error: ' + error.message;
+                showMessage(errorMsg, 'error');
+                return;
+            }
+            
+            // Add admin
+            const addingMsg = currentLang === 'ar' ? 'جاري إضافة المسؤول...' : 'Adding admin...';
+            showMessage(addingMsg, 'success');
+            
+            try {
+                const result = await firestoreAPI.addAdmin(email);
+                
+                if (result.success) {
+                    const successMsg = currentLang === 'ar' ? `✓ تم إضافة المسؤول ${email} بنجاح!` : `✓ Admin ${email} added successfully!`;
+                    showMessage(successMsg, 'success');
+                    emailInput.value = '';
+                    loadAdminsList();
+                } else {
+                    const errorMsg = currentLang === 'ar' ? '✗ فشل إضافة المسؤول: ' + result.error : '✗ Failed to add admin: ' + result.error;
+                    showMessage(errorMsg, 'error');
+                }
+            } catch (error) {
+                const errorMsg = currentLang === 'ar' ? '✗ خطأ في إضافة المسؤول: ' + error.message : '✗ Error adding admin: ' + error.message;
+                showMessage(errorMsg, 'error');
+            }
+        };
+
+        // Remove admin
+        window.removeAdminEmail = async function(email) {
+            const currentLang = localStorage.getItem('language') || 'en';
+            const confirmMsg = currentLang === 'ar' ? `هل أنت متأكد من إزالة ${email} من قائمة المسؤولين؟` : `Are you sure you want to remove ${email} from the admin list?`;
+            
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+            
+            const removingMsg = currentLang === 'ar' ? 'جاري إزالة المسؤول...' : 'Removing admin...';
+            showMessage(removingMsg, 'success');
+            
+            try {
+                const result = await firestoreAPI.removeAdmin(email);
+                
+                if (result.success) {
+                    const successMsg = currentLang === 'ar' ? `✓ تم إزالة المسؤول ${email} بنجاح!` : `✓ Admin ${email} removed successfully!`;
+                    showMessage(successMsg, 'success');
+                    loadAdminsList();
+                } else {
+                    const errorMsg = currentLang === 'ar' ? '✗ فشل إزالة المسؤول: ' + result.error : '✗ Failed to remove admin: ' + result.error;
+                    showMessage(errorMsg, 'error');
+                }
+            } catch (error) {
+                const errorMsg = currentLang === 'ar' ? '✗ خطأ في إزالة المسؤول: ' + error.message : '✗ Error removing admin: ' + error.message;
+                showMessage(errorMsg, 'error');
+            }
+        };
 
         // Home Page Form Handler
         document.getElementById('homeForm').addEventListener('submit', async (e) => {
