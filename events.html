@@ -1,1 +1,335 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Events - AIAS Basra Chapter</title> <link rel="stylesheet" href="css/style.css"> <link rel="stylesheet" href="css/animations.css"> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"> <!-- Authentication Check --> <script type="module" src="js/auth.js"></script> <style> .events-hero { background: var(--gradient-1); color: var(--white); padding: 8rem 0 4rem; text-align: center; } .events-hero h1 { font-size: 3rem; margin-bottom: 1rem; } .view-toggle { display: flex; justify-content: center; gap: 1rem; padding: 2rem 0; background: var(--light-bg); } .view-btn { padding: 0.75rem 2rem; border: 2px solid var(--accent-light); background: var(--white); color: var(--primary-color); border-radius: 50px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; } .view-btn.active { background: var(--gradient-1); color: var(--white); border-color: var(--primary-color); } .events-container { padding: 4rem 0; } .events-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; } .event-card { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); transition: all 0.3s ease; cursor: pointer; position: relative; } .event-card:hover { transform: translateY(-10px) scale(1.02); box-shadow: var(--shadow-xl); } .event-date-badge { position: absolute; top: 1rem; right: 1rem; background: var(--white); padding: 1rem; border-radius: 8px; text-align: center; box-shadow: var(--shadow-md); z-index: 1; } .event-day { font-size: 2rem; font-weight: 800; color: var(--primary-color); line-height: 1; } .event-month { font-size: 0.9rem; color: var(--accent-color); font-weight: 600; } .event-image { height: 200px; background: var(--gradient-2); display: flex; align-items: center; justify-content: center; font-size: 4rem; position: relative; } .event-status { position: absolute; bottom: 1rem; left: 1rem; background: rgba(255, 255, 255, 0.95); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; } .status-upcoming { color: #10b981; } .status-past { color: #6b7280; } .event-content { padding: 2rem; } .event-title { font-size: 1.5rem; color: var(--primary-color); margin-bottom: 1rem; font-weight: 600; } .event-meta { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; } .meta-item { display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.95rem; } .event-description { color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem; } .event-actions { display: flex; gap: 1rem; } .action-btn { flex: 1; padding: 0.75rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-align: center; text-decoration: none; display: block; } .btn-register { background: var(--gradient-1); color: var(--white); } .btn-register:hover { transform: scale(1.05); box-shadow: var(--shadow-md); } .btn-details { background: var(--light-bg); color: var(--primary-color); } .btn-details:hover { background: var(--accent-light); color: var(--white); } .timeline-section { padding: 4rem 0; background: var(--light-bg); } .timeline { max-width: 900px; margin: 0 auto; position: relative; } .timeline::before { content: ''; position: absolute; left: 50%; transform: translateX(-50%); width: 4px; height: 100%; background: var(--gradient-1); } .timeline-item { display: flex; margin-bottom: 3rem; position: relative; } .timeline-item:nth-child(odd) { flex-direction: row-reverse; } .timeline-content { width: calc(50% - 2rem); background: var(--white); padding: 2rem; border-radius: 12px; box-shadow: var(--shadow-sm); transition: all 0.3s ease; } .timeline-content:hover { transform: scale(1.05); box-shadow: var(--shadow-lg); } .timeline-dot { position: absolute; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; background: var(--accent-color); border: 4px solid var(--white); border-radius: 50%; box-shadow: var(--shadow-md); } @media (max-width: 768px) { .events-hero h1 { font-size: 2rem; } .events-grid { grid-template-columns: 1fr; } .timeline::before { left: 20px; } .timeline-item, .timeline-item:nth-child(odd) { flex-direction: row; } .timeline-content { width: calc(100% - 4rem); margin-left: 4rem; } .timeline-dot { left: 20px; } } </style> </head> <body> <!-- Navigation --> <nav class="navbar" id="navbar"> <div class="container"> <div class="nav-content"> <div class="logo"> <img src="LOGO.png" alt="AIAS Basra Logo"> <span>AIAS Basra</span> </div> <button class="menu-toggle" id="menuToggle"> <span></span> <span></span> <span></span> </button> <ul class="nav-links" id="navLinks"> <li><a href="index.html" data-en="Home" data-ar="الرئيسية">Home</a></li> <li><a href="about.html" data-en="About Us" data-ar="من نحن">About Us</a></li> <li><a href="library.html" data-en="Library" data-ar="المكتبة">Library</a></li> <li><a href="magazine.html" data-en="Magazine" data-ar="المجلة">Magazine</a></li> <li><a href="events.html" class="active" data-en="Events" data-ar="الفعاليات">Events</a></li> <li><a href="education.html" data-en="Education" data-ar="التعليم">Education</a></li> <li> <button class="language-toggle" id="languageToggle"> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"> <circle cx="12" cy="12" r="10"/> <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/> </svg> <span id="currentLang">EN</span> </button> </li> <li id="dashboardBtn" style="display: none;"><a href="admin-dashboard.html" class="nav-btn nav-btn-signup" data-en="Dashboard" data-ar="لوحة التحكم">Dashboard</a></li> <li id="loginBtn"><a href="login.html" class="nav-btn nav-btn-login" data-en="Login" data-ar="تسجيل الدخول">Login</a></li> <li id="signupBtn"><a href="signup.html" class="nav-btn nav-btn-signup" data-en="Sign Up" data-ar="إنشاء حساب">Sign Up</a></li> <li id="userProfile" style="display: none;"> <span id="userName" style="color: #667eea; font-weight: 600; margin-right: 10px;"></span> <a href="#" id="logoutBtn" class="nav-btn nav-btn-login" data-en="Logout" data-ar="تسجيل الخروج">Logout</a> </li> </ul> </div> </div> </nav> <!-- Events Hero --> <section class="events-hero"> <div class="container"> <h1 class="fade-in-up" data-en="Upcoming Events" data-ar="الفعاليات القادمة">Upcoming Events</h1> <p class="fade-in-up delay-1" data-en="Join us for workshops, lectures, and networking opportunities" data-ar="انضم إلينا في ورش العمل والمحاضرات وفرص التواصل">Join us for workshops, lectures, and networking opportunities</p> </div> </section> <!-- View Toggle --> <section class="view-toggle"> <button class="view-btn active" onclick="showView('grid')" data-en="📅 Grid View" data-ar="📅 عرض الشبكة">📅 Grid View</button> <button class="view-btn" onclick="showView('timeline')" data-en="📊 Timeline View" data-ar="📊 عرض الجدول الزمني">📊 Timeline View</button> </section> <!-- Events Grid View --> <section class="events-container" id="gridView"> <div class="container"> <div class="events-grid"> <!-- Events will be loaded dynamically from data.json --> </div> </div> </section> <!-- Timeline View --> <section class="timeline-section" id="timelineView" style="display: none;"> <div class="container"> <div class="section-header"> <h2 class="section-title">Events Timeline</h2> </div> <div class="timeline" id="timelineContainer"> <!-- Timeline items will be loaded dynamically from data.json --> </div> </div> </section> <!-- Footer --> <footer class="footer"> <div class="container"> <div class="footer-content"> <div class="footer-section"> <h3>AIAS Basra Chapter</h3> <p>American Institute of Architecture Students - Basra Chapter</p> </div> <div class="footer-section"> <h4>Quick Links</h4> <ul> <li><a href="about.html">About Us</a></li> <li><a href="events.html">Events</a></li> <li><a href="library.html">Library</a></li> </ul> </div> <div class="footer-section"> <h4>Contact Us</h4> <p style="margin-bottom: 0.5rem;"> <a href="mailto:basrah@aias.org" style="color: inherit; text-decoration: none;"> 📧 basrah@aias.org </a> </p> <p style="margin-bottom: 0.5rem;"> <a href="https://instagram.com/aias.bsr" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;"> 📷 Instagram: @aias.bsr </a> </p> <p style="margin-bottom: 0.5rem;"> <a href="https://x.com/aiasbasra" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;"> 𝕏 X: @aiasbasra </a> </p> <p style="margin-bottom: 0.5rem;"> <a href="https://www.tiktok.com/@aiasbsr" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;"> 🎵 TikTok: @aiasbsr </a> </p> <p style="margin-bottom: 1rem;"> <a href="https://www.facebook.com/share/19mEUHcFQs/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;"> 📘 Facebook </a> </p> </div> </div> <div class="footer-bottom"> <p>&copy; 2025 AIAS Basra Chapter. All rights reserved.</p> </div> </div> </footer> <script type="module" src="js/data-loader.js"></script> <script src="js/main.js"></script> <script> function showView(view) { const gridView = document.getElementById('gridView'); const timelineView = document.getElementById('timelineView'); const buttons = document.querySelectorAll('.view-btn'); if (view === 'grid') { gridView.style.display = 'block'; timelineView.style.display = 'none'; buttons[0].classList.add('active'); buttons[1].classList.remove('active'); } else { gridView.style.display = 'none'; timelineView.style.display = 'block'; buttons[0].classList.remove('active'); buttons[1].classList.add('active'); } } // Load events from data.json async function loadEvents() { const events = await DataLoader.getEvents(); const gridContainer = document.querySelector('#gridView .events-grid'); const timelineContainer = document.getElementById('timelineContainer'); if (events && events.length > 0) { // Clear existing content gridContainer.innerHTML = ''; timelineContainer.innerHTML = ''; // Populate grid view events.forEach(event => { const dateInfo = DataLoader.formatDate(event.time); const isPast = DataLoader.isPastEvent(event.time); const status = isPast ? 'Completed' : 'Upcoming'; const statusClass = isPast ? 'status-past' : 'status-upcoming'; const eventCard = <div class="event-card reveal"> <div class="event-date-badge"> <div class="event-day">${dateInfo.day}</div> <div class="event-month">${dateInfo.monthShort}</div> </div> <div class="event-image"> ${event.image} <span class="event-status ${statusClass}">${status}</span> </div> <div class="event-content"> <h3 class="event-title">${event.title}</h3> <div class="event-meta"> <div class="meta-item"> <span>🕐</span> <span>${dateInfo.time}</span> </div> <div class="meta-item"> <span>📍</span> <span>${event.location}</span> </div> <div class="meta-item"> <span>👥</span> <span>${event.seatsAvailable} Seats Available</span> </div> </div> <p class="event-description"> ${event.description} </p> <div class="event-actions"> ${!isPast ? <a href="#" class="action-btn btn-register">Register Now</a> <a href="#" class="action-btn btn-details">Details</a> : <a href="#" class="action-btn btn-details" style="flex: none; width: 100%;">View Gallery</a>} </div> </div> </div> ; gridContainer.innerHTML += eventCard; // Add to timeline view (only future events) if (!isPast) { const timelineItem = <div class="timeline-item reveal"> <div class="timeline-content"> <h3>${event.title}</h3> <p><strong>${dateInfo.fullDate}</strong></p> <p>${dateInfo.time} | ${event.location}</p> </div> <div class="timeline-dot"></div> </div> ; timelineContainer.innerHTML += timelineItem; } }); } } // Load events when page loads document.addEventListener('DOMContentLoaded', loadEvents); </script> <script src="js/three-effects.js"></script> </body> </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Events - AIAS Basra Chapter</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/animations.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Authentication Check -->
+<script type="module" src="js/auth.js">
+</script>
+<style> .events-hero { background: var(--gradient-1); color: var(--white); padding: 8rem 0 4rem; text-align: center; } .events-hero h1 { font-size: 3rem; margin-bottom: 1rem; } .view-toggle { display: flex; justify-content: center; gap: 1rem; padding: 2rem 0; background: var(--light-bg); } .view-btn { padding: 0.75rem 2rem; border: 2px solid var(--accent-light); background: var(--white); color: var(--primary-color); border-radius: 50px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; } .view-btn.active { background: var(--gradient-1); color: var(--white); border-color: var(--primary-color); } .events-container { padding: 4rem 0; } .events-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; } .event-card { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); transition: all 0.3s ease; cursor: pointer; position: relative; } .event-card:hover { transform: translateY(-10px) scale(1.02); box-shadow: var(--shadow-xl); } .event-date-badge { position: absolute; top: 1rem; right: 1rem; background: var(--white); padding: 1rem; border-radius: 8px; text-align: center; box-shadow: var(--shadow-md); z-index: 1; } .event-day { font-size: 2rem; font-weight: 800; color: var(--primary-color); line-height: 1; } .event-month { font-size: 0.9rem; color: var(--accent-color); font-weight: 600; } .event-image { height: 200px; background: var(--gradient-2); display: flex; align-items: center; justify-content: center; font-size: 4rem; position: relative; } .event-status { position: absolute; bottom: 1rem; left: 1rem; background: rgba(255, 255, 255, 0.95); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; } .status-upcoming { color: #10b981; } .status-past { color: #6b7280; } .event-content { padding: 2rem; } .event-title { font-size: 1.5rem; color: var(--primary-color); margin-bottom: 1rem; font-weight: 600; } .event-meta { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; } .meta-item { display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.95rem; } .event-description { color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem; } .event-actions { display: flex; gap: 1rem; } .action-btn { flex: 1; padding: 0.75rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-align: center; text-decoration: none; display: block; } .btn-register { background: var(--gradient-1); color: var(--white); } .btn-register:hover { transform: scale(1.05); box-shadow: var(--shadow-md); } .btn-details { background: var(--light-bg); color: var(--primary-color); } .btn-details:hover { background: var(--accent-light); color: var(--white); } .timeline-section { padding: 4rem 0; background: var(--light-bg); } .timeline { max-width: 900px; margin: 0 auto; position: relative; } .timeline::before { content: ''; position: absolute; left: 50%; transform: translateX(-50%); width: 4px; height: 100%; background: var(--gradient-1); } .timeline-item { display: flex; margin-bottom: 3rem; position: relative; } .timeline-item:nth-child(odd) { flex-direction: row-reverse; } .timeline-content { width: calc(50% - 2rem); background: var(--white); padding: 2rem; border-radius: 12px; box-shadow: var(--shadow-sm); transition: all 0.3s ease; } .timeline-content:hover { transform: scale(1.05); box-shadow: var(--shadow-lg); } .timeline-dot { position: absolute; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; background: var(--accent-color); border: 4px solid var(--white); border-radius: 50%; box-shadow: var(--shadow-md); } @media (max-width: 768px) { .events-hero h1 { font-size: 2rem; } .events-grid { grid-template-columns: 1fr; } .timeline::before { left: 20px; } .timeline-item, .timeline-item:nth-child(odd) { flex-direction: row; } .timeline-content { width: calc(100% - 4rem); margin-left: 4rem; } .timeline-dot { left: 20px; } } </style>
+</head>
+<body>
+<!-- Navigation -->
+<nav class="navbar" id="navbar">
+<div class="container">
+<div class="nav-content">
+<div class="logo">
+<img src="LOGO.png" alt="AIAS Basra Logo">
+<span>AIAS Basra</span>
+</div>
+<button class="menu-toggle" id="menuToggle">
+<span>
+</span>
+<span>
+</span>
+<span>
+</span>
+</button>
+<ul class="nav-links" id="navLinks">
+<li>
+<a href="index.html" data-en="Home" data-ar="الرئيسية">Home</a>
+</li>
+<li>
+<a href="about.html" data-en="About Us" data-ar="من نحن">About Us</a>
+</li>
+<li>
+<a href="library.html" data-en="Library" data-ar="المكتبة">Library</a>
+</li>
+<li>
+<a href="magazine.html" data-en="Magazine" data-ar="المجلة">Magazine</a>
+</li>
+<li>
+<a href="events.html" class="active" data-en="Events" data-ar="الفعاليات">Events</a>
+</li>
+<li>
+<a href="education.html" data-en="Education" data-ar="التعليم">Education</a>
+</li>
+<li>
+<button class="language-toggle" id="languageToggle">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<circle cx="12" cy="12" r="10"/>
+<path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+</svg>
+<span id="currentLang">EN</span>
+</button>
+</li>
+<li id="dashboardBtn" style="display: none;">
+<a href="admin-dashboard.html" class="nav-btn nav-btn-signup" data-en="Dashboard" data-ar="لوحة التحكم">Dashboard</a>
+</li>
+<li id="loginBtn">
+<a href="login.html" class="nav-btn nav-btn-login" data-en="Login" data-ar="تسجيل الدخول">Login</a>
+</li>
+<li id="signupBtn">
+<a href="signup.html" class="nav-btn nav-btn-signup" data-en="Sign Up" data-ar="إنشاء حساب">Sign Up</a>
+</li>
+<li id="userProfile" style="display: none;">
+<span id="userName" style="color: #667eea; font-weight: 600; margin-right: 10px;">
+</span>
+<a href="#" id="logoutBtn" class="nav-btn nav-btn-login" data-en="Logout" data-ar="تسجيل الخروج">Logout</a>
+</li>
+</ul>
+</div>
+</div>
+</nav>
+<!-- Events Hero -->
+<section class="events-hero">
+<div class="container">
+<h1 class="fade-in-up" data-en="Upcoming Events" data-ar="الفعاليات القادمة">Upcoming Events</h1>
+<p class="fade-in-up delay-1" data-en="Join us for workshops, lectures, and networking opportunities" data-ar="انضم إلينا في ورش العمل والمحاضرات وفرص التواصل">Join us for workshops, lectures, and networking opportunities</p>
+</div>
+</section>
+<!-- View Toggle -->
+<section class="view-toggle">
+<button class="view-btn active" onclick="showView('grid')" data-en="📅 Grid View" data-ar="📅 عرض الشبكة">📅 Grid View</button>
+<button class="view-btn" onclick="showView('timeline')" data-en="📊 Timeline View" data-ar="📊 عرض الجدول الزمني">📊 Timeline View</button>
+</section>
+<!-- Events Grid View -->
+<section class="events-container" id="gridView">
+<div class="container">
+<div class="events-grid">
+<!-- Events will be loaded dynamically from data.json -->
+</div>
+</div>
+</section>
+<!-- Timeline View -->
+<section class="timeline-section" id="timelineView" style="display: none;">
+<div class="container">
+<div class="section-header">
+<h2 class="section-title">Events Timeline</h2>
+</div>
+<div class="timeline" id="timelineContainer">
+<!-- Timeline items will be loaded dynamically from data.json -->
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="footer">
+<div class="container">
+<div class="footer-content">
+<div class="footer-section">
+<h3>AIAS Basra Chapter</h3>
+<p>American Institute of Architecture Students - Basra Chapter</p>
+</div>
+<div class="footer-section">
+<h4>Quick Links</h4>
+<ul>
+<li>
+<a href="about.html">About Us</a>
+</li>
+<li>
+<a href="events.html">Events</a>
+</li>
+<li>
+<a href="library.html">Library</a>
+</li>
+</ul>
+</div>
+<div class="footer-section">
+<h4>Contact Us</h4>
+<p style="margin-bottom: 0.5rem;">
+<a href="mailto:basrah@aias.org" style="color: inherit; text-decoration: none;"> 📧 basrah@aias.org </a>
+</p>
+<p style="margin-bottom: 0.5rem;">
+<a href="https://instagram.com/aias.bsr" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;"> 📷 Instagram: @aias.bsr </a>
+</p>
+<p style="margin-bottom: 0.5rem;">
+<a href="https://x.com/aiasbasra" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;"> 𝕏 X: @aiasbasra </a>
+</p>
+<p style="margin-bottom: 0.5rem;">
+<a href="https://www.tiktok.com/@aiasbsr" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;"> 🎵 TikTok: @aiasbsr </a>
+</p>
+<p style="margin-bottom: 1rem;">
+<a href="https://www.facebook.com/share/19mEUHcFQs/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;"> 📘 Facebook </a>
+</p>
+</div>
+</div>
+<div class="footer-bottom">
+<p>&copy; 2025 AIAS Basra Chapter. All rights reserved.</p>
+</div>
+</div>
+</footer>
+<script type="module" src="js/data-loader.js">
+</script>
+<script src="js/main.js">
+</script>
+<script>
+        function showView(view) {
+            const gridView = document.getElementById('gridView');
+            const timelineView = document.getElementById('timelineView');
+            const buttons = document.querySelectorAll('.view-btn');
+            
+            if (view === 'grid') {
+                gridView.style.display = 'block';
+                timelineView.style.display = 'none';
+                buttons[0].classList.add('active');
+                buttons[1].classList.remove('active');
+            } else {
+                gridView.style.display = 'none';
+                timelineView.style.display = 'block';
+                buttons[0].classList.remove('active');
+                buttons[1].classList.add('active');
+            }
+        }
+
+        // Show loading state
+        function showLoading(containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p class="loading-text">Loading events...</p>
+                </div>
+            `;
+        }
+
+        // Show error state
+        function showError(containerId, retryFunction) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <div class="error-container">
+                    <div class="error-icon">⚠️</div>
+                    <h3 class="error-title">Unable to Load Events</h3>
+                    <p class="error-message">There was a problem loading the events. Please check your connection and try again.</p>
+                    <button class="retry-btn" onclick="${retryFunction}">Try Again</button>
+                </div>
+            `;
+        }
+
+        // Show empty state
+        function showEmpty(containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">📅</div>
+                    <h3 class="empty-title">No Events Available</h3>
+                    <p class="empty-message">There are currently no events scheduled. Check back soon for upcoming events and workshops!</p>
+                </div>
+            `;
+        }
+
+        // Load events from Firebase
+        async function loadEvents() {
+            const gridContainer = document.querySelector('#gridView .events-grid');
+            const timelineContainer = document.getElementById('timelineContainer');
+            
+            // Show loading state
+            gridContainer.innerHTML = `
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p class="loading-text">Loading events...</p>
+                </div>
+            `;
+            timelineContainer.innerHTML = `
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p class="loading-text">Loading timeline...</p>
+                </div>
+            `;
+
+            try {
+                const events = await DataLoader.getEvents();
+                
+                if (events && events.length > 0) {
+                    // Clear existing content
+                    gridContainer.innerHTML = '';
+                    timelineContainer.innerHTML = '';
+                    
+                    // Populate grid view
+                    events.forEach(event => {
+                        const dateInfo = DataLoader.formatDate(event.time);
+                        const isPast = DataLoader.isPastEvent(event.time);
+                        const status = isPast ? 'Completed' : 'Upcoming';
+                        const statusClass = isPast ? 'status-past' : 'status-upcoming';
+                        
+                        const eventCard = `<div class="event-card reveal">
+                        const eventCard = `<div class="event-card reveal">
+                            <div class="event-date-badge">
+                                <div class="event-day">${dateInfo.day}</div>
+                                <div class="event-month">${dateInfo.monthShort}</div>
+                            </div>
+                            <div class="event-image">
+                                ${event.image}
+                                <span class="event-status ${statusClass}">${status}</span>
+                            </div>
+                            <div class="event-content">
+                                <h3 class="event-title">${event.title}</h3>
+                                <div class="event-meta">
+                                    <div class="meta-item">
+                                        <span>🕐</span>
+                                        <span>${dateInfo.time}</span>
+                                    </div>
+                                    <div class="meta-item">
+                                        <span>📍</span>
+                                        <span>${event.location}</span>
+                                    </div>
+                                    <div class="meta-item">
+                                        <span>👥</span>
+                                        <span>${event.seatsAvailable} Seats Available</span>
+                                    </div>
+                                </div>
+                                <p class="event-description">${event.description}</p>
+                                <div class="event-actions">
+                                    ${!isPast ? 
+                                        `<a href="#" class="action-btn btn-register">Register Now</a>
+                                        <a href="#" class="action-btn btn-details">Details</a>` : 
+                                        `<a href="#" class="action-btn btn-details" style="flex: none; width: 100%;">View Gallery</a>`
+                                    }
+                                </div>
+                            </div>
+                        </div>`;
+                        
+                        gridContainer.innerHTML += eventCard;
+                        
+                        // Add to timeline view (only future events)
+                        if (!isPast) {
+                            const timelineItem = `<div class="timeline-item reveal">
+                                <div class="timeline-content">
+                                    <h3>${event.title}</h3>
+                                    <p><strong>${dateInfo.fullDate}</strong></p>
+                                    <p>${dateInfo.time} | ${event.location}</p>
+                                </div>
+                                <div class="timeline-dot"></div>
+                            </div>`;
+                            
+                            timelineContainer.innerHTML += timelineItem;
+                        }
+                    });
+                } else {
+                    // Show empty state
+                    showEmpty('gridView');
+                    showEmpty('timelineView');
+                }
+            } catch (error) {
+                console.error('Error loading events:', error);
+                // Show error state
+                gridContainer.innerHTML = `
+                    <div class="error-container">
+                        <div class="error-icon">⚠️</div>
+                        <h3 class="error-title">Unable to Load Events</h3>
+                        <p class="error-message">There was a problem loading the events. Please check your connection and try again.</p>
+                        <button class="retry-btn" onclick="loadEvents()">Try Again</button>
+                    </div>
+                `;
+                timelineContainer.innerHTML = `
+                    <div class="error-container">
+                        <div class="error-icon">⚠️</div>
+                        <h3 class="error-title">Unable to Load Timeline</h3>
+                        <p class="error-message">There was a problem loading the timeline. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Load events when page loads
+        document.addEventListener('DOMContentLoaded', loadEvents);
+    </script>
+<script src="js/three-effects.js">
+</script>
+</body>
+</html>
