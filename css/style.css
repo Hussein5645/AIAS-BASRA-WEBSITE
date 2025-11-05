@@ -1,9 +1,9 @@
 /* Root Variables - Color Palette inspired by AIAS branding */
 :root {
-    --primary-color: #2596be;
-    --secondary-color: #1d7a9e;
-    --accent-color: #2596be;
-    --accent-light: #3db3d9;
+    --primary-color: #661f22;
+    --secondary-color: #f0daa1;
+    --accent-color: #661f22;
+    --accent-light: #7b272b;
     --dark-bg: #0f1419;
     --light-bg: #f7fafc;
     --text-primary: #1a202c;
