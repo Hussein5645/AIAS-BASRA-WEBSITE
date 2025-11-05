@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Authentication Check -->
+    <script src="js/auth.js"></script>
     <style>
         .education-hero {
             background: var(--gradient-1);
@@ -301,6 +303,44 @@
         </div>
     </section>
 
+    <!-- This Week's Workshop -->
+    <section class="programs-section" style="padding: 3rem 0; background: var(--light-bg);">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title" data-en="This Week's Workshop" data-ar="ورشة هذا الأسبوع">This Week's Workshop</h2>
+            </div>
+            <div class="program-card reveal" style="max-width: 800px; margin: 0 auto;">
+                <div class="program-header">
+                    <div class="program-icon">📐</div>
+                    <div class="program-level" id="weekTitle">Loading...</div>
+                </div>
+                <div class="program-body">
+                    <h3 class="program-title" id="lecturerName">Loading...</h3>
+                    <p class="program-description" id="workshopDescription">Loading workshop details...</p>
+                    <div class="program-footer">
+                        <button class="enroll-btn">Join Workshop</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Freedom By Design Section -->
+    <section class="programs-section" style="padding: 3rem 0;">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title" data-en="Freedom By Design" data-ar="الحرية بالتصميم">Freedom By Design</h2>
+                <p class="section-subtitle" data-en="Design for social impact and community service" data-ar="التصميم من أجل التأثير الاجتماعي وخدمة المجتمع">Design for social impact and community service</p>
+            </div>
+            <div style="text-align: center; max-width: 700px; margin: 0 auto 2rem;">
+                <p style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 2rem;" id="fbdIntro">
+                    Join our Freedom By Design program and use your design skills to make a positive impact in the community.
+                </p>
+                <a href="fbd.html" class="btn btn-primary" data-en="Learn More About FBD" data-ar="تعرف على المزيد عن برنامج الحرية بالتصميم">Learn More About FBD</a>
+            </div>
+        </div>
+    </section>
+
     <!-- Programs Section -->
     <section class="programs-section">
         <div class="container">
@@ -556,7 +596,34 @@
         </div>
     </footer>
 
+    <script src="js/data-loader.js"></script>
     <script src="js/three-effects.js"></script>
     <script src="js/main.js"></script>
+    <script>
+        // Load education data from data.json
+        async function loadEducationData() {
+            const educationData = await DataLoader.getEducation();
+            
+            if (educationData && educationData.weeklyWorkshop) {
+                const workshop = educationData.weeklyWorkshop;
+                document.getElementById('weekTitle').textContent = workshop.weekTitle;
+                document.getElementById('lecturerName').textContent = workshop.lecturerName;
+                document.getElementById('workshopDescription').textContent = workshop.description;
+            }
+            
+            if (educationData && educationData.fbd) {
+                // Show brief intro for FBD
+                const fbdIntroEl = document.getElementById('fbdIntro');
+                if (fbdIntroEl && educationData.fbd.about) {
+                    // Show first 200 characters
+                    const shortIntro = educationData.fbd.about.substring(0, 200) + '...';
+                    fbdIntroEl.textContent = shortIntro;
+                }
+            }
+        }
+        
+        // Load education data when page loads
+        document.addEventListener('DOMContentLoaded', loadEducationData);
+    </script>
 </body>
 </html>

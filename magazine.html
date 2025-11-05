@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Authentication Check -->
+    <script src="js/auth.js"></script>
     <style>
         .magazine-hero {
             background: var(--gradient-1);
@@ -464,7 +466,68 @@
         </div>
     </footer>
 
+    <script src="js/data-loader.js"></script>
     <script src="js/three-effects.js"></script>
     <script src="js/main.js"></script>
+    <script>
+        // Load magazine data from data.json
+        async function loadMagazine() {
+            const magazineData = await DataLoader.getMagazine();
+            
+            if (magazineData) {
+                // Load featured article
+                if (magazineData.articles && magazineData.articles.length > 0) {
+                    const featured = magazineData.articles[0];
+                    const dateInfo = DataLoader.formatDate(featured.date);
+                    
+                    document.querySelector('.featured-text .article-date').textContent = `📅 ${dateInfo.month} ${dateInfo.year}`;
+                    document.querySelector('.featured-text h2').textContent = featured.title;
+                    const paragraphs = document.querySelectorAll('.featured-text p');
+                    if (paragraphs.length > 0) {
+                        paragraphs[0].textContent = featured.summary;
+                    }
+                }
+                
+                // Load articles grid
+                if (magazineData.articles && magazineData.articles.length > 1) {
+                    const gridContainer = document.querySelector('.articles-grid');
+                    gridContainer.innerHTML = '';
+                    
+                    // Skip first article (featured) and show the rest
+                    magazineData.articles.slice(1).forEach((article, index) => {
+                        const dateInfo = DataLoader.formatDate(article.date);
+                        const categories = ['Design', 'Sustainability', 'Technology', 'History', 'Inspiration', 'Community'];
+                        const category = categories[index % categories.length];
+                        
+                        const articleCard = `
+                            <div class="article-card reveal">
+                                <div class="article-image">
+                                    ${['📐', '🌿', '💻', '🏛️', '🎨', '👥'][index % 6]}
+                                    <span class="article-category">${category}</span>
+                                </div>
+                                <div class="article-content">
+                                    <div class="article-meta">
+                                        <span>📅 ${dateInfo.month} ${dateInfo.day}, ${dateInfo.year}</span>
+                                        <span>⏱️ 5 min read</span>
+                                    </div>
+                                    <h3 class="article-title">${article.title}</h3>
+                                    <p class="article-excerpt">
+                                        ${article.summary}
+                                    </p>
+                                    <a href="#" class="read-more">Read More →</a>
+                                </div>
+                            </div>
+                        `;
+                        gridContainer.innerHTML += articleCard;
+                    });
+                }
+                
+                // Note: Magazine releases (PDFs) are in the data but can be displayed separately if needed
+            }
+        }
+        
+        // Load magazine when page loads
+        document.addEventListener('DOMContentLoaded', loadMagazine);
+    </script>
 </body>
 </html>

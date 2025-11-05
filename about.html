@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Authentication Check -->
+    <script src="js/auth.js"></script>
     <style>
         .about-hero {
             background: var(--gradient-1);
@@ -264,12 +266,25 @@
         </div>
     </section>
 
-    <!-- Team Section -->
+    <!-- Founders Section -->
     <section class="team-section">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">Meet Our Team</h2>
-                <p class="section-subtitle">Dedicated leaders working to make a difference</p>
+                <h2 class="section-title" data-en="Our Founders" data-ar="مؤسسونا">Our Founders</h2>
+                <p class="section-subtitle" data-en="The visionaries who started it all" data-ar="الرؤساء الذين بدأوا كل شيء">The visionaries who started it all</p>
+            </div>
+            <div class="team-grid" id="foundersGrid">
+                <!-- Founders will be loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="team-section" style="background: var(--light-bg);">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title" data-en="Meet Our Team" data-ar="تعرف على فريقنا">Meet Our Team</h2>
+                <p class="section-subtitle" data-en="Dedicated leaders working to make a difference" data-ar="قادة متفانون يعملون لإحداث فرق">Dedicated leaders working to make a difference</p>
             </div>
             <div class="team-grid">
                 <div class="team-card reveal">
@@ -339,7 +354,38 @@
         </div>
     </footer>
 
+    <script src="js/data-loader.js"></script>
     <script src="js/three-effects.js"></script>
     <script src="js/main.js"></script>
+    <script>
+        // Load founders data from data.json
+        async function loadFounders() {
+            const aboutData = await DataLoader.getAbout();
+            const foundersGrid = document.getElementById('foundersGrid');
+            
+            if (aboutData && aboutData.founders && aboutData.founders.length > 0) {
+                foundersGrid.innerHTML = '';
+                
+                aboutData.founders.forEach(founder => {
+                    const founderCard = `
+                        <div class="team-card reveal">
+                            <div class="team-image" style="background-image: url('${founder.image}'); background-size: cover; background-position: center;">
+                                <img src="${founder.image}" alt="${founder.name}" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                            <div class="team-info">
+                                <h3>${founder.name}</h3>
+                                <div class="team-role">${founder.role}</div>
+                                <p>${founder.bio}</p>
+                            </div>
+                        </div>
+                    `;
+                    foundersGrid.innerHTML += founderCard;
+                });
+            }
+        }
+        
+        // Load founders when page loads
+        document.addEventListener('DOMContentLoaded', loadFounders);
+    </script>
 </body>
 </html>

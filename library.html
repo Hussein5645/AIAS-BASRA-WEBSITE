@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Authentication Check -->
+    <script src="js/auth.js"></script>
     <style>
         .library-hero {
             background: var(--gradient-1);
@@ -398,45 +400,86 @@
         </div>
     </footer>
 
+    <script src="js/data-loader.js"></script>
     <script src="js/main.js"></script>
     <script>
-        // Filter functionality
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        const resourceCards = document.querySelectorAll('.resource-card');
+        let allResources = [];
         
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                filterBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
+        // Load library items from data.json
+        async function loadLibrary() {
+            const libraryItems = await DataLoader.getLibrary();
+            const gridContainer = document.querySelector('.resources-grid');
+            
+            if (libraryItems && libraryItems.length > 0) {
+                allResources = libraryItems;
+                gridContainer.innerHTML = '';
                 
-                const category = btn.dataset.category;
+                libraryItems.forEach(item => {
+                    const resourceCard = `
+                        <div class="resource-card reveal" data-category="${item.type.toLowerCase()}">
+                            <div class="resource-thumbnail">${item.image}
+                                <span class="resource-type">${item.type}</span>
+                            </div>
+                            <div class="resource-content">
+                                <h3 class="resource-title">${item.name}</h3>
+                                <p class="resource-description">${item.description}</p>
+                                <div class="resource-meta">
+                                    <span class="resource-size">${item.tags.join(', ')}</span>
+                                    <a href="${item.link}" class="download-btn">Download</a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    gridContainer.innerHTML += resourceCard;
+                });
+                
+                // Re-initialize filter and search after loading
+                initializeFilters();
+            }
+        }
+        
+        function initializeFilters() {
+            // Filter functionality
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const resourceCards = document.querySelectorAll('.resource-card');
+            
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    const category = btn.dataset.category;
+                    
+                    resourceCards.forEach(card => {
+                        if (category === 'all' || card.dataset.category === category) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+            
+            // Search functionality
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
                 
                 resourceCards.forEach(card => {
-                    if (category === 'all' || card.dataset.category === category) {
+                    const title = card.querySelector('.resource-title').textContent.toLowerCase();
+                    const description = card.querySelector('.resource-description').textContent.toLowerCase();
+                    
+                    if (title.includes(searchTerm) || description.includes(searchTerm)) {
                         card.style.display = 'block';
                     } else {
                         card.style.display = 'none';
                     }
                 });
             });
-        });
+        }
         
-        // Search functionality
-        const searchInput = document.getElementById('searchInput');
-        searchInput.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            
-            resourceCards.forEach(card => {
-                const title = card.querySelector('.resource-title').textContent.toLowerCase();
-                const description = card.querySelector('.resource-description').textContent.toLowerCase();
-                
-                if (title.includes(searchTerm) || description.includes(searchTerm)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        });
+        // Load library when page loads
+        document.addEventListener('DOMContentLoaded', loadLibrary);
     </script>
     <script src="js/three-effects.js"></script>
 </body>
