@@ -529,6 +529,305 @@ class FirestoreAPI {
     getToken() {
         return '';
     }
+
+    /**
+     * Test Firestore connection
+     * @returns {Promise<object>} Result with success status
+     */
+    async testConnection() {
+        console.log('[Firestore API] testConnection() called');
+        try {
+            // Try to read config/admins to test connection
+            const adminDoc = await getDoc(doc(this.db, 'config', 'admins'));
+            console.log('[Firestore API] ✓ Connection test successful');
+            return {
+                success: true,
+                message: 'Connection successful',
+                connected: true
+            };
+        } catch (error) {
+            console.error('[Firestore API] ✗ Connection test failed:', error);
+            return {
+                success: false,
+                error: error.message,
+                connected: false
+            };
+        }
+    }
+
+    /**
+     * Get the expected Firestore structure template
+     * @returns {object} Expected structure
+     */
+    getExpectedStructure() {
+        return {
+            content: {
+                home: {},
+                magazine: {
+                    featuredArticle: null,
+                    articles: [],
+                    releases: []
+                },
+                education: {
+                    weeklyWorkshop: {},
+                    courses: [],
+                    fbd: {
+                        pageTitle: "",
+                        about: "",
+                        events: []
+                    }
+                },
+                about: {
+                    story: { paragraphs: [] },
+                    values: [],
+                    founders: [],
+                    team: []
+                }
+            },
+            config: {
+                admins: {
+                    admins: []
+                }
+            },
+            collections: ['events', 'library']
+        };
+    }
+
+    /**
+     * Validate and fix Firestore structure
+     * @returns {Promise<object>} Result with success status and details
+     */
+    async validateAndFixStructure() {
+        console.log('[Firestore API] validateAndFixStructure() called');
+        const results = {
+            success: true,
+            actions: [],
+            errors: []
+        };
+
+        try {
+            const expected = this.getExpectedStructure();
+
+            // Check and fix content documents
+            for (const [docName, docStructure] of Object.entries(expected.content)) {
+                try {
+                    const docRef = doc(this.db, 'content', docName);
+                    const docSnap = await getDoc(docRef);
+                    
+                    if (!docSnap.exists()) {
+                        // Document missing - create it
+                        await setDoc(docRef, docStructure);
+                        results.actions.push(`Created missing document: content/${docName}`);
+                        console.log(`[Firestore API] ✓ Created content/${docName}`);
+                    } else {
+                        // Document exists - validate structure
+                        const currentData = docSnap.data();
+                        let needsUpdate = false;
+                        const updatedData = { ...currentData };
+
+                        // Add missing fields
+                        for (const [key, value] of Object.entries(docStructure)) {
+                            if (!(key in updatedData)) {
+                                updatedData[key] = value;
+                                needsUpdate = true;
+                                results.actions.push(`Added missing field: content/${docName}.${key}`);
+                            }
+                        }
+
+                        if (needsUpdate) {
+                            await setDoc(docRef, updatedData);
+                            console.log(`[Firestore API] ✓ Updated content/${docName} with missing fields`);
+                        } else {
+                            results.actions.push(`Validated: content/${docName} is correct`);
+                        }
+                    }
+                } catch (error) {
+                    results.errors.push(`Error with content/${docName}: ${error.message}`);
+                    console.error(`[Firestore API] ✗ Error with content/${docName}:`, error);
+                }
+            }
+
+            // Check and fix config documents
+            for (const [docName, docStructure] of Object.entries(expected.config)) {
+                try {
+                    const docRef = doc(this.db, 'config', docName);
+                    const docSnap = await getDoc(docRef);
+                    
+                    if (!docSnap.exists()) {
+                        // Document missing - create it
+                        await setDoc(docRef, docStructure);
+                        results.actions.push(`Created missing document: config/${docName}`);
+                        console.log(`[Firestore API] ✓ Created config/${docName}`);
+                    } else {
+                        results.actions.push(`Validated: config/${docName} exists`);
+                    }
+                } catch (error) {
+                    results.errors.push(`Error with config/${docName}: ${error.message}`);
+                    console.error(`[Firestore API] ✗ Error with config/${docName}:`, error);
+                }
+            }
+
+            // Check collections exist (events and library)
+            for (const collectionName of expected.collections) {
+                try {
+                    const collectionRef = collection(this.db, collectionName);
+                    const snapshot = await getDocs(collectionRef);
+                    results.actions.push(`Validated: ${collectionName} collection exists (${snapshot.size} documents)`);
+                } catch (error) {
+                    results.errors.push(`Error checking ${collectionName} collection: ${error.message}`);
+                    console.error(`[Firestore API] ✗ Error with ${collectionName}:`, error);
+                }
+            }
+
+            if (results.errors.length > 0) {
+                results.success = false;
+            }
+
+            console.log('[Firestore API] ✓ Structure validation completed');
+            return results;
+
+        } catch (error) {
+            console.error('[Firestore API] ✗ Error in validateAndFixStructure:', error);
+            return {
+                success: false,
+                actions: results.actions,
+                errors: [...results.errors, error.message]
+            };
+        }
+    }
+
+    /**
+     * Get list of admin emails
+     * @returns {Promise<object>} Result with admin list
+     */
+    async getAdmins() {
+        console.log('[Firestore API] getAdmins() called');
+        try {
+            const adminDoc = await getDoc(doc(this.db, 'config', 'admins'));
+            if (adminDoc.exists()) {
+                const data = adminDoc.data();
+                console.log('[Firestore API] ✓ Admins retrieved');
+                return {
+                    success: true,
+                    admins: data.admins || []
+                };
+            } else {
+                console.log('[Firestore API] No admin document found, creating...');
+                await setDoc(doc(this.db, 'config', 'admins'), { admins: [] });
+                return {
+                    success: true,
+                    admins: []
+                };
+            }
+        } catch (error) {
+            console.error('[Firestore API] ✗ Error getting admins:', error);
+            return {
+                success: false,
+                error: error.message,
+                admins: []
+            };
+        }
+    }
+
+    /**
+     * Add admin email to the list
+     * @param {string} email - Email to add
+     * @returns {Promise<object>} Result with success status
+     */
+    async addAdmin(email) {
+        console.log(`[Firestore API] addAdmin() called with email: ${email}`);
+        try {
+            const emailLower = email.toLowerCase().trim();
+            
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(emailLower)) {
+                return {
+                    success: false,
+                    error: 'Invalid email format'
+                };
+            }
+
+            const adminDoc = await getDoc(doc(this.db, 'config', 'admins'));
+            let admins = [];
+            
+            if (adminDoc.exists()) {
+                admins = adminDoc.data().admins || [];
+            }
+
+            // Check if email already exists
+            if (admins.includes(emailLower)) {
+                return {
+                    success: false,
+                    error: 'Email already exists in admin list'
+                };
+            }
+
+            // Add new admin
+            admins.push(emailLower);
+            await setDoc(doc(this.db, 'config', 'admins'), { admins });
+            
+            console.log(`[Firestore API] ✓ Admin ${emailLower} added successfully`);
+            return {
+                success: true,
+                message: `Admin ${emailLower} added successfully`,
+                admins
+            };
+        } catch (error) {
+            console.error('[Firestore API] ✗ Error adding admin:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    /**
+     * Remove admin email from the list
+     * @param {string} email - Email to remove
+     * @returns {Promise<object>} Result with success status
+     */
+    async removeAdmin(email) {
+        console.log(`[Firestore API] removeAdmin() called with email: ${email}`);
+        try {
+            const emailLower = email.toLowerCase().trim();
+            const adminDoc = await getDoc(doc(this.db, 'config', 'admins'));
+            
+            if (!adminDoc.exists()) {
+                return {
+                    success: false,
+                    error: 'Admin list not found'
+                };
+            }
+
+            let admins = adminDoc.data().admins || [];
+            
+            // Check if email exists
+            if (!admins.includes(emailLower)) {
+                return {
+                    success: false,
+                    error: 'Email not found in admin list'
+                };
+            }
+
+            // Remove admin
+            admins = admins.filter(a => a !== emailLower);
+            await setDoc(doc(this.db, 'config', 'admins'), { admins });
+            
+            console.log(`[Firestore API] ✓ Admin ${emailLower} removed successfully`);
+            return {
+                success: true,
+                message: `Admin ${emailLower} removed successfully`,
+                admins
+            };
+        } catch (error) {
+            console.error('[Firestore API] ✗ Error removing admin:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
 }
 
 // Export for use in other scripts
