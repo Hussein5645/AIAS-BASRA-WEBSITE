@@ -498,40 +498,93 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
+            authDomain: "aias-bsr.firebaseapp.com",
+            projectId: "aias-bsr",
+            storageBucket: "aias-bsr.firebasestorage.app",
+            messagingSenderId: "78055223814",
+            appId: "1:78055223814:web:99460402c2b1fcd5ae8987",
+            measurementId: "G-6W50T4HXDV"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
         // Check admin authentication
         // Initialize GitHub API
         const githubAPI = new GitHubAPI();
 
-        (function() {
-            const isAuthenticated = localStorage.getItem('aias_authenticated') === 'true';
-            const isAdmin = localStorage.getItem('aias_is_admin') === 'true';
-            const userName = localStorage.getItem('aias_user_name');
-
-            if (!isAuthenticated || !isAdmin) {
+        // Make logout function globally accessible
+        window.logout = async function() {
+            try {
+                await signOut(auth);
+                localStorage.removeItem('aias_authenticated');
+                localStorage.removeItem('aias_user_email');
+                localStorage.removeItem('aias_user_name');
+                localStorage.removeItem('aias_user_picture');
+                localStorage.removeItem('aias_is_admin');
+                localStorage.removeItem('aias_user_uid');
                 window.location.href = 'login.html';
-                return;
+            } catch (error) {
+                console.error('Logout error:', error);
+                alert('Error signing out. Please try again.');
             }
+        };
 
-            document.getElementById('adminName').textContent = userName || 'Admin';
-            
-            // Load users on page load
-            loadUsers();
-            
-            // Check GitHub token status
-            updateTokenStatus();
-        })();
-
-        function logout() {
-            localStorage.removeItem('aias_authenticated');
-            localStorage.removeItem('aias_user_email');
-            localStorage.removeItem('aias_user_name');
-            localStorage.removeItem('aias_user_picture');
-            localStorage.removeItem('aias_is_admin');
-            window.location.href = 'login.html';
+        async function checkIfAdmin(email) {
+            try {
+                const response = await fetch('data/admin.json');
+                const data = await response.json();
+                return data.admins.includes(email.toLowerCase());
+            } catch (error) {
+                console.error('Error checking admin status:', error);
+                return false;
+            }
         }
 
-        function loadUsers() {
+        (function() {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    // Check if user is admin
+                    const isAdmin = await checkIfAdmin(user.email);
+                    
+                    if (!isAdmin) {
+                        alert('Access denied. Admin privileges required.');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+
+                    // Store admin status
+                    localStorage.setItem('aias_authenticated', 'true');
+                    localStorage.setItem('aias_user_email', user.email);
+                    localStorage.setItem('aias_user_name', user.displayName || 'Admin');
+                    localStorage.setItem('aias_user_picture', user.photoURL || '');
+                    localStorage.setItem('aias_is_admin', 'true');
+                    localStorage.setItem('aias_user_uid', user.uid);
+
+                    document.getElementById('adminName').textContent = user.displayName || 'Admin';
+                    
+                    // Load users on page load
+                    loadUsers();
+                    
+                    // Check GitHub token status
+                    updateTokenStatus();
+                } else {
+                    // No Firebase user authenticated
+                    window.location.href = 'login.html';
+                }
+            });
+        })();
+
+        window.loadUsers = function() {
             const users = JSON.parse(localStorage.getItem('aias_users') || '{}');
             const usersList = document.getElementById('usersList');
             
@@ -564,9 +617,9 @@
             }
             
             usersList.innerHTML = html;
-        }
+        };
 
-        function verifyUser(email) {
+        window.verifyUser = function(email) {
             const users = JSON.parse(localStorage.getItem('aias_users') || '{}');
             
             if (users[email]) {
@@ -575,9 +628,9 @@
                 showMessage('User verified successfully!', 'success');
                 loadUsers();
             }
-        }
+        };
 
-        function deleteUser(email) {
+        window.deleteUser = function(email) {
             if (!confirm(`Are you sure you want to delete the user: ${email}?`)) {
                 return;
             }
@@ -590,9 +643,9 @@
                 showMessage('User deleted successfully!', 'success');
                 loadUsers();
             }
-        }
+        };
 
-        function showTab(tabName) {
+        window.showTab = function(tabName) {
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
@@ -608,9 +661,9 @@
             
             // Add active to clicked button
             event.target.classList.add('active');
-        }
+        };
 
-        function showMessage(text, type) {
+        window.showMessage = function(text, type) {
             const messageDiv = document.getElementById('message');
             messageDiv.textContent = text;
             messageDiv.className = `message ${type}`;
@@ -619,16 +672,16 @@
             setTimeout(() => {
                 messageDiv.style.display = 'none';
             }, 5000);
-        }
+        };
 
-        function generateId(prefix) {
+        window.generateId = function(prefix) {
             const timestamp = Date.now();
             const random = Math.floor(Math.random() * 1000);
             return `${prefix}-${timestamp}-${random}`;
-        }
+        };
 
         // GitHub Token Management
-        function updateTokenStatus() {
+        window.updateTokenStatus = function() {
             const statusDiv = document.getElementById('tokenStatus');
             const statusText = document.getElementById('tokenStatusText');
             
@@ -641,9 +694,9 @@
                 statusDiv.style.borderLeft = '4px solid #e53e3e';
                 statusText.innerHTML = '✗ No token configured. Content will be shown as JSON for manual update.';
             }
-        }
+        };
 
-        function saveGitHubToken() {
+        window.saveGitHubToken = function() {
             const token = document.getElementById('githubToken').value.trim();
             
             if (!token) {
@@ -655,9 +708,9 @@
             updateTokenStatus();
             document.getElementById('githubToken').value = '';
             showMessage('GitHub token saved successfully!', 'success');
-        }
+        };
 
-        function clearGitHubToken() {
+        window.clearGitHubToken = function() {
             if (!confirm('Are you sure you want to clear the GitHub token?')) {
                 return;
             }
@@ -666,9 +719,9 @@
             githubAPI.setToken('');
             updateTokenStatus();
             showMessage('GitHub token cleared', 'success');
-        }
+        };
 
-        async function testGitHubConnection() {
+        window.testGitHubConnection = async function() {
             if (!githubAPI.hasToken()) {
                 showMessage('Please save a GitHub token first', 'error');
                 return;
