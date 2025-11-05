@@ -320,83 +320,88 @@
     <script src="js/three-effects.js"></script>
     <script src="js/main.js"></script>
     <script>
-        // Load all about page content from data.json
+        // Load all about page content from Firebase
         async function loadAboutContent() {
-            const aboutData = await DataLoader.getAbout();
-            
-            if (aboutData) {
-                // Load story content
-                if (aboutData.story && aboutData.story.paragraphs) {
-                    const storyText = document.getElementById('storyText');
-                    const h2 = storyText.querySelector('h2');
-                    storyText.innerHTML = '';
-                    storyText.appendChild(h2);
-                    
-                    aboutData.story.paragraphs.forEach(paragraph => {
-                        const p = document.createElement('p');
-                        p.textContent = paragraph;
-                        storyText.appendChild(p);
-                    });
-                }
+            try {
+                const aboutData = await DataLoader.getAbout();
                 
-                // Load values content
-                if (aboutData.values && aboutData.values.length > 0) {
-                    const valuesGrid = document.getElementById('valuesGrid');
-                    valuesGrid.innerHTML = '';
+                if (aboutData) {
+                    // Load story content
+                    if (aboutData.story && aboutData.story.paragraphs) {
+                        const storyText = document.getElementById('storyText');
+                        const h2 = storyText.querySelector('h2');
+                        storyText.innerHTML = '';
+                        storyText.appendChild(h2);
+                        
+                        aboutData.story.paragraphs.forEach(paragraph => {
+                            const p = document.createElement('p');
+                            p.textContent = paragraph;
+                            storyText.appendChild(p);
+                        });
+                    }
                     
-                    aboutData.values.forEach(value => {
-                        const valueCard = `
-                            <div class="value-card reveal">
-                                <div class="value-number">${value.number}</div>
-                                <h3>${value.title}</h3>
-                                <p>${value.description}</p>
-                            </div>
-                        `;
-                        valuesGrid.innerHTML += valueCard;
-                    });
-                }
-                
-                // Load founders content
-                if (aboutData.founders && aboutData.founders.length > 0) {
-                    const foundersGrid = document.getElementById('foundersGrid');
-                    foundersGrid.innerHTML = '';
+                    // Load values content
+                    if (aboutData.values && aboutData.values.length > 0) {
+                        const valuesGrid = document.getElementById('valuesGrid');
+                        valuesGrid.innerHTML = '';
+                        
+                        aboutData.values.forEach(value => {
+                            const valueCard = `
+                                <div class="value-card reveal">
+                                    <div class="value-number">${value.number}</div>
+                                    <h3>${value.title}</h3>
+                                    <p>${value.description}</p>
+                                </div>
+                            `;
+                            valuesGrid.innerHTML += valueCard;
+                        });
+                    }
                     
-                    aboutData.founders.forEach(founder => {
-                        const founderCard = `
-                            <div class="team-card reveal">
-                                <div class="team-image" style="background-image: url('${founder.image}'); background-size: cover; background-position: center;">
-                                    <img src="${founder.image}" alt="${founder.name}" style="width: 100%; height: 100%; object-fit: cover;">
+                    // Load founders content
+                    if (aboutData.founders && aboutData.founders.length > 0) {
+                        const foundersGrid = document.getElementById('foundersGrid');
+                        foundersGrid.innerHTML = '';
+                        
+                        aboutData.founders.forEach(founder => {
+                            const founderCard = `
+                                <div class="team-card reveal">
+                                    <div class="team-image" style="background-image: url('${founder.image}'); background-size: cover; background-position: center;">
+                                        <img src="${founder.image}" alt="${founder.name}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    </div>
+                                    <div class="team-info">
+                                        <h3>${founder.name}</h3>
+                                        <div class="team-role">${founder.role}</div>
+                                        <p>${founder.bio}</p>
+                                    </div>
                                 </div>
-                                <div class="team-info">
-                                    <h3>${founder.name}</h3>
-                                    <div class="team-role">${founder.role}</div>
-                                    <p>${founder.bio}</p>
-                                </div>
-                            </div>
-                        `;
-                        foundersGrid.innerHTML += founderCard;
-                    });
-                }
-                
-                // Load team content
-                if (aboutData.team && aboutData.team.length > 0) {
-                    const teamGrid = document.getElementById('teamGrid');
-                    teamGrid.innerHTML = '';
+                            `;
+                            foundersGrid.innerHTML += founderCard;
+                        });
+                    }
                     
-                    aboutData.team.forEach(member => {
-                        const teamCard = `
-                            <div class="team-card reveal">
-                                <div class="team-image">👤</div>
-                                <div class="team-info">
-                                    <h3>${member.name}</h3>
-                                    <div class="team-role">${member.role}</div>
-                                    <p>${member.description}</p>
+                    // Load team content
+                    if (aboutData.team && aboutData.team.length > 0) {
+                        const teamGrid = document.getElementById('teamGrid');
+                        teamGrid.innerHTML = '';
+                        
+                        aboutData.team.forEach(member => {
+                            const teamCard = `
+                                <div class="team-card reveal">
+                                    <div class="team-image">👤</div>
+                                    <div class="team-info">
+                                        <h3>${member.name}</h3>
+                                        <div class="team-role">${member.role}</div>
+                                        <p>${member.description}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        `;
-                        teamGrid.innerHTML += teamCard;
-                    });
+                            `;
+                            teamGrid.innerHTML += teamCard;
+                        });
+                    }
                 }
+            } catch (error) {
+                console.error('Error loading about content:', error);
+                // Content will remain as static fallback if error occurs
             }
         }
         

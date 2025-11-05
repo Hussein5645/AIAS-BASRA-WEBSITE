@@ -473,62 +473,89 @@
     <script src="js/three-effects.js"></script>
     <script src="js/main.js"></script>
     <script>
-        // Load education data from data.json
+        // Load education data from Firebase
         async function loadEducationData() {
-            const educationData = await DataLoader.getEducation();
-            
-            if (educationData && educationData.weeklyWorkshop) {
-                const workshop = educationData.weeklyWorkshop;
-                document.getElementById('weekTitle').textContent = workshop.weekTitle;
-                document.getElementById('lecturerName').textContent = workshop.lecturerName;
-                document.getElementById('workshopDescription').textContent = workshop.description;
-            }
-            
-            if (educationData && educationData.fbd) {
-                // Show brief intro for FBD
-                const fbdIntroEl = document.getElementById('fbdIntro');
-                if (fbdIntroEl && educationData.fbd.about) {
-                    // Show first 200 characters
-                    const shortIntro = educationData.fbd.about.substring(0, 200) + '...';
-                    fbdIntroEl.textContent = shortIntro;
-                }
-            }
-            
-            // Load courses dynamically
-            if (educationData && educationData.courses) {
-                const coursesGrid = document.getElementById('coursesGrid');
-                if (coursesGrid) {
-                    coursesGrid.innerHTML = '';
+            try {
+                const educationData = await DataLoader.getEducation();
+                
+                // Load weekly workshop data
+                if (educationData && educationData.weeklyWorkshop) {
+                    const workshop = educationData.weeklyWorkshop;
+                    const weekTitle = document.getElementById('weekTitle');
+                    const lecturerName = document.getElementById('lecturerName');
+                    const workshopDescription = document.getElementById('workshopDescription');
                     
-                    educationData.courses.forEach(course => {
-                        const featuresHTML = course.features.map(feature => `<li>${feature}</li>`).join('');
+                    if (weekTitle && workshop.weekTitle) {
+                        weekTitle.textContent = workshop.weekTitle;
+                    }
+                    if (lecturerName && workshop.lecturerName) {
+                        lecturerName.textContent = workshop.lecturerName;
+                    }
+                    if (workshopDescription && workshop.description) {
+                        workshopDescription.textContent = workshop.description;
+                    }
+                } else {
+                    // Show default/placeholder content
+                    const workshopDescription = document.getElementById('workshopDescription');
+                    if (workshopDescription) {
+                        workshopDescription.textContent = 'Weekly workshop information will be updated soon. Stay tuned!';
+                    }
+                }
+                
+                // Load FBD intro
+                if (educationData && educationData.fbd) {
+                    const fbdIntroEl = document.getElementById('fbdIntro');
+                    if (fbdIntroEl && educationData.fbd.about) {
+                        // Show first 200 characters
+                        const shortIntro = educationData.fbd.about.substring(0, 200) + '...';
+                        fbdIntroEl.textContent = shortIntro;
+                    }
+                }
+                
+                // Load courses dynamically
+                if (educationData && educationData.courses && educationData.courses.length > 0) {
+                    const coursesGrid = document.getElementById('coursesGrid');
+                    if (coursesGrid) {
+                        coursesGrid.innerHTML = '';
                         
-                        const courseCard = `
-                            <div class="program-card reveal">
-                                <div class="program-header">
-                                    <div class="program-icon">${course.icon}</div>
-                                    <div class="program-level">${course.level}</div>
-                                </div>
-                                <div class="program-body">
-                                    <h3 class="program-title">${course.title}</h3>
-                                    <p class="program-description">
-                                        ${course.description}
-                                    </p>
-                                    <ul class="program-features">
-                                        ${featuresHTML}
-                                    </ul>
-                                    <div class="program-footer">
-                                        <div class="program-duration">
-                                            <span>⏱️</span>
-                                            <span>${course.duration}</span>
+                        educationData.courses.forEach(course => {
+                            const featuresHTML = course.features.map(feature => `<li>${feature}</li>`).join('');
+                            
+                            const courseCard = `
+                                <div class="program-card reveal">
+                                    <div class="program-header">
+                                        <div class="program-icon">${course.icon}</div>
+                                        <div class="program-level">${course.level}</div>
+                                    </div>
+                                    <div class="program-body">
+                                        <h3 class="program-title">${course.title}</h3>
+                                        <p class="program-description">
+                                            ${course.description}
+                                        </p>
+                                        <ul class="program-features">
+                                            ${featuresHTML}
+                                        </ul>
+                                        <div class="program-footer">
+                                            <div class="program-duration">
+                                                <span>⏱️</span>
+                                                <span>${course.duration}</span>
+                                            </div>
+                                            <button class="enroll-btn">Enroll Now</button>
                                         </div>
-                                        <button class="enroll-btn">Enroll Now</button>
                                     </div>
                                 </div>
-                            </div>
-                        `;
-                        coursesGrid.innerHTML += courseCard;
-                    });
+                            `;
+                            coursesGrid.innerHTML += courseCard;
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading education data:', error);
+                // Show error message for workshop description
+                const workshopDescription = document.getElementById('workshopDescription');
+                if (workshopDescription) {
+                    workshopDescription.textContent = 'Unable to load workshop information. Please try refreshing the page.';
+                    workshopDescription.style.color = 'var(--text-secondary)';
                 }
             }
         }
