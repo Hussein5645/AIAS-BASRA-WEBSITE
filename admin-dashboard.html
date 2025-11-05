@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - AIAS Basra</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .admin-header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logout-btn {
+            padding: 0.5rem 1.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        .dashboard-nav {
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-nav ul {
+            display: flex;
+            gap: 1rem;
+            list-style: none;
+            padding: 0;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .dashboard-nav li button {
+            padding: 1rem 2rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #718096;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .dashboard-nav li button.active {
+            color: #667eea;
+        }
+
+        .dashboard-nav li button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .content-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: #4a5568;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .message.success {
+            background: #f0fff4;
+            color: #38a169;
+            border-left: 4px solid #38a169;
+        }
+
+        .message.error {
+            background: #fff5f5;
+            color: #e53e3e;
+            border-left: 4px solid #e53e3e;
+        }
+
+        .content-list {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .content-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .content-item:last-child {
+            border-bottom: none;
+        }
+
+        .delete-btn {
+            padding: 0.5rem 1rem;
+            background: #e53e3e;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: #c53030;
+        }
+
+        .home-link {
+            padding: 0.5rem 1.5rem;
+            background: white;
+            color: #667eea;
+            border: 2px solid white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .home-link:hover {
+            background: rgba(255, 255, 255, 0.9);
+        }
+    </style>
+</head>
+<body>
+    <!-- Admin Header -->
+    <div class="admin-header">
+        <div class="container">
+            <h1>Admin Dashboard</h1>
+            <div class="admin-info">
+                <span id="adminName"></span>
+                <a href="index.html" class="home-link">View Site</a>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div id="message" class="message"></div>
+
+        <!-- Dashboard Navigation -->
+        <nav class="dashboard-nav">
+            <ul>
+                <li><button class="active" onclick="showTab('events')">Events</button></li>
+                <li><button onclick="showTab('articles')">Magazine Articles</button></li>
+                <li><button onclick="showTab('library')">Library Resources</button></li>
+                <li><button onclick="showTab('education')">Education Content</button></li>
+            </ul>
+        </nav>
+
+        <!-- Events Tab -->
+        <div id="events-tab" class="tab-content active">
+            <h2>Add New Event</h2>
+            <form id="eventForm" class="content-form">
+                <div class="form-group">
+                    <label for="eventTitle">Event Title</label>
+                    <input type="text" id="eventTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="eventTime">Date and Time</label>
+                    <input type="datetime-local" id="eventTime" required>
+                </div>
+                <div class="form-group">
+                    <label for="eventLocation">Location</label>
+                    <input type="text" id="eventLocation" required>
+                </div>
+                <div class="form-group">
+                    <label for="eventType">Event Type</label>
+                    <select id="eventType" required>
+                        <option value="Workshop">Workshop</option>
+                        <option value="Lecture">Lecture</option>
+                        <option value="Social">Social</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="eventSeats">Available Seats</label>
+                    <input type="number" id="eventSeats" required min="0">
+                </div>
+                <div class="form-group">
+                    <label for="eventImage">Emoji Icon</label>
+                    <input type="text" id="eventImage" placeholder="🎨" required>
+                </div>
+                <div class="form-group">
+                    <label for="eventDescription">Description</label>
+                    <textarea id="eventDescription" required></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Add Event</button>
+            </form>
+        </div>
+
+        <!-- Articles Tab -->
+        <div id="articles-tab" class="tab-content">
+            <h2>Add New Article</h2>
+            <form id="articleForm" class="content-form">
+                <div class="form-group">
+                    <label for="articleTitle">Article Title</label>
+                    <input type="text" id="articleTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="articleAuthor">Author Name</label>
+                    <input type="text" id="articleAuthor" required>
+                </div>
+                <div class="form-group">
+                    <label for="articleDate">Publication Date</label>
+                    <input type="date" id="articleDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="articleSummary">Summary</label>
+                    <textarea id="articleSummary" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="articleContent">Full Content</label>
+                    <textarea id="articleContent" required></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Add Article</button>
+            </form>
+        </div>
+
+        <!-- Library Tab -->
+        <div id="library-tab" class="tab-content">
+            <h2>Add New Library Resource</h2>
+            <form id="libraryForm" class="content-form">
+                <div class="form-group">
+                    <label for="libName">Resource Name</label>
+                    <input type="text" id="libName" required>
+                </div>
+                <div class="form-group">
+                    <label for="libType">Type</label>
+                    <select id="libType" required>
+                        <option value="Book">Book</option>
+                        <option value="Tutorial">Tutorial</option>
+                        <option value="Software">Software</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="libTags">Tags (comma-separated)</label>
+                    <input type="text" id="libTags" placeholder="Design, Fundamentals, Theory" required>
+                </div>
+                <div class="form-group">
+                    <label for="libImage">Emoji Icon</label>
+                    <input type="text" id="libImage" placeholder="📚" required>
+                </div>
+                <div class="form-group">
+                    <label for="libDescription">Description</label>
+                    <textarea id="libDescription" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="libLink">Download Link</label>
+                    <input type="url" id="libLink" placeholder="https://" required>
+                </div>
+                <button type="submit" class="submit-btn">Add Resource</button>
+            </form>
+        </div>
+
+        <!-- Education Tab -->
+        <div id="education-tab" class="tab-content">
+            <h2>Update Education Content</h2>
+            <form id="educationForm" class="content-form">
+                <div class="form-group">
+                    <label for="weekTitle">Weekly Workshop Title</label>
+                    <input type="text" id="weekTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="lecturerName">Lecturer Name</label>
+                    <input type="text" id="lecturerName" required>
+                </div>
+                <div class="form-group">
+                    <label for="weekDescription">Workshop Description</label>
+                    <textarea id="weekDescription" required></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Update Education Content</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Check admin authentication
+        (function() {
+            const isAuthenticated = sessionStorage.getItem('aias_authenticated') === 'true';
+            const isAdmin = sessionStorage.getItem('aias_is_admin') === 'true';
+            const userName = sessionStorage.getItem('aias_user_name');
+
+            if (!isAuthenticated || !isAdmin) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            document.getElementById('adminName').textContent = userName || 'Admin';
+        })();
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Remove active from all buttons
+            document.querySelectorAll('.dashboard-nav button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            // Add active to clicked button
+            event.target.classList.add('active');
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function generateId(prefix) {
+            const timestamp = Date.now();
+            const random = Math.floor(Math.random() * 1000);
+            return `${prefix}-${timestamp}-${random}`;
+        }
+
+        // Event Form Handler
+        document.getElementById('eventForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            try {
+                const response = await fetch('data/data.json');
+                const data = await response.json();
+
+                const newEvent = {
+                    id: generateId('evt'),
+                    title: document.getElementById('eventTitle').value,
+                    time: new Date(document.getElementById('eventTime').value).toISOString(),
+                    location: document.getElementById('eventLocation').value,
+                    eventType: document.getElementById('eventType').value,
+                    seatsAvailable: parseInt(document.getElementById('eventSeats').value),
+                    image: document.getElementById('eventImage').value,
+                    description: document.getElementById('eventDescription').value
+                };
+
+                data.events.push(newEvent);
+
+                // In a real application, you would save this to the server
+                // For now, we'll show the JSON that should be saved
+                console.log('Updated data.json:', JSON.stringify(data, null, 2));
+                
+                showMessage('Event added successfully! Note: This is a demo. In production, this would save to GitHub.', 'success');
+                document.getElementById('eventForm').reset();
+                
+                // Display the updated JSON for manual save
+                alert('Copy this JSON and update data/data.json:\n\n' + JSON.stringify(data, null, 2));
+            } catch (error) {
+                showMessage('Error adding event: ' + error.message, 'error');
+            }
+        });
+
+        // Article Form Handler
+        document.getElementById('articleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            try {
+                const response = await fetch('data/data.json');
+                const data = await response.json();
+
+                const newArticle = {
+                    id: generateId('art'),
+                    title: document.getElementById('articleTitle').value,
+                    author: document.getElementById('articleAuthor').value,
+                    date: document.getElementById('articleDate').value,
+                    summary: document.getElementById('articleSummary').value,
+                    content: document.getElementById('articleContent').value
+                };
+
+                data.magazine.articles.push(newArticle);
+
+                console.log('Updated data.json:', JSON.stringify(data, null, 2));
+                
+                showMessage('Article added successfully! Note: This is a demo. In production, this would save to GitHub.', 'success');
+                document.getElementById('articleForm').reset();
+                
+                alert('Copy this JSON and update data/data.json:\n\n' + JSON.stringify(data, null, 2));
+            } catch (error) {
+                showMessage('Error adding article: ' + error.message, 'error');
+            }
+        });
+
+        // Library Form Handler
+        document.getElementById('libraryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            try {
+                const response = await fetch('data/data.json');
+                const data = await response.json();
+
+                const tags = document.getElementById('libTags').value.split(',').map(t => t.trim().replace(/\s+/g, '-'));
+
+                const newResource = {
+                    id: generateId('lib'),
+                    name: document.getElementById('libName').value,
+                    type: document.getElementById('libType').value,
+                    tags: tags,
+                    image: document.getElementById('libImage').value,
+                    description: document.getElementById('libDescription').value,
+                    link: document.getElementById('libLink').value
+                };
+
+                data.library.push(newResource);
+
+                console.log('Updated data.json:', JSON.stringify(data, null, 2));
+                
+                showMessage('Library resource added successfully! Note: This is a demo. In production, this would save to GitHub.', 'success');
+                document.getElementById('libraryForm').reset();
+                
+                alert('Copy this JSON and update data/data.json:\n\n' + JSON.stringify(data, null, 2));
+            } catch (error) {
+                showMessage('Error adding resource: ' + error.message, 'error');
+            }
+        });
+
+        // Education Form Handler
+        document.getElementById('educationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            try {
+                const response = await fetch('data/data.json');
+                const data = await response.json();
+
+                data.education.weeklyWorkshop = {
+                    weekTitle: document.getElementById('weekTitle').value,
+                    lecturerName: document.getElementById('lecturerName').value,
+                    description: document.getElementById('weekDescription').value
+                };
+
+                console.log('Updated data.json:', JSON.stringify(data, null, 2));
+                
+                showMessage('Education content updated successfully! Note: This is a demo. In production, this would save to GitHub.', 'success');
+                document.getElementById('educationForm').reset();
+                
+                alert('Copy this JSON and update data/data.json:\n\n' + JSON.stringify(data, null, 2));
+            } catch (error) {
+                showMessage('Error updating education content: ' + error.message, 'error');
+            }
+        });
+    </script>
+</body>
+</html>
