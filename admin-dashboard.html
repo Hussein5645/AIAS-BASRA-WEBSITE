@@ -855,7 +855,7 @@
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
                     const prepMsg = currentLang === 'ar' ? 'تم إعداد محتوى الصفحة الرئيسية. قم بتكوين رمز GitHub في الإعدادات للحفظ تلقائياً.' : 'Home page content prepared. Configure GitHub token in Settings to save automatically.';
                     showMessage(prepMsg, 'success');
-                    const alertMsg = currentLang === 'ar' ? 'انسخ هذا JSON وقم بتحديث data/data.json:\n\n' : 'Copy this JSON and update data/data.json:\n\n';
+                    const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
                     alert(alertMsg + JSON.stringify(data, null, 2));
                 } catch (error) {
                     const errorMsg = currentLang === 'ar' ? 'خطأ في إعداد محتوى الصفحة الرئيسية: ' + error.message : 'Error preparing home page content: ' + error.message;
@@ -910,7 +910,7 @@
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
                     const prepMsg = currentLang === 'ar' ? 'تم إعداد الفعالية. قم بتكوين رمز GitHub في الإعدادات للحفظ تلقائياً.' : 'Event prepared. Configure GitHub token in Settings to save automatically.';
                     showMessage(prepMsg, 'success');
-                    const alertMsg = currentLang === 'ar' ? 'انسخ هذا JSON وقم بتحديث data/data.json:\n\n' : 'Copy this JSON and update data/data.json:\n\n';
+                    const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
                     alert(alertMsg + JSON.stringify(data, null, 2));
                     document.getElementById('eventForm').reset();
                 } catch (error) {
@@ -962,7 +962,7 @@
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
                     const prepMsg = currentLang === 'ar' ? 'تم إعداد المقال. قم بتكوين رمز GitHub في الإعدادات للحفظ تلقائياً.' : 'Article prepared. Configure GitHub token in Settings to save automatically.';
                     showMessage(prepMsg, 'success');
-                    const alertMsg = currentLang === 'ar' ? 'انسخ هذا JSON وقم بتحديث data/data.json:\n\n' : 'Copy this JSON and update data/data.json:\n\n';
+                    const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
                     alert(alertMsg + JSON.stringify(data, null, 2));
                     document.getElementById('articleForm').reset();
                 } catch (error) {
@@ -1017,7 +1017,7 @@
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
                     const prepMsg = currentLang === 'ar' ? 'تم إعداد المورد. قم بتكوين رمز GitHub في الإعدادات للحفظ تلقائياً.' : 'Resource prepared. Configure GitHub token in Settings to save automatically.';
                     showMessage(prepMsg, 'success');
-                    const alertMsg = currentLang === 'ar' ? 'انسخ هذا JSON وقم بتحديث data/data.json:\n\n' : 'Copy this JSON and update data/data.json:\n\n';
+                    const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
                     alert(alertMsg + JSON.stringify(data, null, 2));
                     document.getElementById('libraryForm').reset();
                 } catch (error) {
@@ -1066,7 +1066,7 @@
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
                     const prepMsg = currentLang === 'ar' ? 'تم إعداد المحتوى التعليمي. قم بتكوين رمز GitHub في الإعدادات للحفظ تلقائياً.' : 'Education content prepared. Configure GitHub token in Settings to save automatically.';
                     showMessage(prepMsg, 'success');
-                    const alertMsg = currentLang === 'ar' ? 'انسخ هذا JSON وقم بتحديث data/data.json:\n\n' : 'Copy this JSON and update data/data.json:\n\n';
+                    const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
                     alert(alertMsg + JSON.stringify(data, null, 2));
                     document.getElementById('educationForm').reset();
                 } catch (error) {
