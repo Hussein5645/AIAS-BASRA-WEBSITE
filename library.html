@@ -388,6 +388,7 @@
                 }
                 
                 if (libraryItems && libraryItems.length > 0) {
+                    console.log('[Library] ✓ Library items array has data, proceeding to render...');
                     allResources = libraryItems;
                     gridContainer.innerHTML = '';
                     
@@ -417,6 +418,7 @@
                     // Re-initialize filter and search after loading
                     initializeFilters();
                 } else {
+                    console.log('[Library] No library items found or array is empty');
                     // Show empty state
                     gridContainer.innerHTML = `
                         <div class="empty-state">

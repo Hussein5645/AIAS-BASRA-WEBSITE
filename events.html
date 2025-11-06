@@ -269,6 +269,7 @@
                 }
                 
                 if (events && events.length > 0) {
+                    console.log('[Events] ✓ Events array has data, proceeding to render...');
                     // Clear existing content
                     gridContainer.innerHTML = '';
                     timelineContainer.innerHTML = '';
@@ -345,6 +346,7 @@
                         timelineItemsCount: timelineContainer.children.length
                     });
                 } else {
+                    console.log('[Events] No events found or events array is empty');
                     // Show empty state
                     gridContainer.innerHTML = `
                         <div class="empty-state">
