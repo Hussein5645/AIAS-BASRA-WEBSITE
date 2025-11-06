@@ -32,7 +32,7 @@ class FirestoreAPI {
   constructor() {
     this.db = db;
     this.paths = {
-      // Standardized locations under content/
+      // Current standardized locations under content/
       eventsDoc: ['content', 'events'],
       eventsCol: ['content', 'events', 'items'],
       libraryDoc: ['content', 'library'],
@@ -67,14 +67,15 @@ class FirestoreAPI {
     return { valid: true, message: '' };
   }
 
-  // Make sure base docs exist (prevents “missing” structure errors)
+  // Ensure base docs exist and backfill any missing fields
   async ensureBaseDocs() {
     const ensure = async (pathArr, data) => {
       const r = this._docRef(pathArr);
       const s = await getDoc(r);
-      if (!s.exists()) await setDoc(r, data || {});
-      else if (data && typeof data === 'object') {
-        // Backfill missing fields only
+      if (!s.exists()) {
+        await setDoc(r, data || {});
+      } else if (data && typeof data === 'object') {
+        // Backfill only missing fields
         const current = s.data() || {};
         const patches = {};
         for (const [k, v] of Object.entries(data)) {
@@ -87,11 +88,12 @@ class FirestoreAPI {
     await ensure(this.paths.eventsDoc, { createdAt: Date.now() });
     await ensure(this.paths.libraryDoc, { createdAt: Date.now() });
     await ensure(this.paths.magazineDoc, { featuredArticleId: null, releases: [] });
-    // Ensure weeklyWorkshop has all fields needed for edit-only UI
+    // Weekly workshop edit-only — make sure all fields exist
     await ensure(this.paths.educationDoc, { weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "" } });
     await ensure(this.paths.fbdDoc, { pageTitle: "", about: "" });
   }
 
+  // Read all content (current structure only)
   async getAllContent() {
     try {
       await this.ensureBaseDocs();
@@ -130,7 +132,7 @@ class FirestoreAPI {
       }
       magazine.articles = magazineArticlesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-      // Education + Courses + FBD
+      // Education (weekly + courses subcollection) + FBD
       const education = { weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "" }, courses: [], fbd: { pageTitle: "", about: "", events: [] } };
       if (educationDocSnap.exists()) {
         const ed = educationDocSnap.data();
@@ -141,8 +143,7 @@ class FirestoreAPI {
           description: ww.description ?? ""
         };
       }
-      const courseDocs = coursesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      if (courseDocs.length > 0) education.courses = courseDocs;
+      education.courses = coursesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
       if (fbdDocSnap.exists()) {
         const f = fbdDocSnap.data();
@@ -257,7 +258,7 @@ class FirestoreAPI {
       await this.ensureBaseDocs();
       const ref = this._docRef(this.paths.educationDoc);
       const snap = await getDoc(ref);
-      const existing = snap.exists() ? snap.data() : { weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "" }, courses: [] };
+      const existing = snap.exists() ? snap.data() : { weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "" } };
       await setDoc(ref, { ...existing, weeklyWorkshop });
       return { success: true, message: 'Education content updated successfully' };
     } catch (error) {
@@ -265,7 +266,7 @@ class FirestoreAPI {
     }
   }
 
-  // Courses CRUD
+  // Courses CRUD (content/education/courses)
   async addCourse(course) {
     const v = this.validateRequiredFields(course, ['title', 'description']);
     if (!v.valid) return { success: false, error: v.message };
@@ -339,8 +340,8 @@ class FirestoreAPI {
   setToken(_) {}
   getToken() { return ''; }
 
+  // Bulk updater for top-level docs (magazine + education doc) — lists use subcollections
   async updateAllContent(content) {
-    // Only keeps magazine (doc data) and education (doc data) in sync; list items use subcollections
     try {
       await this.ensureBaseDocs();
       if (content.magazine) {
@@ -363,8 +364,8 @@ class FirestoreAPI {
     catch (error) { return { success: false, error: error.message }; }
   }
 
+  // Define the required docs, required fields, and subcollections (no legacy)
   getExpectedStructure() {
-    // Define the base documents and subcollections we require, plus required fields in docs
     return {
       contentDocs: {
         events: { createdAt: 0 },
@@ -383,8 +384,8 @@ class FirestoreAPI {
     };
   }
 
+  // Validate and fix Firestore structure (create/backfill current structure only — no legacy)
   async validateAndFixStructure() {
-    // Creates any missing documents, backfills missing fields, and validates subcollections
     const results = { success: true, actions: [], errors: [] };
     try {
       const expected = this.getExpectedStructure();
@@ -398,7 +399,7 @@ class FirestoreAPI {
             await setDoc(ref, defaults);
             results.actions.push(`Created content/${docName}`);
           } else {
-            // Backfill top-level fields
+            // Backfill required fields
             const current = snap.data() || {};
             const patches = {};
             for (const [k, v] of Object.entries(defaults)) {
@@ -425,7 +426,7 @@ class FirestoreAPI {
         }
       }
 
-      // Validate subcollections (light list to ensure access and parent doc presence)
+      // Validate subcollections by performing a lightweight list call
       for (const sc of expected.subcollections) {
         try {
           const colRef = collection(this.db, ...sc.parent, sc.name);
