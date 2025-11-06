@@ -42,11 +42,7 @@ class FirestoreAPI {
       educationDoc: ['content', 'education'],
       educationCoursesCol: ['content', 'education', 'courses'],
       fbdDoc: ['content', 'fbd'],
-      fbdEventsCol: ['content', 'fbd', 'events'],
-
-      // Legacy (for migration/back-compat)
-      legacyEventsCol: ['events'],
-      legacyLibraryCol: ['library'],
+      fbdEventsCol: ['content', 'fbd', 'events']
     };
   }
 
@@ -77,11 +73,22 @@ class FirestoreAPI {
       const r = this._docRef(pathArr);
       const s = await getDoc(r);
       if (!s.exists()) await setDoc(r, data || {});
+      else if (data && typeof data === 'object') {
+        // Backfill missing fields only
+        const current = s.data() || {};
+        const patches = {};
+        for (const [k, v] of Object.entries(data)) {
+          if (current[k] === undefined) patches[k] = v;
+        }
+        if (Object.keys(patches).length) await setDoc(r, patches, { merge: true });
+      }
     };
+
     await ensure(this.paths.eventsDoc, { createdAt: Date.now() });
     await ensure(this.paths.libraryDoc, { createdAt: Date.now() });
     await ensure(this.paths.magazineDoc, { featuredArticleId: null, releases: [] });
-    await ensure(this.paths.educationDoc, { weeklyWorkshop: {}, courses: [] }); // legacy array kept for back-compat
+    // Ensure weeklyWorkshop has all fields needed for edit-only UI
+    await ensure(this.paths.educationDoc, { weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "" } });
     await ensure(this.paths.fbdDoc, { pageTitle: "", about: "" });
   }
 
@@ -96,9 +103,7 @@ class FirestoreAPI {
         educationDocSnap,
         coursesSnap,
         fbdDocSnap,
-        fbdEventsSnap,
-        legacyEventsSnap,
-        legacyLibrarySnap
+        fbdEventsSnap
       ] = await Promise.all([
         getDocs(this._colRef(this.paths.eventsCol)),
         getDocs(this._colRef(this.paths.libraryCol)),
@@ -107,25 +112,17 @@ class FirestoreAPI {
         getDoc(this._docRef(this.paths.educationDoc)),
         getDocs(this._colRef(this.paths.educationCoursesCol)),
         getDoc(this._docRef(this.paths.fbdDoc)),
-        getDocs(this._colRef(this.paths.fbdEventsCol)),
-        getDocs(this._colRef(this.paths.legacyEventsCol)),
-        getDocs(this._colRef(this.paths.legacyLibraryCol))
+        getDocs(this._colRef(this.paths.fbdEventsCol))
       ]);
 
-      // Events (fallback to legacy if new collection empty)
-      let events = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      if (events.length === 0 && legacyEventsSnap.size > 0) {
-        events = legacyEventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      }
+      // Events
+      const events = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-      // Library (fallback to legacy if new collection empty)
-      let library = librarySnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      if (library.length === 0 && legacyLibrarySnap.size > 0) {
-        library = legacyLibrarySnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      }
+      // Library
+      const library = librarySnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
       // Magazine
-      let magazine = { featuredArticleId: null, articles: [], releases: [] };
+      const magazine = { featuredArticleId: null, articles: [], releases: [] };
       if (magazineDocSnap.exists()) {
         const md = magazineDocSnap.data();
         magazine.featuredArticleId = md.featuredArticleId ?? null;
@@ -134,14 +131,15 @@ class FirestoreAPI {
       magazine.articles = magazineArticlesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
       // Education + Courses + FBD
-      let education = { weeklyWorkshop: {}, courses: [], fbd: { pageTitle: "", about: "", events: [] } };
+      const education = { weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "" }, courses: [], fbd: { pageTitle: "", about: "", events: [] } };
       if (educationDocSnap.exists()) {
         const ed = educationDocSnap.data();
-        education.weeklyWorkshop = ed.weeklyWorkshop ?? {};
-        if (Array.isArray(ed.courses) && ed.courses.length > 0) {
-          // legacy array support
-          education.courses = ed.courses.map((c, i) => ({ id: c.id || String(i), ...c }));
-        }
+        const ww = ed.weeklyWorkshop || {};
+        education.weeklyWorkshop = {
+          weekTitle: ww.weekTitle ?? "",
+          lecturerName: ww.lecturerName ?? "",
+          description: ww.description ?? ""
+        };
       }
       const courseDocs = coursesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
       if (courseDocs.length > 0) education.courses = courseDocs;
@@ -259,7 +257,7 @@ class FirestoreAPI {
       await this.ensureBaseDocs();
       const ref = this._docRef(this.paths.educationDoc);
       const snap = await getDoc(ref);
-      const existing = snap.exists() ? snap.data() : { weeklyWorkshop: {}, courses: [] };
+      const existing = snap.exists() ? snap.data() : { weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "" }, courses: [] };
       await setDoc(ref, { ...existing, weeklyWorkshop });
       return { success: true, message: 'Education content updated successfully' };
     } catch (error) {
@@ -366,12 +364,13 @@ class FirestoreAPI {
   }
 
   getExpectedStructure() {
+    // Define the base documents and subcollections we require, plus required fields in docs
     return {
       contentDocs: {
-        events: {},
-        library: {},
+        events: { createdAt: 0 },
+        library: { createdAt: 0 },
         magazine: { featuredArticleId: null, releases: [] },
-        education: { weeklyWorkshop: {}, courses: [] },
+        education: { weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "" } },
         fbd: { pageTitle: "", about: "" }
       },
       subcollections: [
@@ -380,65 +379,62 @@ class FirestoreAPI {
         { parent: ['content', 'magazine'], name: 'articles' },
         { parent: ['content', 'education'], name: 'courses' },
         { parent: ['content', 'fbd'], name: 'events' }
-      ],
-      legacyCollections: ['events', 'library']
+      ]
     };
   }
 
   async validateAndFixStructure() {
+    // Creates any missing documents, backfills missing fields, and validates subcollections
     const results = { success: true, actions: [], errors: [] };
     try {
       const expected = this.getExpectedStructure();
 
-      // Ensure docs
-      for (const [name, defaults] of Object.entries(expected.contentDocs)) {
+      // Ensure and backfill base documents and required fields
+      for (const [docName, defaults] of Object.entries(expected.contentDocs)) {
         try {
-          const r = this._docRef(['content', name]);
-          const s = await getDoc(r);
-          if (!s.exists()) { await setDoc(r, defaults); results.actions.push(`Created content/${name}`); }
-          else { results.actions.push(`Validated content/${name}`); }
-        } catch (e) { results.errors.push(`Doc content/${name}: ${e.message}`); }
+          const ref = this._docRef(['content', docName]);
+          const snap = await getDoc(ref);
+          if (!snap.exists()) {
+            await setDoc(ref, defaults);
+            results.actions.push(`Created content/${docName}`);
+          } else {
+            // Backfill top-level fields
+            const current = snap.data() || {};
+            const patches = {};
+            for (const [k, v] of Object.entries(defaults)) {
+              if (k === 'weeklyWorkshop' && docName === 'education') {
+                const ww = current.weeklyWorkshop || {};
+                const wwPatches = {};
+                for (const [wk, wv] of Object.entries(v)) {
+                  if (ww[wk] === undefined) wwPatches[wk] = wv;
+                }
+                if (Object.keys(wwPatches).length) patches.weeklyWorkshop = { ...ww, ...wwPatches };
+              } else if (current[k] === undefined) {
+                patches[k] = v;
+              }
+            }
+            if (Object.keys(patches).length) {
+              await setDoc(ref, patches, { merge: true });
+              results.actions.push(`Backfilled fields in content/${docName}: ${Object.keys(patches).join(', ')}`);
+            } else {
+              results.actions.push(`Validated content/${docName}`);
+            }
+          }
+        } catch (e) {
+          results.errors.push(`Doc content/${docName}: ${e.message}`);
+        }
       }
 
-      // Validate subcollections (light read)
+      // Validate subcollections (light list to ensure access and parent doc presence)
       for (const sc of expected.subcollections) {
         try {
-          const snap = await getDocs(collection(this.db, ...sc.parent, sc.name));
+          const colRef = collection(this.db, ...sc.parent, sc.name);
+          const snap = await getDocs(colRef);
           results.actions.push(`Validated ${sc.parent.join('/')}/${sc.name} (${snap.size} docs)`);
-        } catch (e) { results.errors.push(`Subcollection ${sc.parent.join('/')}/${sc.name}: ${e.message}`); }
+        } catch (e) {
+          results.errors.push(`Subcollection ${sc.parent.join('/')}/${sc.name}: ${e.message}`);
+        }
       }
-
-      // Migrate legacy events / library if needed
-      try {
-        const newEvents = await getDocs(this._colRef(this.paths.eventsCol));
-        const legacy = await getDocs(this._colRef(this.paths.legacyEventsCol));
-        if (newEvents.size === 0 && legacy.size > 0) {
-          for (const d of legacy.docs) await addDoc(this._colRef(this.paths.eventsCol), { ...d.data() });
-          results.actions.push(`Migrated ${legacy.size} legacy events -> content/events/items`);
-        } else results.actions.push('Events migration not needed');
-      } catch (e) { results.errors.push(`Migrate events: ${e.message}`); }
-
-      try {
-        const newLib = await getDocs(this._colRef(this.paths.libraryCol));
-        const legacy = await getDocs(this._colRef(this.paths.legacyLibraryCol));
-        if (newLib.size === 0 && legacy.size > 0) {
-          for (const d of legacy.docs) await addDoc(this._colRef(this.paths.libraryCol), { ...d.data() });
-          results.actions.push(`Migrated ${legacy.size} legacy library -> content/library/items`);
-        } else results.actions.push('Library migration not needed');
-      } catch (e) { results.errors.push(`Migrate library: ${e.message}`); }
-
-      // Migrate legacy courses array to subcollection
-      try {
-        const edDoc = await getDoc(this._docRef(this.paths.educationDoc));
-        const newCourses = await getDocs(this._colRef(this.paths.educationCoursesCol));
-        if (edDoc.exists() && newCourses.size === 0) {
-          const data = edDoc.data();
-          if (Array.isArray(data.courses) && data.courses.length > 0) {
-            for (const c of data.courses) await addDoc(this._colRef(this.paths.educationCoursesCol), c);
-            results.actions.push(`Migrated ${data.courses.length} legacy courses -> content/education/courses`);
-          } else results.actions.push('Courses migration not needed');
-        } else results.actions.push('Courses subcollection already populated');
-      } catch (e) { results.errors.push(`Migrate courses: ${e.message}`); }
 
       if (results.errors.length > 0) results.success = false;
       return results;
