@@ -160,14 +160,17 @@ Default values in base documents are minimal and safe:
 
 ## Performance Considerations
 
-### Parallel Execution
-`ensureBaseDocs()` uses `Promise.all()` internally (within the `ensure` function calls) to check and create multiple documents efficiently.
+### Sequential Execution
+`ensureBaseDocs()` checks and creates documents sequentially using `await` calls. While this could be optimized with `Promise.all()` for parallel execution, the sequential approach is simpler and sufficient for the current use case since:
+- Base documents only need to be created once
+- The operation is fast (typically < 1 second total)
+- It's called at the start of content operations, not in hot loops
 
 ### Caching
 Firebase Firestore SDK caches document existence checks, so repeated calls to `ensureBaseDocs()` are efficient.
 
 ### Network Efficiency
-- First call: Up to 5 reads + up to 5 writes (if all docs are missing)
+- First call: Up to 5 sequential reads + up to 5 sequential writes (if all docs are missing)
 - Subsequent calls: Up to 5 cached reads (no writes needed)
 
 ## Conclusion
