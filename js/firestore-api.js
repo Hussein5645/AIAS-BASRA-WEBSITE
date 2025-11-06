@@ -44,10 +44,23 @@ class FirestoreAPI {
         
         for (const field of requiredFields) {
             const value = obj[field];
-            // Check if field is missing, null, undefined, or empty string/array
-            if (value === undefined || value === null || value === '' || 
-                (Array.isArray(value) && value.length === 0)) {
+            
+            // Check if field is missing, null, or undefined
+            if (value === undefined || value === null) {
                 emptyFields.push(field);
+                continue;
+            }
+            
+            // Check for empty or whitespace-only strings
+            if (typeof value === 'string' && value.trim() === '') {
+                emptyFields.push(field);
+                continue;
+            }
+            
+            // Check for empty arrays
+            if (Array.isArray(value) && value.length === 0) {
+                emptyFields.push(field);
+                continue;
             }
         }
         
