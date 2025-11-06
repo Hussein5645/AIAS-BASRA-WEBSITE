@@ -200,6 +200,20 @@
             const gridContainer = document.querySelector('#gridView .events-grid');
             const timelineContainer = document.getElementById('timelineContainer');
             
+            console.log('[Events] Container elements found:', {
+                gridContainer: !!gridContainer,
+                timelineContainer: !!timelineContainer
+            });
+            
+            if (!gridContainer) {
+                console.error('[Events] Error: Grid container not found!');
+                return;
+            }
+            if (!timelineContainer) {
+                console.error('[Events] Error: Timeline container not found!');
+                return;
+            }
+            
             // Show loading state
             gridContainer.innerHTML = `
                 <div class="loading-container">
@@ -225,11 +239,28 @@
                 }
                 
                 const events = result.events;
-                console.log(`[Events] ✓ Loaded ${events.length} events`);
+                console.log(`[Events] ✓ Loaded ${events.length} events from Data Loader`);
                 
-                // Debug logging
+                // Always log fetched events for debugging
+                if (events.length > 0) {
+                    console.log('[Events] Fetched events details:');
+                    events.forEach((e, index) => {
+                        console.log(`  Event ${index + 1}:`, {
+                            id: e.id,
+                            title: e.title,
+                            time: e.time,
+                            location: e.location,
+                            seats: e.seats ?? 'N/A',
+                            description: e.description && e.description.length > 50 
+                                ? e.description.substring(0, 50) + '...' 
+                                : e.description
+                        });
+                    });
+                }
+                
+                // Additional debug logging
                 if (DEBUG && events.length > 0) {
-                    console.log('[Events] Debug mode enabled');
+                    console.log('[Events] Debug mode enabled - Full event details');
                     const debugSummary = events.map(e => ({
                         id: e.id,
                         title: e.title,
@@ -240,6 +271,7 @@
                 }
                 
                 if (events && events.length > 0) {
+                    console.log('[Events] ✓ Events array has data, proceeding to render...');
                     // Clear existing content
                     gridContainer.innerHTML = '';
                     timelineContainer.innerHTML = '';
@@ -310,7 +342,13 @@
                             timelineContainer.innerHTML += timelineItem;
                         }
                     });
+                    
+                    console.log('[Events] ✓ Rendered events to DOM:', {
+                        gridItemsCount: gridContainer.children.length,
+                        timelineItemsCount: timelineContainer.children.length
+                    });
                 } else {
+                    console.log('[Events] No events found or events array is empty');
                     // Show empty state
                     gridContainer.innerHTML = `
                         <div class="empty-state">

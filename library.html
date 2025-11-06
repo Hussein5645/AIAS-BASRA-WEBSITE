@@ -333,6 +333,13 @@
         async function loadLibrary() {
             const gridContainer = document.querySelector('.resources-grid');
             
+            console.log('[Library] Container element found:', !!gridContainer);
+            
+            if (!gridContainer) {
+                console.error('[Library] Error: Grid container not found!');
+                return;
+            }
+            
             // Show loading state
             gridContainer.innerHTML = `
                 <div class="loading-container">
@@ -352,11 +359,27 @@
                 }
                 
                 const libraryItems = result.library;
-                console.log(`[Library] ✓ Loaded ${libraryItems.length} library items`);
+                console.log(`[Library] ✓ Loaded ${libraryItems.length} library items from Data Loader`);
                 
-                // Debug logging
+                // Always log fetched library items for debugging
+                if (libraryItems.length > 0) {
+                    console.log('[Library] Fetched library items details:');
+                    libraryItems.forEach((item, index) => {
+                        console.log(`  Item ${index + 1}:`, {
+                            id: item.id,
+                            name: item.name,
+                            type: item.type,
+                            tags: (item.tags || []).join(', '),
+                            description: item.description && item.description.length > 50 
+                                ? item.description.substring(0, 50) + '...' 
+                                : item.description
+                        });
+                    });
+                }
+                
+                // Additional debug logging
                 if (DEBUG && libraryItems.length > 0) {
-                    console.log('[Library] Debug mode enabled');
+                    console.log('[Library] Debug mode enabled - Full library details');
                     const debugSummary = libraryItems.map(item => ({
                         id: item.id,
                         name: item.name,
@@ -367,6 +390,7 @@
                 }
                 
                 if (libraryItems && libraryItems.length > 0) {
+                    console.log('[Library] ✓ Library items array has data, proceeding to render...');
                     allResources = libraryItems;
                     gridContainer.innerHTML = '';
                     
@@ -389,9 +413,14 @@
                         gridContainer.innerHTML += resourceCard;
                     });
                     
+                    console.log('[Library] ✓ Rendered library items to DOM:', {
+                        itemsCount: gridContainer.children.length
+                    });
+                    
                     // Re-initialize filter and search after loading
                     initializeFilters();
                 } else {
+                    console.log('[Library] No library items found or array is empty');
                     // Show empty state
                     gridContainer.innerHTML = `
                         <div class="empty-state">

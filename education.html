@@ -493,17 +493,36 @@
                 }
                 
                 const educationData = result.education;
-                console.log('[Education] ✓ Education content loaded');
+                const coursesCount = educationData?.courses?.length || 0;
+                const fbdEventsCount = educationData?.fbd?.events?.length || 0;
+                console.log(`[Education] ✓ Education content loaded - Courses: ${coursesCount}, FBD Events: ${fbdEventsCount}`);
                 
-                // Debug logging
+                // Always log fetched education data for debugging
+                if (educationData?.weeklyWorkshop) {
+                    console.log('[Education] Weekly workshop:', {
+                        weekTitle: educationData.weeklyWorkshop.weekTitle,
+                        lecturerName: educationData.weeklyWorkshop.lecturerName,
+                        description: educationData.weeklyWorkshop.description && educationData.weeklyWorkshop.description.length > 50
+                            ? educationData.weeklyWorkshop.description.substring(0, 50) + '...'
+                            : educationData.weeklyWorkshop.description
+                    });
+                }
+                if (coursesCount > 0) {
+                    console.log('[Education] Courses list:');
+                    educationData.courses.forEach((course, index) => {
+                        console.log(`  Course ${index + 1}:`, {
+                            title: course.title,
+                            lecturer: course.lecturer,
+                            description: course.description && course.description.length > 50
+                                ? course.description.substring(0, 50) + '...'
+                                : course.description
+                        });
+                    });
+                }
+                
+                // Additional debug logging
                 if (DEBUG) {
-                    console.log('[Education] Debug mode enabled');
-                    const coursesCount = educationData?.courses?.length || 0;
-                    const fbdEventsCount = educationData?.fbd?.events?.length || 0;
-                    console.log(`[Education] Courses: ${coursesCount}, FBD Events: ${fbdEventsCount}`);
-                    if (educationData?.weeklyWorkshop) {
-                        console.log('[Education] Weekly workshop:', educationData.weeklyWorkshop);
-                    }
+                    console.log('[Education] Debug mode enabled - Full education details');
                     if (coursesCount > 0) {
                         const debugSummary = educationData.courses.map(c => ({
                             title: c.title,
