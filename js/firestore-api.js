@@ -1,5 +1,5 @@
 // Firestore API Integration for Content Management
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, collection, addDoc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Firebase configuration
@@ -13,9 +13,16 @@ const firebaseConfig = {
     measurementId: "G-6W50T4HXDV"
 };
 
-// Initialize Firebase
+// Initialize Firebase (with error handling for multiple initializations)
 console.log('[Firestore API] Initializing Firebase app...');
-const app = initializeApp(firebaseConfig);
+let app;
+try {
+    app = getApp();
+    console.log('[Firestore API] Using existing Firebase app');
+} catch (error) {
+    app = initializeApp(firebaseConfig);
+    console.log('[Firestore API] Created new Firebase app');
+}
 const db = getFirestore(app);
 console.log('[Firestore API] Firebase initialized successfully');
 console.log('[Firestore API] Firestore instance created');

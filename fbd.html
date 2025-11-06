@@ -305,7 +305,7 @@
     <script src="js/main.js"></script>
     <script type="module">
         // Import Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // Firebase configuration
@@ -319,9 +319,16 @@
             measurementId: "G-6W50T4HXDV"
         };
 
-        // Initialize Firebase
+        // Initialize Firebase (with error handling for multiple initializations)
         console.log('[FBD] Initializing Firebase for FBD page...');
-        const app = initializeApp(firebaseConfig);
+        let app;
+        try {
+            app = getApp();
+            console.log('[FBD] Using existing Firebase app');
+        } catch (error) {
+            app = initializeApp(firebaseConfig);
+            console.log('[FBD] Created new Firebase app');
+        }
         const db = getFirestore(app);
 
         // Format date string
@@ -350,59 +357,92 @@
 
         // Load FBD data and populate page
         async function loadFBDData() {
-            console.log('[FBD] Fetching education content from Firestore...');
-            
-            // Fetch only education content (which contains FBD data) - not all data
-            const educationDoc = await getDoc(doc(db, 'content', 'education'));
-            const educationData = educationDoc.exists() ? educationDoc.data() : null;
-            console.log('[FBD] ✓ Education content loaded');
-            
-            if (educationData && educationData.fbd) {
-                // Set about text
-                document.getElementById('fbdAbout').textContent = educationData.fbd.about;
+            try {
+                console.log('[FBD] Fetching education content from Firestore...');
                 
-                // Load events
-                const eventsContainer = document.getElementById('fbdEventsContainer');
-                const events = educationData.fbd.events;
+                // Fetch only education content (which contains FBD data) - not all data
+                const educationDoc = await getDoc(doc(db, 'content', 'education'));
+                const educationData = educationDoc.exists() ? educationDoc.data() : null;
+                console.log('[FBD] ✓ Education content loaded');
                 
-                if (events && events.length > 0) {
-                    eventsContainer.innerHTML = events.map(event => {
-                        const dateInfo = formatDate(event.time);
-                        const isPast = isPastEvent(event.time);
-                        const status = isPast ? 'Completed' : 'Upcoming';
-                        const statusClass = isPast ? 'status-past' : 'status-upcoming';
-                        
-                        return `
-                            <div class="event-card reveal">
-                                <div class="event-image">
-                                    ${event.image}
-                                </div>
-                                <div class="event-content">
-                                    <h3 class="event-title">${event.title}</h3>
-                                    <div class="event-meta">
-                                        <div class="meta-item">
-                                            <span>📅</span>
-                                            <span>${dateInfo.fullDate}</span>
+                if (educationData && educationData.fbd) {
+                    // Set about text
+                    const fbdAbout = document.getElementById('fbdAbout');
+                    if (fbdAbout && educationData.fbd.about) {
+                        fbdAbout.textContent = educationData.fbd.about;
+                    }
+                    
+                    // Load events
+                    const eventsContainer = document.getElementById('fbdEventsContainer');
+                    const events = educationData.fbd.events;
+                    
+                    if (events && events.length > 0) {
+                        eventsContainer.innerHTML = events.map(event => {
+                            const dateInfo = formatDate(event.time);
+                            const isPast = isPastEvent(event.time);
+                            const status = isPast ? 'Completed' : 'Upcoming';
+                            const statusClass = isPast ? 'status-past' : 'status-upcoming';
+                            
+                            return `
+                                <div class="event-card reveal">
+                                    <div class="event-image">
+                                        ${event.image}
+                                    </div>
+                                    <div class="event-content">
+                                        <h3 class="event-title">${event.title}</h3>
+                                        <div class="event-meta">
+                                            <div class="meta-item">
+                                                <span>📅</span>
+                                                <span>${dateInfo.fullDate}</span>
+                                            </div>
+                                            <div class="meta-item">
+                                                <span>📍</span>
+                                                <span>${event.location}</span>
+                                            </div>
+                                            <div class="meta-item">
+                                                <span>👥</span>
+                                                <span>${event.seatsAvailable} Seats Available</span>
+                                            </div>
                                         </div>
-                                        <div class="meta-item">
-                                            <span>📍</span>
-                                            <span>${event.location}</span>
-                                        </div>
-                                        <div class="meta-item">
-                                            <span>👥</span>
-                                            <span>${event.seatsAvailable} Seats Available</span>
+                                        <p class="event-description">${event.description}</p>
+                                        <div class="event-actions">
+                                            ${!isPast ? '<button class="action-btn btn-register">Register Now</button>' : '<button class="action-btn btn-register" disabled>Event Completed</button>'}
                                         </div>
                                     </div>
-                                    <p class="event-description">${event.description}</p>
-                                    <div class="event-actions">
-                                        ${!isPast ? '<button class="action-btn btn-register">Register Now</button>' : '<button class="action-btn btn-register" disabled>Event Completed</button>'}
-                                    </div>
                                 </div>
-                            </div>
-                        `;
-                    }).join('');
+                            `;
+                        }).join('');
+                    } else {
+                        eventsContainer.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No events scheduled at this time.</p>';
+                    }
                 } else {
-                    eventsContainer.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No events scheduled at this time.</p>';
+                    console.log('[FBD] No FBD data found in Firestore');
+                }
+            } catch (error) {
+                console.error('[FBD] ✗ Error loading FBD data:', error);
+                // Show error message
+                const fbdAbout = document.getElementById('fbdAbout');
+                const eventsContainer = document.getElementById('fbdEventsContainer');
+                
+                if (fbdAbout) {
+                    fbdAbout.textContent = 'Unable to load FBD information. Please try refreshing the page.';
+                    fbdAbout.style.color = 'var(--text-secondary)';
+                }
+                
+                if (eventsContainer) {
+                    eventsContainer.innerHTML = `
+                        <div class="error-container" style="text-align: center; padding: 2rem; background: var(--card-bg); border-radius: 8px;">
+                            <div class="error-icon" style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+                            <h3 class="error-title" style="color: var(--text-color); margin-bottom: 0.5rem;">Unable to Load Events</h3>
+                            <p class="error-message" style="color: var(--text-secondary); margin-bottom: 1rem;">There was a problem loading the FBD events. Please check your connection and try again.</p>
+                            <button id="fbdRetryBtn" class="retry-btn" style="padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer;">Try Again</button>
+                        </div>
+                    `;
+                    // Add event listener to retry button
+                    const retryBtn = document.getElementById('fbdRetryBtn');
+                    if (retryBtn) {
+                        retryBtn.addEventListener('click', loadFBDData);
+                    }
                 }
             }
         }

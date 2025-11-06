@@ -473,7 +473,7 @@
     <script src="js/main.js"></script>
     <script type="module">
         // Import Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // Firebase configuration
@@ -487,9 +487,16 @@
             measurementId: "G-6W50T4HXDV"
         };
 
-        // Initialize Firebase
+        // Initialize Firebase (with error handling for multiple initializations)
         console.log('[Education] Initializing Firebase for education page...');
-        const app = initializeApp(firebaseConfig);
+        let app;
+        try {
+            app = getApp();
+            console.log('[Education] Using existing Firebase app');
+        } catch (error) {
+            app = initializeApp(firebaseConfig);
+            console.log('[Education] Created new Firebase app');
+        }
         const db = getFirestore(app);
 
         // Load education data from Firebase

@@ -226,7 +226,7 @@
 
     <script type="module">
         // Import Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // Firebase configuration
@@ -240,9 +240,16 @@
             measurementId: "G-6W50T4HXDV"
         };
 
-        // Initialize Firebase
+        // Initialize Firebase (with error handling for multiple initializations)
         console.log('[Index] Initializing Firebase for home page...');
-        const app = initializeApp(firebaseConfig);
+        let app;
+        try {
+            app = getApp();
+            console.log('[Index] Using existing Firebase app');
+        } catch (error) {
+            app = initializeApp(firebaseConfig);
+            console.log('[Index] Created new Firebase app');
+        }
         const db = getFirestore(app);
 
         // Load home page content from Firebase
