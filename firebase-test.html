@@ -180,7 +180,7 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // Firebase configuration
@@ -217,9 +217,16 @@
             statusDiv.className = `status ${type}`;
         }
 
-        // Initialize Firebase
+        // Initialize Firebase (with error handling for multiple initializations)
         addLog('[Firebase] Initializing Firebase app...', 'info');
-        const app = initializeApp(firebaseConfig);
+        let app;
+        try {
+            app = getApp();
+            addLog('[Firebase] Using existing Firebase app', 'info');
+        } catch (error) {
+            app = initializeApp(firebaseConfig);
+            addLog('[Firebase] Created new Firebase app', 'info');
+        }
         const db = getFirestore(app);
         addLog('[Firebase] ✓ Firebase initialized successfully', 'success');
         addLog(`[Firebase] Project ID: ${firebaseConfig.projectId}`, 'info');

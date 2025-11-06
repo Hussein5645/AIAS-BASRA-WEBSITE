@@ -1,5 +1,5 @@
 // Authentication check for protected pages with Firebase integration
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 // Firebase configuration
@@ -13,8 +13,13 @@ const firebaseConfig = {
     measurementId: "G-6W50T4HXDV"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase (with error handling for multiple initializations)
+let app;
+try {
+    app = getApp();
+} catch (error) {
+    app = initializeApp(firebaseConfig);
+}
 const auth = getAuth(app);
 
 (function() {
