@@ -337,6 +337,13 @@
                         eventsContainer.innerHTML = events.map(event => {
                             const dateInfo = dataLoader.formatDate(event.time);
                             const isPast = dataLoader.isPastEvent(event.time);
+                            
+                            // Skip events with invalid dates
+                            if (!dateInfo) {
+                                console.warn('[FBD] Skipping event with invalid date:', event.title);
+                                return '';
+                            }
+                            
                             const status = isPast ? 'Completed' : 'Upcoming';
                             const statusClass = isPast ? 'status-past' : 'status-upcoming';
                             

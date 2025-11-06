@@ -86,8 +86,8 @@
 </section>
 <!-- View Toggle -->
 <section class="view-toggle">
-<button class="view-btn active" onclick="showView('grid')" data-en="📅 Grid View" data-ar="📅 عرض الشبكة">📅 Grid View</button>
-<button class="view-btn" onclick="showView('timeline')" data-en="📊 Timeline View" data-ar="📊 عرض الجدول الزمني">📊 Timeline View</button>
+<button class="view-btn active" data-view="grid" data-en="📅 Grid View" data-ar="📅 عرض الشبكة">📅 Grid View</button>
+<button class="view-btn" data-view="timeline" data-en="📊 Timeline View" data-ar="📊 عرض الجدول الزمني">📊 Timeline View</button>
 </section>
 <!-- Events Grid View -->
 <section class="events-container" id="gridView">
@@ -159,6 +159,19 @@
         // Import Data Loader
         import dataLoader from "./js/data-loader.js";
 
+        // Initialize view toggle with event delegation
+        function initViewToggle() {
+            const viewToggleSection = document.querySelector('.view-toggle');
+            if (viewToggleSection) {
+                viewToggleSection.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('view-btn')) {
+                        const view = e.target.dataset.view || (e.target.textContent.includes('Grid') ? 'grid' : 'timeline');
+                        showView(view);
+                    }
+                });
+            }
+        }
+
         function showView(view) {
             const gridView = document.getElementById('gridView');
             const timelineView = document.getElementById('timelineView');
@@ -176,9 +189,6 @@
                 buttons[1].classList.add('active');
             }
         }
-
-        // Make showView available globally
-        window.showView = showView;
 
         // Load events from Firebase using Data Loader
         async function loadEvents() {
@@ -221,6 +231,13 @@
                     events.forEach(event => {
                         const dateInfo = dataLoader.formatDate(event.time);
                         const isPast = dataLoader.isPastEvent(event.time);
+                        
+                        // Skip events with invalid dates
+                        if (!dateInfo) {
+                            console.warn('[Events] Skipping event with invalid date:', event.title);
+                            return;
+                        }
+                        
                         const status = isPast ? 'Completed' : 'Upcoming';
                         const statusClass = isPast ? 'status-past' : 'status-upcoming';
                         
@@ -315,7 +332,10 @@
         }
 
         // Load events when page loads
-        document.addEventListener('DOMContentLoaded', loadEvents);
+        document.addEventListener('DOMContentLoaded', () => {
+            initViewToggle();
+            loadEvents();
+        });
     </script>
 <script src="js/three-effects.js">
 </script>

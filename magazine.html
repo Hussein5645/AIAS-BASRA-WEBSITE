@@ -342,16 +342,28 @@
                         const featured = magazineData.featuredArticle;
                         const dateInfo = dataLoader.formatDate(featured.date);
                         
-                        featuredContent.innerHTML = `
-                            <div class="featured-image reveal">${featured.image || '🏗️'}</div>
-                            <div class="featured-text reveal">
-                                <div class="article-date">📅 ${dateInfo.month} ${dateInfo.year}</div>
-                                <h2>${featured.title}</h2>
-                                <p>${featured.summary}</p>
-                                <p>${featured.content || ''}</p>
-                                <a href="#" class="btn btn-primary">Read Full Article</a>
-                            </div>
-                        `;
+                        // Only show if date is valid
+                        if (dateInfo) {
+                            featuredContent.innerHTML = `
+                                <div class="featured-image reveal">${featured.image || '🏗️'}</div>
+                                <div class="featured-text reveal">
+                                    <div class="article-date">📅 ${dateInfo.month} ${dateInfo.year}</div>
+                                    <h2>${featured.title}</h2>
+                                    <p>${featured.summary}</p>
+                                    <p>${featured.content || ''}</p>
+                                    <a href="#" class="btn btn-primary">Read Full Article</a>
+                                </div>
+                            `;
+                        } else {
+                            console.warn('[Magazine] Featured article has invalid date');
+                            featuredContent.innerHTML = `
+                                <div class="empty-state">
+                                    <div class="empty-icon">📰</div>
+                                    <h3 class="empty-title">No Featured Article</h3>
+                                    <p class="empty-message">Check back soon for our featured content!</p>
+                                </div>
+                            `;
+                        }
                     } else if (featuredContent) {
                         featuredContent.innerHTML = `
                             <div class="empty-state">
@@ -371,6 +383,13 @@
                         
                         articlesToShow.forEach((article, index) => {
                             const dateInfo = dataLoader.formatDate(article.date);
+                            
+                            // Skip articles with invalid dates
+                            if (!dateInfo) {
+                                console.warn('[Magazine] Skipping article with invalid date:', article.title);
+                                return;
+                            }
+                            
                             const categories = ['Design', 'Sustainability', 'Technology', 'History', 'Inspiration', 'Community'];
                             const category = categories[index % categories.length];
                             

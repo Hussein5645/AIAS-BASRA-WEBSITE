@@ -245,7 +245,20 @@ class DataLoader {
      * Format date string
      */
     formatDate(isoString) {
+        // Validate input
+        if (!isoString) {
+            console.warn('[Data Loader] formatDate called with null/undefined');
+            return null;
+        }
+        
         const date = new Date(isoString);
+        
+        // Check if date is valid
+        if (isNaN(date.getTime())) {
+            console.warn('[Data Loader] Invalid date string:', isoString);
+            return null;
+        }
+        
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const monthsAr = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
         
@@ -266,7 +279,21 @@ class DataLoader {
      * Check if event is past
      */
     isPastEvent(isoString) {
-        return new Date(isoString) < new Date();
+        // Validate input
+        if (!isoString) {
+            console.warn('[Data Loader] isPastEvent called with null/undefined');
+            return false;
+        }
+        
+        const date = new Date(isoString);
+        
+        // Check if date is valid
+        if (isNaN(date.getTime())) {
+            console.warn('[Data Loader] Invalid date string:', isoString);
+            return false;
+        }
+        
+        return date < new Date();
     }
 }
 
