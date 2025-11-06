@@ -37,22 +37,63 @@ if (menuToggle && navLinks) {
     });
 }
 
-// Scroll Reveal Animation
-const revealElements = document.querySelectorAll('.reveal');
-
-const revealOnScroll = () => {
-    revealElements.forEach(element => {
-        const elementTop = element.getBoundingClientRect().top;
-        const elementVisible = 150;
-        
-        if (elementTop < window.innerHeight - elementVisible) {
-            element.classList.add('active');
-        }
-    });
+// Scroll Reveal Animation using IntersectionObserver
+// This approach works with both static and dynamically inserted .reveal elements
+const revealObserverOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -150px 0px'
 };
 
-window.addEventListener('scroll', revealOnScroll);
-revealOnScroll(); // Initial check
+const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+            // Keep observing in case element is reused or animation is reset
+        }
+    });
+}, revealObserverOptions);
+
+// Function to observe a single element
+const observeRevealElement = (element) => {
+    if (element.classList.contains('reveal') && !element.classList.contains('active')) {
+        revealObserver.observe(element);
+        
+        // Immediately check if element is already in viewport (for dynamically added elements)
+        // Use same logic as IntersectionObserver (150px margin from bottom)
+        const rect = element.getBoundingClientRect();
+        const isInViewport = rect.top < (window.innerHeight - 150) && rect.bottom > 0;
+        if (isInViewport) {
+            // Element is already visible, activate it immediately
+            element.classList.add('active');
+        }
+    }
+};
+
+// Observe all existing .reveal elements
+document.querySelectorAll('.reveal').forEach(observeRevealElement);
+
+// MutationObserver to detect dynamically added .reveal elements
+const revealMutationObserver = new MutationObserver((mutations) => {
+    mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+            // Check if the added node is an element (nodeType 1)
+            if (node.nodeType === 1) {
+                // If the node itself has .reveal class
+                if (node.classList.contains('reveal')) {
+                    observeRevealElement(node);
+                }
+                // Check descendants for .reveal class
+                node.querySelectorAll('.reveal').forEach(observeRevealElement);
+            }
+        });
+    });
+});
+
+// Start observing the document body for changes
+revealMutationObserver.observe(document.body, {
+    childList: true,
+    subtree: true
+});
 
 // Smooth Scrolling for Anchor Links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
