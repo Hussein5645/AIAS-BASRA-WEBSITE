@@ -28,7 +28,7 @@ let app;
 try { app = getApp(); } catch { app = initializeApp(firebaseConfig); }
 const db = getFirestore(app);
 
-// Small sanitizers to make sure we always write the user's inputs (no undefineds)
+// Small sanitizers
 const toStr = (v) => (v === undefined || v === null) ? "" : String(v);
 const toNum = (v, d = 0) => {
   const n = Number(v);
@@ -73,8 +73,7 @@ const sanitizeWeekly = (w) => ({
 });
 const sanitizeFbdEvent = (e) => sanitizeEvent(e);
 
-// Note: We only treat undefined or null as missing. Empty strings/arrays are allowed.
-// This prevents false "Missing field" errors when the UI intentionally sends empty values.
+// Validators
 function validateRequiredFields(obj, requiredFields) {
   const missing = [];
   for (const f of requiredFields) {
@@ -84,12 +83,20 @@ function validateRequiredFields(obj, requiredFields) {
   if (missing.length) return { valid: false, message: `Missing required fields: ${missing.join(', ')}` };
   return { valid: true, message: '' };
 }
+function validateNonEmptyStrings(obj, requiredFields) {
+  const missing = [];
+  for (const f of requiredFields) {
+    const v = obj[f];
+    if (v === undefined || v === null || (typeof v === 'string' && v.trim() === '')) missing.push(f);
+  }
+  if (missing.length) return { valid: false, message: `Please fill: ${missing.join(', ')}` };
+  return { valid: true, message: '' };
+}
 
 class FirestoreAPI {
   constructor() {
     this.db = db;
     this.paths = {
-      // Current standardized locations under content/
       eventsDoc: ['content', 'events'],
       eventsCol: ['content', 'events', 'items'],
       libraryDoc: ['content', 'library'],
@@ -105,9 +112,8 @@ class FirestoreAPI {
 
   _docRef(pathArr) { return doc(this.db, ...pathArr); }
   _colRef(pathArr) { return collection(this.db, ...pathArr); }
-  validateRequiredFields = validateRequiredFields;
 
-  // Ensure base docs exist and backfill any missing fields (including nested weeklyWorkshop fields)
+  // Ensure base docs exist and backfill required fields
   async ensureBaseDocs() {
     const ensure = async (pathArr, data) => {
       const r = this._docRef(pathArr);
@@ -128,7 +134,7 @@ class FirestoreAPI {
     await ensure(this.paths.libraryDoc,  { createdAt: Date.now() });
     await ensure(this.paths.magazineDoc, { featuredArticleId: null, releases: [] });
 
-    // Education doc with nested weeklyWorkshop defaults backfilled
+    // Education doc with nested weeklyWorkshop defaults
     const eduRef = this._docRef(this.paths.educationDoc);
     const eduSnap = await getDoc(eduRef);
     if (!eduSnap.exists()) {
@@ -159,7 +165,7 @@ class FirestoreAPI {
     }
   }
 
-  // Read all content (current structure only)
+  // Read all content
   async getAllContent() {
     try {
       await this.ensureBaseDocs();
@@ -183,13 +189,9 @@ class FirestoreAPI {
         getDocs(this._colRef(this.paths.fbdEventsCol))
       ]);
 
-      // Events
       const events = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-      // Library
       const library = librarySnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-      // Magazine
       const magazine = { featuredArticleId: null, articles: [], releases: [] };
       if (magazineDocSnap.exists()) {
         const md = magazineDocSnap.data();
@@ -198,7 +200,6 @@ class FirestoreAPI {
       }
       magazine.articles = magazineArticlesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-      // Education (weekly + courses subcollection) + FBD
       const education = { weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "" }, courses: [], fbd: { pageTitle: "", about: "", events: [] } };
       if (educationDocSnap.exists()) {
         const ed = educationDocSnap.data();
@@ -225,10 +226,10 @@ class FirestoreAPI {
     }
   }
 
-  // EVENTS (stored at content/events/items)
+  // EVENTS
   async addEvent(event) {
     const payload = sanitizeEvent(event);
-    const v = this.validateRequiredFields(payload, ['title','time','location','description']);
+    const v = validateNonEmptyStrings(payload, ['title','time','location','description']);
     if (!v.valid) return { success: false, error: v.message };
     try {
       await this.ensureBaseDocs();
@@ -256,10 +257,10 @@ class FirestoreAPI {
     }
   }
 
-  // LIBRARY (stored at content/library/items)
+  // LIBRARY
   async addLibraryResource(resource) {
     const payload = sanitizeLibrary(resource);
-    const v = this.validateRequiredFields(payload, ['name','type','description']);
+    const v = validateNonEmptyStrings(payload, ['name','type','description']);
     if (!v.valid) return { success: false, error: v.message };
     try {
       await this.ensureBaseDocs();
@@ -287,10 +288,10 @@ class FirestoreAPI {
     }
   }
 
-  // MAGAZINE (doc + subcollection)
+  // MAGAZINE
   async addArticle(article) {
     const payload = sanitizeArticle(article);
-    const v = this.validateRequiredFields(payload, ['title','author','date','summary','content']);
+    const v = validateNonEmptyStrings(payload, ['title','author','date','summary','content']);
     if (!v.valid) return { success: false, error: v.message };
     try {
       await this.ensureBaseDocs();
@@ -318,9 +319,9 @@ class FirestoreAPI {
     }
   }
 
-  // EDUCATION (weekly workshop doc + courses subcollection)
+  // EDUCATION (weekly can be empty on purpose)
   async updateEducation(weeklyWorkshop) {
-    const ww = sanitizeWeekly(weeklyWorkshop); // Accept empty strings
+    const ww = sanitizeWeekly(weeklyWorkshop);
     try {
       await this.ensureBaseDocs();
       const ref = this._docRef(this.paths.educationDoc);
@@ -333,10 +334,10 @@ class FirestoreAPI {
     }
   }
 
-  // Courses CRUD (content/education/courses)
+  // COURSES
   async addCourse(course) {
     const payload = sanitizeCourse(course);
-    const v = this.validateRequiredFields(payload, ['title','description']);
+    const v = validateNonEmptyStrings(payload, ['title','description']);
     if (!v.valid) return { success: false, error: v.message };
     try {
       await this.ensureBaseDocs();
@@ -364,7 +365,7 @@ class FirestoreAPI {
     }
   }
 
-  // FBD (doc + events subcollection)
+  // FBD
   async updateFbdPage({ pageTitle, about }) {
     try {
       await this.ensureBaseDocs();
@@ -376,7 +377,7 @@ class FirestoreAPI {
   }
   async addFbdEvent(event) {
     const payload = sanitizeFbdEvent(event);
-    const v = this.validateRequiredFields(payload, ['title','time','location','description']);
+    const v = validateNonEmptyStrings(payload, ['title','time','location','description']);
     if (!v.valid) return { success: false, error: v.message };
     try {
       await this.ensureBaseDocs();
@@ -404,7 +405,7 @@ class FirestoreAPI {
     }
   }
 
-  // Settings helpers (so Settings tab can list admins)
+  // Admins
   async getAdmins() {
     try {
       const r = await getDoc(this._docRef(['config', 'admins']));
@@ -416,14 +417,13 @@ class FirestoreAPI {
     }
   }
 
-  // Token compatibility with dashboard
+  // Misc
   hasToken() { return true; }
   async getFileContent() { return this.getAllContent(); }
   async updateDataJson(newData) { return this.updateAllContent(newData); }
   setToken(_) {}
   getToken() { return ''; }
 
-  // Bulk updater for top-level docs (magazine + education doc) — lists use subcollections
   async updateAllContent(content) {
     try {
       await this.ensureBaseDocs();
@@ -447,7 +447,6 @@ class FirestoreAPI {
     catch (error) { return { success: false, error: error.message }; }
   }
 
-  // Define the required docs, required fields, and subcollections (no legacy)
   getExpectedStructure() {
     return {
       contentDocs: {
@@ -464,7 +463,6 @@ class FirestoreAPI {
         { parent: ['content', 'education'], name: 'courses' },
         { parent: ['content', 'fbd'], name: 'events' }
       ],
-      // Per-item required/default fields used for backfill
       itemDefaults: {
         events:   { title: "", time: "", location: "", type: "Workshop", seats: 0, image: "", description: "" },
         library:  { name: "", type: "Book", tags: [], image: "", description: "", link: "" },
@@ -475,13 +473,12 @@ class FirestoreAPI {
     };
   }
 
-  // Validate and fix Firestore structure (create/backfill current structure and item fields — no legacy)
   async validateAndFixStructure() {
     const results = { success: true, actions: [], errors: [] };
     try {
       const expected = this.getExpectedStructure();
 
-      // Ensure/backfill base documents and required fields
+      // Ensure/backfill base documents
       for (const [docName, defaults] of Object.entries(expected.contentDocs)) {
         try {
           const ref = this._docRef(['content', docName]);
@@ -490,7 +487,6 @@ class FirestoreAPI {
             await setDoc(ref, defaults);
             results.actions.push(`Created content/${docName}`);
           } else {
-            // Backfill required fields (including nested weeklyWorkshop)
             const current = snap.data() || {};
             const patches = {};
             for (const [k, v] of Object.entries(defaults)) {
