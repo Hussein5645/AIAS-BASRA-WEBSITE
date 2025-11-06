@@ -319,36 +319,12 @@
 
     <script src="js/main.js"></script>
     <script type="module">
-        // Import Firebase modules
-        import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
-            authDomain: "aias-bsr.firebaseapp.com",
-            projectId: "aias-bsr",
-            storageBucket: "aias-bsr.firebasestorage.app",
-            messagingSenderId: "78055223814",
-            appId: "1:78055223814:web:99460402c2b1fcd5ae8987",
-            measurementId: "G-6W50T4HXDV"
-        };
-
-        // Initialize Firebase (with error handling for multiple initializations)
-        console.log('[Library] Initializing Firebase for library page...');
-        let app;
-        try {
-            app = getApp();
-            console.log('[Library] Using existing Firebase app');
-        } catch (error) {
-            app = initializeApp(firebaseConfig);
-            console.log('[Library] Created new Firebase app');
-        }
-        const db = getFirestore(app);
+        // Import Data Loader
+        import dataLoader from "./js/data-loader.js";
 
         let allResources = [];
         
-        // Load library items from Firebase
+        // Load library items from Firebase using Data Loader
         async function loadLibrary() {
             const gridContainer = document.querySelector('.resources-grid');
             
@@ -361,11 +337,16 @@
             `;
             
             try {
-                console.log('[Library] Fetching library items from Firestore...');
+                console.log('[Library] Loading library using Data Loader...');
                 
-                // Fetch only library collection - not all data
-                const librarySnapshot = await getDocs(collection(db, 'library'));
-                const libraryItems = librarySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+                // Use Data Loader to fetch library
+                const result = await dataLoader.getLibrary();
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to load library');
+                }
+                
+                const libraryItems = result.library;
                 console.log(`[Library] ✓ Loaded ${libraryItems.length} library items`);
                 
                 if (libraryItems && libraryItems.length > 0) {
@@ -374,16 +355,16 @@
                     
                     libraryItems.forEach(item => {
                         const resourceCard = `
-                            <div class="resource-card reveal" data-category="${item.type.toLowerCase()}">
-                                <div class="resource-thumbnail">${item.image}
-                                    <span class="resource-type">${item.type}</span>
+                            <div class="resource-card reveal" data-category="${(item.type || '').toLowerCase()}">
+                                <div class="resource-thumbnail">${item.image || '📄'}
+                                    <span class="resource-type">${item.type || 'Resource'}</span>
                                 </div>
                                 <div class="resource-content">
                                     <h3 class="resource-title">${item.name}</h3>
                                     <p class="resource-description">${item.description}</p>
                                     <div class="resource-meta">
-                                        <span class="resource-size">${item.tags.join(', ')}</span>
-                                        <a href="${item.link}" class="download-btn">Download</a>
+                                        <span class="resource-size">${(item.tags || []).join(', ')}</span>
+                                        <a href="${item.link || '#'}" class="download-btn">Download</a>
                                     </div>
                                 </div>
                             </div>
@@ -411,7 +392,7 @@
                         <div class="error-icon">⚠️</div>
                         <h3 class="error-title">Unable to Load Library</h3>
                         <p class="error-message">There was a problem loading the library resources. Please check your connection and try again.</p>
-                        <button class="retry-btn" onclick="loadLibrary()">Try Again</button>
+                        <button class="retry-btn" onclick="location.reload()">Try Again</button>
                     </div>
                 `;
             }
@@ -439,22 +420,31 @@
                 });
             });
             
-            // Search functionality
+            // Search functionality with debouncing
             const searchInput = document.getElementById('searchInput');
-            searchInput.addEventListener('input', (e) => {
-                const searchTerm = e.target.value.toLowerCase();
-                
-                resourceCards.forEach(card => {
-                    const title = card.querySelector('.resource-title').textContent.toLowerCase();
-                    const description = card.querySelector('.resource-description').textContent.toLowerCase();
+            if (searchInput) {
+                let searchTimeout;
+                searchInput.addEventListener('input', (e) => {
+                    // Clear previous timeout
+                    clearTimeout(searchTimeout);
                     
-                    if (title.includes(searchTerm) || description.includes(searchTerm)) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
+                    // Set new timeout for debounced search
+                    searchTimeout = setTimeout(() => {
+                        const searchTerm = e.target.value.toLowerCase();
+                        
+                        resourceCards.forEach(card => {
+                            const title = card.querySelector('.resource-title').textContent.toLowerCase();
+                            const description = card.querySelector('.resource-description').textContent.toLowerCase();
+                            
+                            if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                                card.style.display = 'block';
+                            } else {
+                                card.style.display = 'none';
+                            }
+                        });
+                    }, 300); // 300ms debounce delay
                 });
-            });
+            }
         }
         
         // Load library when page loads

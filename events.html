@@ -86,8 +86,8 @@
 </section>
 <!-- View Toggle -->
 <section class="view-toggle">
-<button class="view-btn active" onclick="showView('grid')" data-en="📅 Grid View" data-ar="📅 عرض الشبكة">📅 Grid View</button>
-<button class="view-btn" onclick="showView('timeline')" data-en="📊 Timeline View" data-ar="📊 عرض الجدول الزمني">📊 Timeline View</button>
+<button class="view-btn active" data-view="grid" data-en="📅 Grid View" data-ar="📅 عرض الشبكة">📅 Grid View</button>
+<button class="view-btn" data-view="timeline" data-en="📊 Timeline View" data-ar="📊 عرض الجدول الزمني">📊 Timeline View</button>
 </section>
 <!-- Events Grid View -->
 <section class="events-container" id="gridView">
@@ -156,55 +156,20 @@
 </footer>
 <script src="js/main.js"></script>
 <script type="module">
-        // Import Firebase modules
-        import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // Import Data Loader
+        import dataLoader from "./js/data-loader.js";
 
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
-            authDomain: "aias-bsr.firebaseapp.com",
-            projectId: "aias-bsr",
-            storageBucket: "aias-bsr.firebasestorage.app",
-            messagingSenderId: "78055223814",
-            appId: "1:78055223814:web:99460402c2b1fcd5ae8987",
-            measurementId: "G-6W50T4HXDV"
-        };
-
-        // Initialize Firebase (with error handling for multiple initializations)
-        console.log('[Events] Initializing Firebase for events page...');
-        let app;
-        try {
-            app = getApp();
-            console.log('[Events] Using existing Firebase app');
-        } catch (error) {
-            app = initializeApp(firebaseConfig);
-            console.log('[Events] Created new Firebase app');
-        }
-        const db = getFirestore(app);
-
-        // Format date string
-        function formatDate(isoString) {
-            const date = new Date(isoString);
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const monthsAr = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-            
-            const currentLang = localStorage.getItem('language') || 'en';
-            const monthNames = currentLang === 'ar' ? monthsAr : months;
-            
-            return {
-                day: date.getDate(),
-                month: monthNames[date.getMonth()],
-                year: date.getFullYear(),
-                monthShort: months[date.getMonth()].toUpperCase(),
-                time: date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-                fullDate: date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-            };
-        }
-
-        // Check if event is past
-        function isPastEvent(isoString) {
-            return new Date(isoString) < new Date();
+        // Initialize view toggle with event delegation
+        function initViewToggle() {
+            const viewToggleSection = document.querySelector('.view-toggle');
+            if (viewToggleSection) {
+                viewToggleSection.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('view-btn')) {
+                        const view = e.target.dataset.view || (e.target.textContent.includes('Grid') ? 'grid' : 'timeline');
+                        showView(view);
+                    }
+                });
+            }
         }
 
         function showView(view) {
@@ -225,43 +190,7 @@
             }
         }
 
-        // Show loading state
-        function showLoading(containerId) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = `
-                <div class="loading-container">
-                    <div class="loading-spinner"></div>
-                    <p class="loading-text">Loading events...</p>
-                </div>
-            `;
-        }
-
-        // Show error state
-        function showError(containerId, retryFunction) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = `
-                <div class="error-container">
-                    <div class="error-icon">⚠️</div>
-                    <h3 class="error-title">Unable to Load Events</h3>
-                    <p class="error-message">There was a problem loading the events. Please check your connection and try again.</p>
-                    <button class="retry-btn" onclick="${retryFunction}">Try Again</button>
-                </div>
-            `;
-        }
-
-        // Show empty state
-        function showEmpty(containerId) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon">📅</div>
-                    <h3 class="empty-title">No Events Available</h3>
-                    <p class="empty-message">There are currently no events scheduled. Check back soon for upcoming events and workshops!</p>
-                </div>
-            `;
-        }
-
-        // Load events from Firebase
+        // Load events from Firebase using Data Loader
         async function loadEvents() {
             const gridContainer = document.querySelector('#gridView .events-grid');
             const timelineContainer = document.getElementById('timelineContainer');
@@ -281,11 +210,16 @@
             `;
 
             try {
-                console.log('[Events] Fetching events from Firestore...');
+                console.log('[Events] Loading events using Data Loader...');
                 
-                // Fetch only events collection - not all data
-                const eventsSnapshot = await getDocs(collection(db, 'events'));
-                const events = eventsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+                // Use Data Loader to fetch events
+                const result = await dataLoader.getEvents();
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to load events');
+                }
+                
+                const events = result.events;
                 console.log(`[Events] ✓ Loaded ${events.length} events`);
                 
                 if (events && events.length > 0) {
@@ -295,8 +229,15 @@
                     
                     // Populate grid view
                     events.forEach(event => {
-                        const dateInfo = formatDate(event.time);
-                        const isPast = isPastEvent(event.time);
+                        const dateInfo = dataLoader.formatDate(event.time);
+                        const isPast = dataLoader.isPastEvent(event.time);
+                        
+                        // Skip events with invalid dates
+                        if (!dateInfo) {
+                            console.warn('[Events] Skipping event with invalid date:', event.title);
+                            return;
+                        }
+                        
                         const status = isPast ? 'Completed' : 'Upcoming';
                         const statusClass = isPast ? 'status-past' : 'status-upcoming';
                         
@@ -306,7 +247,7 @@
                                 <div class="event-month">${dateInfo.monthShort}</div>
                             </div>
                             <div class="event-image">
-                                ${event.image}
+                                ${event.image || '📅'}
                                 <span class="event-status ${statusClass}">${status}</span>
                             </div>
                             <div class="event-content">
@@ -322,7 +263,7 @@
                                     </div>
                                     <div class="meta-item">
                                         <span>👥</span>
-                                        <span>${event.seatsAvailable} Seats Available</span>
+                                        <span>${event.seatsAvailable || 'TBA'} Seats Available</span>
                                     </div>
                                 </div>
                                 <p class="event-description">${event.description}</p>
@@ -354,8 +295,20 @@
                     });
                 } else {
                     // Show empty state
-                    showEmpty('gridView');
-                    showEmpty('timelineView');
+                    gridContainer.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📅</div>
+                            <h3 class="empty-title">No Events Available</h3>
+                            <p class="empty-message">There are currently no events scheduled. Check back soon for upcoming events and workshops!</p>
+                        </div>
+                    `;
+                    timelineContainer.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📅</div>
+                            <h3 class="empty-title">No Events Available</h3>
+                            <p class="empty-message">There are currently no events scheduled. Check back soon!</p>
+                        </div>
+                    `;
                 }
             } catch (error) {
                 console.error('[Events] ✗ Error loading events:', error);
@@ -365,7 +318,7 @@
                         <div class="error-icon">⚠️</div>
                         <h3 class="error-title">Unable to Load Events</h3>
                         <p class="error-message">There was a problem loading the events. Please check your connection and try again.</p>
-                        <button class="retry-btn" onclick="loadEvents()">Try Again</button>
+                        <button class="retry-btn" onclick="location.reload()">Try Again</button>
                     </div>
                 `;
                 timelineContainer.innerHTML = `
@@ -379,8 +332,11 @@
         }
 
         // Load events when page loads
-        document.addEventListener('DOMContentLoaded', loadEvents);
-    </script>    </script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initViewToggle();
+            loadEvents();
+        });
+    </script>
 <script src="js/three-effects.js">
 </script>
 </body>

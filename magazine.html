@@ -297,53 +297,10 @@
     <script src="js/three-effects.js"></script>
     <script src="js/main.js"></script>
     <script type="module">
-        // Import Firebase modules
-        import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // Import Data Loader
+        import dataLoader from "./js/data-loader.js";
 
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
-            authDomain: "aias-bsr.firebaseapp.com",
-            projectId: "aias-bsr",
-            storageBucket: "aias-bsr.firebasestorage.app",
-            messagingSenderId: "78055223814",
-            appId: "1:78055223814:web:99460402c2b1fcd5ae8987",
-            measurementId: "G-6W50T4HXDV"
-        };
-
-        // Initialize Firebase (with error handling for multiple initializations)
-        console.log('[Magazine] Initializing Firebase for magazine page...');
-        let app;
-        try {
-            app = getApp();
-            console.log('[Magazine] Using existing Firebase app');
-        } catch (error) {
-            app = initializeApp(firebaseConfig);
-            console.log('[Magazine] Created new Firebase app');
-        }
-        const db = getFirestore(app);
-
-        // Format date string
-        function formatDate(isoString) {
-            const date = new Date(isoString);
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const monthsAr = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-            
-            const currentLang = localStorage.getItem('language') || 'en';
-            const monthNames = currentLang === 'ar' ? monthsAr : months;
-            
-            return {
-                day: date.getDate(),
-                month: monthNames[date.getMonth()],
-                year: date.getFullYear(),
-                monthShort: months[date.getMonth()].toUpperCase(),
-                time: date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-                fullDate: date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-            };
-        }
-
-        // Load magazine data from Firebase
+        // Load magazine data from Firebase using Data Loader
         async function loadMagazine() {
             const featuredContent = document.getElementById('featuredContent');
             const gridContainer = document.querySelector('.articles-grid');
@@ -367,29 +324,46 @@
             }
             
             try {
-                console.log('[Magazine] Fetching magazine content from Firestore...');
+                console.log('[Magazine] Loading magazine using Data Loader...');
                 
-                // Fetch only magazine content - not all data
-                const magazineDoc = await getDoc(doc(db, 'content', 'magazine'));
-                const magazineData = magazineDoc.exists() ? magazineDoc.data() : null;
+                // Use Data Loader to fetch magazine
+                const result = await dataLoader.getMagazine();
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to load magazine');
+                }
+                
+                const magazineData = result.magazine;
                 console.log('[Magazine] ✓ Magazine content loaded');
                 
                 if (magazineData) {
                     // Load featured article
                     if (magazineData.featuredArticle && featuredContent) {
                         const featured = magazineData.featuredArticle;
-                        const dateInfo = formatDate(featured.date);
+                        const dateInfo = dataLoader.formatDate(featured.date);
                         
-                        featuredContent.innerHTML = `
-                            <div class="featured-image reveal">${featured.image || '🏗️'}</div>
-                            <div class="featured-text reveal">
-                                <div class="article-date">📅 ${dateInfo.month} ${dateInfo.year}</div>
-                                <h2>${featured.title}</h2>
-                                <p>${featured.summary}</p>
-                                <p>${featured.content}</p>
-                                <a href="#" class="btn btn-primary">Read Full Article</a>
-                            </div>
-                        `;
+                        // Only show if date is valid
+                        if (dateInfo) {
+                            featuredContent.innerHTML = `
+                                <div class="featured-image reveal">${featured.image || '🏗️'}</div>
+                                <div class="featured-text reveal">
+                                    <div class="article-date">📅 ${dateInfo.month} ${dateInfo.year}</div>
+                                    <h2>${featured.title}</h2>
+                                    <p>${featured.summary}</p>
+                                    <p>${featured.content || ''}</p>
+                                    <a href="#" class="btn btn-primary">Read Full Article</a>
+                                </div>
+                            `;
+                        } else {
+                            console.warn('[Magazine] Featured article has invalid date');
+                            featuredContent.innerHTML = `
+                                <div class="empty-state">
+                                    <div class="empty-icon">📰</div>
+                                    <h3 class="empty-title">No Featured Article</h3>
+                                    <p class="empty-message">Check back soon for our featured content!</p>
+                                </div>
+                            `;
+                        }
                     } else if (featuredContent) {
                         featuredContent.innerHTML = `
                             <div class="empty-state">
@@ -401,12 +375,21 @@
                     }
                     
                     // Load articles grid
-                    if (magazineData.articles && magazineData.articles.length > 1 && gridContainer) {
+                    if (magazineData.articles && magazineData.articles.length > 0 && gridContainer) {
                         gridContainer.innerHTML = '';
                         
-                        // Skip first article (featured) and show the rest
-                        magazineData.articles.slice(1).forEach((article, index) => {
-                            const dateInfo = formatDate(article.date);
+                        // Show all or skip first if it's featured
+                        const articlesToShow = magazineData.featuredArticle ? magazineData.articles.slice(1) : magazineData.articles;
+                        
+                        articlesToShow.forEach((article, index) => {
+                            const dateInfo = dataLoader.formatDate(article.date);
+                            
+                            // Skip articles with invalid dates
+                            if (!dateInfo) {
+                                console.warn('[Magazine] Skipping article with invalid date:', article.title);
+                                return;
+                            }
+                            
                             const categories = ['Design', 'Sustainability', 'Technology', 'History', 'Inspiration', 'Community'];
                             const category = categories[index % categories.length];
                             
@@ -464,7 +447,7 @@
                             <div class="error-icon">⚠️</div>
                             <h3 class="error-title">Unable to Load Magazine</h3>
                             <p class="error-message">There was a problem loading the magazine content. Please check your connection and try again.</p>
-                            <button class="retry-btn" onclick="loadMagazine()">Try Again</button>
+                            <button class="retry-btn" onclick="location.reload()">Try Again</button>
                         </div>
                     `;
                 }
