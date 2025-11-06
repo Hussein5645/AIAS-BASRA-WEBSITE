@@ -25,22 +25,16 @@ const firebaseConfig = {
 
 // Initialize Firebase (with error handling for multiple initializations)
 let app;
-try {
-  app = getApp();
-} catch (error) {
-  app = initializeApp(firebaseConfig);
-}
+try { app = getApp(); } catch { app = initializeApp(firebaseConfig); }
 const db = getFirestore(app);
 
 class FirestoreAPI {
   constructor() {
     this.db = db;
-
-    // New standardized paths under content/
     this.paths = {
-      content: 'content',
-      eventsDoc: ['content', 'events'], // document path
-      eventsCol: ['content', 'events', 'items'], // subcollection for events
+      // Standardized locations under content/
+      eventsDoc: ['content', 'events'],
+      eventsCol: ['content', 'events', 'items'],
       libraryDoc: ['content', 'library'],
       libraryCol: ['content', 'library', 'items'],
       magazineDoc: ['content', 'magazine'],
@@ -50,39 +44,26 @@ class FirestoreAPI {
       fbdDoc: ['content', 'fbd'],
       fbdEventsCol: ['content', 'fbd', 'events'],
 
-      // Legacy collections for migration/back-compat
+      // Legacy (for migration/back-compat)
       legacyEventsCol: ['events'],
-      legacyLibraryCol: ['library']
+      legacyLibraryCol: ['library'],
     };
   }
 
-  // Helper: path builders
-  _docRef(pathArr) {
-    return doc(this.db, ...pathArr);
-  }
-  _colRef(pathArr) {
-    return collection(this.db, ...pathArr);
-  }
+  _docRef(pathArr) { return doc(this.db, ...pathArr); }
+  _colRef(pathArr) { return collection(this.db, ...pathArr); }
 
-  /**
-   * Validate that an object has no empty required fields
-   */
+  // Validate required inputs (surface which fields are missing)
   validateRequiredFields(obj, requiredFields) {
     const emptyFields = [];
-    for (const field of requiredFields) {
-      const value = obj[field];
-      if (value === undefined || value === null) {
-        emptyFields.push(field);
-        continue;
-      }
-      if (typeof value === 'string' && value.trim() === '') {
-        emptyFields.push(field);
-        continue;
-      }
-      if (Array.isArray(value) && value.length === 0) {
-        emptyFields.push(field);
-        continue;
-      }
+    for (const f of requiredFields) {
+      const v = obj[f];
+      const isMissing =
+        v === undefined ||
+        v === null ||
+        (typeof v === 'string' && v.trim() === '') ||
+        (Array.isArray(v) && v.length === 0);
+      if (isMissing) emptyFields.push(f);
     }
     if (emptyFields.length > 0) {
       return { valid: false, message: `Missing or empty required fields: ${emptyFields.join(', ')}` };
@@ -90,44 +71,24 @@ class FirestoreAPI {
     return { valid: true, message: '' };
   }
 
-  /**
-   * Ensure base content docs exist
-   */
+  // Make sure base docs exist (prevents “missing” structure errors)
   async ensureBaseDocs() {
-    // Create empty documents if not present
-    const ensureDoc = async (pathArr, defaultData) => {
+    const ensure = async (pathArr, data) => {
       const r = this._docRef(pathArr);
       const s = await getDoc(r);
-      if (!s.exists()) {
-        await setDoc(r, defaultData || {});
-      }
+      if (!s.exists()) await setDoc(r, data || {});
     };
-
-    await ensureDoc(this.paths.eventsDoc, { createdAt: Date.now() });
-    await ensureDoc(this.paths.libraryDoc, { createdAt: Date.now() });
-    await ensureDoc(this.paths.magazineDoc, {
-      featuredArticleId: null,
-      releases: []
-    });
-    await ensureDoc(this.paths.educationDoc, {
-      weeklyWorkshop: {},
-      courses: [] // legacy support
-    });
-    await ensureDoc(this.paths.fbdDoc, {
-      pageTitle: "",
-      about: ""
-    });
+    await ensure(this.paths.eventsDoc, { createdAt: Date.now() });
+    await ensure(this.paths.libraryDoc, { createdAt: Date.now() });
+    await ensure(this.paths.magazineDoc, { featuredArticleId: null, releases: [] });
+    await ensure(this.paths.educationDoc, { weeklyWorkshop: {}, courses: [] }); // legacy array kept for back-compat
+    await ensure(this.paths.fbdDoc, { pageTitle: "", about: "" });
   }
 
-  /**
-   * Get all content data with back-compat for legacy structure
-   */
   async getAllContent() {
     try {
       await this.ensureBaseDocs();
-
       const [
-        // New structure reads
         eventsSnap,
         librarySnap,
         magazineDocSnap,
@@ -136,8 +97,6 @@ class FirestoreAPI {
         coursesSnap,
         fbdDocSnap,
         fbdEventsSnap,
-
-        // Legacy reads for migration/back-compat
         legacyEventsSnap,
         legacyLibrarySnap
       ] = await Promise.all([
@@ -149,55 +108,44 @@ class FirestoreAPI {
         getDocs(this._colRef(this.paths.educationCoursesCol)),
         getDoc(this._docRef(this.paths.fbdDoc)),
         getDocs(this._colRef(this.paths.fbdEventsCol)),
-
         getDocs(this._colRef(this.paths.legacyEventsCol)),
         getDocs(this._colRef(this.paths.legacyLibraryCol))
       ]);
 
-      // Events
+      // Events (fallback to legacy if new collection empty)
       let events = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
       if (events.length === 0 && legacyEventsSnap.size > 0) {
         events = legacyEventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
       }
 
-      // Library
+      // Library (fallback to legacy if new collection empty)
       let library = librarySnap.docs.map(d => ({ id: d.id, ...d.data() }));
       if (library.length === 0 && legacyLibrarySnap.size > 0) {
         library = legacyLibrarySnap.docs.map(d => ({ id: d.id, ...d.data() }));
       }
 
       // Magazine
-      let magazine = {
-        featuredArticleId: null,
-        articles: [],
-        releases: []
-      };
+      let magazine = { featuredArticleId: null, articles: [], releases: [] };
       if (magazineDocSnap.exists()) {
         const md = magazineDocSnap.data();
         magazine.featuredArticleId = md.featuredArticleId ?? null;
         magazine.releases = md.releases ?? [];
       }
-      const articles = magazineArticlesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      magazine.articles = articles;
+      magazine.articles = magazineArticlesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-      // Education
-      let education = {
-        weeklyWorkshop: {},
-        courses: [],
-        fbd: { pageTitle: "", about: "", events: [] }
-      };
+      // Education + Courses + FBD
+      let education = { weeklyWorkshop: {}, courses: [], fbd: { pageTitle: "", about: "", events: [] } };
       if (educationDocSnap.exists()) {
         const ed = educationDocSnap.data();
         education.weeklyWorkshop = ed.weeklyWorkshop ?? {};
-        // legacy array support
         if (Array.isArray(ed.courses) && ed.courses.length > 0) {
-          education.courses = ed.courses.map((c, idx) => ({ id: c.id || String(idx), ...c }));
+          // legacy array support
+          education.courses = ed.courses.map((c, i) => ({ id: c.id || String(i), ...c }));
         }
       }
-      const courses = coursesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      if (courses.length > 0) education.courses = courses; // prefer subcollection
+      const courseDocs = coursesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (courseDocs.length > 0) education.courses = courseDocs;
 
-      // FBD
       if (fbdDocSnap.exists()) {
         const f = fbdDocSnap.data();
         education.fbd.pageTitle = f.pageTitle ?? "";
@@ -207,12 +155,12 @@ class FirestoreAPI {
 
       return { success: true, content: { events, magazine, library, education } };
     } catch (error) {
-      console.error('[Firestore API] Error in getAllContent:', error);
+      console.error('[Firestore API] getAllContent error:', error);
       return { success: false, error: error.message };
     }
   }
 
-  // EVENTS (content/events/items)
+  // EVENTS (stored at content/events/items)
   async addEvent(event) {
     const required = ['title', 'time', 'location', 'description'];
     const v = this.validateRequiredFields(event, required);
@@ -225,26 +173,24 @@ class FirestoreAPI {
       return { success: false, error: error.message };
     }
   }
-
-  async updateEvent(eventId, event) {
+  async updateEvent(id, event) {
     try {
-      await updateDoc(this._docRef([...this.paths.eventsCol, eventId]), event);
+      await updateDoc(this._docRef([...this.paths.eventsCol, id]), event);
       return { success: true, message: 'Event updated successfully' };
     } catch (error) {
       return { success: false, error: error.message };
     }
   }
-
-  async deleteEvent(eventId) {
+  async deleteEvent(id) {
     try {
-      await deleteDoc(this._docRef([...this.paths.eventsCol, eventId]));
+      await deleteDoc(this._docRef([...this.paths.eventsCol, id]));
       return { success: true, message: 'Event deleted successfully' };
     } catch (error) {
       return { success: false, error: error.message };
     }
   }
 
-  // LIBRARY (content/library/items)
+  // LIBRARY (stored at content/library/items)
   async addLibraryResource(resource) {
     const required = ['name', 'type', 'description'];
     const v = this.validateRequiredFields(resource, required);
@@ -257,26 +203,24 @@ class FirestoreAPI {
       return { success: false, error: error.message };
     }
   }
-
-  async updateLibraryResource(resourceId, resource) {
+  async updateLibraryResource(id, resource) {
     try {
-      await updateDoc(this._docRef([...this.paths.libraryCol, resourceId]), resource);
+      await updateDoc(this._docRef([...this.paths.libraryCol, id]), resource);
       return { success: true, message: 'Library resource updated successfully' };
     } catch (error) {
       return { success: false, error: error.message };
     }
   }
-
-  async deleteLibraryResource(resourceId) {
+  async deleteLibraryResource(id) {
     try {
-      await deleteDoc(this._docRef([...this.paths.libraryCol, resourceId]));
+      await deleteDoc(this._docRef([...this.paths.libraryCol, id]));
       return { success: true, message: 'Library resource deleted successfully' };
     } catch (error) {
       return { success: false, error: error.message };
     }
   }
 
-  // MAGAZINE (content/magazine + subcollection content/magazine/articles)
+  // MAGAZINE (doc + subcollection)
   async addArticle(article) {
     const required = ['title', 'author', 'date', 'summary', 'content'];
     const v = this.validateRequiredFields(article, required);
@@ -289,46 +233,42 @@ class FirestoreAPI {
       return { success: false, error: error.message };
     }
   }
-
-  async updateArticle(articleId, updatedArticle) {
+  async updateArticle(id, article) {
     try {
-      await updateDoc(this._docRef([...this.paths.magazineArticlesCol, articleId]), updatedArticle);
+      await updateDoc(this._docRef([...this.paths.magazineArticlesCol, id]), article);
       return { success: true, message: 'Article updated successfully' };
     } catch (error) {
       return { success: false, error: error.message };
     }
   }
-
-  async deleteArticle(articleId) {
+  async deleteArticle(id) {
     try {
-      await deleteDoc(this._docRef([...this.paths.magazineArticlesCol, articleId]));
+      await deleteDoc(this._docRef([...this.paths.magazineArticlesCol, id]));
       return { success: true, message: 'Article deleted successfully' };
     } catch (error) {
       return { success: false, error: error.message };
     }
   }
 
-  // EDUCATION (content/education document + courses subcollection)
-  async updateEducation(education) {
+  // EDUCATION (weekly workshop doc + courses subcollection)
+  async updateEducation(weeklyWorkshop) {
     const required = ['weekTitle', 'lecturerName', 'description'];
-    const v = this.validateRequiredFields(education, required);
+    const v = this.validateRequiredFields(weeklyWorkshop, required);
     if (!v.valid) return { success: false, error: v.message };
     try {
-      const edRef = this._docRef(this.paths.educationDoc);
-      const edSnap = await getDoc(edRef);
-      const existing = edSnap.exists() ? edSnap.data() : { weeklyWorkshop: {}, courses: [] };
-      const updated = { ...existing, weeklyWorkshop: education };
-      await setDoc(edRef, updated);
+      const ref = this._docRef(this.paths.educationDoc);
+      const snap = await getDoc(ref);
+      const existing = snap.exists() ? snap.data() : { weeklyWorkshop: {}, courses: [] };
+      await setDoc(ref, { ...existing, weeklyWorkshop });
       return { success: true, message: 'Education content updated successfully' };
     } catch (error) {
       return { success: false, error: error.message };
     }
   }
 
-  // Courses CRUD (content/education/courses)
+  // Courses CRUD
   async addCourse(course) {
-    const required = ['title', 'description'];
-    const v = this.validateRequiredFields(course, required);
+    const v = this.validateRequiredFields(course, ['title', 'description']);
     if (!v.valid) return { success: false, error: v.message };
     try {
       const ref = await addDoc(this._colRef(this.paths.educationCoursesCol), course);
@@ -337,41 +277,34 @@ class FirestoreAPI {
       return { success: false, error: error.message };
     }
   }
-
-  async updateCourse(courseId, course) {
+  async updateCourse(id, course) {
     try {
-      await updateDoc(this._docRef([...this.paths.educationCoursesCol, courseId]), course);
+      await updateDoc(this._docRef([...this.paths.educationCoursesCol, id]), course);
       return { success: true, message: 'Course updated successfully' };
     } catch (error) {
       return { success: false, error: error.message };
     }
   }
-
-  async deleteCourse(courseId) {
+  async deleteCourse(id) {
     try {
-      await deleteDoc(this._docRef([...this.paths.educationCoursesCol, courseId]));
+      await deleteDoc(this._docRef([...this.paths.educationCoursesCol, id]));
       return { success: true, message: 'Course deleted successfully' };
     } catch (error) {
       return { success: false, error: error.message };
     }
   }
 
-  // FBD (content/fbd doc + content/fbd/events subcollection)
+  // FBD (doc + events subcollection)
   async updateFbdPage({ pageTitle, about }) {
     try {
-      await setDoc(this._docRef(this.paths.fbdDoc), {
-        pageTitle: pageTitle ?? "",
-        about: about ?? ""
-      }, { merge: true });
+      await setDoc(this._docRef(this.paths.fbdDoc), { pageTitle: pageTitle ?? "", about: about ?? "" }, { merge: true });
       return { success: true, message: 'FBD page updated successfully' };
     } catch (error) {
       return { success: false, error: error.message };
     }
   }
-
   async addFbdEvent(event) {
-    const required = ['title', 'time', 'location', 'description'];
-    const v = this.validateRequiredFields(event, required);
+    const v = this.validateRequiredFields(event, ['title', 'time', 'location', 'description']);
     if (!v.valid) return { success: false, error: v.message };
     try {
       const ref = await addDoc(this._colRef(this.paths.fbdEventsCol), event);
@@ -380,34 +313,32 @@ class FirestoreAPI {
       return { success: false, error: error.message };
     }
   }
-
-  async updateFbdEvent(eventId, event) {
+  async updateFbdEvent(id, event) {
     try {
-      await updateDoc(this._docRef([...this.paths.fbdEventsCol, eventId]), event);
+      await updateDoc(this._docRef([...this.paths.fbdEventsCol, id]), event);
       return { success: true, message: 'FBD event updated successfully' };
     } catch (error) {
       return { success: false, error: error.message };
     }
   }
-
-  async deleteFbdEvent(eventId) {
+  async deleteFbdEvent(id) {
     try {
-      await deleteDoc(this._docRef([...this.paths.fbdEventsCol, eventId]));
+      await deleteDoc(this._docRef([...this.paths.fbdEventsCol, id]));
       return { success: true, message: 'FBD event deleted successfully' };
     } catch (error) {
       return { success: false, error: error.message };
     }
   }
 
-  // Token compatibility (not used)
+  // Token compatibility with dashboard
   hasToken() { return true; }
   async getFileContent() { return this.getAllContent(); }
   async updateDataJson(newData) { return this.updateAllContent(newData); }
   setToken(_) {}
   getToken() { return ''; }
 
-  // Bulk updater kept for compatibility (writes magazine and education docs only)
   async updateAllContent(content) {
+    // Only keeps magazine (doc data) and education (doc data) in sync; list items use subcollections
     try {
       if (content.magazine) {
         await setDoc(this._docRef(this.paths.magazineDoc), {
@@ -424,14 +355,9 @@ class FirestoreAPI {
     }
   }
 
-  // Admin helpers
   async testConnection() {
-    try {
-      await getDoc(doc(this.db, 'config', 'admins'));
-      return { success: true, message: 'Connection successful' };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
+    try { await getDoc(doc(this.db, 'config', 'admins')); return { success: true, message: 'Connection successful' }; }
+    catch (error) { return { success: false, error: error.message }; }
   }
 
   getExpectedStructure() {
@@ -454,92 +380,60 @@ class FirestoreAPI {
     };
   }
 
-  /**
-   * Validate and fix Firestore structure + migrate legacy data (events, library, courses)
-   */
   async validateAndFixStructure() {
     const results = { success: true, actions: [], errors: [] };
     try {
       const expected = this.getExpectedStructure();
 
-      // Ensure content docs
-      for (const [docName, defaultData] of Object.entries(expected.contentDocs)) {
+      // Ensure docs
+      for (const [name, defaults] of Object.entries(expected.contentDocs)) {
         try {
-          const ref = this._docRef(['content', docName]);
-          const snap = await getDoc(ref);
-          if (!snap.exists()) {
-            await setDoc(ref, defaultData);
-            results.actions.push(`Created missing document: content/${docName}`);
-          } else {
-            results.actions.push(`Validated: content/${docName} exists`);
-          }
-        } catch (e) {
-          results.errors.push(`Error ensuring content/${docName}: ${e.message}`);
-        }
+          const r = this._docRef(['content', name]);
+          const s = await getDoc(r);
+          if (!s.exists()) { await setDoc(r, defaults); results.actions.push(`Created content/${name}`); }
+          else { results.actions.push(`Validated content/${name}`); }
+        } catch (e) { results.errors.push(`Doc content/${name}: ${e.message}`); }
       }
 
-      // Validate subcollections by a lightweight list call
+      // Validate subcollections (light read)
       for (const sc of expected.subcollections) {
         try {
-          const colRef = collection(this.db, ...sc.parent, sc.name);
-          const snap = await getDocs(colRef);
-          results.actions.push(`Validated: ${sc.parent.join('/')}/${sc.name} (${snap.size} docs)`);
-        } catch (e) {
-          results.errors.push(`Error checking ${sc.parent.join('/')}/${sc.name}: ${e.message}`);
-        }
+          const snap = await getDocs(collection(this.db, ...sc.parent, sc.name));
+          results.actions.push(`Validated ${sc.parent.join('/')}/${sc.name} (${snap.size} docs)`);
+        } catch (e) { results.errors.push(`Subcollection ${sc.parent.join('/')}/${sc.name}: ${e.message}`); }
       }
 
-      // Migrate legacy events and library if new subcollections are empty
+      // Migrate legacy events / library if needed
       try {
-        const newEventsSnap = await getDocs(this._colRef(this.paths.eventsCol));
-        const legacyEventsSnap = await getDocs(this._colRef(this.paths.legacyEventsCol));
-        if (newEventsSnap.size === 0 && legacyEventsSnap.size > 0) {
-          for (const d of legacyEventsSnap.docs) {
-            await addDoc(this._colRef(this.paths.eventsCol), { ...d.data() });
-          }
-          results.actions.push(`Migrated ${legacyEventsSnap.size} legacy events -> content/events/items`);
-        } else {
-          results.actions.push('Events migration not needed');
-        }
-      } catch (e) {
-        results.errors.push(`Error migrating legacy events: ${e.message}`);
-      }
+        const newEvents = await getDocs(this._colRef(this.paths.eventsCol));
+        const legacy = await getDocs(this._colRef(this.paths.legacyEventsCol));
+        if (newEvents.size === 0 && legacy.size > 0) {
+          for (const d of legacy.docs) await addDoc(this._colRef(this.paths.eventsCol), { ...d.data() });
+          results.actions.push(`Migrated ${legacy.size} legacy events -> content/events/items`);
+        } else results.actions.push('Events migration not needed');
+      } catch (e) { results.errors.push(`Migrate events: ${e.message}`); }
 
       try {
-        const newLibSnap = await getDocs(this._colRef(this.paths.libraryCol));
-        const legacyLibSnap = await getDocs(this._colRef(this.paths.legacyLibraryCol));
-        if (newLibSnap.size === 0 && legacyLibSnap.size > 0) {
-          for (const d of legacyLibSnap.docs) {
-            await addDoc(this._colRef(this.paths.libraryCol), { ...d.data() });
-          }
-          results.actions.push(`Migrated ${legacyLibSnap.size} legacy library items -> content/library/items`);
-        } else {
-          results.actions.push('Library migration not needed');
-        }
-      } catch (e) {
-        results.errors.push(`Error migrating legacy library: ${e.message}`);
-      }
+        const newLib = await getDocs(this._colRef(this.paths.libraryCol));
+        const legacy = await getDocs(this._colRef(this.paths.legacyLibraryCol));
+        if (newLib.size === 0 && legacy.size > 0) {
+          for (const d of legacy.docs) await addDoc(this._colRef(this.paths.libraryCol), { ...d.data() });
+          results.actions.push(`Migrated ${legacy.size} legacy library -> content/library/items`);
+        } else results.actions.push('Library migration not needed');
+      } catch (e) { results.errors.push(`Migrate library: ${e.message}`); }
 
-      // Migrate legacy courses array from content/education doc to subcollection
+      // Migrate legacy courses array to subcollection
       try {
         const edDoc = await getDoc(this._docRef(this.paths.educationDoc));
-        const newCoursesSnap = await getDocs(this._colRef(this.paths.educationCoursesCol));
-        if (edDoc.exists() && newCoursesSnap.size === 0) {
+        const newCourses = await getDocs(this._colRef(this.paths.educationCoursesCol));
+        if (edDoc.exists() && newCourses.size === 0) {
           const data = edDoc.data();
           if (Array.isArray(data.courses) && data.courses.length > 0) {
-            for (const c of data.courses) {
-              await addDoc(this._colRef(this.paths.educationCoursesCol), c);
-            }
+            for (const c of data.courses) await addDoc(this._colRef(this.paths.educationCoursesCol), c);
             results.actions.push(`Migrated ${data.courses.length} legacy courses -> content/education/courses`);
-          } else {
-            results.actions.push('Courses migration not needed');
-          }
-        } else {
-          results.actions.push('Courses subcollection already populated');
-        }
-      } catch (e) {
-        results.errors.push(`Error migrating legacy courses: ${e.message}`);
-      }
+          } else results.actions.push('Courses migration not needed');
+        } else results.actions.push('Courses subcollection already populated');
+      } catch (e) { results.errors.push(`Migrate courses: ${e.message}`); }
 
       if (results.errors.length > 0) results.success = false;
       return results;
@@ -547,58 +441,7 @@ class FirestoreAPI {
       return { success: false, actions: results.actions, errors: [...results.errors, error.message] };
     }
   }
-
-  // Admin list helpers
-  async getAdmins() {
-    try {
-      const adminDoc = await getDoc(doc(this.db, 'config', 'admins'));
-      if (adminDoc.exists()) {
-        return { success: true, admins: adminDoc.data().admins || [] };
-      } else {
-        await setDoc(doc(this.db, 'config', 'admins'), { admins: [] });
-        return { success: true, admins: [] };
-      }
-    } catch (error) {
-      return { success: false, error: error.message, admins: [] };
-    }
-  }
-
-  async addAdmin(email) {
-    try {
-      const emailLower = (email || '').toLowerCase().trim();
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(emailLower)) return { success: false, error: 'Invalid email format' };
-
-      const ref = doc(this.db, 'config', 'admins');
-      const snap = await getDoc(ref);
-      const admins = snap.exists() ? (snap.data().admins || []) : [];
-      if (admins.includes(emailLower)) return { success: false, error: 'Email already exists in admin list' };
-
-      admins.push(emailLower);
-      await setDoc(ref, { admins });
-      return { success: true, admins, message: `Admin ${emailLower} added successfully` };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  }
-
-  async removeAdmin(email) {
-    try {
-      const emailLower = (email || '').toLowerCase().trim();
-      const ref = doc(this.db, 'config', 'admins');
-      const snap = await getDoc(ref);
-      if (!snap.exists()) return { success: false, error: 'Admin list not found' };
-      let admins = snap.data().admins || [];
-      if (!admins.includes(emailLower)) return { success: false, error: 'Email not found in admin list' };
-      admins = admins.filter(a => a !== emailLower);
-      await setDoc(ref, { admins });
-      return { success: true, admins, message: `Admin ${emailLower} removed successfully` };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  }
 }
 
-// Export
 window.FirestoreAPI = FirestoreAPI;
 export default FirestoreAPI;
