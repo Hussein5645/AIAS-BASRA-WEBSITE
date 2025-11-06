@@ -251,7 +251,9 @@
                             time: e.time,
                             location: e.location,
                             seats: e.seats ?? 'N/A',
-                            description: e.description?.substring(0, 50) + '...'
+                            description: e.description && e.description.length > 50 
+                                ? e.description.substring(0, 50) + '...' 
+                                : e.description
                         });
                     });
                 }

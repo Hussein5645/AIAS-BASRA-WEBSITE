@@ -346,7 +346,10 @@
                     
                     console.log(`[FBD] ✓ Loaded ${events.length} FBD events`);
                     console.log('[FBD] Page title:', educationData.fbd.pageTitle || 'Not set');
-                    console.log('[FBD] About text:', educationData.fbd.about?.substring(0, 100) + '...' || 'Not set');
+                    const aboutText = educationData.fbd.about || 'Not set';
+                    console.log('[FBD] About text:', aboutText.length > 100 
+                        ? aboutText.substring(0, 100) + '...' 
+                        : aboutText);
                     
                     // Always log fetched FBD events for debugging
                     if (events.length > 0) {

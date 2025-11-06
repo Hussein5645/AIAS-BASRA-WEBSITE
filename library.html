@@ -370,7 +370,9 @@
                             name: item.name,
                             type: item.type,
                             tags: (item.tags || []).join(', '),
-                            description: item.description?.substring(0, 50) + '...'
+                            description: item.description && item.description.length > 50 
+                                ? item.description.substring(0, 50) + '...' 
+                                : item.description
                         });
                     });
                 }

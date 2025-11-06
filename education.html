@@ -502,7 +502,9 @@
                     console.log('[Education] Weekly workshop:', {
                         weekTitle: educationData.weeklyWorkshop.weekTitle,
                         lecturerName: educationData.weeklyWorkshop.lecturerName,
-                        description: educationData.weeklyWorkshop.description?.substring(0, 50) + '...'
+                        description: educationData.weeklyWorkshop.description && educationData.weeklyWorkshop.description.length > 50
+                            ? educationData.weeklyWorkshop.description.substring(0, 50) + '...'
+                            : educationData.weeklyWorkshop.description
                     });
                 }
                 if (coursesCount > 0) {
@@ -511,7 +513,9 @@
                         console.log(`  Course ${index + 1}:`, {
                             title: course.title,
                             lecturer: course.lecturer,
-                            description: course.description?.substring(0, 50) + '...'
+                            description: course.description && course.description.length > 50
+                                ? course.description.substring(0, 50) + '...'
+                                : course.description
                         });
                     });
                 }
