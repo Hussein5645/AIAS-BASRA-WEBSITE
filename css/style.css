@@ -61,6 +61,7 @@ body {
 .navbar.scrolled {
     box-shadow: var(--shadow-md);
     background: rgba(255, 255, 255, 0.98);
+    padding: 0.25rem 0;
 }
 
 .nav-content {
@@ -68,6 +69,7 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 1rem 0;
+    gap: 2rem;
 }
 
 .logo {
@@ -78,18 +80,34 @@ body {
     font-weight: 700;
     color: var(--primary-color);
     text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.logo:hover {
+    transform: scale(1.05);
 }
 
 .logo img {
-    height: 40px;
+    height: 45px;
     width: auto;
     object-fit: contain;
+    transition: all 0.3s ease;
+}
+
+.navbar.scrolled .logo img {
+    height: 40px;
 }
 
 .nav-links {
     display: flex;
     list-style: none;
-    gap: 2rem;
+    gap: 1.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.nav-links li {
+    display: flex;
     align-items: center;
 }
 
@@ -98,9 +116,10 @@ body {
     text-decoration: none;
     font-weight: 500;
     font-size: 0.95rem;
-    padding: 0.5rem 0;
+    padding: 0.5rem 0.75rem;
     position: relative;
-    transition: color 0.3s ease;
+    transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
 .nav-links a::after {
@@ -131,12 +150,13 @@ body {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 5px;
+    padding: 8px;
+    z-index: 1001;
 }
 
 .menu-toggle span {
     display: block;
-    width: 25px;
+    width: 28px;
     height: 3px;
     background: var(--primary-color);
     transition: all 0.3s ease;
@@ -522,12 +542,15 @@ section {
         right: 0;
         background: var(--white);
         flex-direction: column;
-        padding: 1rem 0;
+        padding: 1.5rem 0;
         box-shadow: var(--shadow-md);
         transform: translateY(-100%);
         opacity: 0;
         visibility: hidden;
         transition: all 0.3s ease;
+        gap: 0;
+        max-height: calc(100vh - 80px);
+        overflow-y: auto;
     }
 
     .nav-links.active {
@@ -537,14 +560,31 @@ section {
     }
 
     .nav-links li {
-        padding: 0.5rem 1rem;
+        padding: 0.75rem 1.5rem;
+        width: 100%;
+        border-bottom: 1px solid var(--light-bg);
+    }
+
+    .nav-links li:last-child {
+        border-bottom: none;
+    }
+
+    .nav-links a {
+        display: block;
+        width: 100%;
+        padding: 0.5rem 0;
     }
 
     .nav-btn {
         display: block;
         text-align: center;
-        width: calc(100% - 2rem);
-        margin: 0.5rem 1rem;
+        width: 100%;
+        margin: 0.5rem 0;
+    }
+
+    .language-toggle {
+        width: 100%;
+        justify-content: center;
     }
 
     .hero-title {
@@ -562,6 +602,10 @@ section {
     .mission-grid,
     .links-grid {
         grid-template-columns: 1fr;
+    }
+
+    .nav-content {
+        gap: 1rem;
     }
 }
 
