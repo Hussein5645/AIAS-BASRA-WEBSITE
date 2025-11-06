@@ -11,293 +11,52 @@
     <script type="module" src="js/firestore-api.js"></script>
     <script src="js/main.js" defer></script>
     <style>
-        .admin-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-        }
-
-        .admin-header .container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .admin-header h1 {
-            font-size: 2rem;
-            font-weight: 800;
-        }
-
-        .admin-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .logout-btn {
-            padding: 0.5rem 1.5rem;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 2px solid white;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .logout-btn:hover {
-            background: white;
-            color: #667eea;
-        }
-
-        .dashboard-nav {
-            margin-bottom: 2rem;
-        }
-
-        .dashboard-nav ul {
-            display: flex;
-            gap: 1rem;
-            list-style: none;
-            padding: 0;
-            border-bottom: 2px solid #e2e8f0;
-        }
-
-        .dashboard-nav li button {
-            padding: 1rem 2rem;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            color: #718096;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .dashboard-nav li button.active {
-            color: #667eea;
-        }
-
-        .dashboard-nav li button.active::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: #667eea;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .content-form {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            color: #4a5568;
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s ease;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .form-group textarea {
-            min-height: 150px;
-            resize: vertical;
-        }
-
-        .submit-btn {
-            padding: 1rem 2rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .message {
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            display: none;
-        }
-
-        .message.success {
-            background: #f0fff4;
-            color: #38a169;
-            border-left: 4px solid #38a169;
-        }
-
-        .message.error {
-            background: #fff5f5;
-            color: #e53e3e;
-            border-left: 4px solid #e53e3e;
-        }
-
-        .content-list {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .content-item {
-            padding: 1rem;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .content-item:last-child {
-            border-bottom: none;
-        }
-
-        .delete-btn {
-            padding: 0.5rem 1rem;
-            background: #e53e3e;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .delete-btn:hover {
-            background: #c53030;
-        }
-
-        .verify-btn {
-            padding: 0.5rem 1rem;
-            background: #38a169;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            margin-right: 0.5rem;
-        }
-
-        .verify-btn:hover {
-            background: #2f855a;
-        }
-
-        .verify-btn:disabled {
-            background: #cbd5e0;
-            cursor: not-allowed;
-        }
-
-        .user-item {
-            padding: 1rem;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .user-item:last-child {
-            border-bottom: none;
-        }
-
-        .user-info {
-            flex: 1;
-        }
-
-        .user-name {
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 0.25rem;
-        }
-
-        .user-email {
-            color: #718096;
-            font-size: 0.9rem;
-        }
-
-        .user-status {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-left: 1rem;
-        }
-
-        .user-status.verified {
-            background: #c6f6d5;
-            color: #22543d;
-        }
-
-        .user-status.unverified {
-            background: #fed7d7;
-            color: #742a2a;
-        }
-
-        .user-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .home-link {
-            padding: 0.5rem 1.5rem;
-            background: white;
-            color: #667eea;
-            border: 2px solid white;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .home-link:hover {
-            background: rgba(255, 255, 255, 0.9);
-        }
+        .admin-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem 0; margin-bottom: 2rem; }
+        .admin-header .container { display: flex; justify-content: space-between; align-items: center; }
+        .admin-header h1 { font-size: 2rem; font-weight: 800; }
+        .admin-info { display: flex; align-items: center; gap: 1rem; }
+        .logout-btn { padding: 0.5rem 1.5rem; background: rgba(255,255,255,0.2); color: white; border: 2px solid white; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all .3s; }
+        .logout-btn:hover { background: white; color: #667eea; }
+        .dashboard-nav { margin-bottom: 2rem; }
+        .dashboard-nav ul { display: flex; gap: 1rem; list-style: none; padding: 0; border-bottom: 2px solid #e2e8f0; }
+        .dashboard-nav li button { padding: 1rem 2rem; background: none; border: none; cursor: pointer; font-size: 1rem; font-weight: 600; color: #718096; transition: all .3s; position: relative; }
+        .dashboard-nav li button.active { color: #667eea; }
+        .dashboard-nav li button.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: #667eea; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .content-form { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; color: #4a5568; font-size: .9rem; font-weight: 600; margin-bottom: .5rem; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: .75rem; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; font-family: 'Inter', sans-serif; transition: all .3s; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+        .form-group textarea { min-height: 150px; resize: vertical; }
+        .submit-btn { padding: 1rem 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all .3s; }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102,126,234,0.3); }
+        .message { padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: none; }
+        .message.success { background: #f0fff4; color: #38a169; border-left: 4px solid #38a169; }
+        .message.error { background: #fff5f5; color: #e53e3e; border-left: 4px solid #e53e3e; }
+        .content-list { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .content-item { padding: 1rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+        .content-item:last-child { border-bottom: none; }
+        .btn { padding: .5rem 1rem; border: none; border-radius: 6px; color: white; font-weight: 600; cursor: pointer; transition: all .2s; }
+        .delete-btn { background: #e53e3e; }
+        .delete-btn:hover { background: #c53030; }
+        .edit-btn { background: #3182ce; }
+        .edit-btn:hover { background: #2b6cb0; }
+        .verify-btn { padding: .5rem 1rem; background: #38a169; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all .3s; margin-right: .5rem; }
+        .verify-btn:hover { background: #2f855a; }
+        .verify-btn:disabled { background: #cbd5e0; cursor: not-allowed; }
+        .user-item { padding: 1rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        .user-item:last-child { border-bottom: none; }
+        .user-info { flex: 1; }
+        .user-name { font-weight: 600; color: #2d3748; margin-bottom: .25rem; }
+        .user-email { color: #718096; font-size: .9rem; }
+        .user-status { display: inline-block; padding: .25rem .75rem; border-radius: 12px; font-size: .8rem; font-weight: 600; margin-left: 1rem; }
+        .user-status.verified { background: #c6f6d5; color: #22543d; }
+        .user-status.unverified { background: #fed7d7; color: #742a2a; }
+        .user-actions { display: flex; gap: .5rem; }
+        .home-link { padding: .5rem 1.5rem; background: white; color: #667eea; border: 2px solid white; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all .3s; }
+        .home-link:hover { background: rgba(255,255,255,0.9); }
     </style>
 </head>
 <body>
@@ -306,7 +65,7 @@
         <div class="container">
             <h1 data-en="Admin Dashboard" data-ar="لوحة التحكم الإدارية">Admin Dashboard</h1>
             <div class="admin-info">
-                <button class="language-toggle" id="languageToggle" style="margin-right: 1rem; padding: 0.5rem 1rem; background: rgba(255, 255, 255, 0.2); color: white; border: 2px solid white; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem;">
+                <button class="language-toggle" id="languageToggle" style="margin-right: 1rem; padding: 0.5rem 1rem; background: rgba(255, 255, 255, 0.2); color: white; border: 2px solid white; border-radius: 8px; display: inline-flex; align-items: center; gap:.5rem;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
                         <circle cx="12" cy="12" r="10"/>
                         <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
@@ -335,22 +94,19 @@
             </ul>
         </nav>
 
-
         <!-- Events Tab -->
         <div id="events-tab" class="tab-content">
             <h2 data-en="Manage Events" data-ar="إدارة الفعاليات">Manage Events</h2>
-            
-            <!-- Existing Events List -->
             <div class="content-list" style="margin-bottom: 2rem;">
                 <h3 data-en="Existing Events" data-ar="الفعاليات الحالية">Existing Events</h3>
                 <div id="existingEventsList">
                     <p data-en="Loading events..." data-ar="جاري تحميل الفعاليات...">Loading events...</p>
                 </div>
             </div>
-            
-            <!-- Add New Event Form -->
+
             <h2 data-en="Add New Event" data-ar="إضافة فعالية جديدة">Add New Event</h2>
-            <form id="eventForm" class="content-form">
+            <form id="eventForm" class="content-form" data-mode="add">
+                <input type="hidden" id="eventId">
                 <div class="form-group">
                     <label for="eventTitle" data-en="Event Title" data-ar="عنوان الفعالية">Event Title</label>
                     <input type="text" id="eventTitle" required>
@@ -383,25 +139,23 @@
                     <label for="eventDescription" data-en="Description" data-ar="الوصف">Description</label>
                     <textarea id="eventDescription" required></textarea>
                 </div>
-                <button type="submit" class="submit-btn" data-en="Add Event" data-ar="إضافة الفعالية">Add Event</button>
+                <button type="submit" id="eventSubmitBtn" class="submit-btn" data-en="Add Event" data-ar="إضافة الفعالية">Add Event</button>
             </form>
         </div>
 
         <!-- Articles Tab -->
         <div id="articles-tab" class="tab-content">
             <h2 data-en="Manage Magazine Articles" data-ar="إدارة مقالات المجلة">Manage Magazine Articles</h2>
-            
-            <!-- Existing Articles List -->
             <div class="content-list" style="margin-bottom: 2rem;">
                 <h3 data-en="Existing Articles" data-ar="المقالات الحالية">Existing Articles</h3>
                 <div id="existingArticlesList">
                     <p data-en="Loading articles..." data-ar="جاري تحميل المقالات...">Loading articles...</p>
                 </div>
             </div>
-            
-            <!-- Add New Article Form -->
+
             <h2 data-en="Add New Article" data-ar="إضافة مقال جديد">Add New Article</h2>
-            <form id="articleForm" class="content-form">
+            <form id="articleForm" class="content-form" data-mode="add">
+                <input type="hidden" id="articleId">
                 <div class="form-group">
                     <label for="articleTitle" data-en="Article Title" data-ar="عنوان المقال">Article Title</label>
                     <input type="text" id="articleTitle" required>
@@ -422,25 +176,23 @@
                     <label for="articleContent" data-en="Full Content" data-ar="المحتوى الكامل">Full Content</label>
                     <textarea id="articleContent" required></textarea>
                 </div>
-                <button type="submit" class="submit-btn" data-en="Add Article" data-ar="إضافة المقال">Add Article</button>
+                <button type="submit" id="articleSubmitBtn" class="submit-btn" data-en="Add Article" data-ar="إضافة المقال">Add Article</button>
             </form>
         </div>
 
         <!-- Library Tab -->
         <div id="library-tab" class="tab-content">
             <h2 data-en="Manage Library Resources" data-ar="إدارة موارد المكتبة">Manage Library Resources</h2>
-            
-            <!-- Existing Library Resources List -->
             <div class="content-list" style="margin-bottom: 2rem;">
                 <h3 data-en="Existing Resources" data-ar="الموارد الحالية">Existing Resources</h3>
                 <div id="existingLibraryList">
                     <p data-en="Loading resources..." data-ar="جاري تحميل الموارد...">Loading resources...</p>
                 </div>
             </div>
-            
-            <!-- Add New Library Resource Form -->
+
             <h2 data-en="Add New Library Resource" data-ar="إضافة مورد مكتبي جديد">Add New Library Resource</h2>
-            <form id="libraryForm" class="content-form">
+            <form id="libraryForm" class="content-form" data-mode="add">
+                <input type="hidden" id="libId">
                 <div class="form-group">
                     <label for="libName" data-en="Resource Name" data-ar="اسم المورد">Resource Name</label>
                     <input type="text" id="libName" required>
@@ -469,7 +221,7 @@
                     <label for="libLink" data-en="Download Link" data-ar="رابط التحميل">Download Link</label>
                     <input type="url" id="libLink" placeholder="https://" required>
                 </div>
-                <button type="submit" class="submit-btn" data-en="Add Resource" data-ar="إضافة المورد">Add Resource</button>
+                <button type="submit" id="libSubmitBtn" class="submit-btn" data-en="Add Resource" data-ar="إضافة المورد">Add Resource</button>
             </form>
         </div>
 
@@ -496,83 +248,68 @@
         <!-- Settings Tab -->
         <div id="settings-tab" class="tab-content">
             <h2 data-en="Firestore Settings" data-ar="إعدادات Firestore">Firestore Settings</h2>
-            
-            <!-- Connection Status -->
             <div class="content-form">
                 <div id="tokenStatus" style="padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
                     <p style="margin: 0;"><strong data-en="Status:" data-ar="الحالة:">Status:</strong> <span id="tokenStatusText" data-en="Checking..." data-ar="جاري الفحص...">Checking...</span></p>
                 </div>
-                
-                <p style="color: #4a5568; margin-bottom: 1.5rem;" data-en="Content is now stored in Firebase Firestore. No additional configuration needed." data-ar="يتم الآن تخزين المحتوى في Firebase Firestore. لا حاجة لإعدادات إضافية.">
+                <p style="color:#4a5568; margin-bottom: 1.5rem;" data-en="Content is now stored in Firebase Firestore. No additional configuration needed." data-ar="يتم الآن تخزين المحتوى في Firebase Firestore. لا حاجة لإعدادات إضافية.">
                     Content is now stored in Firebase Firestore. No additional configuration needed.
                 </p>
-                
-                <button type="button" class="submit-btn" onclick="testFirestoreConnection()" style="background: #38a169;" data-en="Test Connection" data-ar="اختبار الاتصال">Test Connection</button>
+                <button type="button" class="submit-btn" onclick="testFirestoreConnection()" style="background:#38a169;" data-en="Test Connection" data-ar="اختبار الاتصال">Test Connection</button>
             </div>
 
-            <!-- Fix Firestore Structure Section -->
             <div class="content-form" style="margin-top: 2rem;">
                 <h3 style="margin-bottom: 1rem; color: #2d3748;" data-en="Firestore Structure Management" data-ar="إدارة بنية Firestore">Firestore Structure Management</h3>
-                <p style="color: #4a5568; margin-bottom: 1.5rem;" data-en="Validate and fix the Firestore database structure. This will check for missing collections, documents, and fields, and repair them automatically." data-ar="التحقق من صحة بنية قاعدة بيانات Firestore وإصلاحها. سيتحقق من المجموعات والوثائق والحقول المفقودة ويصلحها تلقائياً.">
+                <p style="color:#4a5568; margin-bottom: 1.5rem;" data-en="Validate and fix the Firestore database structure. This will check for missing collections, documents, and fields, and repair them automatically." data-ar="تحقق وأصلح بنية قاعدة بيانات Firestore. سيتم فحص المجموعات والمستندات والحقول المفقودة وإصلاحها تلقائيًا.">
                     Validate and fix the Firestore database structure. This will check for missing collections, documents, and fields, and repair them automatically.
                 </p>
-                
                 <div id="structureResults" style="display: none; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; max-height: 300px; overflow-y: auto;">
                     <h4 style="margin-top: 0;" data-en="Structure Validation Results:" data-ar="نتائج التحقق من البنية:">Structure Validation Results:</h4>
                     <div id="structureResultsContent"></div>
                 </div>
-                
-                <button type="button" class="submit-btn" onclick="fixFirestoreStructure()" style="background: #667eea;" data-en="Fix Firestore Structure" data-ar="إصلاح بنية Firestore">Fix Firestore Structure</button>
+                <button type="button" class="submit-btn" onclick="fixFirestoreStructure()" style="background:#667eea;" data-en="Fix Firestore Structure" data-ar="إصلاح بنية Firestore">Fix Firestore Structure</button>
             </div>
 
-            <!-- Admin Management Section -->
             <div class="content-form" style="margin-top: 2rem;">
                 <h3 style="margin-bottom: 1rem; color: #2d3748;" data-en="Admin Management" data-ar="إدارة المسؤولين">Admin Management</h3>
-                <p style="color: #4a5568; margin-bottom: 1.5rem;" data-en="Add or remove admin users by email. Admins have full access to the dashboard and can manage content." data-ar="إضافة أو إزالة المسؤولين عبر البريد الإلكتروني. يمتلك المسؤولون الوصول الكامل إلى لوحة التحكم ويمكنهم إدارة المحتوى.">
+                <p style="color:#4a5568; margin-bottom: 1.5rem;" data-en="Add or remove admin users by email. Admins have full access to the dashboard and can manage content." data-ar="أضف أو احذف مسؤولا بالبريد الإلكتروني. لدى المسؤولين وصول كامل للوحة ويمكنهم إدارة المحتوى.">
                     Add or remove admin users by email. Admins have full access to the dashboard and can manage content.
                 </p>
-                
-                <!-- Current Admins List -->
                 <div style="margin-bottom: 1.5rem;">
-                    <h4 style="color: #2d3748; margin-bottom: 0.5rem;" data-en="Current Admins:" data-ar="المسؤولون الحاليون:">Current Admins:</h4>
-                    <div id="adminsList" style="background: #f7fafc; padding: 1rem; border-radius: 8px; min-height: 60px;">
+                    <h4 style="color:#2d3748; margin-bottom: .5rem;" data-en="Current Admins:" data-ar="المسؤولون الحاليون:">Current Admins:</h4>
+                    <div id="adminsList" style="background:#f7fafc; padding: 1rem; border-radius: 8px; min-height: 60px;">
                         <p data-en="Loading..." data-ar="جاري التحميل...">Loading...</p>
                     </div>
                 </div>
-                
-                <!-- Add Admin Form -->
                 <div class="form-group">
                     <label for="newAdminEmail" data-en="Add Admin Email" data-ar="إضافة بريد إلكتروني للمسؤول">Add Admin Email</label>
-                    <div style="display: flex; gap: 1rem;">
-                        <input type="email" id="newAdminEmail" placeholder="admin@example.com" style="flex: 1;">
-                        <button type="button" class="submit-btn" onclick="addNewAdmin()" style="flex-shrink: 0;" data-en="Add Admin" data-ar="إضافة مسؤول">Add Admin</button>
+                    <div style="display:flex; gap:1rem;">
+                        <input type="email" id="newAdminEmail" placeholder="admin@example.com" style="flex:1;">
+                        <button type="button" class="submit-btn" onclick="addNewAdmin()" style="flex-shrink:0;" data-en="Add Admin" data-ar="إضافة مسؤول">Add Admin</button>
                     </div>
                 </div>
             </div>
 
-            <!-- About Firestore Integration -->
             <div style="margin-top: 2rem; padding: 1.5rem; background: #f7fafc; border-radius: 12px;">
                 <h3 style="margin-bottom: 1rem; color: #2d3748;" data-en="About Firestore Integration:" data-ar="حول التكامل مع Firestore:">About Firestore Integration:</h3>
-                <ul style="color: #4a5568; line-height: 1.8;">
+                <ul style="color:#4a5568; line-height: 1.8;">
                     <li data-en="Content is automatically synchronized across all users" data-ar="يتم مزامنة المحتوى تلقائياً بين جميع المستخدمين">Content is automatically synchronized across all users</li>
                     <li data-en="Changes are saved instantly to the cloud" data-ar="يتم حفظ التغييرات فوراً في السحابة">Changes are saved instantly to the cloud</li>
                     <li data-en="No GitHub tokens required - authentication handled by Firebase" data-ar="لا حاجة لرموز GitHub - المصادقة تتم عبر Firebase">No GitHub tokens required - authentication handled by Firebase</li>
                     <li data-en="Enhanced security with Firestore security rules" data-ar="أمان محسّن مع قواعد أمان Firestore">Enhanced security with Firestore security rules</li>
                     <li data-en="Better performance with automatic caching" data-ar="أداء أفضل مع التخزين المؤقت التلقائي">Better performance with automatic caching</li>
                 </ul>
-                <p style="color: #38a169; margin-top: 1rem; font-weight: 600;" data-en="✓ All your changes are saved securely in Firebase Firestore" data-ar="✓ يتم حفظ جميع تغييراتك بشكل آمن في Firebase Firestore">✓ All your changes are saved securely in Firebase Firestore</p>
+                <p style="color:#38a169; margin-top: 1rem; font-weight: 600;" data-en="✓ All your changes are saved securely in Firebase Firestore" data-ar="✓ يتم حفظ جميع تغييراتك بأمان في Firebase Firestore">✓ All your changes are saved securely in Firebase Firestore</p>
             </div>
         </div>
     </div>
 
     <script type="module">
-        // Import Firebase modules
         import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import FirestoreAPI from "./js/firestore-api.js";
 
-        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
             authDomain: "aias-bsr.firebaseapp.com",
@@ -583,20 +320,16 @@
             measurementId: "G-6W50T4HXDV"
         };
 
-        // Initialize Firebase (with error handling for multiple initializations)
         let app;
-        try {
-            app = getApp();
-        } catch (error) {
-            app = initializeApp(firebaseConfig);
-        }
+        try { app = getApp(); } catch (e) { app = initializeApp(firebaseConfig); }
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Initialize Firestore API for content management
         const firestoreAPI = new FirestoreAPI();
 
-        // Make logout function globally accessible
+        // Caches for edit flows
+        let CACHE = { events: [], articles: [], library: [] };
+
         window.logout = async function() {
             try {
                 await signOut(auth);
@@ -615,7 +348,6 @@
 
         async function checkIfAdmin(email) {
             try {
-                // Fetch admin list from Firestore
                 const adminDoc = await getDoc(doc(db, 'config', 'admins'));
                 if (adminDoc.exists()) {
                     const data = adminDoc.data();
@@ -631,109 +363,29 @@
         (function() {
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
-                    // Check if user is admin
                     const isAdmin = await checkIfAdmin(user.email);
-                    
                     if (!isAdmin) {
                         alert('Access denied. Admin privileges required.');
                         window.location.href = 'login.html';
                         return;
                     }
-
-                    // Store admin status
                     localStorage.setItem('aias_authenticated', 'true');
                     localStorage.setItem('aias_user_email', user.email);
                     localStorage.setItem('aias_user_name', user.displayName || 'Admin');
                     localStorage.setItem('aias_user_picture', user.photoURL || '');
                     localStorage.setItem('aias_is_admin', 'true');
                     localStorage.setItem('aias_user_uid', user.uid);
-
                     document.getElementById('adminName').textContent = user.displayName || 'Admin';
-                    
-                    // Load users on page load
-                    loadUsers();
-                    
-                    // Check GitHub token status
-                    updateTokenStatus();
+
+                    // Default: open Events tab and load
+                    showTab('events');
                 } else {
-                    // No Firebase user authenticated
                     window.location.href = 'login.html';
                 }
             });
         })();
 
-        window.loadUsers = function() {
-            const users = JSON.parse(localStorage.getItem('aias_users') || '{}');
-            const usersList = document.getElementById('usersList');
-            
-            if (Object.keys(users).length === 0) {
-                usersList.innerHTML = '<p data-en="No users registered yet." data-ar="لا يوجد مستخدمون مسجلون بعد.">No users registered yet.</p>';
-                // Re-apply translations to newly added content
-                reapplyTranslations();
-                return;
-            }
-            
-            let html = '';
-            for (const [email, user] of Object.entries(users)) {
-                const isVerified = user.verified === true;
-                const authProvider = user.authProvider || 'email';
-                const statusClass = isVerified ? 'verified' : 'unverified';
-                const statusText = isVerified ? '✓ Verified' : '✗ Unverified';
-                const statusTextAr = isVerified ? '✓ مُثبت' : '✗ غير مُثبت';
-                
-                html += `
-                    <div class="user-item">
-                        <div class="user-info">
-                            <div class="user-name">${user.fullName || 'Unknown'}</div>
-                            <div class="user-email">${email}</div>
-                            <span class="user-status ${statusClass}" data-en="${statusText}" data-ar="${statusTextAr}">${statusText}</span>
-                            <span style="margin-left: 0.5rem; color: #718096; font-size: 0.85rem;">(${authProvider === 'google' ? 'Google' : 'Email'})</span>
-                        </div>
-                        <div class="user-actions">
-                            ${!isVerified ? `<button class="verify-btn" onclick="verifyUser('${email}')" data-en="Verify User" data-ar="تثبيت المستخدم">Verify User</button>` : ''}
-                            <button class="delete-btn" onclick="deleteUser('${email}')" data-en="Delete" data-ar="حذف">Delete</button>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            usersList.innerHTML = html;
-            // Re-apply translations to newly added content
-            reapplyTranslations();
-        };
-
-        window.verifyUser = function(email) {
-            const users = JSON.parse(localStorage.getItem('aias_users') || '{}');
-            
-            if (users[email]) {
-                users[email].verified = true;
-                localStorage.setItem('aias_users', JSON.stringify(users));
-                const currentLang = localStorage.getItem('language') || 'en';
-                const message = currentLang === 'ar' ? 'تم تثبيت المستخدم بنجاح!' : 'User verified successfully!';
-                showMessage(message, 'success');
-                loadUsers();
-            }
-        };
-
-        window.deleteUser = function(email) {
-            const currentLang = localStorage.getItem('language') || 'en';
-            const confirmMsg = currentLang === 'ar' ? `هل أنت متأكد من حذف المستخدم: ${email}؟` : `Are you sure you want to delete the user: ${email}?`;
-            if (!confirm(confirmMsg)) {
-                return;
-            }
-            
-            const users = JSON.parse(localStorage.getItem('aias_users') || '{}');
-            
-            if (users[email]) {
-                delete users[email];
-                localStorage.setItem('aias_users', JSON.stringify(users));
-                const message = currentLang === 'ar' ? 'تم حذف المستخدم بنجاح!' : 'User deleted successfully!';
-                showMessage(message, 'success');
-                loadUsers();
-            }
-        };
-
-        // Helper function to reapply translations to dynamically added content
+        // Language reapply
         window.reapplyTranslations = function() {
             if (typeof setLanguage === 'function') {
                 const currentLang = localStorage.getItem('language') || 'en';
@@ -741,750 +393,399 @@
             }
         };
 
-        window.showTab = function(tabName) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-
-            // Remove active from all buttons
-            document.querySelectorAll('.dashboard-nav button').forEach(btn => {
-                btn.classList.remove('active');
-            });
-
-            // Show selected tab
-            document.getElementById(`${tabName}-tab`).classList.add('active');
-            
-            // Add active to clicked button
-            event.target.classList.add('active');
-            
-            // Load content for specific tabs
-            if (tabName === 'events') {
-                loadExistingEvents();
-            } else if (tabName === 'articles') {
-                loadExistingArticles();
-            } else if (tabName === 'library') {
-                loadExistingLibraryResources();
-            } else if (tabName === 'education') {
-                loadEducationContent();
-            } else if (tabName === 'settings') {
-                loadAdminsList();
-            }
-        };
-
-        // Load existing events
-        window.loadExistingEvents = async function() {
-            console.log('[Admin Dashboard] Loading existing events...');
-            const listContainer = document.getElementById('existingEventsList');
-            listContainer.innerHTML = '<p>Loading events...</p>';
-            
-            try {
-                const result = await firestoreAPI.getAllContent();
-                if (!result.success || !result.content || !result.content.events) {
-                    listContainer.innerHTML = '<p>No events found.</p>';
-                    return;
-                }
-                
-                const events = result.content.events;
-                console.log(`[Admin Dashboard] Loaded ${events.length} events`);
-                
-                if (events.length === 0) {
-                    listContainer.innerHTML = '<p>No events found.</p>';
-                    return;
-                }
-                
-                let html = '';
-                events.forEach(event => {
-                    html += `
-                        <div class="content-item">
-                            <div>
-                                <strong>${event.title}</strong><br>
-                                <small>${new Date(event.time).toLocaleDateString()} - ${event.location}</small>
-                            </div>
-                            <div class="user-actions">
-                                <button class="delete-btn" onclick="deleteEvent('${event.id}')">Delete</button>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                listContainer.innerHTML = html;
-                reapplyTranslations();
-            } catch (error) {
-                console.error('[Admin Dashboard] Error loading events:', error);
-                listContainer.innerHTML = '<p style="color: red;">Error loading events</p>';
-            }
-        };
-
-        // Delete event
-        window.deleteEvent = async function(eventId) {
-            const currentLang = localStorage.getItem('language') || 'en';
-            const confirmMsg = currentLang === 'ar' ? 'هل أنت متأكد من حذف هذه الفعالية؟' : 'Are you sure you want to delete this event?';
-            
-            if (!confirm(confirmMsg)) {
-                return;
-            }
-            
-            console.log(`[Admin Dashboard] Deleting event ${eventId}...`);
-            const result = await firestoreAPI.deleteEvent(eventId);
-            
-            if (result.success) {
-                const message = currentLang === 'ar' ? 'تم حذف الفعالية بنجاح!' : 'Event deleted successfully!';
-                showMessage(message, 'success');
-                loadExistingEvents();
-            } else {
-                const message = currentLang === 'ar' ? 'فشل حذف الفعالية: ' + result.error : 'Failed to delete event: ' + result.error;
-                showMessage(message, 'error');
-            }
-        };
-
-        // Load existing articles
-        window.loadExistingArticles = async function() {
-            console.log('[Admin Dashboard] Loading existing articles...');
-            const listContainer = document.getElementById('existingArticlesList');
-            listContainer.innerHTML = '<p>Loading articles...</p>';
-            
-            try {
-                const result = await firestoreAPI.getAllContent();
-                if (!result.success || !result.content || !result.content.magazine || !result.content.magazine.articles) {
-                    listContainer.innerHTML = '<p>No articles found.</p>';
-                    return;
-                }
-                
-                const articles = result.content.magazine.articles;
-                console.log(`[Admin Dashboard] Loaded ${articles.length} articles`);
-                
-                if (articles.length === 0) {
-                    listContainer.innerHTML = '<p>No articles found.</p>';
-                    return;
-                }
-                
-                let html = '';
-                articles.forEach(article => {
-                    html += `
-                        <div class="content-item">
-                            <div>
-                                <strong>${article.title}</strong><br>
-                                <small>by ${article.author} - ${article.date}</small>
-                            </div>
-                            <div class="user-actions">
-                                <button class="delete-btn" onclick="deleteArticle('${article.id}')">Delete</button>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                listContainer.innerHTML = html;
-                reapplyTranslations();
-            } catch (error) {
-                console.error('[Admin Dashboard] Error loading articles:', error);
-                listContainer.innerHTML = '<p style="color: red;">Error loading articles</p>';
-            }
-        };
-
-        // Delete article
-        window.deleteArticle = async function(articleId) {
-            const currentLang = localStorage.getItem('language') || 'en';
-            const confirmMsg = currentLang === 'ar' ? 'هل أنت متأكد من حذف هذا المقال؟' : 'Are you sure you want to delete this article?';
-            
-            if (!confirm(confirmMsg)) {
-                return;
-            }
-            
-            console.log(`[Admin Dashboard] Deleting article ${articleId}...`);
-            const result = await firestoreAPI.deleteArticle(articleId);
-            
-            if (result.success) {
-                const message = currentLang === 'ar' ? 'تم حذف المقال بنجاح!' : 'Article deleted successfully!';
-                showMessage(message, 'success');
-                loadExistingArticles();
-            } else {
-                const message = currentLang === 'ar' ? 'فشل حذف المقال: ' + result.error : 'Failed to delete article: ' + result.error;
-                showMessage(message, 'error');
-            }
-        };
-
-        // Load existing library resources
-        window.loadExistingLibraryResources = async function() {
-            console.log('[Admin Dashboard] Loading existing library resources...');
-            const listContainer = document.getElementById('existingLibraryList');
-            listContainer.innerHTML = '<p>Loading resources...</p>';
-            
-            try {
-                const result = await firestoreAPI.getAllContent();
-                if (!result.success || !result.content || !result.content.library) {
-                    listContainer.innerHTML = '<p>No resources found.</p>';
-                    return;
-                }
-                
-                const resources = result.content.library;
-                console.log(`[Admin Dashboard] Loaded ${resources.length} library resources`);
-                
-                if (resources.length === 0) {
-                    listContainer.innerHTML = '<p>No resources found.</p>';
-                    return;
-                }
-                
-                let html = '';
-                resources.forEach(resource => {
-                    html += `
-                        <div class="content-item">
-                            <div>
-                                <strong>${resource.name}</strong><br>
-                                <small>${resource.type} - ${resource.tags ? resource.tags.join(', ') : ''}</small>
-                            </div>
-                            <div class="user-actions">
-                                <button class="delete-btn" onclick="deleteLibraryResource('${resource.id}')">Delete</button>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                listContainer.innerHTML = html;
-                reapplyTranslations();
-            } catch (error) {
-                console.error('[Admin Dashboard] Error loading library resources:', error);
-                listContainer.innerHTML = '<p style="color: red;">Error loading resources</p>';
-            }
-        };
-
-        // Delete library resource
-        window.deleteLibraryResource = async function(resourceId) {
-            const currentLang = localStorage.getItem('language') || 'en';
-            const confirmMsg = currentLang === 'ar' ? 'هل أنت متأكد من حذف هذا المورد؟' : 'Are you sure you want to delete this resource?';
-            
-            if (!confirm(confirmMsg)) {
-                return;
-            }
-            
-            console.log(`[Admin Dashboard] Deleting library resource ${resourceId}...`);
-            const result = await firestoreAPI.deleteLibraryResource(resourceId);
-            
-            if (result.success) {
-                const message = currentLang === 'ar' ? 'تم حذف المورد بنجاح!' : 'Resource deleted successfully!';
-                showMessage(message, 'success');
-                loadExistingLibraryResources();
-            } else {
-                const message = currentLang === 'ar' ? 'فشل حذف المورد: ' + result.error : 'Failed to delete resource: ' + result.error;
-                showMessage(message, 'error');
-            }
-        };
-
-        // Load education content for editing
-        window.loadEducationContent = async function() {
-            console.log('[Admin Dashboard] Loading education content...');
-            try {
-                const result = await firestoreAPI.getAllContent();
-                if (result.success && result.content.education && result.content.education.weeklyWorkshop) {
-                    const workshop = result.content.education.weeklyWorkshop;
-                    document.getElementById('weekTitle').value = workshop.weekTitle || '';
-                    document.getElementById('lecturerName').value = workshop.lecturerName || '';
-                    document.getElementById('weekDescription').value = workshop.description || '';
-                }
-            } catch (error) {
-                console.error('[Admin Dashboard] Error loading education content:', error);
-            }
-        };
-
+        // Messaging
         window.showMessage = function(text, type) {
             const messageDiv = document.getElementById('message');
             messageDiv.textContent = text;
             messageDiv.className = `message ${type}`;
             messageDiv.style.display = 'block';
-            
-            setTimeout(() => {
-                messageDiv.style.display = 'none';
-            }, 5000);
+            setTimeout(() => { messageDiv.style.display = 'none'; }, 5000);
         };
 
-        window.generateId = function(prefix) {
-            const timestamp = Date.now();
-            const random = Math.floor(Math.random() * 1000);
-            return `${prefix}-${timestamp}-${random}`;
+        // Tabs
+        window.showTab = function(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.dashboard-nav button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            event?.target?.classList?.add('active');
+
+            if (tabName === 'events') loadExistingEvents();
+            else if (tabName === 'articles') loadExistingArticles();
+            else if (tabName === 'library') loadExistingLibraryResources();
+            else if (tabName === 'education') loadEducationContent();
+            else if (tabName === 'settings') loadAdminsList?.();
         };
 
-        // Firestore Connection Management
-        window.updateTokenStatus = function() {
-            const statusDiv = document.getElementById('tokenStatus');
-            const statusText = document.getElementById('tokenStatusText');
-            const currentLang = localStorage.getItem('language') || 'en';
-            
-            statusDiv.style.background = '#f0fff4';
-            statusDiv.style.borderLeft = '4px solid #38a169';
-            const msg = currentLang === 'ar' ? '✓ متصل بـ Firestore. جاهز لإدارة المحتوى.' : '✓ Connected to Firestore. Ready to manage content.';
-            statusText.innerHTML = msg;
-            statusText.setAttribute('data-en', '✓ Connected to Firestore. Ready to manage content.');
-            statusText.setAttribute('data-ar', '✓ متصل بـ Firestore. جاهز لإدارة المحتوى.');
-        };
-
-        window.testFirestoreConnection = async function() {
-            const currentLang = localStorage.getItem('language') || 'en';
-            
-            const testingMsg = currentLang === 'ar' ? 'جاري اختبار الاتصال...' : 'Testing connection...';
-            showMessage(testingMsg, 'success');
-            
+        // Loaders
+        window.loadExistingEvents = async function() {
+            const listContainer = document.getElementById('existingEventsList');
+            listContainer.innerHTML = '<p>Loading events...</p>';
             try {
-                await firestoreAPI.getAllContent();
-                const successMsg = currentLang === 'ar' ? '✓ نجح الاتصال! Firestore يعمل بشكل صحيح.' : '✓ Connection successful! Firestore is working correctly.';
-                showMessage(successMsg, 'success');
-            } catch (error) {
-                const errorMsg = currentLang === 'ar' ? '✗ فشل الاتصال: ' + error.message : '✗ Connection failed: ' + error.message;
-                showMessage(errorMsg, 'error');
-            }
-        }
-
-        // Helper function to escape HTML
-        window.escapeHtml = function(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        };
-
-        // Fix Firestore Structure
-        window.fixFirestoreStructure = async function() {
-            const currentLang = localStorage.getItem('language') || 'en';
-            const resultsDiv = document.getElementById('structureResults');
-            const resultsContent = document.getElementById('structureResultsContent');
-            
-            // Test connection first
-            const testingMsg = currentLang === 'ar' ? 'جاري اختبار الاتصال بـ Firestore...' : 'Testing Firestore connection...';
-            showMessage(testingMsg, 'success');
-            
-            try {
-                const connectionTest = await firestoreAPI.testConnection();
-                if (!connectionTest.success) {
-                    const errorMsg = currentLang === 'ar' ? '✗ فشل الاتصال بـ Firestore: ' + connectionTest.error : '✗ Failed to connect to Firestore: ' + connectionTest.error;
-                    showMessage(errorMsg, 'error');
+                const res = await firestoreAPI.getAllContent();
+                if (!res.success) throw new Error(res.error || 'Failed to read events');
+                const events = res.content.events || [];
+                CACHE.events = events;
+                if (events.length === 0) {
+                    listContainer.innerHTML = '<p>No events found.</p>';
                     return;
                 }
-            } catch (error) {
-                const errorMsg = currentLang === 'ar' ? '✗ خطأ في الاتصال: ' + error.message : '✗ Connection error: ' + error.message;
-                showMessage(errorMsg, 'error');
-                return;
-            }
-            
-            // Validate and fix structure
-            const validatingMsg = currentLang === 'ar' ? 'جاري التحقق من صحة البنية وإصلاحها...' : 'Validating and fixing structure...';
-            showMessage(validatingMsg, 'success');
-            
-            try {
-                const result = await firestoreAPI.validateAndFixStructure();
-                
-                // Display results safely
                 let html = '';
-                
-                if (result.actions && result.actions.length > 0) {
-                    html += '<div style="margin-bottom: 1rem;"><strong style="color: #38a169;">✓ Actions Performed:</strong><ul style="margin: 0.5rem 0; padding-left: 1.5rem;">';
-                    result.actions.forEach(action => {
-                        html += `<li style="color: #4a5568; margin: 0.25rem 0;">${escapeHtml(action)}</li>`;
-                    });
-                    html += '</ul></div>';
-                }
-                
-                if (result.errors && result.errors.length > 0) {
-                    html += '<div><strong style="color: #e53e3e;">✗ Errors:</strong><ul style="margin: 0.5rem 0; padding-left: 1.5rem;">';
-                    result.errors.forEach(error => {
-                        html += `<li style="color: #e53e3e; margin: 0.25rem 0;">${escapeHtml(error)}</li>`;
-                    });
-                    html += '</ul></div>';
-                }
-                
-                resultsContent.innerHTML = html;
-                resultsDiv.style.display = 'block';
-                resultsDiv.style.background = result.success ? '#f0fff4' : '#fff5f5';
-                resultsDiv.style.borderLeft = result.success ? '4px solid #38a169' : '4px solid #e53e3e';
-                
-                if (result.success) {
-                    const successMsg = currentLang === 'ar' ? '✓ تم التحقق من بنية Firestore وإصلاحها بنجاح!' : '✓ Firestore structure validated and fixed successfully!';
-                    showMessage(successMsg, 'success');
-                } else {
-                    const warningMsg = currentLang === 'ar' ? '⚠ تم إكمال التحقق مع بعض الأخطاء. راجع التفاصيل أدناه.' : '⚠ Validation completed with some errors. See details below.';
-                    showMessage(warningMsg, 'error');
-                }
-                
-            } catch (error) {
-                const errorMsg = currentLang === 'ar' ? '✗ خطأ في التحقق من البنية: ' + error.message : '✗ Error validating structure: ' + error.message;
-                showMessage(errorMsg, 'error');
-                
-                resultsContent.textContent = '';
-                const errorP = document.createElement('p');
-                errorP.style.color = '#e53e3e';
-                const errorPrefix = currentLang === 'ar' ? 'خطأ: ' : 'Error: ';
-                errorP.textContent = errorPrefix + error.message;
-                resultsContent.appendChild(errorP);
-                
-                resultsDiv.style.display = 'block';
-                resultsDiv.style.background = '#fff5f5';
-                resultsDiv.style.borderLeft = '4px solid #e53e3e';
+                events.forEach(ev => {
+                    html += `
+                        <div class="content-item">
+                            <div>
+                                <strong>${ev.title}</strong><br>
+                                <small>${new Date(ev.time).toLocaleString()} - ${ev.location}</small>
+                            </div>
+                            <div class="user-actions">
+                                <button class="btn edit-btn" onclick="editEvent('${ev.id}')">Edit</button>
+                                <button class="btn delete-btn" onclick="deleteEvent('${ev.id}')">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                listContainer.innerHTML = html;
+                reapplyTranslations();
+            } catch (e) {
+                console.error(e);
+                listContainer.innerHTML = '<p style="color:red;">Error loading events</p>';
             }
         };
 
-        // Load and display admins list
-        window.loadAdminsList = async function() {
-            const adminsList = document.getElementById('adminsList');
-            const currentLang = localStorage.getItem('language') || 'en';
-            
+        window.loadExistingArticles = async function() {
+            const listContainer = document.getElementById('existingArticlesList');
+            listContainer.innerHTML = '<p>Loading articles...</p>';
             try {
-                const result = await firestoreAPI.getAdmins();
-                
-                if (result.success && result.admins.length > 0) {
-                    adminsList.innerHTML = '';
-                    const ul = document.createElement('ul');
-                    ul.style.margin = '0';
-                    ul.style.padding = '0';
-                    ul.style.listStyle = 'none';
-                    
-                    result.admins.forEach(email => {
-                        const li = document.createElement('li');
-                        li.style.display = 'flex';
-                        li.style.justifyContent = 'space-between';
-                        li.style.alignItems = 'center';
-                        li.style.padding = '0.75rem';
-                        li.style.borderBottom = '1px solid #e2e8f0';
-                        li.style.background = 'white';
-                        li.style.marginBottom = '0.5rem';
-                        li.style.borderRadius = '6px';
-                        
-                        const emailSpan = document.createElement('span');
-                        emailSpan.style.color = '#2d3748';
-                        emailSpan.style.fontWeight = '500';
-                        emailSpan.textContent = email;
-                        
-                        const removeBtn = document.createElement('button');
-                        removeBtn.className = 'delete-btn';
-                        removeBtn.style.padding = '0.25rem 0.75rem';
-                        removeBtn.style.fontSize = '0.875rem';
-                        removeBtn.textContent = currentLang === 'ar' ? 'إزالة' : 'Remove';
-                        removeBtn.setAttribute('data-en', 'Remove');
-                        removeBtn.setAttribute('data-ar', 'إزالة');
-                        removeBtn.addEventListener('click', () => removeAdminEmail(email));
-                        
-                        li.appendChild(emailSpan);
-                        li.appendChild(removeBtn);
-                        ul.appendChild(li);
-                    });
-                    
-                    adminsList.appendChild(ul);
-                    reapplyTranslations();
-                } else if (result.success) {
-                    const noAdminsMsg = currentLang === 'ar' ? 'لا يوجد مسؤولون حالياً.' : 'No admins currently.';
-                    adminsList.textContent = '';
-                    const p = document.createElement('p');
-                    p.style.color = '#718096';
-                    p.textContent = noAdminsMsg;
-                    adminsList.appendChild(p);
-                } else {
-                    const errorMsg = currentLang === 'ar' ? 'خطأ في تحميل قائمة المسؤولين: ' : 'Error loading admins list: ';
-                    adminsList.textContent = '';
-                    const p = document.createElement('p');
-                    p.style.color = '#e53e3e';
-                    p.textContent = errorMsg + result.error;
-                    adminsList.appendChild(p);
-                }
-            } catch (error) {
-                const errorMsg = currentLang === 'ar' ? 'خطأ في تحميل قائمة المسؤولين: ' : 'Error loading admins list: ';
-                adminsList.textContent = '';
-                const p = document.createElement('p');
-                p.style.color = '#e53e3e';
-                p.textContent = errorMsg + error.message;
-                adminsList.appendChild(p);
-            }
-        };
-
-        // Add new admin
-        window.addNewAdmin = async function() {
-            const emailInput = document.getElementById('newAdminEmail');
-            const email = emailInput.value.trim();
-            const currentLang = localStorage.getItem('language') || 'en';
-            
-            if (!email) {
-                const msg = currentLang === 'ar' ? 'الرجاء إدخال بريد إلكتروني.' : 'Please enter an email address.';
-                showMessage(msg, 'error');
-                return;
-            }
-            
-            // Test connection first
-            try {
-                const connectionTest = await firestoreAPI.testConnection();
-                if (!connectionTest.success) {
-                    const errorMsg = currentLang === 'ar' ? '✗ فشل الاتصال بـ Firestore: ' + connectionTest.error : '✗ Failed to connect to Firestore: ' + connectionTest.error;
-                    showMessage(errorMsg, 'error');
+                const res = await firestoreAPI.getAllContent();
+                if (!res.success) throw new Error(res.error || 'Failed to read articles');
+                const articles = (res.content.magazine && res.content.magazine.articles) || [];
+                CACHE.articles = articles;
+                if (articles.length === 0) {
+                    listContainer.innerHTML = '<p>No articles found.</p>';
                     return;
                 }
-            } catch (error) {
-                const errorMsg = currentLang === 'ar' ? '✗ خطأ في الاتصال: ' + error.message : '✗ Connection error: ' + error.message;
-                showMessage(errorMsg, 'error');
-                return;
-            }
-            
-            // Add admin
-            const addingMsg = currentLang === 'ar' ? 'جاري إضافة المسؤول...' : 'Adding admin...';
-            showMessage(addingMsg, 'success');
-            
-            try {
-                const result = await firestoreAPI.addAdmin(email);
-                
-                if (result.success) {
-                    const successMsg = currentLang === 'ar' ? `✓ تم إضافة المسؤول ${email} بنجاح!` : `✓ Admin ${email} added successfully!`;
-                    showMessage(successMsg, 'success');
-                    emailInput.value = '';
-                    loadAdminsList();
-                } else {
-                    const errorMsg = currentLang === 'ar' ? '✗ فشل إضافة المسؤول: ' + result.error : '✗ Failed to add admin: ' + result.error;
-                    showMessage(errorMsg, 'error');
-                }
-            } catch (error) {
-                const errorMsg = currentLang === 'ar' ? '✗ خطأ في إضافة المسؤول: ' + error.message : '✗ Error adding admin: ' + error.message;
-                showMessage(errorMsg, 'error');
+                let html = '';
+                articles.forEach(a => {
+                    html += `
+                        <div class="content-item">
+                            <div>
+                                <strong>${a.title}</strong><br>
+                                <small>by ${a.author} - ${a.date}</small>
+                            </div>
+                            <div class="user-actions">
+                                <button class="btn edit-btn" onclick="editArticle('${a.id}')">Edit</button>
+                                <button class="btn delete-btn" onclick="deleteArticle('${a.id}')">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                listContainer.innerHTML = html;
+                reapplyTranslations();
+            } catch (e) {
+                console.error(e);
+                listContainer.innerHTML = '<p style="color:red;">Error loading articles</p>';
             }
         };
 
-        // Remove admin
-        window.removeAdminEmail = async function(email) {
+        window.loadExistingLibraryResources = async function() {
+            const listContainer = document.getElementById('existingLibraryList');
+            listContainer.innerHTML = '<p>Loading resources...</p>';
+            try {
+                const res = await firestoreAPI.getAllContent();
+                if (!res.success) throw new Error(res.error || 'Failed to read resources');
+                const items = res.content.library || [];
+                CACHE.library = items;
+                if (items.length === 0) {
+                    listContainer.innerHTML = '<p>No resources found.</p>';
+                    return;
+                }
+                let html = '';
+                items.forEach(r => {
+                    const tags = Array.isArray(r.tags) ? r.tags.join(', ') : (r.tags || '');
+                    html += `
+                        <div class="content-item">
+                            <div>
+                                <strong>${r.name}</strong><br>
+                                <small>${r.type} - ${tags}</small>
+                            </div>
+                            <div class="user-actions">
+                                <button class="btn edit-btn" onclick="editLibrary('${r.id}')">Edit</button>
+                                <button class="btn delete-btn" onclick="deleteLibraryResource('${r.id}')">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                listContainer.innerHTML = html;
+                reapplyTranslations();
+            } catch (e) {
+                console.error(e);
+                listContainer.innerHTML = '<p style="color:red;">Error loading resources</p>';
+            }
+        };
+
+        window.loadEducationContent = async function() {
+            try {
+                const res = await firestoreAPI.getAllContent();
+                if (res.success && res.content.education && res.content.education.weeklyWorkshop) {
+                    const w = res.content.education.weeklyWorkshop;
+                    document.getElementById('weekTitle').value = w.weekTitle || '';
+                    document.getElementById('lecturerName').value = w.lecturerName || '';
+                    document.getElementById('weekDescription').value = w.description || '';
+                }
+            } catch (error) {
+                console.error('Error loading education:', error);
+            }
+        };
+
+        // DELETE actions
+        window.deleteEvent = async function(eventId) {
             const currentLang = localStorage.getItem('language') || 'en';
-            const confirmMsg = currentLang === 'ar' ? `هل أنت متأكد من إزالة ${email} من قائمة المسؤولين؟` : `Are you sure you want to remove ${email} from the admin list?`;
-            
-            if (!confirm(confirmMsg)) {
-                return;
-            }
-            
-            const removingMsg = currentLang === 'ar' ? 'جاري إزالة المسؤول...' : 'Removing admin...';
-            showMessage(removingMsg, 'success');
-            
-            try {
-                const result = await firestoreAPI.removeAdmin(email);
-                
-                if (result.success) {
-                    const successMsg = currentLang === 'ar' ? `✓ تم إزالة المسؤول ${email} بنجاح!` : `✓ Admin ${email} removed successfully!`;
-                    showMessage(successMsg, 'success');
-                    loadAdminsList();
-                } else {
-                    const errorMsg = currentLang === 'ar' ? '✗ فشل إزالة المسؤول: ' + result.error : '✗ Failed to remove admin: ' + result.error;
-                    showMessage(errorMsg, 'error');
-                }
-            } catch (error) {
-                const errorMsg = currentLang === 'ar' ? '✗ خطأ في إزالة المسؤول: ' + error.message : '✗ Error removing admin: ' + error.message;
-                showMessage(errorMsg, 'error');
+            const confirmMsg = currentLang === 'ar' ? 'هل أنت متأكد من حذف هذه الفعالية؟' : 'Are you sure you want to delete this event?';
+            if (!confirm(confirmMsg)) return;
+            const r = await firestoreAPI.deleteEvent(eventId);
+            if (r.success) {
+                showMessage(currentLang === 'ar' ? 'تم حذف الفعالية بنجاح!' : 'Event deleted successfully!', 'success');
+                loadExistingEvents();
+            } else {
+                showMessage((currentLang === 'ar' ? 'فشل حذف الفعالية: ' : 'Failed to delete event: ') + r.error, 'error');
             }
         };
 
-        // Event Form Handler
+        window.deleteArticle = async function(articleId) {
+            const currentLang = localStorage.getItem('language') || 'en';
+            const confirmMsg = currentLang === 'ar' ? 'هل أنت متأكد من حذف هذا المقال؟' : 'Are you sure you want to delete this article?';
+            if (!confirm(confirmMsg)) return;
+            const r = await firestoreAPI.deleteArticle(articleId);
+            if (r.success) {
+                showMessage(currentLang === 'ar' ? 'تم حذف المقال بنجاح!' : 'Article deleted successfully!', 'success');
+                loadExistingArticles();
+            } else {
+                showMessage((currentLang === 'ar' ? 'فشل حذف المقال: ' : 'Failed to delete article: ') + r.error, 'error');
+            }
+        };
+
+        window.deleteLibraryResource = async function(resourceId) {
+            const currentLang = localStorage.getItem('language') || 'en';
+            const confirmMsg = currentLang === 'ar' ? 'هل أنت متأكد من حذف هذا المورد؟' : 'Are you sure you want to delete this resource?';
+            if (!confirm(confirmMsg)) return;
+            const r = await firestoreAPI.deleteLibraryResource(resourceId);
+            if (r.success) {
+                showMessage(currentLang === 'ar' ? 'تم حذف المورد بنجاح!' : 'Resource deleted successfully!', 'success');
+                loadExistingLibraryResources();
+            } else {
+                showMessage((currentLang === 'ar' ? 'فشل حذف المورد: ' : 'Failed to delete resource: ') + r.error, 'error');
+            }
+        };
+
+        // EDIT flows (prefill forms)
+        window.editEvent = function(id) {
+            const ev = CACHE.events.find(e => e.id === id);
+            if (!ev) return;
+            document.getElementById('eventId').value = ev.id;
+            document.getElementById('eventTitle').value = ev.title || '';
+            document.getElementById('eventTime').value = ev.time ? new Date(ev.time).toISOString().slice(0,16) : '';
+            document.getElementById('eventLocation').value = ev.location || '';
+            document.getElementById('eventType').value = ev.type || 'Workshop';
+            document.getElementById('eventSeats').value = ev.seats ?? 0;
+            document.getElementById('eventImage').value = ev.image || '';
+            document.getElementById('eventDescription').value = ev.description || '';
+            const form = document.getElementById('eventForm');
+            form.dataset.mode = 'edit';
+            const btn = document.getElementById('eventSubmitBtn');
+            btn.textContent = 'Update Event';
+        };
+
+        window.editArticle = function(id) {
+            const a = CACHE.articles.find(x => x.id === id);
+            if (!a) return;
+            document.getElementById('articleId').value = a.id;
+            document.getElementById('articleTitle').value = a.title || '';
+            document.getElementById('articleAuthor').value = a.author || '';
+            document.getElementById('articleDate').value = a.date || '';
+            document.getElementById('articleSummary').value = a.summary || '';
+            document.getElementById('articleContent').value = a.content || '';
+            const form = document.getElementById('articleForm');
+            form.dataset.mode = 'edit';
+            const btn = document.getElementById('articleSubmitBtn');
+            btn.textContent = 'Update Article';
+        };
+
+        window.editLibrary = function(id) {
+            const r = CACHE.library.find(x => x.id === id);
+            if (!r) return;
+            document.getElementById('libId').value = r.id;
+            document.getElementById('libName').value = r.name || '';
+            document.getElementById('libType').value = r.type || 'Book';
+            document.getElementById('libTags').value = Array.isArray(r.tags) ? r.tags.join(', ') : (r.tags || '');
+            document.getElementById('libImage').value = r.image || '';
+            document.getElementById('libDescription').value = r.description || '';
+            document.getElementById('libLink').value = r.link || '';
+            const form = document.getElementById('libraryForm');
+            form.dataset.mode = 'edit';
+            const btn = document.getElementById('libSubmitBtn');
+            btn.textContent = 'Update Resource';
+        };
+
+        // FORM handlers (Add/Update)
         document.getElementById('eventForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const newEvent = {
-                id: generateId('evt'),
-                title: document.getElementById('eventTitle').value,
-                time: new Date(document.getElementById('eventTime').value).toISOString(),
-                location: document.getElementById('eventLocation').value,
-                eventType: document.getElementById('eventType').value,
-                seatsAvailable: parseInt(document.getElementById('eventSeats').value),
-                image: document.getElementById('eventImage').value,
-                description: document.getElementById('eventDescription').value
-            };
-
             const currentLang = localStorage.getItem('language') || 'en';
-            if (firestoreAPI.hasToken()) {
-                // Use Firestore API to add event directly
-                const addingMsg = currentLang === 'ar' ? 'جاري إضافة الفعالية إلى Firestore...' : 'Adding event to Firestore...';
-                showMessage(addingMsg, 'success');
-                
-                try {
-                    const result = await firestoreAPI.addEvent(newEvent);
-                    
-                    if (result.success) {
-                        const successMsg = currentLang === 'ar' ? '✓ تم إضافة الفعالية بنجاح إلى Firestore!' : '✓ Event added successfully to Firestore!';
-                        showMessage(successMsg, 'success');
-                        document.getElementById('eventForm').reset();
-                        loadExistingEvents(); // Reload the events list
-                    } else {
-                        const errorMsg = currentLang === 'ar' ? '✗ فشل إضافة الفعالية: ' + result.error : '✗ Failed to add event: ' + result.error;
-                        showMessage(errorMsg, 'error');
-                    }
-                } catch (error) {
-                    const errorMsg = currentLang === 'ar' ? '✗ خطأ في إضافة الفعالية: ' + error.message : '✗ Error adding event: ' + error.message;
-                    showMessage(errorMsg, 'error');
-                }
+            const mode = e.currentTarget.dataset.mode || 'add';
+            const payload = {
+                title: document.getElementById('eventTitle').value.trim(),
+                time: new Date(document.getElementById('eventTime').value).toISOString(),
+                location: document.getElementById('eventLocation').value.trim(),
+                type: document.getElementById('eventType').value,
+                seats: parseInt(document.getElementById('eventSeats').value || '0', 10),
+                image: document.getElementById('eventImage').value.trim(),
+                description: document.getElementById('eventDescription').value.trim()
+            };
+            let res;
+            if (mode === 'edit') {
+                const id = document.getElementById('eventId').value;
+                res = await firestoreAPI.updateEvent(id, payload);
             } else {
-                // Fallback: Show JSON for manual update
-                try {
-                    const result = await firestoreAPI.getAllContent();
-                    const data = result.success ? result.content : null;
-                    data.events.push(newEvent);
-                    
-                    console.log('Updated data.json:', JSON.stringify(data, null, 2));
-                    const prepMsg = currentLang === 'ar' ? 'تم إعداد الفعالية. تأكد من تسجيل الدخول كمسؤول للحفظ تلقائياً.' : 'Event prepared. Ensure you are logged in as admin to save automatically.';
-                    showMessage(prepMsg, 'success');
-                    const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
-                    alert(alertMsg + JSON.stringify(data, null, 2));
-                    document.getElementById('eventForm').reset();
-                    loadExistingEvents(); // Reload the events list
-                } catch (error) {
-                    const errorMsg = currentLang === 'ar' ? 'خطأ في إعداد الفعالية: ' + error.message : 'Error preparing event: ' + error.message;
-                    showMessage(errorMsg, 'error');
-                }
+                res = await firestoreAPI.addEvent(payload);
+            }
+            if (res.success) {
+                showMessage(currentLang === 'ar' ? 'تم حفظ الفعالية بنجاح!' : 'Event saved successfully!', 'success');
+                e.currentTarget.reset();
+                e.currentTarget.dataset.mode = 'add';
+                document.getElementById('eventSubmitBtn').textContent = 'Add Event';
+                loadExistingEvents();
+            } else {
+                showMessage(res.error || 'Failed to save event', 'error');
             }
         });
 
-        // Article Form Handler
         document.getElementById('articleForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const newArticle = {
-                id: generateId('art'),
-                title: document.getElementById('articleTitle').value,
-                author: document.getElementById('articleAuthor').value,
-                date: document.getElementById('articleDate').value,
-                summary: document.getElementById('articleSummary').value,
-                content: document.getElementById('articleContent').value
-            };
-
             const currentLang = localStorage.getItem('language') || 'en';
-            if (firestoreAPI.hasToken()) {
-                const addingMsg = currentLang === 'ar' ? 'جاري إضافة المقال إلى Firestore...' : 'Adding article to Firestore...';
-                showMessage(addingMsg, 'success');
-                
-                try {
-                    const result = await firestoreAPI.addArticle(newArticle);
-                    
-                    if (result.success) {
-                        const successMsg = currentLang === 'ar' ? '✓ تم إضافة المقال بنجاح إلى Firestore!' : '✓ Article added successfully to Firestore!';
-                        showMessage(successMsg, 'success');
-                        document.getElementById('articleForm').reset();
-                        loadExistingArticles(); // Reload the articles list
-                    } else {
-                        const errorMsg = currentLang === 'ar' ? '✗ فشل إضافة المقال: ' + result.error : '✗ Failed to add article: ' + result.error;
-                        showMessage(errorMsg, 'error');
-                    }
-                } catch (error) {
-                    const errorMsg = currentLang === 'ar' ? '✗ خطأ في إضافة المقال: ' + error.message : '✗ Error adding article: ' + error.message;
-                    showMessage(errorMsg, 'error');
-                }
+            const mode = e.currentTarget.dataset.mode || 'add';
+            const payload = {
+                title: document.getElementById('articleTitle').value.trim(),
+                author: document.getElementById('articleAuthor').value.trim(),
+                date: document.getElementById('articleDate').value,
+                summary: document.getElementById('articleSummary').value.trim(),
+                content: document.getElementById('articleContent').value.trim()
+            };
+            let res;
+            if (mode === 'edit') {
+                const id = document.getElementById('articleId').value;
+                res = await firestoreAPI.updateArticle(id, payload);
             } else {
-                try {
-                    const result = await firestoreAPI.getAllContent();
-                    const data = result.success ? result.content : null;
-                    data.magazine.articles.push(newArticle);
-                    
-                    console.log('Updated data.json:', JSON.stringify(data, null, 2));
-                    const prepMsg = currentLang === 'ar' ? 'تم إعداد المقال. تأكد من تسجيل الدخول كمسؤول للحفظ تلقائياً.' : 'Article prepared. Ensure you are logged in as admin to save automatically.';
-                    showMessage(prepMsg, 'success');
-                    const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
-                    alert(alertMsg + JSON.stringify(data, null, 2));
-                    document.getElementById('articleForm').reset();
-                    loadExistingArticles(); // Reload the articles list
-                } catch (error) {
-                    const errorMsg = currentLang === 'ar' ? 'خطأ في إعداد المقال: ' + error.message : 'Error preparing article: ' + error.message;
-                    showMessage(errorMsg, 'error');
-                }
+                res = await firestoreAPI.addArticle(payload);
+            }
+            if (res.success) {
+                showMessage(currentLang === 'ar' ? 'تم حفظ المقال بنجاح!' : 'Article saved successfully!', 'success');
+                e.currentTarget.reset();
+                e.currentTarget.dataset.mode = 'add';
+                document.getElementById('articleSubmitBtn').textContent = 'Add Article';
+                loadExistingArticles();
+            } else {
+                showMessage(res.error || 'Failed to save article', 'error');
             }
         });
 
-        // Library Form Handler
         document.getElementById('libraryForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const tags = document.getElementById('libTags').value.split(',').map(t => t.trim().replace(/\s+/g, '-'));
-
-            const newResource = {
-                id: generateId('lib'),
-                name: document.getElementById('libName').value,
-                type: document.getElementById('libType').value,
-                tags: tags,
-                image: document.getElementById('libImage').value,
-                description: document.getElementById('libDescription').value,
-                link: document.getElementById('libLink').value
-            };
-
             const currentLang = localStorage.getItem('language') || 'en';
-            if (firestoreAPI.hasToken()) {
-                const addingMsg = currentLang === 'ar' ? 'جاري إضافة مورد المكتبة إلى Firestore...' : 'Adding library resource to Firestore...';
-                showMessage(addingMsg, 'success');
-                
-                try {
-                    const result = await firestoreAPI.addLibraryResource(newResource);
-                    
-                    if (result.success) {
-                        const successMsg = currentLang === 'ar' ? '✓ تم إضافة مورد المكتبة بنجاح إلى Firestore!' : '✓ Library resource added successfully to Firestore!';
-                        showMessage(successMsg, 'success');
-                        document.getElementById('libraryForm').reset();
-                        loadExistingLibraryResources(); // Reload the library resources list
-                    } else {
-                        const errorMsg = currentLang === 'ar' ? '✗ فشل إضافة المورد: ' + result.error : '✗ Failed to add resource: ' + result.error;
-                        showMessage(errorMsg, 'error');
-                    }
-                } catch (error) {
-                    const errorMsg = currentLang === 'ar' ? '✗ خطأ في إضافة المورد: ' + error.message : '✗ Error adding resource: ' + error.message;
-                    showMessage(errorMsg, 'error');
-                }
+            const mode = e.currentTarget.dataset.mode || 'add';
+            const tagsRaw = document.getElementById('libTags').value;
+            const payload = {
+                name: document.getElementById('libName').value.trim(),
+                type: document.getElementById('libType').value,
+                tags: tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [],
+                image: document.getElementById('libImage').value.trim(),
+                description: document.getElementById('libDescription').value.trim(),
+                link: document.getElementById('libLink').value.trim()
+            };
+            let res;
+            if (mode === 'edit') {
+                const id = document.getElementById('libId').value;
+                res = await firestoreAPI.updateLibraryResource(id, payload);
             } else {
-                try {
-                    const result = await firestoreAPI.getAllContent();
-                    const data = result.success ? result.content : null;
-                    data.library.push(newResource);
-                    
-                    console.log('Updated data.json:', JSON.stringify(data, null, 2));
-                    const prepMsg = currentLang === 'ar' ? 'تم إعداد المورد. تأكد من تسجيل الدخول كمسؤول للحفظ تلقائياً.' : 'Resource prepared. Ensure you are logged in as admin to save automatically.';
-                    showMessage(prepMsg, 'success');
-                    const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
-                    alert(alertMsg + JSON.stringify(data, null, 2));
-                    document.getElementById('libraryForm').reset();
-                    loadExistingLibraryResources(); // Reload the library resources list
-                } catch (error) {
-                    const errorMsg = currentLang === 'ar' ? 'خطأ في إعداد المورد: ' + error.message : 'Error preparing resource: ' + error.message;
-                    showMessage(errorMsg, 'error');
-                }
+                res = await firestoreAPI.addLibraryResource(payload);
+            }
+            if (res.success) {
+                showMessage(currentLang === 'ar' ? 'تم حفظ المورد بنجاح!' : 'Resource saved successfully!', 'success');
+                e.currentTarget.reset();
+                e.currentTarget.dataset.mode = 'add';
+                document.getElementById('libSubmitBtn').textContent = 'Add Resource';
+                loadExistingLibraryResources();
+            } else {
+                showMessage(res.error || 'Failed to save resource', 'error');
             }
         });
 
-        // Education Form Handler
         document.getElementById('educationForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const education = {
-                weekTitle: document.getElementById('weekTitle').value,
-                lecturerName: document.getElementById('lecturerName').value,
-                description: document.getElementById('weekDescription').value
-            };
-
             const currentLang = localStorage.getItem('language') || 'en';
-            if (firestoreAPI.hasToken()) {
-                const updatingMsg = currentLang === 'ar' ? 'جاري تحديث المحتوى التعليمي في المستودع...' : 'Updating education content in repository...';
-                showMessage(updatingMsg, 'success');
-                
-                try {
-                    const result = await firestoreAPI.updateEducation(education);
-                    
-                    if (result.success) {
-                        const successMsg = currentLang === 'ar' ? '✓ تم تحديث المحتوى التعليمي بنجاح في المستودع!' : '✓ Education content updated successfully in the repository!';
-                        showMessage(successMsg, 'success');
-                        document.getElementById('educationForm').reset();
-                    } else {
-                        const errorMsg = currentLang === 'ar' ? '✗ فشل تحديث المحتوى التعليمي: ' + result.error : '✗ Failed to update education content: ' + result.error;
-                        showMessage(errorMsg, 'error');
-                    }
-                } catch (error) {
-                    const errorMsg = currentLang === 'ar' ? '✗ خطأ في تحديث المحتوى التعليمي: ' + error.message : '✗ Error updating education content: ' + error.message;
-                    showMessage(errorMsg, 'error');
-                }
+            const payload = {
+                weekTitle: document.getElementById('weekTitle').value.trim(),
+                lecturerName: document.getElementById('lecturerName').value.trim(),
+                description: document.getElementById('weekDescription').value.trim()
+            };
+            const res = await firestoreAPI.updateEducation(payload);
+            if (res.success) {
+                showMessage(currentLang === 'ar' ? 'تم تحديث المحتوى التعليمي!' : 'Education content updated!', 'success');
             } else {
-                try {
-                    const result = await firestoreAPI.getAllContent();
-                    const data = result.success ? result.content : null;
-                    data.education.weeklyWorkshop = education;
-                    
-                    console.log('Updated data.json:', JSON.stringify(data, null, 2));
-                    const prepMsg = currentLang === 'ar' ? 'تم إعداد المحتوى التعليمي. تأكد من تسجيل الدخول كمسؤول للحفظ تلقائياً.' : 'Education content prepared. Ensure you are logged in as admin to save automatically.';
-                    showMessage(prepMsg, 'success');
-                    const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
-                    alert(alertMsg + JSON.stringify(data, null, 2));
-                    document.getElementById('educationForm').reset();
-                } catch (error) {
-                    const errorMsg = currentLang === 'ar' ? 'خطأ في إعداد المحتوى التعليمي: ' + error.message : 'Error preparing education content: ' + error.message;
-                    showMessage(errorMsg, 'error');
-                }
+                showMessage(res.error || 'Failed to update education content', 'error');
             }
         });
+
+        // Settings helpers
+        window.testFirestoreConnection = async function() {
+            const statusEl = document.getElementById('tokenStatusText');
+            statusEl.textContent = 'Testing...';
+            const res = await firestoreAPI.testConnection();
+            statusEl.textContent = res.success ? 'Connected' : `Error: ${res.error}`;
+            document.getElementById('tokenStatus').style.background = res.success ? '#f0fff4' : '#fff5f5';
+        };
+
+        window.fixFirestoreStructure = async function() {
+            const resultsBox = document.getElementById('structureResults');
+            const contentBox = document.getElementById('structureResultsContent');
+            resultsBox.style.display = 'block';
+            contentBox.innerHTML = '<p>Validating and fixing structure...</p>';
+            const res = await firestoreAPI.validateAndFixStructure();
+            const actions = (res.actions || []).map(a => `<li style="color:#2f855a;">✓ ${a}</li>`).join('');
+            const errors = (res.errors || []).map(e => `<li style="color:#c53030;">✗ ${e}</li>`).join('');
+            contentBox.innerHTML = `<ul>${actions}${errors}</ul>`;
+        };
+
+        window.loadAdminsList = async function() {
+            const list = document.getElementById('adminsList');
+            list.innerHTML = '<p>Loading...</p>';
+            const res = await firestoreAPI.getAdmins();
+            if (!res.success) {
+                list.innerHTML = `<p style="color:red;">${res.error}</p>`;
+                return;
+            }
+            if ((res.admins || []).length === 0) {
+                list.innerHTML = '<p>No admins found.</p>';
+                return;
+            }
+            list.innerHTML = res.admins.map(a => `
+                <div class="content-item">
+                    <div>${a}</div>
+                </div>
+            `).join('');
+        };
+
+        window.addNewAdmin = async function() {
+            const input = document.getElementById('newAdminEmail');
+            const email = input.value.trim();
+            if (!email) return;
+            const res = await firestoreAPI.addAdmin(email);
+            if (res.success) {
+                input.value = '';
+                loadAdminsList();
+                showMessage('Admin added', 'success');
+            } else {
+                showMessage(res.error || 'Failed to add admin', 'error');
+            }
+        };
     </script>
 </body>
 </html>
