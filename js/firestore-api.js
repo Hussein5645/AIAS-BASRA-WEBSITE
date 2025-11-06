@@ -35,9 +35,9 @@ class FirestoreAPI {
 
     /**
      * Validate that an object has no empty required fields
-     * @param {object} obj - Object to validate
-     * @param {array} requiredFields - Array of required field names
-     * @returns {object} { valid: boolean, message: string }
+     * @param {Object} obj - Object to validate
+     * @param {Array<string>} requiredFields - Array of required field names
+     * @returns {Object} { valid: boolean, message: string }
      */
     validateRequiredFields(obj, requiredFields) {
         const emptyFields = [];
