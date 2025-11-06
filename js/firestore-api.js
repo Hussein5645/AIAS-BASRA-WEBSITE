@@ -1,893 +1,545 @@
-// Firestore API Integration for Content Management
+// Firestore API Integration for Content Management (all under content/)
 import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, collection, addDoc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  collection,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
-    authDomain: "aias-bsr.firebaseapp.com",
-    projectId: "aias-bsr",
-    storageBucket: "aias-bsr.firebasestorage.app",
-    messagingSenderId: "78055223814",
-    appId: "1:78055223814:web:99460402c2b1fcd5ae8987",
-    measurementId: "G-6W50T4HXDV"
+  apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
+  authDomain: "aias-bsr.firebaseapp.com",
+  projectId: "aias-bsr",
+  storageBucket: "aias-bsr.firebasestorage.app",
+  messagingSenderId: "78055223814",
+  appId: "1:78055223814:web:99460402c2b1fcd5ae8987",
+  measurementId: "G-6W50T4HXDV"
 };
 
 // Initialize Firebase (with error handling for multiple initializations)
-console.log('[Firestore API] Initializing Firebase app...');
 let app;
 try {
-    app = getApp();
-    console.log('[Firestore API] Using existing Firebase app');
+  app = getApp();
 } catch (error) {
-    app = initializeApp(firebaseConfig);
-    console.log('[Firestore API] Created new Firebase app');
+  app = initializeApp(firebaseConfig);
 }
 const db = getFirestore(app);
-console.log('[Firestore API] Firebase initialized successfully');
-console.log('[Firestore API] Firestore instance created');
 
 class FirestoreAPI {
-    constructor() {
-        this.db = db;
-        console.log('[Firestore API] FirestoreAPI instance created');
-    }
+  constructor() {
+    this.db = db;
 
-    /**
-     * Validate that an object has no empty required fields
-     * @param {Object} obj - Object to validate
-     * @param {Array<string>} requiredFields - Array of required field names
-     * @returns {Object} { valid: boolean, message: string }
-     */
-    validateRequiredFields(obj, requiredFields) {
-        const emptyFields = [];
-        
-        for (const field of requiredFields) {
-            const value = obj[field];
-            
-            // Check if field is missing, null, or undefined
-            if (value === undefined || value === null) {
-                emptyFields.push(field);
-                continue;
-            }
-            
-            // Check for empty or whitespace-only strings
-            if (typeof value === 'string' && value.trim() === '') {
-                emptyFields.push(field);
-                continue;
-            }
-            
-            // Check for empty arrays
-            if (Array.isArray(value) && value.length === 0) {
-                emptyFields.push(field);
-                continue;
-            }
-        }
-        
-        if (emptyFields.length > 0) {
-            return {
-                valid: false,
-                message: `Missing or empty required fields: ${emptyFields.join(', ')}`
-            };
-        }
-        
-        return { valid: true, message: '' };
-    }
+    // New standardized paths under content/
+    this.paths = {
+      content: 'content',
+      eventsDoc: ['content', 'events'], // document path
+      eventsCol: ['content', 'events', 'items'], // subcollection for events
+      libraryDoc: ['content', 'library'],
+      libraryCol: ['content', 'library', 'items'],
+      magazineDoc: ['content', 'magazine'],
+      magazineArticlesCol: ['content', 'magazine', 'articles'],
+      educationDoc: ['content', 'education'],
+      fbdDoc: ['content', 'fbd'],
+      fbdEventsCol: ['content', 'fbd', 'events'],
 
-    /**
-     * Get all content data (simulates getting data.json structure)
-     * Note: home and about pages are static and not fetched from Firestore
-     * @returns {Promise<object>} All content data
-     */
-    async getAllContent() {
-        console.log('[Firestore API] getAllContent() called');
+      // Legacy collections for migration/back-compat
+      legacyEventsCol: ['events'],
+      legacyLibraryCol: ['library']
+    };
+  }
+
+  // Helper: path builders
+  _docRef(pathArr) {
+    return doc(this.db, ...pathArr);
+  }
+  _colRef(pathArr) {
+    return collection(this.db, ...pathArr);
+  }
+
+  /**
+   * Validate that an object has no empty required fields
+   */
+  validateRequiredFields(obj, requiredFields) {
+    const emptyFields = [];
+    for (const field of requiredFields) {
+      const value = obj[field];
+      if (value === undefined || value === null) {
+        emptyFields.push(field);
+        continue;
+      }
+      if (typeof value === 'string' && value.trim() === '') {
+        emptyFields.push(field);
+        continue;
+      }
+      if (Array.isArray(value) && value.length === 0) {
+        emptyFields.push(field);
+        continue;
+      }
+    }
+    if (emptyFields.length > 0) {
+      return { valid: false, message: `Missing or empty required fields: ${emptyFields.join(', ')}` };
+    }
+    return { valid: true, message: '' };
+  }
+
+  /**
+   * Ensure base content docs exist
+   */
+  async ensureBaseDocs() {
+    // Create empty documents if not present
+    const ensureDoc = async (pathArr, defaultData) => {
+      const r = this._docRef(pathArr);
+      const s = await getDoc(r);
+      if (!s.exists()) {
+        await setDoc(r, defaultData || {});
+      }
+    };
+
+    await ensureDoc(this.paths.eventsDoc, { createdAt: Date.now() });
+    await ensureDoc(this.paths.libraryDoc, { createdAt: Date.now() });
+    await ensureDoc(this.paths.magazineDoc, {
+      featuredArticleId: null,
+      releases: []
+    });
+    await ensureDoc(this.paths.educationDoc, {
+      weeklyWorkshop: {},
+      courses: []
+    });
+    await ensureDoc(this.paths.fbdDoc, {
+      pageTitle: "",
+      about: ""
+    });
+  }
+
+  /**
+   * Get all content data with back-compat for legacy structure
+   */
+  async getAllContent() {
+    try {
+      await this.ensureBaseDocs();
+
+      const [
+        // New structure reads
+        eventsSnap,
+        librarySnap,
+        magazineDocSnap,
+        magazineArticlesSnap,
+        educationDocSnap,
+        fbdDocSnap,
+        fbdEventsSnap,
+
+        // Legacy reads for migration/back-compat
+        legacyEventsSnap,
+        legacyLibrarySnap
+      ] = await Promise.all([
+        getDocs(this._colRef(this.paths.eventsCol)),
+        getDocs(this._colRef(this.paths.libraryCol)),
+        getDoc(this._docRef(this.paths.magazineDoc)),
+        getDocs(this._colRef(this.paths.magazineArticlesCol)),
+        getDoc(this._docRef(this.paths.educationDoc)),
+        getDoc(this._docRef(this.paths.fbdDoc)),
+        getDocs(this._colRef(this.paths.fbdEventsCol)),
+
+        getDocs(this._colRef(this.paths.legacyEventsCol)),
+        getDocs(this._colRef(this.paths.legacyLibraryCol))
+      ]);
+
+      // Events
+      let events = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // If no new events but legacy exists, include legacy temporarily (until fixStructure migrates)
+      if (events.length === 0 && legacyEventsSnap.size > 0) {
+        events = legacyEventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      }
+
+      // Library
+      let library = librarySnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (library.length === 0 && legacyLibrarySnap.size > 0) {
+        library = legacyLibrarySnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      }
+
+      // Magazine
+      let magazine = {
+        featuredArticleId: null,
+        articles: [],
+        releases: []
+      };
+      if (magazineDocSnap.exists()) {
+        const md = magazineDocSnap.data();
+        magazine.featuredArticleId = md.featuredArticleId ?? null;
+        magazine.releases = md.releases ?? [];
+      }
+      const articles = magazineArticlesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      magazine.articles = articles;
+
+      // Education
+      let education = {
+        weeklyWorkshop: {},
+        courses: [],
+        fbd: { pageTitle: "", about: "", events: [] }
+      };
+      if (educationDocSnap.exists()) {
+        const ed = educationDocSnap.data();
+        education.weeklyWorkshop = ed.weeklyWorkshop ?? {};
+        education.courses = ed.courses ?? [];
+      }
+      // FBD (separate doc + subcollection)
+      if (fbdDocSnap.exists()) {
+        const f = fbdDocSnap.data();
+        education.fbd.pageTitle = f.pageTitle ?? "";
+        education.fbd.about = f.about ?? "";
+      }
+      education.fbd.events = fbdEventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      return { success: true, content: { events, magazine, library, education } };
+    } catch (error) {
+      console.error('[Firestore API] Error in getAllContent:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // EVENTS (content/events/items)
+  async addEvent(event) {
+    const required = ['title', 'time', 'location', 'description'];
+    const v = this.validateRequiredFields(event, required);
+    if (!v.valid) return { success: false, error: v.message };
+    try {
+      await this.ensureBaseDocs();
+      const ref = await addDoc(this._colRef(this.paths.eventsCol), event);
+      return { success: true, id: ref.id, message: 'Event added successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  async updateEvent(eventId, event) {
+    try {
+      await updateDoc(this._docRef([...this.paths.eventsCol, eventId]), event);
+      return { success: true, message: 'Event updated successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  async deleteEvent(eventId) {
+    try {
+      await deleteDoc(this._docRef([...this.paths.eventsCol, eventId]));
+      return { success: true, message: 'Event deleted successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  // LIBRARY (content/library/items)
+  async addLibraryResource(resource) {
+    const required = ['name', 'type', 'description'];
+    const v = this.validateRequiredFields(resource, required);
+    if (!v.valid) return { success: false, error: v.message };
+    try {
+      await this.ensureBaseDocs();
+      const ref = await addDoc(this._colRef(this.paths.libraryCol), resource);
+      return { success: true, id: ref.id, message: 'Library resource added successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  async updateLibraryResource(resourceId, resource) {
+    try {
+      await updateDoc(this._docRef([...this.paths.libraryCol, resourceId]), resource);
+      return { success: true, message: 'Library resource updated successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  async deleteLibraryResource(resourceId) {
+    try {
+      await deleteDoc(this._docRef([...this.paths.libraryCol, resourceId]));
+      return { success: true, message: 'Library resource deleted successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  // MAGAZINE (content/magazine + subcollection content/magazine/articles)
+  async addArticle(article) {
+    const required = ['title', 'author', 'date', 'summary', 'content'];
+    const v = this.validateRequiredFields(article, required);
+    if (!v.valid) return { success: false, error: v.message };
+    try {
+      await this.ensureBaseDocs();
+      const ref = await addDoc(this._colRef(this.paths.magazineArticlesCol), article);
+      return { success: true, id: ref.id, message: 'Article added successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  async updateArticle(articleId, updatedArticle) {
+    try {
+      await updateDoc(this._docRef([...this.paths.magazineArticlesCol, articleId]), updatedArticle);
+      return { success: true, message: 'Article updated successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  async deleteArticle(articleId) {
+    try {
+      await deleteDoc(this._docRef([...this.paths.magazineArticlesCol, articleId]));
+      return { success: true, message: 'Article deleted successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  // EDUCATION (content/education document)
+  async updateEducation(education) {
+    const required = ['weekTitle', 'lecturerName', 'description'];
+    const v = this.validateRequiredFields(education, required);
+    if (!v.valid) return { success: false, error: v.message };
+    try {
+      const edRef = this._docRef(this.paths.educationDoc);
+      const edSnap = await getDoc(edRef);
+      const existing = edSnap.exists() ? edSnap.data() : { weeklyWorkshop: {}, courses: [] };
+      const updated = { ...existing, weeklyWorkshop: education };
+      await setDoc(edRef, updated);
+      return { success: true, message: 'Education content updated successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  // FBD (content/fbd doc + content/fbd/events subcollection)
+  async updateFbdPage({ pageTitle, about }) {
+    try {
+      await setDoc(this._docRef(this.paths.fbdDoc), {
+        pageTitle: pageTitle ?? "",
+        about: about ?? ""
+      }, { merge: true });
+      return { success: true, message: 'FBD page updated successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  async addFbdEvent(event) {
+    const required = ['title', 'time', 'location', 'description'];
+    const v = this.validateRequiredFields(event, required);
+    if (!v.valid) return { success: false, error: v.message };
+    try {
+      const ref = await addDoc(this._colRef(this.paths.fbdEventsCol), event);
+      return { success: true, id: ref.id, message: 'FBD event added successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  async updateFbdEvent(eventId, event) {
+    try {
+      await updateDoc(this._docRef([...this.paths.fbdEventsCol, eventId]), event);
+      return { success: true, message: 'FBD event updated successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  async deleteFbdEvent(eventId) {
+    try {
+      await deleteDoc(this._docRef([...this.paths.fbdEventsCol, eventId]));
+      return { success: true, message: 'FBD event deleted successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Token compatibility (not used)
+  hasToken() { return true; }
+  async getFileContent() { return this.getAllContent(); }
+  async updateDataJson(newData) { return this.updateAllContent(newData); }
+  setToken(_) {}
+  getToken() { return ''; }
+
+  // Bulk updater kept for compatibility (writes magazine and education docs only)
+  async updateAllContent(content) {
+    try {
+      if (content.magazine) {
+        await setDoc(this._docRef(this.paths.magazineDoc), {
+          featuredArticleId: content.magazine.featuredArticleId ?? null,
+          releases: content.magazine.releases ?? []
+        }, { merge: true });
+      }
+      if (content.education) {
+        await setDoc(this._docRef(this.paths.educationDoc), content.education, { merge: true });
+      }
+      return { success: true, message: 'All content updated successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Admin helpers
+  async testConnection() {
+    try {
+      await getDoc(doc(this.db, 'config', 'admins'));
+      return { success: true, message: 'Connection successful' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  getExpectedStructure() {
+    return {
+      contentDocs: {
+        events: {},
+        library: {},
+        magazine: { featuredArticleId: null, releases: [] },
+        education: { weeklyWorkshop: {}, courses: [] },
+        fbd: { pageTitle: "", about: "" }
+      },
+      subcollections: [
+        { parent: ['content', 'events'], name: 'items' },
+        { parent: ['content', 'library'], name: 'items' },
+        { parent: ['content', 'magazine'], name: 'articles' },
+        { parent: ['content', 'fbd'], name: 'events' }
+      ],
+      legacyCollections: ['events', 'library']
+    };
+  }
+
+  /**
+   * Validate and fix Firestore structure + migrate legacy data (events, library)
+   */
+  async validateAndFixStructure() {
+    const results = { success: true, actions: [], errors: [] };
+    try {
+      const expected = this.getExpectedStructure();
+
+      // Ensure content docs
+      for (const [docName, defaultData] of Object.entries(expected.contentDocs)) {
         try {
-            const data = {
-                events: [],
-                magazine: {
-                    featuredArticle: null,
-                    articles: [],
-                    releases: []
-                },
-                library: [],
-                education: {
-                    weeklyWorkshop: {},
-                    courses: [],
-                    fbd: {
-                        pageTitle: "",
-                        about: "",
-                        events: []
-                    }
-                }
-            };
-
-            // Fetch events from content subcollection
-            console.log('[Firestore API] Reading events from content/events/items...');
-            const eventsSnapshot = await getDocs(collection(this.db, 'content/events/items'));
-            data.events = eventsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-            console.log(`[Firestore API] ✓ Retrieved ${data.events.length} events`);
-
-            // Fetch magazine data
-            console.log('[Firestore API] Reading magazine content...');
-            const magazineDoc = await getDoc(doc(this.db, 'content', 'magazine'));
-            if (magazineDoc.exists()) {
-                data.magazine = magazineDoc.data();
-                console.log('[Firestore API] ✓ Magazine content retrieved');
-            }
-
-            // Fetch library items from content subcollection
-            console.log('[Firestore API] Reading library from content/library/items...');
-            const librarySnapshot = await getDocs(collection(this.db, 'content/library/items'));
-            data.library = librarySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-            console.log(`[Firestore API] ✓ Retrieved ${data.library.length} library items`);
-
-            // Fetch education data
-            console.log('[Firestore API] Reading education content...');
-            const educationDoc = await getDoc(doc(this.db, 'content', 'education'));
-            if (educationDoc.exists()) {
-                data.education = educationDoc.data();
-                console.log('[Firestore API] ✓ Education content retrieved');
-            }
-
-            console.log('[Firestore API] ✓ All content retrieved successfully');
-            return {
-                success: true,
-                content: data
-            };
-        } catch (error) {
-            console.error('[Firestore API] ✗ Error in getAllContent:', error);
-            console.error('[Firestore API] Error details:', {
-                code: error.code,
-                message: error.message,
-                name: error.name
-            });
-            return {
-                success: false,
-                error: error.message
-            };
+          const ref = this._docRef(['content', docName]);
+          const snap = await getDoc(ref);
+          if (!snap.exists()) {
+            await setDoc(ref, defaultData);
+            results.actions.push(`Created missing document: content/${docName}`);
+          } else {
+            results.actions.push(`Validated: content/${docName} exists`);
+          }
+        } catch (e) {
+          results.errors.push(`Error ensuring content/${docName}: ${e.message}`);
         }
-    }
+      }
 
-    /**
-     * Add new event to Firestore
-     * @param {object} event - Event object to add
-     * @returns {Promise<object>} Result with success status
-     */
-    async addEvent(event) {
-        console.log('[Firestore API] addEvent() called with:', event);
-        
-        // Validate required fields
-        const requiredFields = ['title', 'time', 'location', 'description'];
-        const validation = this.validateRequiredFields(event, requiredFields);
-        
-        if (!validation.valid) {
-            console.error('[Firestore API] ✗ Event validation failed:', validation.message);
-            return {
-                success: false,
-                error: validation.message
-            };
-        }
-        
+      // Validate subcollections by a lightweight list call
+      for (const sc of expected.subcollections) {
         try {
-            const docRef = await addDoc(collection(this.db, 'content/events/items'), event);
-            console.log(`[Firestore API] ✓ Event added successfully with ID: ${docRef.id}`);
-            return {
-                success: true,
-                message: `Event added successfully with ID: ${docRef.id}`,
-                id: docRef.id
-            };
-        } catch (error) {
-            console.error('[Firestore API] ✗ Error adding event:', error);
-            return {
-                success: false,
-                error: error.message
-            };
+          const colRef = collection(this.db, ...sc.parent, sc.name);
+          const snap = await getDocs(colRef);
+          results.actions.push(`Validated: ${sc.parent.join('/')}/${sc.name} (${snap.size} docs)`);
+        } catch (e) {
+          results.errors.push(`Error checking ${sc.parent.join('/')}/${sc.name}: ${e.message}`);
         }
-    }
+      }
 
-    /**
-     * Add new magazine article to Firestore
-     * @param {object} article - Article object to add
-     * @returns {Promise<object>} Result with success status
-     */
-    async addArticle(article) {
-        console.log('[Firestore API] addArticle() called with:', article);
-        
-        // Validate required fields
-        const requiredFields = ['title', 'author', 'date', 'summary'];
-        const validation = this.validateRequiredFields(article, requiredFields);
-        
-        if (!validation.valid) {
-            console.error('[Firestore API] ✗ Article validation failed:', validation.message);
-            return {
-                success: false,
-                error: validation.message
-            };
+      // Migrate legacy events and library if new subcollections are empty
+      // Events
+      try {
+        const newEventsSnap = await getDocs(this._colRef(this.paths.eventsCol));
+        const legacyEventsSnap = await getDocs(this._colRef(this.paths.legacyEventsCol));
+        if (newEventsSnap.size === 0 && legacyEventsSnap.size > 0) {
+          for (const d of legacyEventsSnap.docs) {
+            await addDoc(this._colRef(this.paths.eventsCol), { ...d.data() });
+          }
+          results.actions.push(`Migrated ${legacyEventsSnap.size} legacy events -> content/events/items`);
+        } else {
+          results.actions.push('Events migration not needed');
         }
-        
-        try {
-            // Get current magazine data
-            const magazineDoc = await getDoc(doc(this.db, 'content', 'magazine'));
-            let magazineData = magazineDoc.exists() ? magazineDoc.data() : {
-                featuredArticle: null,
-                articles: [],
-                releases: []
-            };
+      } catch (e) {
+        results.errors.push(`Error migrating legacy events: ${e.message}`);
+      }
 
-            // Add new article
-            if (!magazineData.articles) {
-                magazineData.articles = [];
-            }
-            magazineData.articles.push(article);
-
-            // Update magazine document
-            await setDoc(doc(this.db, 'content', 'magazine'), magazineData);
-            console.log('[Firestore API] ✓ Article added successfully');
-
-            return {
-                success: true,
-                message: 'Article added successfully'
-            };
-        } catch (error) {
-            console.error('[Firestore API] ✗ Error adding article:', error);
-            return {
-                success: false,
-                error: error.message
-            };
+      // Library
+      try {
+        const newLibSnap = await getDocs(this._colRef(this.paths.libraryCol));
+        const legacyLibSnap = await getDocs(this._colRef(this.paths.legacyLibraryCol));
+        if (newLibSnap.size === 0 && legacyLibSnap.size > 0) {
+          for (const d of legacyLibSnap.docs) {
+            await addDoc(this._colRef(this.paths.libraryCol), { ...d.data() });
+          }
+          results.actions.push(`Migrated ${legacyLibSnap.size} legacy library items -> content/library/items`);
+        } else {
+          results.actions.push('Library migration not needed');
         }
+      } catch (e) {
+        results.errors.push(`Error migrating legacy library: ${e.message}`);
+      }
+
+      if (results.errors.length > 0) results.success = false;
+      return results;
+    } catch (error) {
+      return { success: false, actions: results.actions, errors: [...results.errors, error.message] };
     }
+  }
 
-    /**
-     * Add new library resource to Firestore
-     * @param {object} resource - Library resource object to add
-     * @returns {Promise<object>} Result with success status
-     */
-    async addLibraryResource(resource) {
-        console.log('[Firestore API] addLibraryResource() called with:', resource);
-        
-        // Validate required fields
-        const requiredFields = ['name', 'type', 'description'];
-        const validation = this.validateRequiredFields(resource, requiredFields);
-        
-        if (!validation.valid) {
-            console.error('[Firestore API] ✗ Library resource validation failed:', validation.message);
-            return {
-                success: false,
-                error: validation.message
-            };
-        }
-        
-        try {
-            const docRef = await addDoc(collection(this.db, 'content/library/items'), resource);
-            console.log(`[Firestore API] ✓ Library resource added with ID: ${docRef.id}`);
-            return {
-                success: true,
-                message: `Library resource added successfully with ID: ${docRef.id}`,
-                id: docRef.id
-            };
-        } catch (error) {
-            console.error('[Firestore API] ✗ Error adding library resource:', error);
-            return {
-                success: false,
-                error: error.message
-            };
-        }
+  // Admin list helpers
+  async getAdmins() {
+    try {
+      const adminDoc = await getDoc(doc(this.db, 'config', 'admins'));
+      if (adminDoc.exists()) {
+        return { success: true, admins: adminDoc.data().admins || [] };
+      } else {
+        await setDoc(doc(this.db, 'config', 'admins'), { admins: [] });
+        return { success: true, admins: [] };
+      }
+    } catch (error) {
+      return { success: false, error: error.message, admins: [] };
     }
+  }
 
-    /**
-     * Update education content in Firestore
-     * @param {object} education - Education content object
-     * @returns {Promise<object>} Result with success status
-     */
-    async updateEducation(education) {
-        console.log('[Firestore API] updateEducation() called with:', education);
-        
-        // Validate required fields
-        const requiredFields = ['weekTitle', 'lecturerName', 'description'];
-        const validation = this.validateRequiredFields(education, requiredFields);
-        
-        if (!validation.valid) {
-            console.error('[Firestore API] ✗ Education validation failed:', validation.message);
-            return {
-                success: false,
-                error: validation.message
-            };
-        }
-        
-        try {
-            // Get current education data
-            const educationDoc = await getDoc(doc(this.db, 'content', 'education'));
-            let educationData = educationDoc.exists() ? educationDoc.data() : {
-                weeklyWorkshop: {},
-                courses: [],
-                fbd: {
-                    pageTitle: "",
-                    about: "",
-                    events: []
-                }
-            };
+  async addAdmin(email) {
+    try {
+      const emailLower = (email || '').toLowerCase().trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailLower)) return { success: false, error: 'Invalid email format' };
 
-            // Update weekly workshop
-            educationData.weeklyWorkshop = education;
+      const ref = doc(this.db, 'config', 'admins');
+      const snap = await getDoc(ref);
+      const admins = snap.exists() ? (snap.data().admins || []) : [];
+      if (admins.includes(emailLower)) return { success: false, error: 'Email already exists in admin list' };
 
-            // Update education document
-            await setDoc(doc(this.db, 'content', 'education'), educationData);
-            console.log('[Firestore API] ✓ Education content updated successfully');
-
-            return {
-                success: true,
-                message: 'Education content updated successfully'
-            };
-        } catch (error) {
-            console.error('[Firestore API] ✗ Error updating education:', error);
-            return {
-                success: false,
-                error: error.message
-            };
-        }
+      admins.push(emailLower);
+      await setDoc(ref, { admins });
+      return { success: true, admins, message: `Admin ${emailLower} added successfully` };
+    } catch (error) {
+      return { success: false, error: error.message };
     }
+  }
 
-    /**
-     * Update entire content document (simulates updating data.json)
-     * Note: home and about pages are static and not updated in Firestore
-     * @param {object} content - Complete content object
-     * @returns {Promise<object>} Result with success status
-     */
-    async updateAllContent(content) {
-        console.log('[Firestore API] updateAllContent() called');
-        try {
-            // Update magazine data
-            if (content.magazine) {
-                console.log('[Firestore API] Writing magazine content...');
-                await setDoc(doc(this.db, 'content', 'magazine'), content.magazine);
-                console.log('[Firestore API] ✓ Magazine content written');
-            }
-
-            // Update education data
-            if (content.education) {
-                console.log('[Firestore API] Writing education content...');
-                await setDoc(doc(this.db, 'content', 'education'), content.education);
-                console.log('[Firestore API] ✓ Education content written');
-            }
-
-            console.log('[Firestore API] ✓ All content updated successfully');
-            return {
-                success: true,
-                message: 'All content updated successfully'
-            };
-        } catch (error) {
-            console.error('[Firestore API] ✗ Error updating content:', error);
-            return {
-                success: false,
-                error: error.message
-            };
-        }
+  async removeAdmin(email) {
+    try {
+      const emailLower = (email || '').toLowerCase().trim();
+      const ref = doc(this.db, 'config', 'admins');
+      const snap = await getDoc(ref);
+      if (!snap.exists()) return { success: false, error: 'Admin list not found' };
+      let admins = snap.data().admins || [];
+      if (!admins.includes(emailLower)) return { success: false, error: 'Email not found in admin list' };
+      admins = admins.filter(a => a !== emailLower);
+      await setDoc(ref, { admins });
+      return { success: true, admins, message: `Admin ${emailLower} removed successfully` };
+    } catch (error) {
+      return { success: false, error: error.message };
     }
-
-    /**
-     * Delete event from Firestore
-     * @param {string} eventId - Event ID to delete
-     * @returns {Promise<object>} Result with success status
-     */
-    async deleteEvent(eventId) {
-        console.log(`[Firestore API] deleteEvent() called for ID: ${eventId}`);
-        try {
-            await deleteDoc(doc(this.db, 'content/events/items', eventId));
-            console.log(`[Firestore API] ✓ Event ${eventId} deleted successfully`);
-            return {
-                success: true,
-                message: 'Event deleted successfully'
-            };
-        } catch (error) {
-            console.error('[Firestore API] ✗ Error deleting event:', error);
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
-
-    /**
-     * Update event in Firestore
-     * @param {string} eventId - Event ID to update
-     * @param {object} event - Updated event object
-     * @returns {Promise<object>} Result with success status
-     */
-    async updateEvent(eventId, event) {
-        console.log(`[Firestore API] updateEvent() called for ID: ${eventId}`);
-        try {
-            await updateDoc(doc(this.db, 'content/events/items', eventId), event);
-            console.log(`[Firestore API] ✓ Event ${eventId} updated successfully`);
-            return {
-                success: true,
-                message: 'Event updated successfully'
-            };
-        } catch (error) {
-            console.error('[Firestore API] ✗ Error updating event:', error);
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
-
-    /**
-     * Delete library resource from Firestore
-     * @param {string} resourceId - Resource ID to delete
-     * @returns {Promise<object>} Result with success status
-     */
-    async deleteLibraryResource(resourceId) {
-        console.log(`[Firestore API] deleteLibraryResource() called for ID: ${resourceId}`);
-        try {
-            await deleteDoc(doc(this.db, 'content/library/items', resourceId));
-            console.log(`[Firestore API] ✓ Library resource ${resourceId} deleted successfully`);
-            return {
-                success: true,
-                message: 'Library resource deleted successfully'
-            };
-        } catch (error) {
-            console.error('[Firestore API] ✗ Error deleting library resource:', error);
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
-
-    /**
-     * Update library resource in Firestore
-     * @param {string} resourceId - Resource ID to update
-     * @param {object} resource - Updated resource object
-     * @returns {Promise<object>} Result with success status
-     */
-    async updateLibraryResource(resourceId, resource) {
-        console.log(`[Firestore API] updateLibraryResource() called for ID: ${resourceId}`);
-        try {
-            await updateDoc(doc(this.db, 'content/library/items', resourceId), resource);
-            console.log(`[Firestore API] ✓ Library resource ${resourceId} updated successfully`);
-            return {
-                success: true,
-                message: 'Library resource updated successfully'
-            };
-        } catch (error) {
-            console.error('[Firestore API] ✗ Error updating library resource:', error);
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
-
-    /**
-     * Delete article from magazine in Firestore
-     * @param {string} articleId - Article ID to delete
-     * @returns {Promise<object>} Result with success status
-     */
-    async deleteArticle(articleId) {
-        console.log(`[Firestore API] deleteArticle() called for ID: ${articleId}`);
-        try {
-            // Get current magazine data
-            const magazineDoc = await getDoc(doc(this.db, 'content', 'magazine'));
-            if (!magazineDoc.exists()) {
-                return {
-                    success: false,
-                    error: 'Magazine content not found'
-                };
-            }
-
-            let magazineData = magazineDoc.data();
-            if (!magazineData.articles) {
-                return {
-                    success: false,
-                    error: 'No articles found'
-                };
-            }
-
-            // Remove article
-            magazineData.articles = magazineData.articles.filter(article => article.id !== articleId);
-
-            // Update magazine document
-            await setDoc(doc(this.db, 'content', 'magazine'), magazineData);
-            console.log(`[Firestore API] ✓ Article ${articleId} deleted successfully`);
-
-            return {
-                success: true,
-                message: 'Article deleted successfully'
-            };
-        } catch (error) {
-            console.error('[Firestore API] ✗ Error deleting article:', error);
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
-
-    /**
-     * Update article in magazine in Firestore
-     * @param {string} articleId - Article ID to update
-     * @param {object} updatedArticle - Updated article object
-     * @returns {Promise<object>} Result with success status
-     */
-    async updateArticle(articleId, updatedArticle) {
-        console.log(`[Firestore API] updateArticle() called for ID: ${articleId}`);
-        try {
-            // Get current magazine data
-            const magazineDoc = await getDoc(doc(this.db, 'content', 'magazine'));
-            if (!magazineDoc.exists()) {
-                return {
-                    success: false,
-                    error: 'Magazine content not found'
-                };
-            }
-
-            let magazineData = magazineDoc.data();
-            if (!magazineData.articles) {
-                return {
-                    success: false,
-                    error: 'No articles found'
-                };
-            }
-
-            // Update article
-            const articleIndex = magazineData.articles.findIndex(article => article.id === articleId);
-            if (articleIndex === -1) {
-                return {
-                    success: false,
-                    error: 'Article not found'
-                };
-            }
-
-            magazineData.articles[articleIndex] = { ...magazineData.articles[articleIndex], ...updatedArticle };
-
-            // Update magazine document
-            await setDoc(doc(this.db, 'content', 'magazine'), magazineData);
-            console.log(`[Firestore API] ✓ Article ${articleId} updated successfully`);
-
-            return {
-                success: true,
-                message: 'Article updated successfully'
-            };
-        } catch (error) {
-            console.error('[Firestore API] ✗ Error updating article:', error);
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
-
-    /**
-     * Check if user has permission (always returns true for authenticated users)
-     * This replaces the GitHub token check
-     * @returns {boolean}
-     */
-    hasToken() {
-        // Always return true since Firestore security rules handle permissions
-        return true;
-    }
-
-    /**
-     * Get file content (compatibility method for admin dashboard)
-     * @returns {Promise<object>}
-     */
-    async getFileContent() {
-        return this.getAllContent();
-    }
-
-    /**
-     * Update data (compatibility method for admin dashboard)
-     * @param {object} newData - New data to save
-     * @returns {Promise<object>}
-     */
-    async updateDataJson(newData) {
-        return this.updateAllContent(newData);
-    }
-
-    /**
-     * No-op methods for compatibility (token management not needed with Firestore)
-     */
-    setToken(token) {
-        // No-op: Firestore uses Firebase Auth, not tokens
-    }
-
-    getToken() {
-        return '';
-    }
-
-    /**
-     * Test Firestore connection
-     * @returns {Promise<object>} Result with success status
-     */
-    async testConnection() {
-        console.log('[Firestore API] testConnection() called');
-        try {
-            // Try to read config/admins to test connection
-            const adminDoc = await getDoc(doc(this.db, 'config', 'admins'));
-            console.log('[Firestore API] ✓ Connection test successful');
-            return {
-                success: true,
-                message: 'Connection successful'
-            };
-        } catch (error) {
-            console.error('[Firestore API] ✗ Connection test failed:', error);
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
-
-    /**
-     * Get the expected Firestore structure template
-     * Note: home and about are not stored in Firestore as they are static pages
-     * @returns {object} Expected structure
-     */
-    getExpectedStructure() {
-        return {
-            content: {
-                magazine: {
-                    featuredArticle: null,
-                    articles: [],
-                    releases: []
-                },
-                education: {
-                    weeklyWorkshop: {},
-                    courses: [],
-                    fbd: {
-                        pageTitle: "",
-                        about: "",
-                        events: []
-                    }
-                }
-            },
-            config: {
-                admins: {
-                    admins: []
-                }
-            },
-            collections: ['events', 'library']
-        };
-    }
-
-    /**
-     * Validate and fix Firestore structure
-     * @returns {Promise<object>} Result with success status and details
-     */
-    async validateAndFixStructure() {
-        console.log('[Firestore API] validateAndFixStructure() called');
-        const results = {
-            success: true,
-            actions: [],
-            errors: []
-        };
-
-        try {
-            const expected = this.getExpectedStructure();
-
-            // Check and fix content documents
-            for (const [docName, docStructure] of Object.entries(expected.content)) {
-                try {
-                    const docRef = doc(this.db, 'content', docName);
-                    const docSnap = await getDoc(docRef);
-                    
-                    if (!docSnap.exists()) {
-                        // Document missing - create it
-                        await setDoc(docRef, docStructure);
-                        results.actions.push(`Created missing document: content/${docName}`);
-                        console.log(`[Firestore API] ✓ Created content/${docName}`);
-                    } else {
-                        // Document exists - validate structure
-                        const currentData = docSnap.data();
-                        let needsUpdate = false;
-                        const updatedData = { ...currentData };
-
-                        // Add missing fields
-                        for (const [key, value] of Object.entries(docStructure)) {
-                            if (!(key in updatedData)) {
-                                updatedData[key] = value;
-                                needsUpdate = true;
-                                results.actions.push(`Added missing field: content/${docName}.${key}`);
-                            }
-                        }
-
-                        if (needsUpdate) {
-                            await setDoc(docRef, updatedData);
-                            console.log(`[Firestore API] ✓ Updated content/${docName} with missing fields`);
-                        } else {
-                            results.actions.push(`Validated: content/${docName} is correct`);
-                        }
-                    }
-                } catch (error) {
-                    results.errors.push(`Error with content/${docName}: ${error.message}`);
-                    console.error(`[Firestore API] ✗ Error with content/${docName}:`, error);
-                }
-            }
-
-            // Check and fix config documents
-            for (const [docName, docStructure] of Object.entries(expected.config)) {
-                try {
-                    const docRef = doc(this.db, 'config', docName);
-                    const docSnap = await getDoc(docRef);
-                    
-                    if (!docSnap.exists()) {
-                        // Document missing - create it
-                        await setDoc(docRef, docStructure);
-                        results.actions.push(`Created missing document: config/${docName}`);
-                        console.log(`[Firestore API] ✓ Created config/${docName}`);
-                    } else {
-                        results.actions.push(`Validated: config/${docName} exists`);
-                    }
-                } catch (error) {
-                    results.errors.push(`Error with config/${docName}: ${error.message}`);
-                    console.error(`[Firestore API] ✗ Error with config/${docName}:`, error);
-                }
-            }
-
-            // Check collections exist (events and library)
-            // Note: We use a simple read to check existence without fetching all documents
-            for (const collectionName of expected.collections) {
-                try {
-                    const collectionRef = collection(this.db, collectionName);
-                    const snapshot = await getDocs(collectionRef);
-                    results.actions.push(`Validated: ${collectionName} collection exists (${snapshot.size} documents)`);
-                } catch (error) {
-                    results.errors.push(`Error checking ${collectionName} collection: ${error.message}`);
-                    console.error(`[Firestore API] ✗ Error with ${collectionName}:`, error);
-                }
-            }
-
-            if (results.errors.length > 0) {
-                results.success = false;
-            }
-
-            console.log('[Firestore API] ✓ Structure validation completed');
-            return results;
-
-        } catch (error) {
-            console.error('[Firestore API] ✗ Error in validateAndFixStructure:', error);
-            return {
-                success: false,
-                actions: results.actions,
-                errors: [...results.errors, error.message]
-            };
-        }
-    }
-
-    /**
-     * Get list of admin emails
-     * @returns {Promise<object>} Result with admin list
-     */
-    async getAdmins() {
-        console.log('[Firestore API] getAdmins() called');
-        try {
-            const adminDoc = await getDoc(doc(this.db, 'config', 'admins'));
-            if (adminDoc.exists()) {
-                const data = adminDoc.data();
-                console.log('[Firestore API] ✓ Admins retrieved');
-                return {
-                    success: true,
-                    admins: data.admins || []
-                };
-            } else {
-                console.log('[Firestore API] No admin document found, creating...');
-                await setDoc(doc(this.db, 'config', 'admins'), { admins: [] });
-                return {
-                    success: true,
-                    admins: []
-                };
-            }
-        } catch (error) {
-            console.error('[Firestore API] ✗ Error getting admins:', error);
-            return {
-                success: false,
-                error: error.message,
-                admins: []
-            };
-        }
-    }
-
-    /**
-     * Add admin email to the list
-     * @param {string} email - Email to add
-     * @returns {Promise<object>} Result with success status
-     */
-    async addAdmin(email) {
-        console.log(`[Firestore API] addAdmin() called with email: ${email}`);
-        try {
-            const emailLower = email.toLowerCase().trim();
-            
-            // Validate email format
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(emailLower)) {
-                return {
-                    success: false,
-                    error: 'Invalid email format'
-                };
-            }
-
-            const adminDoc = await getDoc(doc(this.db, 'config', 'admins'));
-            let admins = [];
-            
-            if (adminDoc.exists()) {
-                admins = adminDoc.data().admins || [];
-            }
-
-            // Check if email already exists
-            if (admins.includes(emailLower)) {
-                return {
-                    success: false,
-                    error: 'Email already exists in admin list'
-                };
-            }
-
-            // Add new admin
-            admins.push(emailLower);
-            await setDoc(doc(this.db, 'config', 'admins'), { admins });
-            
-            console.log(`[Firestore API] ✓ Admin ${emailLower} added successfully`);
-            return {
-                success: true,
-                message: `Admin ${emailLower} added successfully`,
-                admins
-            };
-        } catch (error) {
-            console.error('[Firestore API] ✗ Error adding admin:', error);
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
-
-    /**
-     * Remove admin email from the list
-     * @param {string} email - Email to remove
-     * @returns {Promise<object>} Result with success status
-     */
-    async removeAdmin(email) {
-        console.log(`[Firestore API] removeAdmin() called with email: ${email}`);
-        try {
-            const emailLower = email.toLowerCase().trim();
-            const adminDoc = await getDoc(doc(this.db, 'config', 'admins'));
-            
-            if (!adminDoc.exists()) {
-                return {
-                    success: false,
-                    error: 'Admin list not found'
-                };
-            }
-
-            let admins = adminDoc.data().admins || [];
-            
-            // Check if email exists
-            if (!admins.includes(emailLower)) {
-                return {
-                    success: false,
-                    error: 'Email not found in admin list'
-                };
-            }
-
-            // Remove admin
-            admins = admins.filter(a => a !== emailLower);
-            await setDoc(doc(this.db, 'config', 'admins'), { admins });
-            
-            console.log(`[Firestore API] ✓ Admin ${emailLower} removed successfully`);
-            return {
-                success: true,
-                message: `Admin ${emailLower} removed successfully`,
-                admins
-            };
-        } catch (error) {
-            console.error('[Firestore API] ✗ Error removing admin:', error);
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
+  }
 }
 
-// Export for use in other scripts
+// Export
 window.FirestoreAPI = FirestoreAPI;
 export default FirestoreAPI;
