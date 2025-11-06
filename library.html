@@ -333,6 +333,13 @@
         async function loadLibrary() {
             const gridContainer = document.querySelector('.resources-grid');
             
+            console.log('[Library] Container element found:', !!gridContainer);
+            
+            if (!gridContainer) {
+                console.error('[Library] Error: Grid container not found!');
+                return;
+            }
+            
             // Show loading state
             gridContainer.innerHTML = `
                 <div class="loading-container">
@@ -401,6 +408,10 @@
                             </div>
                         `;
                         gridContainer.innerHTML += resourceCard;
+                    });
+                    
+                    console.log('[Library] ✓ Rendered library items to DOM:', {
+                        itemsCount: gridContainer.children.length
                     });
                     
                     // Re-initialize filter and search after loading

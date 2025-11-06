@@ -200,6 +200,20 @@
             const gridContainer = document.querySelector('#gridView .events-grid');
             const timelineContainer = document.getElementById('timelineContainer');
             
+            console.log('[Events] Container elements found:', {
+                gridContainer: !!gridContainer,
+                timelineContainer: !!timelineContainer
+            });
+            
+            if (!gridContainer) {
+                console.error('[Events] Error: Grid container not found!');
+                return;
+            }
+            if (!timelineContainer) {
+                console.error('[Events] Error: Timeline container not found!');
+                return;
+            }
+            
             // Show loading state
             gridContainer.innerHTML = `
                 <div class="loading-container">
@@ -324,6 +338,11 @@
                             
                             timelineContainer.innerHTML += timelineItem;
                         }
+                    });
+                    
+                    console.log('[Events] ✓ Rendered events to DOM:', {
+                        gridItemsCount: gridContainer.children.length,
+                        timelineItemsCount: timelineContainer.children.length
                     });
                 } else {
                     // Show empty state
