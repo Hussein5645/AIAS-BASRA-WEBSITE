@@ -1285,15 +1285,15 @@
 
             const currentLang = localStorage.getItem('language') || 'en';
             if (firestoreAPI.hasToken()) {
-                // Use GitHub API to add event directly
-                const addingMsg = currentLang === 'ar' ? 'جاري إضافة الفعالية إلى المستودع...' : 'Adding event to repository...';
+                // Use Firestore API to add event directly
+                const addingMsg = currentLang === 'ar' ? 'جاري إضافة الفعالية إلى Firestore...' : 'Adding event to Firestore...';
                 showMessage(addingMsg, 'success');
                 
                 try {
                     const result = await firestoreAPI.addEvent(newEvent);
                     
                     if (result.success) {
-                        const successMsg = currentLang === 'ar' ? '✓ تم إضافة الفعالية بنجاح إلى المستودع!' : '✓ Event added successfully to the repository!';
+                        const successMsg = currentLang === 'ar' ? '✓ تم إضافة الفعالية بنجاح إلى Firestore!' : '✓ Event added successfully to Firestore!';
                         showMessage(successMsg, 'success');
                         document.getElementById('eventForm').reset();
                         loadExistingEvents(); // Reload the events list
@@ -1313,7 +1313,7 @@
                     data.events.push(newEvent);
                     
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
-                    const prepMsg = currentLang === 'ar' ? 'تم إعداد الفعالية. قم بتكوين رمز GitHub في الإعدادات للحفظ تلقائياً.' : 'Event prepared. Configure GitHub token in Settings to save automatically.';
+                    const prepMsg = currentLang === 'ar' ? 'تم إعداد الفعالية. تأكد من تسجيل الدخول كمسؤول للحفظ تلقائياً.' : 'Event prepared. Ensure you are logged in as admin to save automatically.';
                     showMessage(prepMsg, 'success');
                     const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
                     alert(alertMsg + JSON.stringify(data, null, 2));
@@ -1341,14 +1341,14 @@
 
             const currentLang = localStorage.getItem('language') || 'en';
             if (firestoreAPI.hasToken()) {
-                const addingMsg = currentLang === 'ar' ? 'جاري إضافة المقال إلى المستودع...' : 'Adding article to repository...';
+                const addingMsg = currentLang === 'ar' ? 'جاري إضافة المقال إلى Firestore...' : 'Adding article to Firestore...';
                 showMessage(addingMsg, 'success');
                 
                 try {
                     const result = await firestoreAPI.addArticle(newArticle);
                     
                     if (result.success) {
-                        const successMsg = currentLang === 'ar' ? '✓ تم إضافة المقال بنجاح إلى المستودع!' : '✓ Article added successfully to the repository!';
+                        const successMsg = currentLang === 'ar' ? '✓ تم إضافة المقال بنجاح إلى Firestore!' : '✓ Article added successfully to Firestore!';
                         showMessage(successMsg, 'success');
                         document.getElementById('articleForm').reset();
                         loadExistingArticles(); // Reload the articles list
@@ -1367,7 +1367,7 @@
                     data.magazine.articles.push(newArticle);
                     
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
-                    const prepMsg = currentLang === 'ar' ? 'تم إعداد المقال. قم بتكوين رمز GitHub في الإعدادات للحفظ تلقائياً.' : 'Article prepared. Configure GitHub token in Settings to save automatically.';
+                    const prepMsg = currentLang === 'ar' ? 'تم إعداد المقال. تأكد من تسجيل الدخول كمسؤول للحفظ تلقائياً.' : 'Article prepared. Ensure you are logged in as admin to save automatically.';
                     showMessage(prepMsg, 'success');
                     const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
                     alert(alertMsg + JSON.stringify(data, null, 2));
@@ -1398,14 +1398,14 @@
 
             const currentLang = localStorage.getItem('language') || 'en';
             if (firestoreAPI.hasToken()) {
-                const addingMsg = currentLang === 'ar' ? 'جاري إضافة مورد المكتبة إلى المستودع...' : 'Adding library resource to repository...';
+                const addingMsg = currentLang === 'ar' ? 'جاري إضافة مورد المكتبة إلى Firestore...' : 'Adding library resource to Firestore...';
                 showMessage(addingMsg, 'success');
                 
                 try {
                     const result = await firestoreAPI.addLibraryResource(newResource);
                     
                     if (result.success) {
-                        const successMsg = currentLang === 'ar' ? '✓ تم إضافة مورد المكتبة بنجاح إلى المستودع!' : '✓ Library resource added successfully to the repository!';
+                        const successMsg = currentLang === 'ar' ? '✓ تم إضافة مورد المكتبة بنجاح إلى Firestore!' : '✓ Library resource added successfully to Firestore!';
                         showMessage(successMsg, 'success');
                         document.getElementById('libraryForm').reset();
                         loadExistingLibraryResources(); // Reload the library resources list
@@ -1424,7 +1424,7 @@
                     data.library.push(newResource);
                     
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
-                    const prepMsg = currentLang === 'ar' ? 'تم إعداد المورد. قم بتكوين رمز GitHub في الإعدادات للحفظ تلقائياً.' : 'Resource prepared. Configure GitHub token in Settings to save automatically.';
+                    const prepMsg = currentLang === 'ar' ? 'تم إعداد المورد. تأكد من تسجيل الدخول كمسؤول للحفظ تلقائياً.' : 'Resource prepared. Ensure you are logged in as admin to save automatically.';
                     showMessage(prepMsg, 'success');
                     const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
                     alert(alertMsg + JSON.stringify(data, null, 2));
@@ -1474,7 +1474,7 @@
                     data.education.weeklyWorkshop = education;
                     
                     console.log('Updated data.json:', JSON.stringify(data, null, 2));
-                    const prepMsg = currentLang === 'ar' ? 'تم إعداد المحتوى التعليمي. قم بتكوين رمز GitHub في الإعدادات للحفظ تلقائياً.' : 'Education content prepared. Configure GitHub token in Settings to save automatically.';
+                    const prepMsg = currentLang === 'ar' ? 'تم إعداد المحتوى التعليمي. تأكد من تسجيل الدخول كمسؤول للحفظ تلقائياً.' : 'Education content prepared. Ensure you are logged in as admin to save automatically.';
                     showMessage(prepMsg, 'success');
                     const alertMsg = currentLang === 'ar' ? 'تم تحديث المحتوى بنجاح في Firestore:\n\n' : 'Content updated successfully in Firestore:\n\n';
                     alert(alertMsg + JSON.stringify(data, null, 2));
