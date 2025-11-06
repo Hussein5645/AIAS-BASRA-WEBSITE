@@ -35,13 +35,13 @@ class FirestoreAPI {
 
     /**
      * Get all content data (simulates getting data.json structure)
+     * Note: home and about pages are static and not fetched from Firestore
      * @returns {Promise<object>} All content data
      */
     async getAllContent() {
         console.log('[Firestore API] getAllContent() called');
         try {
             const data = {
-                home: {},
                 events: [],
                 magazine: {
                     featuredArticle: null,
@@ -57,22 +57,8 @@ class FirestoreAPI {
                         about: "",
                         events: []
                     }
-                },
-                about: {
-                    story: { paragraphs: [] },
-                    values: [],
-                    founders: [],
-                    team: []
                 }
             };
-
-            // Fetch home data
-            console.log('[Firestore API] Reading home content...');
-            const homeDoc = await getDoc(doc(this.db, 'content', 'home'));
-            if (homeDoc.exists()) {
-                data.home = homeDoc.data();
-                console.log('[Firestore API] ✓ Home content retrieved');
-            }
 
             // Fetch events
             console.log('[Firestore API] Reading events collection...');
@@ -100,14 +86,6 @@ class FirestoreAPI {
             if (educationDoc.exists()) {
                 data.education = educationDoc.data();
                 console.log('[Firestore API] ✓ Education content retrieved');
-            }
-
-            // Fetch about data
-            console.log('[Firestore API] Reading about content...');
-            const aboutDoc = await getDoc(doc(this.db, 'content', 'about'));
-            if (aboutDoc.exists()) {
-                data.about = aboutDoc.data();
-                console.log('[Firestore API] ✓ About content retrieved');
             }
 
             console.log('[Firestore API] ✓ All content retrieved successfully');
@@ -258,19 +236,13 @@ class FirestoreAPI {
 
     /**
      * Update entire content document (simulates updating data.json)
+     * Note: home and about pages are static and not updated in Firestore
      * @param {object} content - Complete content object
      * @returns {Promise<object>} Result with success status
      */
     async updateAllContent(content) {
         console.log('[Firestore API] updateAllContent() called');
         try {
-            // Update home data
-            if (content.home) {
-                console.log('[Firestore API] Writing home content...');
-                await setDoc(doc(this.db, 'content', 'home'), content.home);
-                console.log('[Firestore API] ✓ Home content written');
-            }
-
             // Update magazine data
             if (content.magazine) {
                 console.log('[Firestore API] Writing magazine content...');
@@ -283,13 +255,6 @@ class FirestoreAPI {
                 console.log('[Firestore API] Writing education content...');
                 await setDoc(doc(this.db, 'content', 'education'), content.education);
                 console.log('[Firestore API] ✓ Education content written');
-            }
-
-            // Update about data
-            if (content.about) {
-                console.log('[Firestore API] Writing about content...');
-                await setDoc(doc(this.db, 'content', 'about'), content.about);
-                console.log('[Firestore API] ✓ About content written');
             }
 
             console.log('[Firestore API] ✓ All content updated successfully');
@@ -562,12 +527,12 @@ class FirestoreAPI {
 
     /**
      * Get the expected Firestore structure template
+     * Note: home and about are not stored in Firestore as they are static pages
      * @returns {object} Expected structure
      */
     getExpectedStructure() {
         return {
             content: {
-                home: {},
                 magazine: {
                     featuredArticle: null,
                     articles: [],
@@ -581,12 +546,6 @@ class FirestoreAPI {
                         about: "",
                         events: []
                     }
-                },
-                about: {
-                    story: { paragraphs: [] },
-                    values: [],
-                    founders: [],
-                    team: []
                 }
             },
             config: {
