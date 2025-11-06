@@ -57,6 +57,14 @@ const revealObserver = new IntersectionObserver((entries) => {
 const observeRevealElement = (element) => {
     if (element.classList.contains('reveal') && !element.classList.contains('active')) {
         revealObserver.observe(element);
+        
+        // Immediately check if element is already in viewport (for dynamically added elements)
+        const rect = element.getBoundingClientRect();
+        const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
+        if (isInViewport) {
+            // Element is already visible, activate it immediately
+            element.classList.add('active');
+        }
     }
 };
 
