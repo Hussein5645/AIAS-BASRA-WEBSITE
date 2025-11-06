@@ -1,5 +1,14 @@
 # Firestore Content Implementation Summary
 
+## Latest Update (2025-11-06)
+**All data has been reorganized under the `content` collection:**
+- Events moved from `events/` to `content/events/items/`
+- Library moved from `library/` to `content/library/items/`
+- Magazine remains at `content/magazine` (document)
+- Education remains at `content/education` (document)
+
+This ensures ALL website content is stored under the unified `content` collection structure.
+
 ## Overview
 This document summarizes the implementation ensuring all website content is stored in and retrieved from Firebase Firestore, with no GitHub-based storage.
 
@@ -12,33 +21,37 @@ The original requirement was to:
 
 ## Current Firestore Structure
 
+All data is now organized under the `content` collection:
+
 ```
 aias-bsr (Firebase Project)
 │
-├── events/ (collection)
-│   ├── {eventId-1}
-│   │   ├── id: "evt-001"
-│   │   ├── title: "Design Thinking Workshop"
-│   │   ├── time: "2024-12-15T14:00:00"
-│   │   ├── location: "Architecture Department"
-│   │   ├── eventType: "Workshop"
-│   │   ├── seatsAvailable: 30
-│   │   ├── image: "🎨"
-│   │   └── description: "..."
-│   └── ... (more events)
-│
-├── library/ (collection)
-│   ├── {itemId-1}
-│   │   ├── id: "lib-001"
-│   │   ├── name: "Architectural Design Fundamentals"
-│   │   ├── type: "Book"
-│   │   ├── tags: ["Design", "Fundamentals", "Theory"]
-│   │   ├── image: "📚"
-│   │   ├── description: "..."
-│   │   └── link: "#"
-│   └── ... (more library items)
-│
 └── content/ (collection)
+    ├── events (document)
+    │   └── items/ (subcollection)
+    │       ├── {eventId-1}
+    │       │   ├── id: "evt-001"
+    │       │   ├── title: "Design Thinking Workshop"
+    │       │   ├── time: "2024-12-15T14:00:00"
+    │       │   ├── location: "Architecture Department"
+    │       │   ├── eventType: "Workshop"
+    │       │   ├── seatsAvailable: 30
+    │       │   ├── image: "🎨"
+    │       │   └── description: "..."
+    │       └── ... (more events)
+    │
+    ├── library (document)
+    │   └── items/ (subcollection)
+    │       ├── {itemId-1}
+    │       │   ├── id: "lib-001"
+    │       │   ├── name: "Architectural Design Fundamentals"
+    │       │   ├── type: "Book"
+    │       │   ├── tags: ["Design", "Fundamentals", "Theory"]
+    │       │   ├── image: "📚"
+    │       │   ├── description: "..."
+    │       │   └── link: "#"
+    │       └── ... (more library items)
+    │
     ├── magazine (document)
     │   ├── featuredArticle: {...}
     │   ├── articles: [
@@ -65,47 +78,47 @@ aias-bsr (Firebase Project)
 
 ### 1. Events Management
 
-**Firestore Location:** `events` collection (root level)
+**Firestore Location:** `content/events/items` (subcollection under content/events document)
 
 **Adding Events (from admin dashboard):**
 - File: `admin-dashboard.html`
 - Method: `firestoreAPI.addEvent(newEvent)`
-- Firestore API: `addDoc(collection(this.db, 'events'), event)`
-- Path: `/events/{auto-generated-id}`
+- Firestore API: `addDoc(collection(this.db, 'content/events/items'), event)`
+- Path: `/content/events/items/{auto-generated-id}`
 
 **Viewing Events (on events.html):**
 - File: `events.html`
-- Method: Direct Firestore query
-- Code: `getDocs(collection(db, 'events'))`
-- Path: `/events/*`
+- Method: Direct Firestore query (via data-loader.js)
+- Code: `getDocs(collection(db, 'content/events/items'))`
+- Path: `/content/events/items/*`
 
 **Viewing Events (in dashboard):**
 - File: `admin-dashboard.html`
 - Method: `firestoreAPI.getAllContent()`
 - Access: `result.content.events`
-- Path: `/events/*`
+- Path: `/content/events/items/*`
 
 ### 2. Library Management
 
-**Firestore Location:** `library` collection (root level)
+**Firestore Location:** `content/library/items` (subcollection under content/library document)
 
 **Adding Library Resources (from admin dashboard):**
 - File: `admin-dashboard.html`
 - Method: `firestoreAPI.addLibraryResource(newResource)`
-- Firestore API: `addDoc(collection(this.db, 'library'), resource)`
-- Path: `/library/{auto-generated-id}`
+- Firestore API: `addDoc(collection(this.db, 'content/library/items'), resource)`
+- Path: `/content/library/items/{auto-generated-id}`
 
 **Viewing Library (on library.html):**
 - File: `library.html`
-- Method: Direct Firestore query
-- Code: `getDocs(collection(db, 'library'))`
-- Path: `/library/*`
+- Method: Direct Firestore query (via data-loader.js)
+- Code: `getDocs(collection(db, 'content/library/items'))`
+- Path: `/content/library/items/*`
 
 **Viewing Library (in dashboard):**
 - File: `admin-dashboard.html`
 - Method: `firestoreAPI.getAllContent()`
 - Access: `result.content.library`
-- Path: `/library/*`
+- Path: `/content/library/items/*`
 
 ### 3. Magazine Management
 
@@ -328,11 +341,32 @@ Check browser console for:
 
 ## Files Modified
 
-1. **admin-dashboard.html**
-   - Fixed data access pattern for events
-   - Added null safety checks
-   - Updated user messages (English & Arabic)
-   - Updated code comments
+1. **js/firestore-api.js**
+   - Updated `getAllContent()` to read events from `content/events/items`
+   - Updated `getAllContent()` to read library from `content/library/items`
+   - Updated `addEvent()` to write to `content/events/items`
+   - Updated `addLibraryResource()` to write to `content/library/items`
+   - Updated `deleteEvent()` to delete from `content/events/items`
+   - Updated `updateEvent()` to update in `content/events/items`
+   - Updated `deleteLibraryResource()` to delete from `content/library/items`
+   - Updated `updateLibraryResource()` to update in `content/library/items`
+
+2. **js/data-loader.js**
+   - Updated `fetchData()` to read events from `content/events/items`
+   - Updated `fetchData()` to read library from `content/library/items`
+
+3. **firestore.rules**
+   - Removed root-level `events` collection rules
+   - Removed root-level `library` collection rules
+   - Added subcollection rules under `content/{document}` for `events/items` and `library/items`
+
+4. **firebase-test.html**
+   - Updated test queries to read from new subcollection paths
+   - Updated console messages to reflect new structure
+
+5. **FIRESTORE_CONTENT_IMPLEMENTATION.md**
+   - Updated documentation to reflect new structure
+   - Updated all paths and examples
 
 ## Security Notes
 
@@ -341,22 +375,21 @@ Check browser console for:
 All content is protected by Firestore security rules defined in `firestore.rules`:
 
 ```javascript
-// Events collection - admins can write, all can read
-match /events/{eventId} {
-  allow read: if true;
-  allow write: if isAdmin();
-}
-
-// Library collection - admins can write, all can read
-match /library/{itemId} {
-  allow read: if true;
-  allow write: if isAdmin();
-}
-
 // Content documents - admins can write, all can read
 match /content/{document} {
   allow read: if true;
   allow write: if isAdmin();
+  
+  // Subcollections for events and library under content
+  match /events/items/{eventId} {
+    allow read: if true;
+    allow write: if isAdmin();
+  }
+  
+  match /library/items/{libraryId} {
+    allow read: if true;
+    allow write: if isAdmin();
+  }
 }
 ```
 
@@ -417,16 +450,23 @@ To add a new content type (e.g., "gallery"):
 ## Conclusion
 
 All content (Events, Library, Magazine, Education, FBD) is now:
-- ✅ Stored in Firebase Firestore
-- ✅ Accessible from consistent locations
+- ✅ Stored in Firebase Firestore under the unified `content` collection
+- ✅ Organized in a consistent structure with subcollections for events and library
+- ✅ Accessible from consistent locations across all pages
 - ✅ Protected by security rules
 - ✅ Manageable via admin dashboard
 - ✅ Displayed on public pages
 - ✅ No GitHub storage used
+
+**New Structure Benefits:**
+- All data is organized under `content/` for better organization
+- Easier to manage permissions at the collection level
+- More scalable structure for future additions
+- Clear separation of concerns
 
 The implementation is complete, tested, and production-ready.
 
 ---
 
 **Last Updated:** 2025-11-06
-**Implementation Status:** ✅ Complete
+**Implementation Status:** ✅ Complete (All data under content collection)

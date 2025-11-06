@@ -83,15 +83,15 @@ class DataLoader {
         try {
             console.log('[Data Loader] Fetching fresh data from Firestore...');
             
-            // Fetch events
-            console.log('[Data Loader] Fetching events...');
-            const eventsSnapshot = await getDocs(collection(this.db, 'events'));
+            // Fetch events from content subcollection
+            console.log('[Data Loader] Fetching events from content/events/items...');
+            const eventsSnapshot = await getDocs(collection(this.db, 'content/events/items'));
             this.cache.events = eventsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
             console.log(`[Data Loader] ✓ Loaded ${this.cache.events.length} events`);
 
-            // Fetch library
-            console.log('[Data Loader] Fetching library...');
-            const librarySnapshot = await getDocs(collection(this.db, 'library'));
+            // Fetch library from content subcollection
+            console.log('[Data Loader] Fetching library from content/library/items...');
+            const librarySnapshot = await getDocs(collection(this.db, 'content/library/items'));
             this.cache.library = librarySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
             console.log(`[Data Loader] ✓ Loaded ${this.cache.library.length} library items`);
 
