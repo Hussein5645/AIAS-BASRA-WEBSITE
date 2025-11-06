@@ -8,7 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <script type="module" src="js/firestore-api.js"></script>
+  <!-- NOTE: Do NOT directly include js/firestore-api.js as a <script> tag here.
+       We import it inside the module script at the end to avoid double-loading. -->
   <script src="js/main.js" defer></script>
   <style>
     :root {
@@ -22,35 +23,46 @@
       --success: #38a169;
       --error: #e53e3e;
     }
-    body { background: var(--bg); }
-    .admin-header { background: linear-gradient(135deg, var(--brand1) 0%, var(--brand2) 100%); color: white; padding: 1.25rem 0; margin-bottom: 0; }
-    .admin-header .container { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
-    .admin-header h1 { font-size: 1.4rem; font-weight: 800; margin: 0; }
+    html, body { height: 100%; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+
+    /* Header */
+    .admin-header { background: linear-gradient(135deg, var(--brand1) 0%, var(--brand2) 100%); color: white; padding: 1.1rem 0; }
+    .admin-header .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+    .admin-header h1 { font-size: 1.35rem; font-weight: 800; margin: 0; }
     .admin-info { display: flex; align-items: center; gap: .5rem; }
-    .logout-btn, .home-link, .language-toggle { padding: 0.35rem 0.9rem; background: rgba(255,255,255,0.2); color: white; border: 2px solid white; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap:.4rem; }
-    .logout-btn:hover, .home-link:hover, .language-toggle:hover { background: white; color: var(--brand1); }
-    .dashboard { display: grid; grid-template-columns: 260px 1fr; gap: 1.25rem; padding: 1.25rem; }
-    .sidebar { background: var(--panel); border-right: 1px solid var(--border); border-radius: 12px; overflow: hidden; height: calc(100vh - 130px); position: sticky; top: 1.25rem; }
+    .pill { padding: 0.35rem 0.9rem; background: rgba(255,255,255,0.2); color: white; border: 2px solid white; border-radius: 10px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap:.4rem; transition: .2s; }
+    .pill:hover { background: white; color: var(--brand1); }
+
+    /* Layout */
+    .dashboard { max-width: 1200px; margin: 0 auto; padding: 1.25rem; display: grid; grid-template-columns: 260px 1fr; gap: 1.25rem; }
+    .sidebar { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; height: calc(100vh - 150px); position: sticky; top: 1.25rem; }
     .sidebar h3 { margin: 0; padding: 1rem 1rem .25rem; font-size: .9rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
     .nav { list-style: none; margin: 0; padding: .5rem; }
     .nav li { margin: .25rem 0; }
     .nav button { width: 100%; text-align: left; background: none; border: none; border-radius: 10px; padding: .65rem .8rem; font-weight: 600; color: #4a5568; cursor: pointer; }
     .nav button.active, .nav button:hover { background: #eef2ff; color: var(--brand1); }
+
     .content { min-height: 70vh; }
     .content > .tab-content { display: none; }
     .content > .tab-content.active { display: block; }
+
     .top-actions { display:flex; justify-content:flex-end; gap:.5rem; margin-bottom: .75rem; }
     .mini-btn { border: 1px solid var(--border); background: var(--panel); color: var(--muted); border-radius: 8px; padding: .35rem .6rem; cursor: pointer; font-size: .85rem; }
     .mini-btn:hover { background: #edf2f7; color: var(--text); }
+
+    /* Panels, lists, forms */
     .panel { background: var(--panel); padding: 1rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     .message { padding: .75rem 1rem; border-radius: 8px; margin-bottom: 1rem; display: none; border-left: 4px solid transparent; }
     .message.success { background: #f0fff4; color: var(--success); border-left-color: var(--success); }
     .message.error { background: #fff5f5; color: var(--error); border-left-color: var(--error); }
+
     details.accordion { border: 1px solid var(--border); border-radius: 12px; background: var(--panel); margin-bottom: .75rem; overflow: hidden; }
     details.accordion > summary { list-style: none; cursor: pointer; padding: .85rem 1rem; font-weight: 700; display:flex; align-items:center; justify-content:space-between; }
     details.accordion > summary::-webkit-details-marker { display:none; }
     details.accordion[open] > summary { background: #f8fafc; border-bottom: 1px solid var(--border); }
     .accordion-body { padding: 1rem; }
+
     .content-list .content-item { padding: .75rem; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap: .75rem; }
     .content-list .content-item:last-child { border-bottom: none; }
     .btn { padding: .45rem .7rem; border: none; border-radius: 8px; color: white; font-weight: 700; cursor: pointer; }
@@ -58,12 +70,14 @@
     .edit-btn { background: #3182ce; } .edit-btn:hover { filter: brightness(0.95); }
     .submit-btn { padding: .75rem 1.2rem; background: linear-gradient(135deg, var(--brand1) 0%, var(--brand2) 100%); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; }
     .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(102,126,234,0.25); }
+
     .form-group { margin-bottom: 1rem; }
     .form-group label { display: block; color: var(--muted); font-size: .9rem; font-weight: 700; margin-bottom: .35rem; }
-    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: .65rem .7rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; font-family: 'Inter', sans-serif; transition: border-color .2s, box-shadow .2s; }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: .65rem .7rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; transition: border-color .2s, box-shadow .2s; }
     .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: var(--brand1); box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
     .form-group textarea { min-height: 110px; resize: vertical; }
     .two-col { display:grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+
     @media (max-width: 900px) {
       .dashboard { grid-template-columns: 1fr; }
       .sidebar { position: static; height: auto; }
@@ -72,24 +86,25 @@
   </style>
 </head>
 <body>
-  <!-- Admin Header -->
+  <!-- Header -->
   <div class="admin-header">
     <div class="container">
       <h1 data-en="Admin Dashboard" data-ar="لوحة التحكم الإدارية">Admin Dashboard</h1>
       <div class="admin-info">
-        <button class="language-toggle" id="languageToggle" style="display:inline-flex;align-items:center;">
+        <button class="pill" id="languageToggle" title="Toggle language">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
             <circle cx="12" cy="12" r="10"/>
             <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
           </svg>
           <span id="currentLang">EN</span>
         </button>
-        <a href="index.html" class="home-link" data-en="View Site" data-ar="عرض الموقع">View Site</a>
-        <button class="logout-btn" onclick="logout()" data-en="Logout" data-ar="تسجيل الخروج">Logout</button>
+        <a href="index.html" class="pill" data-en="View Site" data-ar="عرض الموقع">View Site</a>
+        <button class="pill" onclick="logout()" data-en="Logout" data-ar="تسجيل الخروج">Logout</button>
       </div>
     </div>
   </div>
 
+  <!-- Main -->
   <div class="dashboard">
     <!-- Sidebar -->
     <aside class="sidebar">
@@ -104,11 +119,9 @@
       </ul>
     </aside>
 
-    <!-- Main content -->
+    <!-- Content -->
     <main class="content">
       <div id="message" class="message"></div>
-
-      <!-- Top actions -->
       <div class="top-actions">
         <button id="expandAll" class="mini-btn">Expand all</button>
         <button id="collapseAll" class="mini-btn">Collapse all</button>
@@ -154,7 +167,7 @@
         </details>
       </section>
 
-      <!-- Articles -->
+      <!-- Magazine -->
       <section id="articles-tab" class="tab-content">
         <details class="accordion" open>
           <summary>Existing Articles</summary>
@@ -319,7 +332,7 @@
             <div id="tokenStatus" style="padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem; background:#f8fafc;">
               <p><strong>Status:</strong> <span id="tokenStatusText">Checking...</span></p>
             </div>
-            <p style="color:#4a5568;margin-bottom:1rem">Content is now stored in Firebase Firestore. No additional configuration needed.</p>
+            <p style="color:#4a5568;margin-bottom:1rem">Content is stored in Firebase Firestore.</p>
             <button type="button" class="submit-btn" onclick="testFirestoreConnection()" style="background:#38a169;">Test Connection</button>
           </div>
         </details>
@@ -340,7 +353,7 @@
           <div class="accordion-body panel">
             <div style="margin-bottom:1rem">
               <h4>Current Admins:</h4>
-              <div id="adminsList" style="background:#f7fafc;padding:1rem;border-radius:8px;min-height:60px"><p>Loading...</p></div>
+              <div id="adminsList" class="panel" style="background:#f7fafc;min-height:60px"><p>Loading...</p></div>
             </div>
             <div class="form-group">
               <label for="newAdminEmail">Add Admin Email</label>
@@ -358,9 +371,10 @@
   <script type="module">
     import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import FirestoreAPI from "./js/firestore-api.js";
 
+    // Firebase config (same as FirestoreAPI)
     const firebaseConfig = {
       apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
       authDomain: "aias-bsr.firebaseapp.com",
@@ -371,6 +385,7 @@
       measurementId: "G-6W50T4HXDV"
     };
 
+    // Init
     let app;
     try { app = getApp(); } catch { app = initializeApp(firebaseConfig); }
     const auth = getAuth(app);
@@ -379,25 +394,17 @@
 
     let CACHE = { events: [], articles: [], library: [], courses: [], fbdEvents: [] };
 
-    // Sidebar nav handling
-    const mainNav = document.getElementById('mainNav');
-    mainNav.addEventListener('click', (e) => {
-      const btn = e.target.closest('button[data-tab]');
-      if (!btn) return;
-      const tab = btn.getAttribute('data-tab');
-      document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      showTab(tab);
-    });
-
-    // Expand/Collapse all in active tab
-    document.getElementById('expandAll').addEventListener('click', () => {
-      document.querySelectorAll('.tab-content.active details.accordion').forEach(d => d.open = true);
-    });
-    document.getElementById('collapseAll').addEventListener('click', () => {
-      document.querySelectorAll('.tab-content.active details.accordion').forEach(d => d.open = false);
-    });
-
+    // Auth + guard
+    async function checkIfAdmin(email) {
+      try {
+        const adminDoc = await getDoc(doc(db, 'config', 'admins'));
+        if (adminDoc.exists()) {
+          const data = adminDoc.data();
+          return Array.isArray(data.admins) && data.admins.includes((email || '').toLowerCase());
+        }
+      } catch (error) { console.error('Error checking admin status:', error); }
+      return false;
+    }
     window.logout = async function() {
       try {
         await signOut(auth);
@@ -408,34 +415,42 @@
         alert('Error signing out. Please try again.');
       }
     };
-
-    async function checkIfAdmin(email) {
-      try {
-        const adminDoc = await getDoc(doc(db, 'config', 'admins'));
-        if (adminDoc.exists()) {
-          const data = adminDoc.data();
-          return Array.isArray(data.admins) && data.admins.includes(email.toLowerCase());
-        }
-      } catch (error) { console.error('Error checking admin status:', error); }
-      return false;
-    }
-
-    (function() {
+    (function initAuth() {
       onAuthStateChanged(auth, async (user) => {
         if (!user) { window.location.href = 'login.html'; return; }
         const isAdmin = await checkIfAdmin(user.email);
         if (!isAdmin) { alert('Access denied. Admin privileges required.'); window.location.href = 'login.html'; return; }
         localStorage.setItem('aias_authenticated','true');
-        localStorage.setItem('aias_user_email', user.email);
+        localStorage.setItem('aias_user_email', user.email || '');
         localStorage.setItem('aias_user_name', user.displayName || 'Admin');
         localStorage.setItem('aias_user_picture', user.photoURL || '');
         localStorage.setItem('aias_is_admin','true');
-        localStorage.setItem('aias_user_uid', user.uid);
+        localStorage.setItem('aias_user_uid', user.uid || '');
         document.getElementById('currentLang').textContent = (localStorage.getItem('language') || 'EN').toUpperCase();
         showTab('events'); // default
       });
     })();
 
+    // Sidebar navigation
+    const mainNav = document.getElementById('mainNav');
+    mainNav.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-tab]');
+      if (!btn) return;
+      document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const tab = btn.getAttribute('data-tab');
+      showTab(tab);
+    });
+
+    // Expand/Collapse all accordions in current tab
+    document.getElementById('expandAll').addEventListener('click', () => {
+      document.querySelectorAll('.tab-content.active details.accordion').forEach(d => d.open = true);
+    });
+    document.getElementById('collapseAll').addEventListener('click', () => {
+      document.querySelectorAll('.tab-content.active details.accordion').forEach(d => d.open = false);
+    });
+
+    // Helpers
     function showMessage(text, type) {
       const el = document.getElementById('message');
       el.textContent = text;
@@ -456,6 +471,7 @@
       document.querySelectorAll('.content > .tab-content').forEach(t=>t.classList.remove('active'));
       const target = document.getElementById(`${tab}-tab`);
       if (target) target.classList.add('active');
+
       if (tab==='events') loadExistingEvents();
       if (tab==='articles') loadExistingArticles();
       if (tab==='library') loadExistingLibraryResources();
@@ -464,7 +480,8 @@
       if (tab==='settings') { testFirestoreConnection(); loadAdminsList?.(); }
     };
 
-    // Loaders
+    // Loaders + CRUD
+    // Events
     window.loadExistingEvents = async function() {
       const box = document.getElementById('existingEventsList');
       box.innerHTML = '<p>Loading events...</p>';
@@ -475,8 +492,8 @@
         if (CACHE.events.length===0) { box.innerHTML = '<p>No events found.</p>'; return; }
         box.innerHTML = CACHE.events.map(ev => `
           <div class="content-item">
-            <div><strong>${ev.title || '(no title)'}</strong><br><small>${ev.time ? new Date(ev.time).toLocaleString() : '—'} ${ev.location ? ' - ' + ev.location : ''}</small></div>
-            <div class="user-actions">
+            <div><strong>${ev.title || '(no title)'}</strong><br><small>${ev.time ? new Date(ev.time).toLocaleString() : '—'}${ev.location ? ' - ' + ev.location : ''}</small></div>
+            <div>
               <button class="btn edit-btn" onclick="editEvent('${ev.id}')">Edit</button>
               <button class="btn delete-btn" onclick="deleteEvent('${ev.id}')">Delete</button>
             </div>
@@ -487,16 +504,17 @@
     };
     window.editEvent = function(id) {
       const ev = CACHE.events.find(x=>x.id===id); if (!ev) return;
-      eventForm.dataset.mode = 'edit';
-      eventId.value = ev.id;
-      eventTitle.value = ev.title || '';
-      eventTime.value = ev.time ? new Date(ev.time).toISOString().slice(0,16) : '';
-      eventLocation.value = ev.location || '';
-      eventType.value = ev.type || 'Workshop';
-      eventSeats.value = ev.seats ?? 0;
-      eventImage.value = ev.image || '';
-      eventDescription.value = ev.description || '';
-      eventSubmitBtn.textContent = 'Update Event';
+      const f = document.getElementById('eventForm');
+      f.dataset.mode = 'edit';
+      document.getElementById('eventId').value = ev.id;
+      document.getElementById('eventTitle').value = ev.title || '';
+      document.getElementById('eventTime').value = ev.time ? new Date(ev.time).toISOString().slice(0,16) : '';
+      document.getElementById('eventLocation').value = ev.location || '';
+      document.getElementById('eventType').value = ev.type || 'Workshop';
+      document.getElementById('eventSeats').value = ev.seats ?? 0;
+      document.getElementById('eventImage').value = ev.image || '';
+      document.getElementById('eventDescription').value = ev.description || '';
+      document.getElementById('eventSubmitBtn').textContent = 'Update Event';
     };
     window.deleteEvent = async function(id) {
       if (!confirm('Are you sure you want to delete this event?')) return;
@@ -505,6 +523,7 @@
       else showMessage(r.error || 'Failed to delete event', 'error');
     };
 
+    // Articles
     window.loadExistingArticles = async function() {
       const box = document.getElementById('existingArticlesList');
       box.innerHTML = '<p>Loading articles...</p>';
@@ -516,25 +535,25 @@
         box.innerHTML = CACHE.articles.map(a => `
           <div class="content-item">
             <div><strong>${a.title || '(no title)'}</strong><br><small>${a.author ? 'by ' + a.author : ''} ${a.date || ''}</small></div>
-            <div class="user-actions">
+            <div>
               <button class="btn edit-btn" onclick="editArticle('${a.id}')">Edit</button>
               <button class="btn delete-btn" onclick="deleteArticle('${a.id}')">Delete</button>
             </div>
           </div>
         `).join('');
-        reapplyTranslations();
       } catch (e) { console.error(e); box.innerHTML='<p style="color:red">Error loading articles</p>'; }
     };
     window.editArticle = function(id) {
       const a = CACHE.articles.find(x=>x.id===id); if (!a) return;
-      articleForm.dataset.mode = 'edit';
-      articleId.value = a.id;
-      articleTitle.value = a.title || '';
-      articleAuthor.value = a.author || '';
-      articleDate.value = a.date || '';
-      articleSummary.value = a.summary || '';
-      articleContent.value = a.content || '';
-      articleSubmitBtn.textContent = 'Update Article';
+      const f = document.getElementById('articleForm');
+      f.dataset.mode = 'edit';
+      document.getElementById('articleId').value = a.id;
+      document.getElementById('articleTitle').value = a.title || '';
+      document.getElementById('articleAuthor').value = a.author || '';
+      document.getElementById('articleDate').value = a.date || '';
+      document.getElementById('articleSummary').value = a.summary || '';
+      document.getElementById('articleContent').value = a.content || '';
+      document.getElementById('articleSubmitBtn').textContent = 'Update Article';
     };
     window.deleteArticle = async function(id) {
       if (!confirm('Are you sure you want to delete this article?')) return;
@@ -543,6 +562,7 @@
       else showMessage(r.error || 'Failed to delete article', 'error');
     };
 
+    // Library
     window.loadExistingLibraryResources = async function() {
       const box = document.getElementById('existingLibraryList');
       box.innerHTML = '<p>Loading resources...</p>';
@@ -553,27 +573,27 @@
         if (CACHE.library.length===0) { box.innerHTML = '<p>No resources found.</p>'; return; }
         box.innerHTML = CACHE.library.map(it => `
           <div class="content-item">
-            <div><strong>${it.name || '(no name)'}</strong><br><small>${it.type || ''} ${Array.isArray(it.tags) && it.tags.length ? ' - ' + it.tags.join(', ') : ''}</small></div>
-            <div class="user-actions">
+            <div><strong>${it.name || '(no name)'}</strong><br><small>${it.type || ''}${Array.isArray(it.tags)&&it.tags.length ? ' - ' + it.tags.join(', ') : ''}</small></div>
+            <div>
               <button class="btn edit-btn" onclick="editLibrary('${it.id}')">Edit</button>
               <button class="btn delete-btn" onclick="deleteLibraryResource('${it.id}')">Delete</button>
             </div>
           </div>
         `).join('');
-        reapplyTranslations();
       } catch (e) { console.error(e); box.innerHTML='<p style="color:red">Error loading resources</p>'; }
     };
     window.editLibrary = function(id) {
       const r = CACHE.library.find(x=>x.id===id); if (!r) return;
-      libraryForm.dataset.mode = 'edit';
-      libId.value = r.id;
-      libName.value = r.name || '';
-      libType.value = r.type || 'Book';
-      libTags.value = Array.isArray(r.tags) ? r.tags.join(', ') : (r.tags || '');
-      libImage.value = r.image || '';
-      libDescription.value = r.description || '';
-      libLink.value = r.link || '';
-      libSubmitBtn.textContent = 'Update Resource';
+      const f = document.getElementById('libraryForm');
+      f.dataset.mode = 'edit';
+      document.getElementById('libId').value = r.id;
+      document.getElementById('libName').value = r.name || '';
+      document.getElementById('libType').value = r.type || 'Book';
+      document.getElementById('libTags').value = Array.isArray(r.tags) ? r.tags.join(', ') : (r.tags || '');
+      document.getElementById('libImage').value = r.image || '';
+      document.getElementById('libDescription').value = r.description || '';
+      document.getElementById('libLink').value = r.link || '';
+      document.getElementById('libSubmitBtn').textContent = 'Update Resource';
     };
     window.deleteLibraryResource = async function(id) {
       if (!confirm('Are you sure you want to delete this resource?')) return;
@@ -582,12 +602,16 @@
       else showMessage(r.error || 'Failed to delete resource', 'error');
     };
 
-    // Courses and FBD
+    // Education
     window.loadEducationContent = async function() {
       try {
         const r = await firestoreAPI.getAllContent();
         const w = r.success ? r.content.education?.weeklyWorkshop : null;
-        if (w) { weekTitle.value = w.weekTitle || ''; lecturerName.value = w.lecturerName || ''; weekDescription.value = w.description || ''; }
+        if (w) {
+          document.getElementById('weekTitle').value = w.weekTitle || '';
+          document.getElementById('lecturerName').value = w.lecturerName || '';
+          document.getElementById('weekDescription').value = w.description || '';
+        }
       } catch (e) { console.error(e); }
     };
     window.loadCourses = async function() {
@@ -601,7 +625,7 @@
         box.innerHTML = CACHE.courses.map(c => `
           <div class="content-item">
             <div><strong>${c.title || '(no title)'}</strong><br><small>${c.lecturer ? c.lecturer+' — ' : ''}${c.link ? `<a href="${c.link}" target="_blank">Link</a>` : ''}</small></div>
-            <div class="user-actions">
+            <div>
               <button class="btn edit-btn" onclick="editCourse('${c.id}')">Edit</button>
               <button class="btn delete-btn" onclick="deleteCourse('${c.id}')">Delete</button>
             </div>
@@ -611,13 +635,14 @@
     };
     window.editCourse = function(id) {
       const c = CACHE.courses.find(x=>x.id===id); if (!c) return;
-      courseForm.dataset.mode = 'edit';
-      courseId.value = c.id;
-      courseTitle.value = c.title || '';
-      courseDescription.value = c.description || '';
-      courseLecturer.value = c.lecturer || '';
-      courseLink.value = c.link || '';
-      courseSubmitBtn.textContent = 'Update Course';
+      const f = document.getElementById('courseForm');
+      f.dataset.mode = 'edit';
+      document.getElementById('courseId').value = c.id;
+      document.getElementById('courseTitle').value = c.title || '';
+      document.getElementById('courseDescription').value = c.description || '';
+      document.getElementById('courseLecturer').value = c.lecturer || '';
+      document.getElementById('courseLink').value = c.link || '';
+      document.getElementById('courseSubmitBtn').textContent = 'Update Course';
     };
     window.deleteCourse = async function(id) {
       if (!confirm('Are you sure you want to delete this course?')) return;
@@ -626,6 +651,7 @@
       else showMessage(r.error || 'Failed to delete course', 'error');
     };
 
+    // FBD
     window.loadFbd = async function() {
       const box = document.getElementById('existingFbdEventsList');
       box.innerHTML = '<p>Loading FBD events...</p>';
@@ -633,14 +659,14 @@
         const r = await firestoreAPI.getAllContent();
         if (!r.success) throw new Error(r.error);
         const fbd = r.content.education?.fbd || { pageTitle:'', about:'', events:[] };
-        fbdTitle.value = fbd.pageTitle || '';
-        fbdAbout.value = fbd.about || '';
+        document.getElementById('fbdTitle').value = fbd.pageTitle || '';
+        document.getElementById('fbdAbout').value = fbd.about || '';
         CACHE.fbdEvents = fbd.events || [];
         if (CACHE.fbdEvents.length===0) { box.innerHTML = '<p>No FBD events found.</p>'; return; }
         box.innerHTML = CACHE.fbdEvents.map(ev => `
           <div class="content-item">
-            <div><strong>${ev.title || '(no title)'}</strong><br><small>${ev.time ? new Date(ev.time).toLocaleString() : '—'} ${ev.location ? ' - ' + ev.location : ''}</small></div>
-            <div class="user-actions">
+            <div><strong>${ev.title || '(no title)'}</strong><br><small>${ev.time ? new Date(ev.time).toLocaleString() : '—'}${ev.location ? ' - ' + ev.location : ''}</small></div>
+            <div>
               <button class="btn edit-btn" onclick="editFbdEvent('${ev.id}')">Edit</button>
               <button class="btn delete-btn" onclick="deleteFbdEvent('${ev.id}')">Delete</button>
             </div>
@@ -650,16 +676,17 @@
     };
     window.editFbdEvent = function(id) {
       const ev = CACHE.fbdEvents.find(x=>x.id===id); if (!ev) return;
-      fbdEventForm.dataset.mode = 'edit';
-      fbdEventId.value = ev.id;
-      fbdEventTitle.value = ev.title || '';
-      fbdEventTime.value = ev.time ? new Date(ev.time).toISOString().slice(0,16) : '';
-      fbdEventLocation.value = ev.location || '';
-      fbdEventType.value = ev.type || 'Workshop';
-      fbdEventSeats.value = ev.seats ?? 0;
-      fbdEventImage.value = ev.image || '';
-      fbdEventDescription.value = ev.description || '';
-      fbdEventSubmitBtn.textContent = 'Update FBD Event';
+      const f = document.getElementById('fbdEventForm');
+      f.dataset.mode = 'edit';
+      document.getElementById('fbdEventId').value = ev.id;
+      document.getElementById('fbdEventTitle').value = ev.title || '';
+      document.getElementById('fbdEventTime').value = ev.time ? new Date(ev.time).toISOString().slice(0,16) : '';
+      document.getElementById('fbdEventLocation').value = ev.location || '';
+      document.getElementById('fbdEventType').value = ev.type || 'Workshop';
+      document.getElementById('fbdEventSeats').value = ev.seats ?? 0;
+      document.getElementById('fbdEventImage').value = ev.image || '';
+      document.getElementById('fbdEventDescription').value = ev.description || '';
+      document.getElementById('fbdEventSubmitBtn').textContent = 'Update FBD Event';
     };
     window.deleteFbdEvent = async function(id) {
       if (!confirm('Are you sure you want to delete this FBD event?')) return;
@@ -668,205 +695,161 @@
       else showMessage(r.error || 'Failed to delete FBD event', 'error');
     };
 
-    // Submit handlers (store exactly the user's inputs)
-    const eventForm = document.getElementById('eventForm');
-    const eventId = document.getElementById('eventId');
-    const eventTitle = document.getElementById('eventTitle');
-    const eventTime = document.getElementById('eventTime');
-    const eventLocation = document.getElementById('eventLocation');
-    const eventType = document.getElementById('eventType');
-    const eventSeats = document.getElementById('eventSeats');
-    const eventImage = document.getElementById('eventImage');
-    const eventDescription = document.getElementById('eventDescription');
-    const eventSubmitBtn = document.getElementById('eventSubmitBtn');
-
-    eventForm.addEventListener('submit', async (e) => {
+    // Submit handlers (read from the submitted form to avoid stale refs)
+    // Events
+    document.getElementById('eventForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const mode = eventForm.dataset.mode || 'add';
+      const f = e.currentTarget;
+      const mode = f.dataset.mode || 'add';
       const payload = {
-        title: eventTitle.value,
-        time: eventTime.value ? new Date(eventTime.value).toISOString() : "",
-        location: eventLocation.value,
-        type: eventType.value,
-        seats: eventSeats.value,
-        image: eventImage.value,
-        description: eventDescription.value
+        title: f.querySelector('#eventTitle').value.trim(),
+        time: f.querySelector('#eventTime').value ? new Date(f.querySelector('#eventTime').value).toISOString() : "",
+        location: f.querySelector('#eventLocation').value.trim(),
+        type: f.querySelector('#eventType').value,
+        seats: parseInt(f.querySelector('#eventSeats').value || '0', 10),
+        image: f.querySelector('#eventImage').value.trim(),
+        description: f.querySelector('#eventDescription').value.trim()
       };
-      const r = mode==='edit'
-        ? await firestoreAPI.updateEvent(eventId.value, payload)
-        : await firestoreAPI.addEvent(payload);
+      console.debug('Event payload:', payload);
+      const id = f.querySelector('#eventId').value;
+      const r = mode==='edit' ? await firestoreAPI.updateEvent(id, payload) : await firestoreAPI.addEvent(payload);
       if (r.success) {
         showMessage('Event saved successfully!', 'success');
-        eventForm.reset();
-        eventForm.dataset.mode = 'add';
-        eventSubmitBtn.textContent = 'Add Event';
+        f.reset(); f.dataset.mode = 'add';
+        document.getElementById('eventSubmitBtn').textContent = 'Add Event';
         loadExistingEvents();
       } else {
         showMessage(r.error || 'Failed to save event', 'error');
       }
     });
 
-    const articleForm = document.getElementById('articleForm');
-    const articleId = document.getElementById('articleId');
-    const articleTitle = document.getElementById('articleTitle');
-    const articleAuthor = document.getElementById('articleAuthor');
-    const articleDate = document.getElementById('articleDate');
-    const articleSummary = document.getElementById('articleSummary');
-    const articleContent = document.getElementById('articleContent');
-    const articleSubmitBtn = document.getElementById('articleSubmitBtn');
-
-    articleForm.addEventListener('submit', async (e) => {
+    // Articles
+    document.getElementById('articleForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const mode = articleForm.dataset.mode || 'add';
+      const f = e.currentTarget;
+      const mode = f.dataset.mode || 'add';
       const payload = {
-        title: articleTitle.value,
-        author: articleAuthor.value,
-        date: articleDate.value,
-        summary: articleSummary.value,
-        content: articleContent.value
+        title: f.querySelector('#articleTitle').value.trim(),
+        author: f.querySelector('#articleAuthor').value.trim(),
+        date: f.querySelector('#articleDate').value.trim(),
+        summary: f.querySelector('#articleSummary').value.trim(),
+        content: f.querySelector('#articleContent').value.trim()
       };
-      const r = mode==='edit'
-        ? await firestoreAPI.updateArticle(articleId.value, payload)
-        : await firestoreAPI.addArticle(payload);
+      console.debug('Article payload:', payload);
+      // Block blank creates
+      const missing = Object.entries(payload).filter(([_,v]) => v === '').map(([k]) => k);
+      if (missing.length) { showMessage(`Please fill: ${missing.join(', ')}`, 'error'); return; }
+      const id = f.querySelector('#articleId').value;
+      const r = mode==='edit' ? await firestoreAPI.updateArticle(id, payload) : await firestoreAPI.addArticle(payload);
       if (r.success) {
         showMessage('Article saved successfully!', 'success');
-        articleForm.reset();
-        articleForm.dataset.mode = 'add';
-        articleSubmitBtn.textContent = 'Add Article';
+        f.reset(); f.dataset.mode = 'add';
+        document.getElementById('articleSubmitBtn').textContent = 'Add Article';
         loadExistingArticles();
       } else {
         showMessage(r.error || 'Failed to save article', 'error');
       }
     });
 
-    const libraryForm = document.getElementById('libraryForm');
-    const libId = document.getElementById('libId');
-    const libName = document.getElementById('libName');
-    const libType = document.getElementById('libType');
-    const libTags = document.getElementById('libTags');
-    const libImage = document.getElementById('libImage');
-    const libDescription = document.getElementById('libDescription');
-    const libLink = document.getElementById('libLink');
-    const libSubmitBtn = document.getElementById('libSubmitBtn');
-
-    libraryForm.addEventListener('submit', async (e) => {
+    // Library
+    document.getElementById('libraryForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const mode = libraryForm.dataset.mode || 'add';
+      const f = e.currentTarget;
+      const mode = f.dataset.mode || 'add';
+      const tagsRaw = f.querySelector('#libTags').value;
       const payload = {
-        name: libName.value,
-        type: libType.value,
-        tags: libTags.value ? libTags.value.split(',').map(t=>t.trim()).filter(Boolean) : [],
-        image: libImage.value,
-        description: libDescription.value,
-        link: libLink.value
+        name: f.querySelector('#libName').value.trim(),
+        type: f.querySelector('#libType').value,
+        tags: tagsRaw ? tagsRaw.split(',').map(t=>t.trim()).filter(Boolean) : [],
+        image: f.querySelector('#libImage').value.trim(),
+        description: f.querySelector('#libDescription').value.trim(),
+        link: f.querySelector('#libLink').value.trim()
       };
-      const r = mode==='edit'
-        ? await firestoreAPI.updateLibraryResource(libId.value, payload)
-        : await firestoreAPI.addLibraryResource(payload);
+      console.debug('Library payload:', payload);
+      const id = f.querySelector('#libId').value;
+      const r = mode==='edit' ? await firestoreAPI.updateLibraryResource(id, payload) : await firestoreAPI.addLibraryResource(payload);
       if (r.success) {
         showMessage('Resource saved successfully!', 'success');
-        libraryForm.reset();
-        libraryForm.dataset.mode = 'add';
-        libSubmitBtn.textContent = 'Add Resource';
+        f.reset(); f.dataset.mode = 'add';
+        document.getElementById('libSubmitBtn').textContent = 'Add Resource';
         loadExistingLibraryResources();
       } else {
         showMessage(r.error || 'Failed to save resource', 'error');
       }
     });
 
-    const educationForm = document.getElementById('educationForm');
-    const weekTitle = document.getElementById('weekTitle');
-    const lecturerName = document.getElementById('lecturerName');
-    const weekDescription = document.getElementById('weekDescription');
-
-    educationForm.addEventListener('submit', async (e) => {
+    // Weekly workshop
+    document.getElementById('educationForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      const f = e.currentTarget;
       const payload = {
-        weekTitle: weekTitle.value,
-        lecturerName: lecturerName.value,
-        description: weekDescription.value
+        weekTitle: f.querySelector('#weekTitle').value.trim(),
+        lecturerName: f.querySelector('#lecturerName').value.trim(),
+        description: f.querySelector('#weekDescription').value.trim()
       };
+      console.debug('Weekly payload:', payload);
       const r = await firestoreAPI.updateEducation(payload);
       if (r.success) showMessage('Education content updated!', 'success');
       else showMessage(r.error || 'Failed to update education content', 'error');
     });
 
-    const courseForm = document.getElementById('courseForm');
-    const courseId = document.getElementById('courseId');
-    const courseTitle = document.getElementById('courseTitle');
-    const courseDescription = document.getElementById('courseDescription');
-    const courseLecturer = document.getElementById('courseLecturer');
-    const courseLink = document.getElementById('courseLink');
-    const courseSubmitBtn = document.getElementById('courseSubmitBtn');
-
-    courseForm.addEventListener('submit', async (e) => {
+    // Courses
+    document.getElementById('courseForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const mode = courseForm.dataset.mode || 'add';
+      const f = e.currentTarget;
+      const mode = f.dataset.mode || 'add';
       const payload = {
-        title: courseTitle.value,
-        description: courseDescription.value,
-        lecturer: courseLecturer.value,
-        link: courseLink.value
+        title: f.querySelector('#courseTitle').value.trim(),
+        description: f.querySelector('#courseDescription').value.trim(),
+        lecturer: f.querySelector('#courseLecturer').value.trim(),
+        link: f.querySelector('#courseLink').value.trim()
       };
-      const r = mode==='edit'
-        ? await firestoreAPI.updateCourse(courseId.value, payload)
-        : await firestoreAPI.addCourse(payload);
+      console.debug('Course payload:', payload);
+      const id = f.querySelector('#courseId').value;
+      const r = mode==='edit' ? await firestoreAPI.updateCourse(id, payload) : await firestoreAPI.addCourse(payload);
       if (r.success) {
         showMessage('Course saved', 'success');
-        courseForm.reset();
-        courseForm.dataset.mode = 'add';
-        courseSubmitBtn.textContent = 'Add Course';
+        f.reset(); f.dataset.mode = 'add';
+        document.getElementById('courseSubmitBtn').textContent = 'Add Course';
         loadCourses();
       } else {
         showMessage(r.error || 'Failed to save course', 'error');
       }
     });
 
-    const fbdPageForm = document.getElementById('fbdPageForm');
-    const fbdTitle = document.getElementById('fbdTitle');
-    const fbdAbout = document.getElementById('fbdAbout');
-
-    fbdPageForm.addEventListener('submit', async (e) => {
+    // FBD page
+    document.getElementById('fbdPageForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      const f = e.currentTarget;
       const r = await firestoreAPI.updateFbdPage({
-        pageTitle: fbdTitle.value,
-        about: fbdAbout.value
+        pageTitle: f.querySelector('#fbdTitle').value.trim(),
+        about: f.querySelector('#fbdAbout').value.trim()
       });
       if (r.success) showMessage('FBD page updated', 'success');
       else showMessage(r.error || 'Failed to update FBD page', 'error');
     });
 
-    const fbdEventForm = document.getElementById('fbdEventForm');
-    const fbdEventId = document.getElementById('fbdEventId');
-    const fbdEventTitle = document.getElementById('fbdEventTitle');
-    const fbdEventTime = document.getElementById('fbdEventTime');
-    const fbdEventLocation = document.getElementById('fbdEventLocation');
-    const fbdEventType = document.getElementById('fbdEventType');
-    const fbdEventSeats = document.getElementById('fbdEventSeats');
-    const fbdEventImage = document.getElementById('fbdEventImage');
-    const fbdEventDescription = document.getElementById('fbdEventDescription');
-    const fbdEventSubmitBtn = document.getElementById('fbdEventSubmitBtn');
-
-    fbdEventForm.addEventListener('submit', async (e) => {
+    // FBD events
+    document.getElementById('fbdEventForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const mode = fbdEventForm.dataset.mode || 'add';
+      const f = e.currentTarget;
+      const mode = f.dataset.mode || 'add';
       const payload = {
-        title: fbdEventTitle.value,
-        time: fbdEventTime.value ? new Date(fbdEventTime.value).toISOString() : "",
-        location: fbdEventLocation.value,
-        type: fbdEventType.value,
-        seats: fbdEventSeats.value,
-        image: fbdEventImage.value,
-        description: fbdEventDescription.value
+        title: f.querySelector('#fbdEventTitle').value.trim(),
+        time: f.querySelector('#fbdEventTime').value ? new Date(f.querySelector('#fbdEventTime').value).toISOString() : "",
+        location: f.querySelector('#fbdEventLocation').value.trim(),
+        type: f.querySelector('#fbdEventType').value,
+        seats: parseInt(f.querySelector('#fbdEventSeats').value || '0', 10),
+        image: f.querySelector('#fbdEventImage').value.trim(),
+        description: f.querySelector('#fbdEventDescription').value.trim()
       };
-      const r = mode==='edit'
-        ? await firestoreAPI.updateFbdEvent(fbdEventId.value, payload)
-        : await firestoreAPI.addFbdEvent(payload);
+      console.debug('FBD Event payload:', payload);
+      const id = f.querySelector('#fbdEventId').value;
+      const r = mode==='edit' ? await firestoreAPI.updateFbdEvent(id, payload) : await firestoreAPI.addFbdEvent(payload);
       if (r.success) {
         showMessage('FBD event saved', 'success');
-        fbdEventForm.reset();
-        fbdEventForm.dataset.mode = 'add';
-        fbdEventSubmitBtn.textContent = 'Add FBD Event';
+        f.reset(); f.dataset.mode = 'add';
+        document.getElementById('fbdEventSubmitBtn').textContent = 'Add FBD Event';
         loadFbd();
       } else {
         showMessage(r.error || 'Failed to save FBD event', 'error');
@@ -897,6 +880,22 @@
       if (!r.success) { box.innerHTML = `<p style="color:red">${r.error}</p>`; return; }
       if ((r.admins||[]).length===0) { box.innerHTML = '<p>No admins found.</p>'; return; }
       box.innerHTML = r.admins.map(a=>`<div class="content-item"><div>${a}</div></div>`).join('');
+    };
+    window.addNewAdmin = async function() {
+      const input = document.getElementById('newAdminEmail');
+      const email = (input.value || '').trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showMessage('Enter a valid email address', 'error'); return; }
+      try {
+        const current = (await firestoreAPI.getAdmins()).admins || [];
+        if (current.includes(email)) { showMessage('Admin already exists', 'error'); return; }
+        await setDoc(doc(db, 'config', 'admins'), { admins: [...current, email] }, { merge: true });
+        input.value = '';
+        showMessage('Admin added', 'success');
+        loadAdminsList();
+      } catch (e) {
+        console.error(e);
+        showMessage('Failed to add admin', 'error');
+      }
     };
   </script>
 </body>
