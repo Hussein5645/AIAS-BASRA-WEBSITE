@@ -806,6 +806,7 @@
 
     function validateEventPayload(p) {
       const errors = [];
+      // p already contains trimmed values from submit handler
       if (!p.title || p.title.length < 3) errors.push('العنوان مطلوب (3 أحرف على الأقل).');
       if (!p.time) errors.push('التاريخ والوقت مطلوبان.');
       if (!p.location || p.location.length < 2) errors.push('الموقع مطلوب.');
@@ -822,9 +823,10 @@
 
     function validateArticlePayload(p) {
       const errors = [];
-      if (!p.title) errors.push('عنوان المقال مطلوب.');
-      if (!p.author) errors.push('اسم الكاتب مطلوب.');
-      if (!p.date) errors.push('التاريخ مطلوب.');
+      // p already contains trimmed values from submit handler
+      if (!p.title || p.title.length === 0) errors.push('عنوان المقال مطلوب.');
+      if (!p.author || p.author.length === 0) errors.push('اسم الكاتب مطلوب.');
+      if (!p.date || p.date.length === 0) errors.push('التاريخ مطلوب.');
       if (!p.summary || p.summary.length < 5) errors.push('الملخص قصير جداً.');
       if (!p.content || p.content.length < 20) errors.push('المحتوى يجب أن يكون 20 حرفاً فأكثر.');
       return errors;
@@ -832,25 +834,28 @@
 
     function validateLibraryPayload(p) {
       const errors = [];
-      if (!p.name) errors.push('اسم المصدر مطلوب.');
-      if (!p.type) errors.push('نوع المصدر مطلوب.');
+      // p already contains trimmed values from submit handler
+      if (!p.name || p.name.length === 0) errors.push('اسم المصدر مطلوب.');
+      if (!p.type || p.type.length === 0) errors.push('نوع المصدر مطلوب.');
       if (!p.description || p.description.length < 5) errors.push('الوصف قصير جداً.');
-      if (!p.image) errors.push('الإيموجي مطلوب.');
-      if (!p.link) errors.push('الرابط مطلوب.');
+      if (!p.image || p.image.length === 0) errors.push('الإيموجي مطلوب.');
+      if (!p.link || p.link.length === 0) errors.push('الرابط مطلوب.');
       return errors;
     }
 
     function validateCoursePayload(p) {
       const errors = [];
-      if (!p.title) errors.push('عنوان الدورة مطلوب.');
+      // p already contains trimmed values from submit handler
+      if (!p.title || p.title.length === 0) errors.push('عنوان الدورة مطلوب.');
       if (!p.description || p.description.length < 5) errors.push('وصف الدورة قصير جداً.');
       return errors;
     }
 
     function validateWorkshopPayload(p) {
       const errors = [];
-      if (!p.weekTitle) errors.push('عنوان الورشة مطلوب.');
-      if (!p.lecturerName) errors.push('اسم المحاضر مطلوب.');
+      // p already contains trimmed values from submit handler
+      if (!p.weekTitle || p.weekTitle.length === 0) errors.push('عنوان الورشة مطلوب.');
+      if (!p.lecturerName || p.lecturerName.length === 0) errors.push('اسم المحاضر مطلوب.');
       if (!p.description || p.description.length < 10) errors.push('الوصف قصير جداً.');
       return errors;
     }
