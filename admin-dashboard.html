@@ -948,6 +948,17 @@
         };
         window.updateTokenStatus = function() { testFirestoreConnection(); };
 
+        window.fixFirestoreStructure = async function() {
+            const resultsBox = document.getElementById('structureResults');
+            const contentBox = document.getElementById('structureResultsContent');
+            resultsBox.style.display = 'block';
+            contentBox.innerHTML = '<p>Validating and fixing structure...</p>';
+            const res = await firestoreAPI.validateAndFixStructure();
+            const actions = (res.actions || []).map(a => `<li style="color:#2f855a;">✓ ${a}</li>`).join('');
+            const errors = (res.errors || []).map(e => `<li style="color:#c53030;">✗ ${e}</li>`).join('');
+            contentBox.innerHTML = `<ul>${actions}${errors}</ul>`;
+        };
+
         window.loadAdminsList = async function() {
             const list = document.getElementById('adminsList');
             list.innerHTML = '<p>Loading...</p>';
