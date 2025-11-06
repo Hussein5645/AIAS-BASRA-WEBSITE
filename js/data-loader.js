@@ -13,6 +13,14 @@ const firebaseConfig = {
     measurementId: "G-6W50T4HXDV"
 };
 
+// Debug toggle: enable via ?debug=true or localStorage.setItem('debug','true')
+const DEBUG =
+  (typeof window !== 'undefined' &&
+    (new URLSearchParams(window.location.search).has('debug') ||
+     localStorage.getItem('debug') === 'true'));
+
+const dlog = (...args) => { if (DEBUG) console.log('[Data Loader]', ...args); };
+
 // Initialize Firebase (with error handling for multiple initializations)
 console.log('[Data Loader] Initializing Firebase app...');
 let app;
@@ -69,10 +77,10 @@ class DataLoader {
      * Fetch all data from Firestore
      */
     async fetchData(forceRefresh = false) {
-        console.log('[Data Loader] fetchData() called');
-        
+        dlog('fetchData() called', { forceRefresh });
+
         if (!forceRefresh && this.isCacheValid()) {
-            console.log('[Data Loader] Returning cached data');
+            dlog('Returning cached data');
             return {
                 success: true,
                 data: this.cache,
@@ -81,43 +89,96 @@ class DataLoader {
         }
 
         try {
-            console.log('[Data Loader] Fetching fresh data from Firestore...');
-            
+            dlog('Fetching fresh data from Firestore...');
+
             // Fetch events from content subcollection
-            console.log('[Data Loader] Fetching events from content/events/items...');
+            dlog('Fetching events from content/events/items...');
             const eventsSnapshot = await getDocs(collection(this.db, 'content/events/items'));
             this.cache.events = eventsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-            console.log(`[Data Loader] ✓ Loaded ${this.cache.events.length} events`);
+            dlog('✓ Loaded events', { count: this.cache.events.length, sample: this.cache.events[0] });
 
             // Fetch library from content subcollection
-            console.log('[Data Loader] Fetching library from content/library/items...');
+            dlog('Fetching library from content/library/items...');
             const librarySnapshot = await getDocs(collection(this.db, 'content/library/items'));
             this.cache.library = librarySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-            console.log(`[Data Loader] ✓ Loaded ${this.cache.library.length} library items`);
+            dlog('✓ Loaded library items', { count: this.cache.library.length, sample: this.cache.library[0] });
 
-            // Fetch magazine
-            console.log('[Data Loader] Fetching magazine...');
-            const magazineDoc = await getDoc(doc(this.db, 'content', 'magazine'));
-            this.cache.magazine = magazineDoc.exists() ? magazineDoc.data() : { featuredArticle: null, articles: [], releases: [] };
-            console.log(`[Data Loader] ✓ Magazine content loaded`);
+            // Fetch magazine (doc + articles subcollection)
+            dlog('Fetching magazine doc...');
+            const magazineDocSnap = await getDoc(doc(this.db, 'content', 'magazine'));
 
-            // Fetch education
-            console.log('[Data Loader] Fetching education...');
-            const educationDoc = await getDoc(doc(this.db, 'content', 'education'));
-            this.cache.education = educationDoc.exists() ? educationDoc.data() : { weeklyWorkshop: {}, courses: [], fbd: { pageTitle: "", about: "", events: [] } };
-            console.log(`[Data Loader] ✓ Education content loaded`);
+            dlog('Fetching magazine articles from content/magazine/articles...');
+            const magazineArticlesSnap = await getDocs(collection(this.db, 'content/magazine/articles'));
+            const magazineArticles = magazineArticlesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+            let magazine = { featuredArticle: null, articles: [], releases: [] };
+            if (magazineDocSnap.exists()) {
+                const md = magazineDocSnap.data() || {};
+                magazine.releases = md.releases ?? [];
+                const featuredArticleId = md.featuredArticleId ?? null;
+                if (featuredArticleId) {
+                    magazine.featuredArticle = magazineArticles.find(a => a.id === featuredArticleId) || null;
+                }
+            }
+            // Fallback: if no featured selected, pick first article (if any)
+            if (!magazine.featuredArticle && magazineArticles.length > 0) {
+                magazine.featuredArticle = magazineArticles[0];
+            }
+            magazine.articles = magazineArticles;
+            this.cache.magazine = magazine;
+            dlog('✓ Magazine loaded', {
+                articles: magazine.articles.length,
+                hasFeatured: !!magazine.featuredArticle,
+                featuredId: magazine.featuredArticle?.id
+            });
+
+            // Fetch education doc
+            dlog('Fetching education doc...');
+            const educationDocSnap = await getDoc(doc(this.db, 'content', 'education'));
+            const educationBase = educationDocSnap.exists()
+                ? (educationDocSnap.data() || {})
+                : { weeklyWorkshop: {}, courses: [] };
+
+            // Fetch FBD doc + events and attach under education.fbd for compatibility with pages
+            dlog('Fetching FBD doc...');
+            const fbdDocSnap = await getDoc(doc(this.db, 'content', 'fbd'));
+            dlog('Fetching FBD events from content/fbd/events...');
+            const fbdEventsSnap = await getDocs(collection(this.db, 'content/fbd/events'));
+            const fbdEvents = fbdEventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+            const fbd = {
+                pageTitle: fbdDocSnap.exists() ? (fbdDocSnap.data().pageTitle ?? '') : '',
+                about: fbdDocSnap.exists() ? (fbdDocSnap.data().about ?? '') : '',
+                events: fbdEvents
+            };
+
+            this.cache.education = {
+                weeklyWorkshop: {
+                    weekTitle: educationBase.weeklyWorkshop?.weekTitle ?? '',
+                    lecturerName: educationBase.weeklyWorkshop?.lecturerName ?? '',
+                    description: educationBase.weeklyWorkshop?.description ?? ''
+                },
+                courses: educationBase.courses ?? [],
+                // Attach FBD under education to match page usage
+                fbd
+            };
+            dlog('✓ Education loaded', {
+                hasWeekly: !!this.cache.education.weeklyWorkshop,
+                courses: this.cache.education.courses.length,
+                fbdEvents: this.cache.education.fbd.events.length
+            });
 
             // Fetch about
-            console.log('[Data Loader] Fetching about...');
+            dlog('Fetching about doc...');
             const aboutDoc = await getDoc(doc(this.db, 'content', 'about'));
             this.cache.about = aboutDoc.exists() ? aboutDoc.data() : { story: { paragraphs: [] }, values: [], founders: [], team: [] };
-            console.log(`[Data Loader] ✓ About content loaded`);
+            dlog('✓ About loaded', { hasStory: !!this.cache.about.story });
 
             // Fetch home
-            console.log('[Data Loader] Fetching home...');
+            dlog('Fetching home doc...');
             const homeDoc = await getDoc(doc(this.db, 'content', 'home'));
             this.cache.home = homeDoc.exists() ? homeDoc.data() : { hero: {}, mission: {} };
-            console.log(`[Data Loader] ✓ Home content loaded`);
+            dlog('✓ Home loaded', { hasHero: !!this.cache.home.hero });
 
             this.cache.lastFetch = Date.now();
             console.log('[Data Loader] ✓ All data loaded and cached successfully');
@@ -149,7 +210,7 @@ class DataLoader {
      * Get events collection
      */
     async getEvents(forceRefresh = false) {
-        console.log('[Data Loader] getEvents() called');
+        dlog('getEvents() called');
         const result = await this.fetchData(forceRefresh);
         if (result.success) {
             return {
@@ -165,7 +226,7 @@ class DataLoader {
      * Get library collection
      */
     async getLibrary(forceRefresh = false) {
-        console.log('[Data Loader] getLibrary() called');
+        dlog('getLibrary() called');
         const result = await this.fetchData(forceRefresh);
         if (result.success) {
             return {
@@ -178,10 +239,10 @@ class DataLoader {
     }
 
     /**
-     * Get magazine content
+     * Get magazine content (doc + articles)
      */
     async getMagazine(forceRefresh = false) {
-        console.log('[Data Loader] getMagazine() called');
+        dlog('getMagazine() called');
         const result = await this.fetchData(forceRefresh);
         if (result.success) {
             return {
@@ -194,10 +255,10 @@ class DataLoader {
     }
 
     /**
-     * Get education content
+     * Get education content (with fbd nested for compatibility)
      */
     async getEducation(forceRefresh = false) {
-        console.log('[Data Loader] getEducation() called');
+        dlog('getEducation() called');
         const result = await this.fetchData(forceRefresh);
         if (result.success) {
             return {
@@ -213,7 +274,7 @@ class DataLoader {
      * Get about content
      */
     async getAbout(forceRefresh = false) {
-        console.log('[Data Loader] getAbout() called');
+        dlog('getAbout() called');
         const result = await this.fetchData(forceRefresh);
         if (result.success) {
             return {
@@ -229,7 +290,7 @@ class DataLoader {
      * Get home content
      */
     async getHome(forceRefresh = false) {
-        console.log('[Data Loader] getHome() called');
+        dlog('getHome() called');
         const result = await this.fetchData(forceRefresh);
         if (result.success) {
             return {
@@ -247,24 +308,24 @@ class DataLoader {
     formatDate(isoString) {
         // Validate input
         if (!isoString) {
-            console.warn('[Data Loader] formatDate called with null/undefined');
+            dlog('formatDate called with null/undefined');
             return null;
         }
-        
+
         const date = new Date(isoString);
-        
+
         // Check if date is valid
         if (isNaN(date.getTime())) {
-            console.warn('[Data Loader] Invalid date string:', isoString);
+            dlog('Invalid date string:', isoString);
             return null;
         }
-        
+
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const monthsAr = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-        
-        const currentLang = localStorage.getItem('language') || 'en';
+
+        const currentLang = (typeof localStorage !== 'undefined' ? localStorage.getItem('language') : null) || 'en';
         const monthNames = currentLang === 'ar' ? monthsAr : months;
-        
+
         return {
             day: date.getDate(),
             month: monthNames[date.getMonth()],
@@ -281,18 +342,18 @@ class DataLoader {
     isPastEvent(isoString) {
         // Validate input
         if (!isoString) {
-            console.warn('[Data Loader] isPastEvent called with null/undefined');
+            dlog('isPastEvent called with null/undefined');
             return false;
         }
-        
+
         const date = new Date(isoString);
-        
+
         // Check if date is valid
         if (isNaN(date.getTime())) {
-            console.warn('[Data Loader] Invalid date string:', isoString);
+            dlog('Invalid date string:', isoString);
             return false;
         }
-        
+
         return date < new Date();
     }
 }
