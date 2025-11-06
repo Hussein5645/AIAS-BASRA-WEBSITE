@@ -29,7 +29,7 @@
         .form-group label { display: block; color: #4a5568; font-size: .9rem; font-weight: 600; margin-bottom: .5rem; }
         .form-group input, .form-group textarea, .form-group select { width: 100%; padding: .75rem; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; font-family: 'Inter', sans-serif; transition: all .3s; }
         .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
-        .form-group textarea { min-height: 150px; resize: vertical; }
+        .form-group textarea { min-height: 120px; resize: vertical; }
         .submit-btn { padding: 1rem 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all .3s; }
         .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102,126,234,0.3); }
         .message { padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: none; }
@@ -39,21 +39,8 @@
         .content-item { padding: 1rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
         .content-item:last-child { border-bottom: none; }
         .btn { padding: .5rem 1rem; border: none; border-radius: 6px; color: white; font-weight: 600; cursor: pointer; transition: all .2s; }
-        .delete-btn { background: #e53e3e; }
-        .delete-btn:hover { background: #c53030; }
-        .edit-btn { background: #3182ce; }
-        .edit-btn:hover { background: #2b6cb0; }
-        .verify-btn { padding: .5rem 1rem; background: #38a169; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all .3s; margin-right: .5rem; }
-        .verify-btn:hover { background: #2f855a; }
-        .verify-btn:disabled { background: #cbd5e0; cursor: not-allowed; }
-        .user-item { padding: 1rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
-        .user-item:last-child { border-bottom: none; }
-        .user-info { flex: 1; }
-        .user-name { font-weight: 600; color: #2d3748; margin-bottom: .25rem; }
-        .user-email { color: #718096; font-size: .9rem; }
-        .user-status { display: inline-block; padding: .25rem .75rem; border-radius: 12px; font-size: .8rem; font-weight: 600; margin-left: 1rem; }
-        .user-status.verified { background: #c6f6d5; color: #22543d; }
-        .user-status.unverified { background: #fed7d7; color: #742a2a; }
+        .delete-btn { background: #e53e3e; } .delete-btn:hover { background: #c53030; }
+        .edit-btn { background: #3182ce; } .edit-btn:hover { background: #2b6cb0; }
         .user-actions { display: flex; gap: .5rem; }
         .home-link { padding: .5rem 1.5rem; background: white; color: #667eea; border: 2px solid white; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all .3s; }
         .home-link:hover { background: rgba(255,255,255,0.9); }
@@ -227,22 +214,122 @@
 
         <!-- Education Tab -->
         <div id="education-tab" class="tab-content">
-            <h2 data-en="Update Education Content" data-ar="تحديث المحتوى التعليمي">Update Education Content</h2>
-            <form id="educationForm" class="content-form">
-                <div class="form-group">
-                    <label for="weekTitle" data-en="Weekly Workshop Title" data-ar="عنوان ورشة الأسبوع">Weekly Workshop Title</label>
-                    <input type="text" id="weekTitle" required>
+            <h2 data-en="Education Management" data-ar="إدارة التعليم">Education Management</h2>
+
+            <!-- Weekly Workshop (Edit only) -->
+            <div class="content-form">
+                <h3 data-en="Weekly Workshop (Edit Only)" data-ar="ورشة الأسبوع (تعديل فقط)">Weekly Workshop (Edit Only)</h3>
+                <form id="educationForm">
+                    <div class="form-group">
+                        <label for="weekTitle" data-en="Weekly Workshop Title" data-ar="عنوان ورشة الأسبوع">Weekly Workshop Title</label>
+                        <input type="text" id="weekTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lecturerName" data-en="Lecturer Name" data-ar="اسم المحاضر">Lecturer Name</label>
+                        <input type="text" id="lecturerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="weekDescription" data-en="Workshop Description" data-ar="وصف الورشة">Workshop Description</label>
+                        <textarea id="weekDescription" required></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn" data-en="Update Weekly Workshop" data-ar="تحديث ورشة الأسبوع">Update Weekly Workshop</button>
+                </form>
+            </div>
+
+            <!-- Courses CRUD -->
+            <div class="content-form">
+                <h3 data-en="Courses" data-ar="الدورات">Courses</h3>
+
+                <div class="content-list" style="margin-bottom: 1.5rem;">
+                    <h4 data-en="Existing Courses" data-ar="الدورات الحالية">Existing Courses</h4>
+                    <div id="existingCoursesList"><p data-en="Loading courses..." data-ar="جاري تحميل الدورات...">Loading courses...</p></div>
                 </div>
-                <div class="form-group">
-                    <label for="lecturerName" data-en="Lecturer Name" data-ar="اسم المحاضر">Lecturer Name</label>
-                    <input type="text" id="lecturerName" required>
+
+                <h4 data-en="Add or Edit Course" data-ar="إضافة أو تعديل دورة">Add or Edit Course</h4>
+                <form id="courseForm" data-mode="add">
+                    <input type="hidden" id="courseId">
+                    <div class="form-group">
+                        <label for="courseTitle" data-en="Course Title" data-ar="عنوان الدورة">Course Title</label>
+                        <input type="text" id="courseTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="courseDescription" data-en="Course Description" data-ar="وصف الدورة">Course Description</label>
+                        <textarea id="courseDescription" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="courseLecturer" data-en="Lecturer (optional)" data-ar="المحاضر (اختياري)">Lecturer (optional)</label>
+                        <input type="text" id="courseLecturer">
+                    </div>
+                    <div class="form-group">
+                        <label for="courseLink" data-en="Link (optional)" data-ar="الرابط (اختياري)">Link (optional)</label>
+                        <input type="url" id="courseLink" placeholder="https://">
+                    </div>
+                    <button type="submit" id="courseSubmitBtn" class="submit-btn" data-en="Add Course" data-ar="إضافة دورة">Add Course</button>
+                </form>
+            </div>
+
+            <!-- FBD Management -->
+            <div class="content-form">
+                <h3 data-en="FBD Page" data-ar="صفحة FBD">FBD Page</h3>
+                <form id="fbdPageForm">
+                    <div class="form-group">
+                        <label for="fbdTitle" data-en="Page Title" data-ar="عنوان الصفحة">Page Title</label>
+                        <input type="text" id="fbdTitle" placeholder="FBD">
+                    </div>
+                    <div class="form-group">
+                        <label for="fbdAbout" data-en="About" data-ar="حول">About</label>
+                        <textarea id="fbdAbout" placeholder="About FBD..."></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn" data-en="Update FBD Page" data-ar="تحديث صفحة FBD">Update FBD Page</button>
+                </form>
+            </div>
+
+            <div class="content-form">
+                <h3 data-en="FBD Events" data-ar="فعاليات FBD">FBD Events</h3>
+
+                <div class="content-list" style="margin-bottom: 1.5rem;">
+                    <h4 data-en="Existing FBD Events" data-ar="الفعاليات الحالية">Existing FBD Events</h4>
+                    <div id="existingFbdEventsList"><p data-en="Loading FBD events..." data-ar="جاري تحميل فعاليات FBD...">Loading FBD events...</p></div>
                 </div>
-                <div class="form-group">
-                    <label for="weekDescription" data-en="Workshop Description" data-ar="وصف الورشة">Workshop Description</label>
-                    <textarea id="weekDescription" required></textarea>
-                </div>
-                <button type="submit" class="submit-btn" data-en="Update Education Content" data-ar="تحديث المحتوى التعليمي">Update Education Content</button>
-            </form>
+
+                <h4 data-en="Add or Edit FBD Event" data-ar="إضافة أو تعديل فعالية FBD">Add or Edit FBD Event</h4>
+                <form id="fbdEventForm" data-mode="add">
+                    <input type="hidden" id="fbdEventId">
+                    <div class="form-group">
+                        <label for="fbdEventTitle" data-en="Event Title" data-ar="عنوان الفعالية">Event Title</label>
+                        <input type="text" id="fbdEventTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fbdEventTime" data-en="Date and Time" data-ar="التاريخ والوقت">Date and Time</label>
+                        <input type="datetime-local" id="fbdEventTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fbdEventLocation" data-en="Location" data-ar="الموقع">Location</label>
+                        <input type="text" id="fbdEventLocation" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fbdEventType" data-en="Event Type" data-ar="نوع الفعالية">Event Type</label>
+                        <select id="fbdEventType">
+                            <option value="Workshop" data-en="Workshop" data-ar="ورشة عمل">Workshop</option>
+                            <option value="Lecture" data-en="Lecture" data-ar="محاضرة">Lecture</option>
+                            <option value="Social" data-en="Social" data-ar="اجتماعي">Social</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="fbdEventSeats" data-en="Available Seats" data-ar="المقاعد المتاحة">Available Seats</label>
+                        <input type="number" id="fbdEventSeats" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="fbdEventImage" data-en="Emoji Icon" data-ar="أيقونة إيموجي">Emoji Icon</label>
+                        <input type="text" id="fbdEventImage" placeholder="🎨">
+                    </div>
+                    <div class="form-group">
+                        <label for="fbdEventDescription" data-en="Description" data-ar="الوصف">Description</label>
+                        <textarea id="fbdEventDescription" required></textarea>
+                    </div>
+                    <button type="submit" id="fbdEventSubmitBtn" class="submit-btn" data-en="Add FBD Event" data-ar="إضافة فعالية FBD">Add FBD Event</button>
+                </form>
+            </div>
         </div>
 
         <!-- Settings Tab -->
@@ -328,7 +415,7 @@
         const firestoreAPI = new FirestoreAPI();
 
         // Caches for edit flows
-        let CACHE = { events: [], articles: [], library: [] };
+        let CACHE = { events: [], articles: [], library: [], courses: [], fbdEvents: [] };
 
         window.logout = async function() {
             try {
@@ -377,15 +464,15 @@
                     localStorage.setItem('aias_user_uid', user.uid);
                     document.getElementById('adminName').textContent = user.displayName || 'Admin';
 
-                    // Default: open Events tab and load
-                    showTab('events');
+                    // Default: open Education and load everything
+                    showTab('education');
                 } else {
                     window.location.href = 'login.html';
                 }
             });
         })();
 
-        // Language reapply
+        // Helper: reapply translations
         window.reapplyTranslations = function() {
             if (typeof setLanguage === 'function') {
                 const currentLang = localStorage.getItem('language') || 'en';
@@ -393,7 +480,7 @@
             }
         };
 
-        // Messaging
+        // Messages
         window.showMessage = function(text, type) {
             const messageDiv = document.getElementById('message');
             messageDiv.textContent = text;
@@ -412,11 +499,18 @@
             if (tabName === 'events') loadExistingEvents();
             else if (tabName === 'articles') loadExistingArticles();
             else if (tabName === 'library') loadExistingLibraryResources();
-            else if (tabName === 'education') loadEducationContent();
-            else if (tabName === 'settings') loadAdminsList?.();
+            else if (tabName === 'education') {
+                loadEducationContent();
+                loadCourses();
+                loadFbd();
+            }
+            else if (tabName === 'settings') {
+                updateTokenStatus();
+                loadAdminsList?.();
+            }
         };
 
-        // Loaders
+        // Events
         window.loadExistingEvents = async function() {
             const listContainer = document.getElementById('existingEventsList');
             listContainer.innerHTML = '<p>Loading events...</p>';
@@ -451,7 +545,31 @@
                 listContainer.innerHTML = '<p style="color:red;">Error loading events</p>';
             }
         };
+        window.editEvent = function(id) {
+            const ev = CACHE.events.find(e => e.id === id);
+            if (!ev) return;
+            document.getElementById('eventId').value = ev.id;
+            document.getElementById('eventTitle').value = ev.title || '';
+            document.getElementById('eventTime').value = ev.time ? new Date(ev.time).toISOString().slice(0,16) : '';
+            document.getElementById('eventLocation').value = ev.location || '';
+            document.getElementById('eventType').value = ev.type || 'Workshop';
+            document.getElementById('eventSeats').value = ev.seats ?? 0;
+            document.getElementById('eventImage').value = ev.image || '';
+            document.getElementById('eventDescription').value = ev.description || '';
+            const form = document.getElementById('eventForm');
+            form.dataset.mode = 'edit';
+            document.getElementById('eventSubmitBtn').textContent = 'Update Event';
+        };
+        window.deleteEvent = async function(eventId) {
+            const currentLang = localStorage.getItem('language') || 'en';
+            const confirmMsg = currentLang === 'ar' ? 'هل أنت متأكد من حذف هذه الفعالية؟' : 'Are you sure you want to delete this event?';
+            if (!confirm(confirmMsg)) return;
+            const r = await firestoreAPI.deleteEvent(eventId);
+            if (r.success) { showMessage(currentLang === 'ar' ? 'تم حذف الفعالية بنجاح!' : 'Event deleted successfully!', 'success'); loadExistingEvents(); }
+            else { showMessage((currentLang === 'ar' ? 'فشل حذف الفعالية: ' : 'Failed to delete event: ') + r.error, 'error'); }
+        };
 
+        // Articles
         window.loadExistingArticles = async function() {
             const listContainer = document.getElementById('existingArticlesList');
             listContainer.innerHTML = '<p>Loading articles...</p>';
@@ -486,7 +604,28 @@
                 listContainer.innerHTML = '<p style="color:red;">Error loading articles</p>';
             }
         };
+        window.editArticle = function(id) {
+            const a = CACHE.articles.find(x => x.id === id);
+            if (!a) return;
+            document.getElementById('articleId').value = a.id;
+            document.getElementById('articleTitle').value = a.title || '';
+            document.getElementById('articleAuthor').value = a.author || '';
+            document.getElementById('articleDate').value = a.date || '';
+            document.getElementById('articleSummary').value = a.summary || '';
+            document.getElementById('articleContent').value = a.content || '';
+            document.getElementById('articleForm').dataset.mode = 'edit';
+            document.getElementById('articleSubmitBtn').textContent = 'Update Article';
+        };
+        window.deleteArticle = async function(articleId) {
+            const currentLang = localStorage.getItem('language') || 'en';
+            const confirmMsg = currentLang === 'ar' ? 'هل أنت متأكد من حذف هذا المقال؟' : 'Are you sure you want to delete this article?';
+            if (!confirm(confirmMsg)) return;
+            const r = await firestoreAPI.deleteArticle(articleId);
+            if (r.success) { showMessage(currentLang === 'ar' ? 'تم حذف المقال بنجاح!' : 'Article deleted successfully!', 'success'); loadExistingArticles(); }
+            else { showMessage((currentLang === 'ar' ? 'فشل حذف المقال: ' : 'Failed to delete article: ') + r.error, 'error'); }
+        };
 
+        // Library
         window.loadExistingLibraryResources = async function() {
             const listContainer = document.getElementById('existingLibraryList');
             listContainer.innerHTML = '<p>Loading resources...</p>';
@@ -522,7 +661,30 @@
                 listContainer.innerHTML = '<p style="color:red;">Error loading resources</p>';
             }
         };
+        window.editLibrary = function(id) {
+            const r = CACHE.library.find(x => x.id === id);
+            if (!r) return;
+            document.getElementById('libId').value = r.id;
+            document.getElementById('libName').value = r.name || '';
+            document.getElementById('libType').value = r.type || 'Book';
+            document.getElementById('libTags').value = Array.isArray(r.tags) ? r.tags.join(', ') : (r.tags || '');
+            document.getElementById('libImage').value = r.image || '';
+            document.getElementById('libDescription').value = r.description || '';
+            document.getElementById('libLink').value = r.link || '';
+            const form = document.getElementById('libraryForm');
+            form.dataset.mode = 'edit';
+            document.getElementById('libSubmitBtn').textContent = 'Update Resource';
+        };
+        window.deleteLibraryResource = async function(resourceId) {
+            const currentLang = localStorage.getItem('language') || 'en';
+            const confirmMsg = currentLang === 'ar' ? 'هل أنت متأكد من حذف هذا المورد؟' : 'Are you sure you want to delete this resource?';
+            if (!confirm(confirmMsg)) return;
+            const r = await firestoreAPI.deleteLibraryResource(resourceId);
+            if (r.success) { showMessage(currentLang === 'ar' ? 'تم حذف المورد بنجاح!' : 'Resource deleted successfully!', 'success'); loadExistingLibraryResources(); }
+            else { showMessage((currentLang === 'ar' ? 'فشل حذف المورد: ' : 'Failed to delete resource: ') + r.error, 'error'); }
+        };
 
+        // Education base (weekly workshop only)
         window.loadEducationContent = async function() {
             try {
                 const res = await firestoreAPI.getAllContent();
@@ -537,96 +699,114 @@
             }
         };
 
-        // DELETE actions
-        window.deleteEvent = async function(eventId) {
-            const currentLang = localStorage.getItem('language') || 'en';
-            const confirmMsg = currentLang === 'ar' ? 'هل أنت متأكد من حذف هذه الفعالية؟' : 'Are you sure you want to delete this event?';
-            if (!confirm(confirmMsg)) return;
-            const r = await firestoreAPI.deleteEvent(eventId);
-            if (r.success) {
-                showMessage(currentLang === 'ar' ? 'تم حذف الفعالية بنجاح!' : 'Event deleted successfully!', 'success');
-                loadExistingEvents();
-            } else {
-                showMessage((currentLang === 'ar' ? 'فشل حذف الفعالية: ' : 'Failed to delete event: ') + r.error, 'error');
+        // Courses CRUD
+        window.loadCourses = async function() {
+            const box = document.getElementById('existingCoursesList');
+            box.innerHTML = '<p>Loading courses...</p>';
+            try {
+                const res = await firestoreAPI.getAllContent();
+                if (!res.success) throw new Error(res.error);
+                const courses = res.content.education?.courses || [];
+                CACHE.courses = courses;
+                if (courses.length === 0) {
+                    box.innerHTML = '<p>No courses found.</p>';
+                    return;
+                }
+                box.innerHTML = courses.map(c => `
+                    <div class="content-item">
+                        <div>
+                            <strong>${c.title}</strong><br>
+                            <small>${c.lecturer ? c.lecturer + ' — ' : ''}${c.link ? `<a href="${c.link}" target="_blank">Link</a>` : ''}</small>
+                        </div>
+                        <div class="user-actions">
+                            <button class="btn edit-btn" onclick="editCourse('${c.id}')">Edit</button>
+                            <button class="btn delete-btn" onclick="deleteCourse('${c.id}')">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error(e);
+                box.innerHTML = '<p style="color:red;">Error loading courses</p>';
             }
         };
-
-        window.deleteArticle = async function(articleId) {
-            const currentLang = localStorage.getItem('language') || 'en';
-            const confirmMsg = currentLang === 'ar' ? 'هل أنت متأكد من حذف هذا المقال؟' : 'Are you sure you want to delete this article?';
+        window.editCourse = function(id) {
+            const c = CACHE.courses.find(x => x.id === id);
+            if (!c) return;
+            document.getElementById('courseId').value = c.id;
+            document.getElementById('courseTitle').value = c.title || '';
+            document.getElementById('courseDescription').value = c.description || '';
+            document.getElementById('courseLecturer').value = c.lecturer || '';
+            document.getElementById('courseLink').value = c.link || '';
+            const form = document.getElementById('courseForm');
+            form.dataset.mode = 'edit';
+            document.getElementById('courseSubmitBtn').textContent = 'Update Course';
+        };
+        window.deleteCourse = async function(id) {
+            const confirmMsg = (localStorage.getItem('language') || 'en') === 'ar' ? 'هل أنت متأكد من حذف هذه الدورة؟' : 'Are you sure you want to delete this course?';
             if (!confirm(confirmMsg)) return;
-            const r = await firestoreAPI.deleteArticle(articleId);
-            if (r.success) {
-                showMessage(currentLang === 'ar' ? 'تم حذف المقال بنجاح!' : 'Article deleted successfully!', 'success');
-                loadExistingArticles();
-            } else {
-                showMessage((currentLang === 'ar' ? 'فشل حذف المقال: ' : 'Failed to delete article: ') + r.error, 'error');
-            }
+            const r = await firestoreAPI.deleteCourse(id);
+            if (r.success) { showMessage('Course deleted', 'success'); loadCourses(); }
+            else { showMessage(r.error || 'Failed to delete course', 'error'); }
         };
 
-        window.deleteLibraryResource = async function(resourceId) {
-            const currentLang = localStorage.getItem('language') || 'en';
-            const confirmMsg = currentLang === 'ar' ? 'هل أنت متأكد من حذف هذا المورد؟' : 'Are you sure you want to delete this resource?';
-            if (!confirm(confirmMsg)) return;
-            const r = await firestoreAPI.deleteLibraryResource(resourceId);
-            if (r.success) {
-                showMessage(currentLang === 'ar' ? 'تم حذف المورد بنجاح!' : 'Resource deleted successfully!', 'success');
-                loadExistingLibraryResources();
-            } else {
-                showMessage((currentLang === 'ar' ? 'فشل حذف المورد: ' : 'Failed to delete resource: ') + r.error, 'error');
+        // FBD management
+        window.loadFbd = async function() {
+            const list = document.getElementById('existingFbdEventsList');
+            list.innerHTML = '<p>Loading FBD events...</p>';
+            try {
+                const res = await firestoreAPI.getAllContent();
+                if (!res.success) throw new Error(res.error);
+                const fbd = res.content.education?.fbd || { pageTitle: '', about: '', events: [] };
+                // Page
+                document.getElementById('fbdTitle').value = fbd.pageTitle || '';
+                document.getElementById('fbdAbout').value = fbd.about || '';
+                // Events
+                CACHE.fbdEvents = fbd.events || [];
+                if (CACHE.fbdEvents.length === 0) {
+                    list.innerHTML = '<p>No FBD events found.</p>';
+                } else {
+                    list.innerHTML = CACHE.fbdEvents.map(ev => `
+                        <div class="content-item">
+                            <div>
+                                <strong>${ev.title}</strong><br>
+                                <small>${new Date(ev.time).toLocaleString()} - ${ev.location}</small>
+                            </div>
+                            <div class="user-actions">
+                                <button class="btn edit-btn" onclick="editFbdEvent('${ev.id}')">Edit</button>
+                                <button class="btn delete-btn" onclick="deleteFbdEvent('${ev.id}')">Delete</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error(e);
+                list.innerHTML = '<p style="color:red;">Error loading FBD</p>';
             }
         };
-
-        // EDIT flows (prefill forms)
-        window.editEvent = function(id) {
-            const ev = CACHE.events.find(e => e.id === id);
+        window.editFbdEvent = function(id) {
+            const ev = CACHE.fbdEvents.find(x => x.id === id);
             if (!ev) return;
-            document.getElementById('eventId').value = ev.id;
-            document.getElementById('eventTitle').value = ev.title || '';
-            document.getElementById('eventTime').value = ev.time ? new Date(ev.time).toISOString().slice(0,16) : '';
-            document.getElementById('eventLocation').value = ev.location || '';
-            document.getElementById('eventType').value = ev.type || 'Workshop';
-            document.getElementById('eventSeats').value = ev.seats ?? 0;
-            document.getElementById('eventImage').value = ev.image || '';
-            document.getElementById('eventDescription').value = ev.description || '';
-            const form = document.getElementById('eventForm');
+            document.getElementById('fbdEventId').value = ev.id;
+            document.getElementById('fbdEventTitle').value = ev.title || '';
+            document.getElementById('fbdEventTime').value = ev.time ? new Date(ev.time).toISOString().slice(0,16) : '';
+            document.getElementById('fbdEventLocation').value = ev.location || '';
+            document.getElementById('fbdEventType').value = ev.type || 'Workshop';
+            document.getElementById('fbdEventSeats').value = ev.seats ?? 0;
+            document.getElementById('fbdEventImage').value = ev.image || '';
+            document.getElementById('fbdEventDescription').value = ev.description || '';
+            const form = document.getElementById('fbdEventForm');
             form.dataset.mode = 'edit';
-            const btn = document.getElementById('eventSubmitBtn');
-            btn.textContent = 'Update Event';
+            document.getElementById('fbdEventSubmitBtn').textContent = 'Update FBD Event';
+        };
+        window.deleteFbdEvent = async function(id) {
+            const confirmMsg = (localStorage.getItem('language') || 'en') === 'ar' ? 'هل أنت متأكد من حذف هذه الفعالية؟' : 'Are you sure you want to delete this FBD event?';
+            if (!confirm(confirmMsg)) return;
+            const r = await firestoreAPI.deleteFbdEvent(id);
+            if (r.success) { showMessage('FBD event deleted', 'success'); loadFbd(); }
+            else { showMessage(r.error || 'Failed to delete FBD event', 'error'); }
         };
 
-        window.editArticle = function(id) {
-            const a = CACHE.articles.find(x => x.id === id);
-            if (!a) return;
-            document.getElementById('articleId').value = a.id;
-            document.getElementById('articleTitle').value = a.title || '';
-            document.getElementById('articleAuthor').value = a.author || '';
-            document.getElementById('articleDate').value = a.date || '';
-            document.getElementById('articleSummary').value = a.summary || '';
-            document.getElementById('articleContent').value = a.content || '';
-            const form = document.getElementById('articleForm');
-            form.dataset.mode = 'edit';
-            const btn = document.getElementById('articleSubmitBtn');
-            btn.textContent = 'Update Article';
-        };
-
-        window.editLibrary = function(id) {
-            const r = CACHE.library.find(x => x.id === id);
-            if (!r) return;
-            document.getElementById('libId').value = r.id;
-            document.getElementById('libName').value = r.name || '';
-            document.getElementById('libType').value = r.type || 'Book';
-            document.getElementById('libTags').value = Array.isArray(r.tags) ? r.tags.join(', ') : (r.tags || '');
-            document.getElementById('libImage').value = r.image || '';
-            document.getElementById('libDescription').value = r.description || '';
-            document.getElementById('libLink').value = r.link || '';
-            const form = document.getElementById('libraryForm');
-            form.dataset.mode = 'edit';
-            const btn = document.getElementById('libSubmitBtn');
-            btn.textContent = 'Update Resource';
-        };
-
-        // FORM handlers (Add/Update)
+        // Forms: submit handlers
         document.getElementById('eventForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const currentLang = localStorage.getItem('language') || 'en';
@@ -641,21 +821,13 @@
                 description: document.getElementById('eventDescription').value.trim()
             };
             let res;
-            if (mode === 'edit') {
-                const id = document.getElementById('eventId').value;
-                res = await firestoreAPI.updateEvent(id, payload);
-            } else {
-                res = await firestoreAPI.addEvent(payload);
-            }
+            if (mode === 'edit') res = await firestoreAPI.updateEvent(document.getElementById('eventId').value, payload);
+            else res = await firestoreAPI.addEvent(payload);
             if (res.success) {
                 showMessage(currentLang === 'ar' ? 'تم حفظ الفعالية بنجاح!' : 'Event saved successfully!', 'success');
-                e.currentTarget.reset();
-                e.currentTarget.dataset.mode = 'add';
-                document.getElementById('eventSubmitBtn').textContent = 'Add Event';
+                e.currentTarget.reset(); e.currentTarget.dataset.mode = 'add'; document.getElementById('eventSubmitBtn').textContent = 'Add Event';
                 loadExistingEvents();
-            } else {
-                showMessage(res.error || 'Failed to save event', 'error');
-            }
+            } else { showMessage(res.error || 'Failed to save event', 'error'); }
         });
 
         document.getElementById('articleForm').addEventListener('submit', async (e) => {
@@ -670,21 +842,13 @@
                 content: document.getElementById('articleContent').value.trim()
             };
             let res;
-            if (mode === 'edit') {
-                const id = document.getElementById('articleId').value;
-                res = await firestoreAPI.updateArticle(id, payload);
-            } else {
-                res = await firestoreAPI.addArticle(payload);
-            }
+            if (mode === 'edit') res = await firestoreAPI.updateArticle(document.getElementById('articleId').value, payload);
+            else res = await firestoreAPI.addArticle(payload);
             if (res.success) {
                 showMessage(currentLang === 'ar' ? 'تم حفظ المقال بنجاح!' : 'Article saved successfully!', 'success');
-                e.currentTarget.reset();
-                e.currentTarget.dataset.mode = 'add';
-                document.getElementById('articleSubmitBtn').textContent = 'Add Article';
+                e.currentTarget.reset(); e.currentTarget.dataset.mode = 'add'; document.getElementById('articleSubmitBtn').textContent = 'Add Article';
                 loadExistingArticles();
-            } else {
-                showMessage(res.error || 'Failed to save article', 'error');
-            }
+            } else { showMessage(res.error || 'Failed to save article', 'error'); }
         });
 
         document.getElementById('libraryForm').addEventListener('submit', async (e) => {
@@ -701,21 +865,13 @@
                 link: document.getElementById('libLink').value.trim()
             };
             let res;
-            if (mode === 'edit') {
-                const id = document.getElementById('libId').value;
-                res = await firestoreAPI.updateLibraryResource(id, payload);
-            } else {
-                res = await firestoreAPI.addLibraryResource(payload);
-            }
+            if (mode === 'edit') res = await firestoreAPI.updateLibraryResource(document.getElementById('libId').value, payload);
+            else res = await firestoreAPI.addLibraryResource(payload);
             if (res.success) {
                 showMessage(currentLang === 'ar' ? 'تم حفظ المورد بنجاح!' : 'Resource saved successfully!', 'success');
-                e.currentTarget.reset();
-                e.currentTarget.dataset.mode = 'add';
-                document.getElementById('libSubmitBtn').textContent = 'Add Resource';
+                e.currentTarget.reset(); e.currentTarget.dataset.mode = 'add'; document.getElementById('libSubmitBtn').textContent = 'Add Resource';
                 loadExistingLibraryResources();
-            } else {
-                showMessage(res.error || 'Failed to save resource', 'error');
-            }
+            } else { showMessage(res.error || 'Failed to save resource', 'error'); }
         });
 
         document.getElementById('educationForm').addEventListener('submit', async (e) => {
@@ -727,11 +883,59 @@
                 description: document.getElementById('weekDescription').value.trim()
             };
             const res = await firestoreAPI.updateEducation(payload);
+            if (res.success) showMessage(currentLang === 'ar' ? 'تم تحديث المحتوى التعليمي!' : 'Education content updated!', 'success');
+            else showMessage(res.error || 'Failed to update education content', 'error');
+        });
+
+        document.getElementById('courseForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const mode = e.currentTarget.dataset.mode || 'add';
+            const payload = {
+                title: document.getElementById('courseTitle').value.trim(),
+                description: document.getElementById('courseDescription').value.trim(),
+                lecturer: document.getElementById('courseLecturer').value.trim(),
+                link: document.getElementById('courseLink').value.trim()
+            };
+            let res;
+            if (mode === 'edit') res = await firestoreAPI.updateCourse(document.getElementById('courseId').value, payload);
+            else res = await firestoreAPI.addCourse(payload);
             if (res.success) {
-                showMessage(currentLang === 'ar' ? 'تم تحديث المحتوى التعليمي!' : 'Education content updated!', 'success');
-            } else {
-                showMessage(res.error || 'Failed to update education content', 'error');
-            }
+                showMessage('Course saved', 'success');
+                e.currentTarget.reset(); e.currentTarget.dataset.mode = 'add'; document.getElementById('courseSubmitBtn').textContent = 'Add Course';
+                loadCourses();
+            } else { showMessage(res.error || 'Failed to save course', 'error'); }
+        });
+
+        document.getElementById('fbdPageForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const res = await firestoreAPI.updateFbdPage({
+                pageTitle: document.getElementById('fbdTitle').value.trim(),
+                about: document.getElementById('fbdAbout').value.trim()
+            });
+            if (res.success) showMessage('FBD page updated', 'success');
+            else showMessage(res.error || 'Failed to update FBD page', 'error');
+        });
+
+        document.getElementById('fbdEventForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const mode = e.currentTarget.dataset.mode || 'add';
+            const payload = {
+                title: document.getElementById('fbdEventTitle').value.trim(),
+                time: new Date(document.getElementById('fbdEventTime').value).toISOString(),
+                location: document.getElementById('fbdEventLocation').value.trim(),
+                type: document.getElementById('fbdEventType').value,
+                seats: parseInt(document.getElementById('fbdEventSeats').value || '0', 10),
+                image: document.getElementById('fbdEventImage').value.trim(),
+                description: document.getElementById('fbdEventDescription').value.trim()
+            };
+            let res;
+            if (mode === 'edit') res = await firestoreAPI.updateFbdEvent(document.getElementById('fbdEventId').value, payload);
+            else res = await firestoreAPI.addFbdEvent(payload);
+            if (res.success) {
+                showMessage('FBD event saved', 'success');
+                e.currentTarget.reset(); e.currentTarget.dataset.mode = 'add'; document.getElementById('fbdEventSubmitBtn').textContent = 'Add FBD Event';
+                loadFbd();
+            } else { showMessage(res.error || 'Failed to save FBD event', 'error'); }
         });
 
         // Settings helpers
@@ -742,49 +946,23 @@
             statusEl.textContent = res.success ? 'Connected' : `Error: ${res.error}`;
             document.getElementById('tokenStatus').style.background = res.success ? '#f0fff4' : '#fff5f5';
         };
-
-        window.fixFirestoreStructure = async function() {
-            const resultsBox = document.getElementById('structureResults');
-            const contentBox = document.getElementById('structureResultsContent');
-            resultsBox.style.display = 'block';
-            contentBox.innerHTML = '<p>Validating and fixing structure...</p>';
-            const res = await firestoreAPI.validateAndFixStructure();
-            const actions = (res.actions || []).map(a => `<li style="color:#2f855a;">✓ ${a}</li>`).join('');
-            const errors = (res.errors || []).map(e => `<li style="color:#c53030;">✗ ${e}</li>`).join('');
-            contentBox.innerHTML = `<ul>${actions}${errors}</ul>`;
-        };
+        window.updateTokenStatus = function() { testFirestoreConnection(); };
 
         window.loadAdminsList = async function() {
             const list = document.getElementById('adminsList');
             list.innerHTML = '<p>Loading...</p>';
             const res = await firestoreAPI.getAdmins();
-            if (!res.success) {
-                list.innerHTML = `<p style="color:red;">${res.error}</p>`;
-                return;
-            }
-            if ((res.admins || []).length === 0) {
-                list.innerHTML = '<p>No admins found.</p>';
-                return;
-            }
-            list.innerHTML = res.admins.map(a => `
-                <div class="content-item">
-                    <div>${a}</div>
-                </div>
-            `).join('');
+            if (!res.success) { list.innerHTML = `<p style="color:red;">${res.error}</p>`; return; }
+            if ((res.admins || []).length === 0) { list.innerHTML = '<p>No admins found.</p>'; return; }
+            list.innerHTML = res.admins.map(a => `<div class="content-item"><div>${a}</div></div>`).join('');
         };
-
         window.addNewAdmin = async function() {
             const input = document.getElementById('newAdminEmail');
             const email = input.value.trim();
             if (!email) return;
             const res = await firestoreAPI.addAdmin(email);
-            if (res.success) {
-                input.value = '';
-                loadAdminsList();
-                showMessage('Admin added', 'success');
-            } else {
-                showMessage(res.error || 'Failed to add admin', 'error');
-            }
+            if (res.success) { input.value = ''; loadAdminsList(); showMessage('Admin added', 'success'); }
+            else { showMessage(res.error || 'Failed to add admin', 'error'); }
         };
     </script>
 </body>
