@@ -3,7 +3,7 @@
 ## Date: 2025-11-06
 
 ## Problem Statement
-"Change admin dashboard html file to do implement all data to firebase under content"
+"Change admin dashboard html file to implement all data to firebase under content"
 
 ## What Was Changed
 
