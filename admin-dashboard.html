@@ -22,48 +22,50 @@
       --success: #38a169;
       --error: #e53e3e;
     }
-    body { background: var(--bg); }
+    body { background: var(--bg); font-family: 'Inter', sans-serif; }
     .admin-header { background: linear-gradient(135deg, var(--brand1) 0%, var(--brand2) 100%); color: white; padding: 1.25rem 0; margin-bottom: 0; }
     .admin-header .container { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
     .admin-header h1 { font-size: 1.4rem; font-weight: 800; margin: 0; }
     .admin-info { display: flex; align-items: center; gap: .5rem; }
-    .logout-btn, .home-link, .language-toggle { padding: 0.35rem 0.9rem; background: rgba(255,255,255,0.2); color: white; border: 2px solid white; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap:.4rem; }
+    .logout-btn, .home-link, .language-toggle { padding: 0.35rem 0.9rem; background: rgba(255,255,255,0.2); color: white; border: 2px solid white; border-radius: 8px; cursor: pointer; font-weight: 600; font-size:.85rem; text-decoration:none; }
     .logout-btn:hover, .home-link:hover, .language-toggle:hover { background: white; color: var(--brand1); }
     .dashboard { display: grid; grid-template-columns: 260px 1fr; gap: 1.25rem; padding: 1.25rem; }
-    .sidebar { background: var(--panel); border-right: 1px solid var(--border); border-radius: 12px; overflow: hidden; height: calc(100vh - 130px); position: sticky; top: 1.25rem; }
+    .sidebar { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; height: calc(100vh - 130px); position: sticky; top: 1.25rem; }
     .sidebar h3 { margin: 0; padding: 1rem 1rem .25rem; font-size: .9rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
     .nav { list-style: none; margin: 0; padding: .5rem; }
     .nav li { margin: .25rem 0; }
-    .nav button { width: 100%; text-align: left; background: none; border: none; border-radius: 10px; padding: .65rem .8rem; font-weight: 600; color: #4a5568; cursor: pointer; }
+    .nav button { width: 100%; text-align: left; background: none; border: none; border-radius: 10px; padding: .65rem .8rem; font-weight: 600; color: #4a5568; cursor: pointer; font-size:.9rem; }
     .nav button.active, .nav button:hover { background: #eef2ff; color: var(--brand1); }
     .content { min-height: 70vh; }
     .content > .tab-content { display: none; }
     .content > .tab-content.active { display: block; }
     .top-actions { display:flex; justify-content:flex-end; gap:.5rem; margin-bottom: .75rem; }
-    .mini-btn { border: 1px solid var(--border); background: var(--panel); color: var(--muted); border-radius: 8px; padding: .35rem .6rem; cursor: pointer; font-size: .85rem; }
+    .mini-btn { border: 1px solid var(--border); background: var(--panel); color: var(--muted); border-radius: 8px; padding: .35rem .6rem; cursor: pointer; font-size: .75rem; font-weight:600; }
     .mini-btn:hover { background: #edf2f7; color: var(--text); }
     .panel { background: var(--panel); padding: 1rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    .message { padding: .75rem 1rem; border-radius: 8px; margin-bottom: 1rem; display: none; border-left: 4px solid transparent; }
+    .message { padding: .75rem 1rem; border-radius: 8px; margin-bottom: 1rem; display: none; border-left: 4px solid transparent; font-size:.9rem; }
     .message.success { background: #f0fff4; color: var(--success); border-left-color: var(--success); }
     .message.error { background: #fff5f5; color: var(--error); border-left-color: var(--error); }
     details.accordion { border: 1px solid var(--border); border-radius: 12px; background: var(--panel); margin-bottom: .75rem; overflow: hidden; }
-    details.accordion > summary { list-style: none; cursor: pointer; padding: .85rem 1rem; font-weight: 700; display:flex; align-items:center; justify-content:space-between; }
+    details.accordion > summary { list-style: none; cursor: pointer; padding: .85rem 1rem; font-weight: 700; display:flex; align-items:center; justify-content:space-between; font-size:.95rem; }
     details.accordion > summary::-webkit-details-marker { display:none; }
     details.accordion[open] > summary { background: #f8fafc; border-bottom: 1px solid var(--border); }
     .accordion-body { padding: 1rem; }
-    .content-list .content-item { padding: .75rem; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap: .75rem; }
+    .content-list .content-item { padding: .75rem; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap: .75rem; font-size:.85rem; }
     .content-list .content-item:last-child { border-bottom: none; }
-    .btn { padding: .45rem .7rem; border: none; border-radius: 8px; color: white; font-weight: 700; cursor: pointer; }
+    .btn { padding: .45rem .7rem; border: none; border-radius: 8px; color: white; font-weight: 700; cursor: pointer; font-size:.75rem; }
     .delete-btn { background: var(--error); } .delete-btn:hover { filter: brightness(0.95); }
     .edit-btn { background: #3182ce; } .edit-btn:hover { filter: brightness(0.95); }
-    .submit-btn { padding: .75rem 1.2rem; background: linear-gradient(135deg, var(--brand1) 0%, var(--brand2) 100%); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; }
+    .submit-btn { padding: .75rem 1.2rem; background: linear-gradient(135deg, var(--brand1) 0%, var(--brand2) 100%); color: white; border: none; border-radius: 10px; font-size: .95rem; font-weight: 700; cursor: pointer; transition:.25s; }
     .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(102,126,234,0.25); }
     .form-group { margin-bottom: 1rem; }
-    .form-group label { display: block; color: var(--muted); font-size: .9rem; font-weight: 700; margin-bottom: .35rem; }
-    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: .65rem .7rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; font-family: 'Inter', sans-serif; transition: border-color .2s, box-shadow .2s; }
-    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: var(--brand1); box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+    .form-group label { display: block; color: var(--muted); font-size: .75rem; font-weight: 700; margin-bottom: .35rem; letter-spacing:.5px; }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: .6rem .65rem; border: 2px solid var(--border); border-radius: 8px; font-size: .85rem; font-family: inherit; background:white; }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: var(--brand1); box-shadow: 0 0 0 3px rgba(102,126,234,0.12); }
     .form-group textarea { min-height: 110px; resize: vertical; }
     .two-col { display:grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+    .error-box { display:none; background:#fff5f5; border:1px solid #feb2b2; color:#c53030; padding:.75rem .9rem; border-radius:8px; margin-bottom:.85rem; font-size:.75rem; line-height:1.4; }
+    .error-box ul { margin:0; padding-left:1.05rem; }
     @media (max-width: 900px) {
       .dashboard { grid-template-columns: 1fr; }
       .sidebar { position: static; height: auto; }
@@ -126,14 +128,23 @@
         <details class="accordion" open>
           <summary>Add or Edit Event</summary>
           <div class="accordion-body panel">
-            <form id="eventForm" data-mode="add">
+            <form id="eventForm" data-mode="add" novalidate>
               <input type="hidden" id="eventId"/>
               <div class="two-col">
-                <div class="form-group"><label for="eventTitle">Event Title</label><input id="eventTitle" required/></div>
-                <div class="form-group"><label for="eventTime">Date and Time</label><input type="datetime-local" id="eventTime" required/></div>
+                <div class="form-group">
+                  <label for="eventTitle">Event Title</label>
+                  <input id="eventTitle" required autocomplete="off"/>
+                </div>
+                <div class="form-group">
+                  <label for="eventTime">Date and Time</label>
+                  <input type="datetime-local" id="eventTime" required/>
+                </div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="eventLocation">Location</label><input id="eventLocation" required/></div>
+                <div class="form-group">
+                  <label for="eventLocation">Location</label>
+                  <input id="eventLocation" required/>
+                </div>
                 <div class="form-group">
                   <label for="eventType">Event Type</label>
                   <select id="eventType" required>
@@ -144,10 +155,20 @@
                 </div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="eventSeats">Available Seats</label><input type="number" id="eventSeats" min="0" value="0" required/></div>
-                <div class="form-group"><label for="eventImage">Emoji Icon</label><input id="eventImage" placeholder="🎨" required/></div>
+                <div class="form-group">
+                  <label for="eventSeats">Available Seats</label>
+                  <input type="number" id="eventSeats" min="1" value="10" required/>
+                </div>
+                <div class="form-group">
+                  <label for="eventImage">Emoji Icon</label>
+                  <input id="eventImage" placeholder="🎨" required/>
+                </div>
               </div>
-              <div class="form-group"><label for="eventDescription">Description</label><textarea id="eventDescription" required></textarea></div>
+              <div class="form-group">
+                <label for="eventDescription">Description</label>
+                <textarea id="eventDescription" required></textarea>
+              </div>
+              <div id="eventErrors" class="error-box"></div>
               <button type="submit" id="eventSubmitBtn" class="submit-btn">Add Event</button>
             </form>
           </div>
@@ -166,7 +187,7 @@
         <details class="accordion" open>
           <summary>Add or Edit Article</summary>
           <div class="accordion-body panel">
-            <form id="articleForm" data-mode="add">
+            <form id="articleForm" data-mode="add" novalidate>
               <input type="hidden" id="articleId"/>
               <div class="two-col">
                 <div class="form-group"><label for="articleTitle">Article Title</label><input id="articleTitle" required/></div>
@@ -177,6 +198,7 @@
                 <div class="form-group"><label for="articleSummary">Summary</label><input id="articleSummary" required/></div>
               </div>
               <div class="form-group"><label for="articleContent">Full Content</label><textarea id="articleContent" required></textarea></div>
+              <div id="articleErrors" class="error-box"></div>
               <button type="submit" id="articleSubmitBtn" class="submit-btn">Add Article</button>
             </form>
           </div>
@@ -195,7 +217,7 @@
         <details class="accordion" open>
           <summary>Add or Edit Resource</summary>
           <div class="accordion-body panel">
-            <form id="libraryForm" data-mode="add">
+            <form id="libraryForm" data-mode="add" novalidate>
               <input type="hidden" id="libId"/>
               <div class="two-col">
                 <div class="form-group"><label for="libName">Resource Name</label><input id="libName" required/></div>
@@ -216,6 +238,7 @@
                 <div class="form-group"><label for="libDescription">Description</label><input id="libDescription" required/></div>
                 <div class="form-group"><label for="libLink">Download Link</label><input type="url" id="libLink" placeholder="https://" required/></div>
               </div>
+              <div id="libraryErrors" class="error-box"></div>
               <button type="submit" id="libSubmitBtn" class="submit-btn">Add Resource</button>
             </form>
           </div>
@@ -227,12 +250,13 @@
         <details class="accordion" open>
           <summary>Weekly Workshop</summary>
           <div class="accordion-body panel">
-            <form id="educationForm">
+            <form id="educationForm" novalidate>
               <div class="two-col">
                 <div class="form-group"><label for="weekTitle">Weekly Workshop Title</label><input id="weekTitle" required/></div>
                 <div class="form-group"><label for="lecturerName">Lecturer Name</label><input id="lecturerName" required/></div>
               </div>
               <div class="form-group"><label for="weekDescription">Workshop Description</label><textarea id="weekDescription" required></textarea></div>
+              <div id="educationErrors" class="error-box"></div>
               <button type="submit" class="submit-btn">Update Weekly Workshop</button>
             </form>
           </div>
@@ -245,7 +269,7 @@
               <h4 style="margin-top:0">Existing Courses</h4>
               <div id="existingCoursesList"><p>Loading courses...</p></div>
             </div>
-            <form id="courseForm" data-mode="add">
+            <form id="courseForm" data-mode="add" novalidate>
               <input type="hidden" id="courseId"/>
               <div class="two-col">
                 <div class="form-group"><label for="courseTitle">Course Title</label><input id="courseTitle" required/></div>
@@ -255,6 +279,7 @@
                 <div class="form-group"><label for="courseDescription">Course Description</label><input id="courseDescription" required/></div>
                 <div class="form-group"><label for="courseLink">Link (optional)</label><input id="courseLink" type="url" placeholder="https://"/></div>
               </div>
+              <div id="courseErrors" class="error-box"></div>
               <button type="submit" id="courseSubmitBtn" class="submit-btn">Add Course</button>
             </form>
           </div>
@@ -283,7 +308,7 @@
               <h4 style="margin-top:0">Existing FBD Events</h4>
               <div id="existingFbdEventsList"><p>Loading FBD events...</p></div>
             </div>
-            <form id="fbdEventForm" data-mode="add">
+            <form id="fbdEventForm" data-mode="add" novalidate>
               <input type="hidden" id="fbdEventId"/>
               <div class="two-col">
                 <div class="form-group"><label for="fbdEventTitle">Event Title</label><input id="fbdEventTitle" required/></div>
@@ -301,10 +326,11 @@
                 </div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="fbdEventSeats">Available Seats</label><input id="fbdEventSeats" type="number" min="0" value="0"/></div>
-                <div class="form-group"><label for="fbdEventImage">Emoji Icon</label><input id="fbdEventImage" placeholder="🎨"/></div>
+                <div class="form-group"><label for="fbdEventSeats">Available Seats</label><input id="fbdEventSeats" type="number" min="1" value="10" required/></div>
+                <div class="form-group"><label for="fbdEventImage">Emoji Icon</label><input id="fbdEventImage" placeholder="🎨" required/></div>
               </div>
               <div class="form-group"><label for="fbdEventDescription">Description</label><textarea id="fbdEventDescription" required></textarea></div>
+              <div id="fbdEventErrors" class="error-box"></div>
               <button type="submit" id="fbdEventSubmitBtn" class="submit-btn">Add FBD Event</button>
             </form>
           </div>
@@ -356,6 +382,9 @@
   </div>
 
   <script type="module">
+    /*************************************************
+     * تهيئة Firebase و FirestoreAPI
+     *************************************************/
     import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -379,7 +408,9 @@
 
     let CACHE = { events: [], articles: [], library: [], courses: [], fbdEvents: [] };
 
-    // Sidebar nav handling
+    /*************************************************
+     * تنقل التبويبات
+     *************************************************/
     const mainNav = document.getElementById('mainNav');
     mainNav.addEventListener('click', (e) => {
       const btn = e.target.closest('button[data-tab]');
@@ -390,7 +421,6 @@
       showTab(tab);
     });
 
-    // Expand/Collapse all in active tab
     document.getElementById('expandAll').addEventListener('click', () => {
       document.querySelectorAll('.tab-content.active details.accordion').forEach(d => d.open = true);
     });
@@ -398,10 +428,14 @@
       document.querySelectorAll('.tab-content.active details.accordion').forEach(d => d.open = false);
     });
 
+    /*************************************************
+     * تسجيل خروج
+     *************************************************/
     window.logout = async function() {
       try {
         await signOut(auth);
-        ['aias_authenticated','aias_user_email','aias_user_name','aias_user_picture','aias_is_admin','aias_user_uid'].forEach(localStorage.removeItem.bind(localStorage));
+        ['aias_authenticated','aias_user_email','aias_user_name','aias_user_picture','aias_is_admin','aias_user_uid']
+          .forEach(localStorage.removeItem.bind(localStorage));
         window.location.href = 'login.html';
       } catch (error) {
         console.error('Logout error:', error);
@@ -414,7 +448,7 @@
         const adminDoc = await getDoc(doc(db, 'config', 'admins'));
         if (adminDoc.exists()) {
           const data = adminDoc.data();
-          return Array.isArray(data.admins) && data.admins.includes(email.toLowerCase());
+            return Array.isArray(data.admins) && data.admins.includes(email.toLowerCase());
         }
       } catch (error) { console.error('Error checking admin status:', error); }
       return false;
@@ -436,6 +470,9 @@
       });
     })();
 
+    /*************************************************
+     * رسائل واجهة
+     *************************************************/
     function showMessage(text, type) {
       const el = document.getElementById('message');
       el.textContent = text;
@@ -464,7 +501,9 @@
       if (tab==='settings') { testFirestoreConnection(); loadAdminsList?.(); }
     };
 
-    // Loaders
+    /*************************************************
+     * تحميل القوائم
+     *************************************************/
     window.loadExistingEvents = async function() {
       const box = document.getElementById('existingEventsList');
       box.innerHTML = '<p>Loading events...</p>';
@@ -485,6 +524,7 @@
         reapplyTranslations();
       } catch (e) { console.error(e); box.innerHTML='<p style="color:red">Error loading events</p>'; }
     };
+
     window.editEvent = function(id) {
       const ev = CACHE.events.find(x=>x.id===id); if (!ev) return;
       eventForm.dataset.mode = 'edit';
@@ -493,11 +533,12 @@
       eventTime.value = ev.time ? new Date(ev.time).toISOString().slice(0,16) : '';
       eventLocation.value = ev.location || '';
       eventType.value = ev.type || 'Workshop';
-      eventSeats.value = ev.seats ?? 0;
+      eventSeats.value = ev.seats ?? 10;
       eventImage.value = ev.image || '';
       eventDescription.value = ev.description || '';
       eventSubmitBtn.textContent = 'Update Event';
     };
+
     window.deleteEvent = async function(id) {
       if (!confirm('Are you sure you want to delete this event?')) return;
       const r = await firestoreAPI.deleteEvent(id);
@@ -525,6 +566,7 @@
         reapplyTranslations();
       } catch (e) { console.error(e); box.innerHTML='<p style="color:red">Error loading articles</p>'; }
     };
+
     window.editArticle = function(id) {
       const a = CACHE.articles.find(x=>x.id===id); if (!a) return;
       articleForm.dataset.mode = 'edit';
@@ -536,6 +578,7 @@
       articleContent.value = a.content || '';
       articleSubmitBtn.textContent = 'Update Article';
     };
+
     window.deleteArticle = async function(id) {
       if (!confirm('Are you sure you want to delete this article?')) return;
       const r = await firestoreAPI.deleteArticle(id);
@@ -563,6 +606,7 @@
         reapplyTranslations();
       } catch (e) { console.error(e); box.innerHTML='<p style="color:red">Error loading resources</p>'; }
     };
+
     window.editLibrary = function(id) {
       const r = CACHE.library.find(x=>x.id===id); if (!r) return;
       libraryForm.dataset.mode = 'edit';
@@ -575,6 +619,7 @@
       libLink.value = r.link || '';
       libSubmitBtn.textContent = 'Update Resource';
     };
+
     window.deleteLibraryResource = async function(id) {
       if (!confirm('Are you sure you want to delete this resource?')) return;
       const r = await firestoreAPI.deleteLibraryResource(id);
@@ -582,7 +627,6 @@
       else showMessage(r.error || 'Failed to delete resource', 'error');
     };
 
-    // Courses and FBD
     window.loadEducationContent = async function() {
       try {
         const r = await firestoreAPI.getAllContent();
@@ -590,6 +634,7 @@
         if (w) { weekTitle.value = w.weekTitle || ''; lecturerName.value = w.lecturerName || ''; weekDescription.value = w.description || ''; }
       } catch (e) { console.error(e); }
     };
+
     window.loadCourses = async function() {
       const box = document.getElementById('existingCoursesList');
       box.innerHTML = '<p>Loading courses...</p>';
@@ -600,7 +645,7 @@
         if (CACHE.courses.length===0) { box.innerHTML = '<p>No courses found.</p>'; return; }
         box.innerHTML = CACHE.courses.map(c => `
           <div class="content-item">
-            <div><strong>${c.title || '(no title)'}</strong><br><small>${c.lecturer ? c.lecturer+' — ' : ''}${c.link ? `<a href="${c.link}" target="_blank">Link</a>` : ''}</small></div>
+            <div><strong>${c.title || '(no title)'}</strong><br><small>${c.lecturer ? c.lecturer+' — ' : ''}${c.link ? `<a href="${c.link}" target="_blank" rel="noopener noreferrer">Link</a>` : ''}</small></div>
             <div class="user-actions">
               <button class="btn edit-btn" onclick="editCourse('${c.id}')">Edit</button>
               <button class="btn delete-btn" onclick="deleteCourse('${c.id}')">Delete</button>
@@ -609,6 +654,7 @@
         `).join('');
       } catch (e) { console.error(e); box.innerHTML = '<p style="color:red">Error loading courses</p>'; }
     };
+
     window.editCourse = function(id) {
       const c = CACHE.courses.find(x=>x.id===id); if (!c) return;
       courseForm.dataset.mode = 'edit';
@@ -619,6 +665,7 @@
       courseLink.value = c.link || '';
       courseSubmitBtn.textContent = 'Update Course';
     };
+
     window.deleteCourse = async function(id) {
       if (!confirm('Are you sure you want to delete this course?')) return;
       const r = await firestoreAPI.deleteCourse(id);
@@ -648,6 +695,7 @@
         `).join('');
       } catch (e) { console.error(e); box.innerHTML = '<p style="color:red">Error loading FBD</p>'; }
     };
+
     window.editFbdEvent = function(id) {
       const ev = CACHE.fbdEvents.find(x=>x.id===id); if (!ev) return;
       fbdEventForm.dataset.mode = 'edit';
@@ -656,11 +704,12 @@
       fbdEventTime.value = ev.time ? new Date(ev.time).toISOString().slice(0,16) : '';
       fbdEventLocation.value = ev.location || '';
       fbdEventType.value = ev.type || 'Workshop';
-      fbdEventSeats.value = ev.seats ?? 0;
+      fbdEventSeats.value = ev.seats ?? 10;
       fbdEventImage.value = ev.image || '';
       fbdEventDescription.value = ev.description || '';
       fbdEventSubmitBtn.textContent = 'Update FBD Event';
     };
+
     window.deleteFbdEvent = async function(id) {
       if (!confirm('Are you sure you want to delete this FBD event?')) return;
       const r = await firestoreAPI.deleteFbdEvent(id);
@@ -668,53 +717,193 @@
       else showMessage(r.error || 'Failed to delete FBD event', 'error');
     };
 
-    // Submit handlers (store exactly the user's inputs)
-    const eventForm = document.getElementById('eventForm');
-    const eventId = document.getElementById('eventId');
-    const eventTitle = document.getElementById('eventTitle');
-    const eventTime = document.getElementById('eventTime');
-    const eventLocation = document.getElementById('eventLocation');
-    const eventType = document.getElementById('eventType');
-    const eventSeats = document.getElementById('eventSeats');
-    const eventImage = document.getElementById('eventImage');
-    const eventDescription = document.getElementById('eventDescription');
-    const eventSubmitBtn = document.getElementById('eventSubmitBtn');
+    /*************************************************
+     * عناصر النماذج
+     *************************************************/
+    const eventForm         = document.getElementById('eventForm');
+    const eventId           = document.getElementById('eventId');
+    const eventTitle        = document.getElementById('eventTitle');
+    const eventTime         = document.getElementById('eventTime');
+    const eventLocation     = document.getElementById('eventLocation');
+    const eventType         = document.getElementById('eventType');
+    const eventSeats        = document.getElementById('eventSeats');
+    const eventImage        = document.getElementById('eventImage');
+    const eventDescription  = document.getElementById('eventDescription');
+    const eventSubmitBtn    = document.getElementById('eventSubmitBtn');
+    const eventErrorsBox    = document.getElementById('eventErrors');
 
+    const articleForm       = document.getElementById('articleForm');
+    const articleId         = document.getElementById('articleId');
+    const articleTitle      = document.getElementById('articleTitle');
+    const articleAuthor     = document.getElementById('articleAuthor');
+    const articleDate       = document.getElementById('articleDate');
+    const articleSummary    = document.getElementById('articleSummary');
+    const articleContent    = document.getElementById('articleContent');
+    const articleSubmitBtn  = document.getElementById('articleSubmitBtn');
+    const articleErrorsBox  = document.getElementById('articleErrors');
+
+    const libraryForm       = document.getElementById('libraryForm');
+    const libId             = document.getElementById('libId');
+    const libName           = document.getElementById('libName');
+    const libType           = document.getElementById('libType');
+    const libTags           = document.getElementById('libTags');
+    const libImage          = document.getElementById('libImage');
+    const libDescription    = document.getElementById('libDescription');
+    const libLink           = document.getElementById('libLink');
+    const libSubmitBtn      = document.getElementById('libSubmitBtn');
+    const libraryErrorsBox  = document.getElementById('libraryErrors');
+
+    const educationForm     = document.getElementById('educationForm');
+    const weekTitle         = document.getElementById('weekTitle');
+    const lecturerName      = document.getElementById('lecturerName');
+    const weekDescription   = document.getElementById('weekDescription');
+    const educationErrorsBox= document.getElementById('educationErrors');
+
+    const courseForm        = document.getElementById('courseForm');
+    const courseId          = document.getElementById('courseId');
+    const courseTitle       = document.getElementById('courseTitle');
+    const courseDescription = document.getElementById('courseDescription');
+    const courseLecturer    = document.getElementById('courseLecturer');
+    const courseLink        = document.getElementById('courseLink');
+    const courseSubmitBtn   = document.getElementById('courseSubmitBtn');
+    const courseErrorsBox   = document.getElementById('courseErrors');
+
+    const fbdPageForm       = document.getElementById('fbdPageForm');
+    const fbdTitle          = document.getElementById('fbdTitle');
+    const fbdAbout          = document.getElementById('fbdAbout');
+
+    const fbdEventForm          = document.getElementById('fbdEventForm');
+    const fbdEventId            = document.getElementById('fbdEventId');
+    const fbdEventTitle         = document.getElementById('fbdEventTitle');
+    const fbdEventTime          = document.getElementById('fbdEventTime');
+    const fbdEventLocation      = document.getElementById('fbdEventLocation');
+    const fbdEventType          = document.getElementById('fbdEventType');
+    const fbdEventSeats         = document.getElementById('fbdEventSeats');
+    const fbdEventImage         = document.getElementById('fbdEventImage');
+    const fbdEventDescription   = document.getElementById('fbdEventDescription');
+    const fbdEventSubmitBtn     = document.getElementById('fbdEventSubmitBtn');
+    const fbdEventErrorsBox     = document.getElementById('fbdEventErrors');
+
+    /*************************************************
+     * أدوات مساعدة للتحقق
+     *************************************************/
+    function showErrors(box, errors) {
+      if (!box) return;
+      if (!errors.length) {
+        box.style.display = 'none';
+        box.innerHTML = '';
+        return;
+      }
+      box.style.display = 'block';
+      box.innerHTML = `<ul>${errors.map(e=>`<li>${e}</li>`).join('')}</ul>`;
+    }
+
+    function toISO(dtValue) {
+      if (!dtValue) return '';
+      const date = new Date(dtValue);
+      return isNaN(date.getTime()) ? '' : date.toISOString();
+    }
+
+    function validateEventPayload(p) {
+      const errors = [];
+      if (!p.title || p.title.trim().length < 3) errors.push('العنوان مطلوب (3 أحرف على الأقل).');
+      if (!p.time) errors.push('التاريخ والوقت مطلوبان.');
+      if (!p.location || p.location.trim().length < 2) errors.push('الموقع مطلوب.');
+      if (!p.description || p.description.trim().length < 10) errors.push('الوصف مطلوب (10 أحرف على الأقل).');
+      if (!Number.isFinite(p.seats) || p.seats <= 0) errors.push('عدد المقاعد يجب أن يكون رقمًا أكبر من صفر.');
+      if (!p.image || p.image.trim().length === 0) errors.push('الإيموجي مطلوب (اكتبه داخل الحقل).');
+      return errors;
+    }
+
+    function validateFbdEventPayload(p) {
+      // نفس منطق الفعاليات العادية
+      return validateEventPayload(p);
+    }
+
+    function validateArticlePayload(p) {
+      const errors = [];
+      if (!p.title.trim()) errors.push('عنوان المقال مطلوب.');
+      if (!p.author.trim()) errors.push('اسم الكاتب مطلوب.');
+      if (!p.date.trim()) errors.push('التاريخ مطلوب.');
+      if (!p.summary.trim() || p.summary.trim().length < 5) errors.push('الملخص قصير جداً.');
+      if (!p.content.trim() || p.content.trim().length < 20) errors.push('المحتوى يجب أن يكون 20 حرفاً فأكثر.');
+      return errors;
+    }
+
+    function validateLibraryPayload(p) {
+      const errors = [];
+      if (!p.name.trim()) errors.push('اسم المصدر مطلوب.');
+      if (!p.type.trim()) errors.push('نوع المصدر مطلوب.');
+      if (!p.description.trim() || p.description.trim().length < 5) errors.push('الوصف قصير جداً.');
+      if (!p.image.trim()) errors.push('الإيموجي مطلوب.');
+      if (!p.link.trim()) errors.push('الرابط مطلوب.');
+      return errors;
+    }
+
+    function validateCoursePayload(p) {
+      const errors = [];
+      if (!p.title.trim()) errors.push('عنوان الدورة مطلوب.');
+      if (!p.description.trim() || p.description.trim().length < 5) errors.push('وصف الدورة قصير جداً.');
+      return errors;
+    }
+
+    function validateWorkshopPayload(p) {
+      const errors = [];
+      if (!p.weekTitle.trim()) errors.push('عنوان الورشة مطلوب.');
+      if (!p.lecturerName.trim()) errors.push('اسم المحاضر مطلوب.');
+      if (!p.description.trim() || p.description.trim().length < 10) errors.push('الوصف قصير جداً.');
+      return errors;
+    }
+
+    /*************************************************
+     * إرسال نموذج الفعالية (Events)
+     *************************************************/
     eventForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const mode = eventForm.dataset.mode || 'add';
       const payload = {
         title: eventTitle.value,
-        time: eventTime.value ? new Date(eventTime.value).toISOString() : "",
+        time: toISO(eventTime.value),
         location: eventLocation.value,
         type: eventType.value,
-        seats: eventSeats.value,
+        seats: Number(eventSeats.value),
         image: eventImage.value,
         description: eventDescription.value
       };
-      const r = mode==='edit'
-        ? await firestoreAPI.updateEvent(eventId.value, payload)
-        : await firestoreAPI.addEvent(payload);
-      if (r.success) {
-        showMessage('Event saved successfully!', 'success');
-        eventForm.reset();
-        eventForm.dataset.mode = 'add';
-        eventSubmitBtn.textContent = 'Add Event';
-        loadExistingEvents();
-      } else {
-        showMessage(r.error || 'Failed to save event', 'error');
+      console.log('[EventForm] Raw values:', payload);
+      const errors = validateEventPayload(payload);
+      showErrors(eventErrorsBox, errors);
+      if (errors.length) { console.warn('[EventForm] Validation failed:', errors); return; }
+
+      eventSubmitBtn.disabled = true;
+      const originalText = eventSubmitBtn.textContent;
+      eventSubmitBtn.textContent = mode === 'edit' ? 'Updating...' : 'Saving...';
+
+      try {
+        const r = mode==='edit'
+          ? await firestoreAPI.updateEvent(eventId.value, payload)
+          : await firestoreAPI.addEvent(payload);
+        if (r.success) {
+          showMessage('Event saved successfully!', 'success');
+          eventForm.reset();
+          eventForm.dataset.mode = 'add';
+          eventSubmitBtn.textContent = 'Add Event';
+          loadExistingEvents();
+        } else {
+          showMessage(r.error || 'Failed to save event', 'error');
+        }
+      } catch (err) {
+        console.error('[EventForm] Exception:', err);
+        showMessage('Unexpected error saving event', 'error');
+      } finally {
+        eventSubmitBtn.disabled = false;
+        if (mode !== 'edit') eventSubmitBtn.textContent = originalText;
       }
     });
 
-    const articleForm = document.getElementById('articleForm');
-    const articleId = document.getElementById('articleId');
-    const articleTitle = document.getElementById('articleTitle');
-    const articleAuthor = document.getElementById('articleAuthor');
-    const articleDate = document.getElementById('articleDate');
-    const articleSummary = document.getElementById('articleSummary');
-    const articleContent = document.getElementById('articleContent');
-    const articleSubmitBtn = document.getElementById('articleSubmitBtn');
-
+    /*************************************************
+     * إرسال نموذج المقال (Articles)
+     *************************************************/
     articleForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const mode = articleForm.dataset.mode || 'add';
@@ -725,30 +914,39 @@
         summary: articleSummary.value,
         content: articleContent.value
       };
-      const r = mode==='edit'
-        ? await firestoreAPI.updateArticle(articleId.value, payload)
-        : await firestoreAPI.addArticle(payload);
-      if (r.success) {
-        showMessage('Article saved successfully!', 'success');
-        articleForm.reset();
-        articleForm.dataset.mode = 'add';
-        articleSubmitBtn.textContent = 'Add Article';
-        loadExistingArticles();
-      } else {
-        showMessage(r.error || 'Failed to save article', 'error');
+      const errors = validateArticlePayload(payload);
+      showErrors(articleErrorsBox, errors);
+      if (errors.length) { console.warn('[ArticleForm] Validation failed:', errors); return; }
+
+      articleSubmitBtn.disabled = true;
+      const originalText = articleSubmitBtn.textContent;
+      articleSubmitBtn.textContent = mode === 'edit' ? 'Updating...' : 'Saving...';
+
+      try {
+        const r = mode==='edit'
+          ? await firestoreAPI.updateArticle(articleId.value, payload)
+          : await firestoreAPI.addArticle(payload);
+        if (r.success) {
+          showMessage('Article saved successfully!', 'success');
+          articleForm.reset();
+          articleForm.dataset.mode = 'add';
+          articleSubmitBtn.textContent = 'Add Article';
+          loadExistingArticles();
+        } else {
+          showMessage(r.error || 'Failed to save article', 'error');
+        }
+      } catch (err) {
+        console.error('[ArticleForm] Exception:', err);
+        showMessage('Unexpected error saving article', 'error');
+      } finally {
+        articleSubmitBtn.disabled = false;
+        if (mode !== 'edit') articleSubmitBtn.textContent = originalText;
       }
     });
 
-    const libraryForm = document.getElementById('libraryForm');
-    const libId = document.getElementById('libId');
-    const libName = document.getElementById('libName');
-    const libType = document.getElementById('libType');
-    const libTags = document.getElementById('libTags');
-    const libImage = document.getElementById('libImage');
-    const libDescription = document.getElementById('libDescription');
-    const libLink = document.getElementById('libLink');
-    const libSubmitBtn = document.getElementById('libSubmitBtn');
-
+    /*************************************************
+     * إرسال نموذج المكتبة (Library)
+     *************************************************/
     libraryForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const mode = libraryForm.dataset.mode || 'add';
@@ -760,25 +958,39 @@
         description: libDescription.value,
         link: libLink.value
       };
-      const r = mode==='edit'
-        ? await firestoreAPI.updateLibraryResource(libId.value, payload)
-        : await firestoreAPI.addLibraryResource(payload);
-      if (r.success) {
-        showMessage('Resource saved successfully!', 'success');
-        libraryForm.reset();
-        libraryForm.dataset.mode = 'add';
-        libSubmitBtn.textContent = 'Add Resource';
-        loadExistingLibraryResources();
-      } else {
-        showMessage(r.error || 'Failed to save resource', 'error');
+      const errors = validateLibraryPayload(payload);
+      showErrors(libraryErrorsBox, errors);
+      if (errors.length) { console.warn('[LibraryForm] Validation failed:', errors); return; }
+
+      libSubmitBtn.disabled = true;
+      const originalText = libSubmitBtn.textContent;
+      libSubmitBtn.textContent = mode === 'edit' ? 'Updating...' : 'Saving...';
+
+      try {
+        const r = mode==='edit'
+          ? await firestoreAPI.updateLibraryResource(libId.value, payload)
+          : await firestoreAPI.addLibraryResource(payload);
+        if (r.success) {
+          showMessage('Resource saved successfully!', 'success');
+          libraryForm.reset();
+          libraryForm.dataset.mode = 'add';
+          libSubmitBtn.textContent = 'Add Resource';
+          loadExistingLibraryResources();
+        } else {
+          showMessage(r.error || 'Failed to save resource', 'error');
+        }
+      } catch (err) {
+        console.error('[LibraryForm] Exception:', err);
+        showMessage('Unexpected error saving resource', 'error');
+      } finally {
+        libSubmitBtn.disabled = false;
+        if (mode !== 'edit') libSubmitBtn.textContent = originalText;
       }
     });
 
-    const educationForm = document.getElementById('educationForm');
-    const weekTitle = document.getElementById('weekTitle');
-    const lecturerName = document.getElementById('lecturerName');
-    const weekDescription = document.getElementById('weekDescription');
-
+    /*************************************************
+     * إرسال نموذج الورشة الأسبوعية (Education)
+     *************************************************/
     educationForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const payload = {
@@ -786,19 +998,23 @@
         lecturerName: lecturerName.value,
         description: weekDescription.value
       };
-      const r = await firestoreAPI.updateEducation(payload);
-      if (r.success) showMessage('Education content updated!', 'success');
-      else showMessage(r.error || 'Failed to update education content', 'error');
+      const errors = validateWorkshopPayload(payload);
+      showErrors(educationErrorsBox, errors);
+      if (errors.length) { console.warn('[EducationForm] Validation failed:', errors); return; }
+
+      try {
+        const r = await firestoreAPI.updateEducation(payload);
+        if (r.success) showMessage('Education content updated!', 'success');
+        else showMessage(r.error || 'Failed to update education content', 'error');
+      } catch (err) {
+        console.error('[EducationForm] Exception:', err);
+        showMessage('Unexpected error updating education content', 'error');
+      }
     });
 
-    const courseForm = document.getElementById('courseForm');
-    const courseId = document.getElementById('courseId');
-    const courseTitle = document.getElementById('courseTitle');
-    const courseDescription = document.getElementById('courseDescription');
-    const courseLecturer = document.getElementById('courseLecturer');
-    const courseLink = document.getElementById('courseLink');
-    const courseSubmitBtn = document.getElementById('courseSubmitBtn');
-
+    /*************************************************
+     * إرسال نموذج الدورات (Courses)
+     *************************************************/
     courseForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const mode = courseForm.dataset.mode || 'add';
@@ -808,72 +1024,102 @@
         lecturer: courseLecturer.value,
         link: courseLink.value
       };
-      const r = mode==='edit'
-        ? await firestoreAPI.updateCourse(courseId.value, payload)
-        : await firestoreAPI.addCourse(payload);
-      if (r.success) {
-        showMessage('Course saved', 'success');
-        courseForm.reset();
-        courseForm.dataset.mode = 'add';
-        courseSubmitBtn.textContent = 'Add Course';
-        loadCourses();
-      } else {
-        showMessage(r.error || 'Failed to save course', 'error');
+      const errors = validateCoursePayload(payload);
+      showErrors(courseErrorsBox, errors);
+      if (errors.length) { console.warn('[CourseForm] Validation failed:', errors); return; }
+
+      courseSubmitBtn.disabled = true;
+      const originalText = courseSubmitBtn.textContent;
+      courseSubmitBtn.textContent = mode === 'edit' ? 'Updating...' : 'Saving...';
+
+      try {
+        const r = mode==='edit'
+          ? await firestoreAPI.updateCourse(courseId.value, payload)
+          : await firestoreAPI.addCourse(payload);
+        if (r.success) {
+          showMessage('Course saved', 'success');
+          courseForm.reset();
+          courseForm.dataset.mode = 'add';
+          courseSubmitBtn.textContent = 'Add Course';
+          loadCourses();
+        } else {
+          showMessage(r.error || 'Failed to save course', 'error');
+        }
+      } catch (err) {
+        console.error('[CourseForm] Exception:', err);
+        showMessage('Unexpected error saving course', 'error');
+      } finally {
+        courseSubmitBtn.disabled = false;
+        if (mode !== 'edit') courseSubmitBtn.textContent = originalText;
       }
     });
 
-    const fbdPageForm = document.getElementById('fbdPageForm');
-    const fbdTitle = document.getElementById('fbdTitle');
-    const fbdAbout = document.getElementById('fbdAbout');
-
+    /*************************************************
+     * إرسال نموذج صفحة FBD
+     *************************************************/
     fbdPageForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const r = await firestoreAPI.updateFbdPage({
-        pageTitle: fbdTitle.value,
-        about: fbdAbout.value
-      });
-      if (r.success) showMessage('FBD page updated', 'success');
-      else showMessage(r.error || 'Failed to update FBD page', 'error');
+      try {
+        const r = await firestoreAPI.updateFbdPage({
+          pageTitle: fbdTitle.value,
+          about: fbdAbout.value
+        });
+        if (r.success) showMessage('FBD page updated', 'success');
+        else showMessage(r.error || 'Failed to update FBD page', 'error');
+      } catch (err) {
+        console.error('[FbdPageForm] Exception:', err);
+        showMessage('Unexpected error updating FBD page', 'error');
+      }
     });
 
-    const fbdEventForm = document.getElementById('fbdEventForm');
-    const fbdEventId = document.getElementById('fbdEventId');
-    const fbdEventTitle = document.getElementById('fbdEventTitle');
-    const fbdEventTime = document.getElementById('fbdEventTime');
-    const fbdEventLocation = document.getElementById('fbdEventLocation');
-    const fbdEventType = document.getElementById('fbdEventType');
-    const fbdEventSeats = document.getElementById('fbdEventSeats');
-    const fbdEventImage = document.getElementById('fbdEventImage');
-    const fbdEventDescription = document.getElementById('fbdEventDescription');
-    const fbdEventSubmitBtn = document.getElementById('fbdEventSubmitBtn');
-
+    /*************************************************
+     * إرسال نموذج فعالية FBD (FBD Events)
+     *************************************************/
     fbdEventForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const mode = fbdEventForm.dataset.mode || 'add';
       const payload = {
         title: fbdEventTitle.value,
-        time: fbdEventTime.value ? new Date(fbdEventTime.value).toISOString() : "",
+        time: toISO(fbdEventTime.value),
         location: fbdEventLocation.value,
         type: fbdEventType.value,
-        seats: fbdEventSeats.value,
+        seats: Number(fbdEventSeats.value),
         image: fbdEventImage.value,
         description: fbdEventDescription.value
       };
-      const r = mode==='edit'
-        ? await firestoreAPI.updateFbdEvent(fbdEventId.value, payload)
-        : await firestoreAPI.addFbdEvent(payload);
-      if (r.success) {
-        showMessage('FBD event saved', 'success');
-        fbdEventForm.reset();
-        fbdEventForm.dataset.mode = 'add';
-        fbdEventSubmitBtn.textContent = 'Add FBD Event';
-        loadFbd();
-      } else {
-        showMessage(r.error || 'Failed to save FBD event', 'error');
+      const errors = validateFbdEventPayload(payload);
+      showErrors(fbdEventErrorsBox, errors);
+      if (errors.length) { console.warn('[FbdEventForm] Validation failed:', errors); return; }
+
+      fbdEventSubmitBtn.disabled = true;
+      const originalText = fbdEventSubmitBtn.textContent;
+      fbdEventSubmitBtn.textContent = mode === 'edit' ? 'Updating...' : 'Saving...';
+
+      try {
+        const r = mode==='edit'
+          ? await firestoreAPI.updateFbdEvent(fbdEventId.value, payload)
+          : await firestoreAPI.addFbdEvent(payload);
+        if (r.success) {
+          showMessage('FBD event saved', 'success');
+          fbdEventForm.reset();
+          fbdEventForm.dataset.mode = 'add';
+          fbdEventSubmitBtn.textContent = 'Add FBD Event';
+          loadFbd();
+        } else {
+          showMessage(r.error || 'Failed to save FBD event', 'error');
+        }
+      } catch (err) {
+        console.error('[FbdEventForm] Exception:', err);
+        showMessage('Unexpected error saving FBD event', 'error');
+      } finally {
+        fbdEventSubmitBtn.disabled = false;
+        if (mode !== 'edit') fbdEventSubmitBtn.textContent = originalText;
       }
     });
 
-    // Settings helpers
+    /*************************************************
+     * إعدادات / أدوات الصيانة
+     *************************************************/
     window.testFirestoreConnection = async function() {
       const el = document.getElementById('tokenStatusText');
       el.textContent = 'Testing...';
@@ -881,6 +1127,7 @@
       el.textContent = r.success ? 'Connected' : `Error: ${r.error}`;
       document.getElementById('tokenStatus').style.background = r.success ? '#f0fff4' : '#fff5f5';
     };
+
     window.fixFirestoreStructure = async function() {
       const box = document.getElementById('structureResults');
       const content = document.getElementById('structureResultsContent');
@@ -891,6 +1138,7 @@
       const errors  = (r.errors ||[]).map(e=>`<li style="color:#c53030">✗ ${e}</li>`).join('');
       content.innerHTML = `<ul>${actions}${errors}</ul>`;
     };
+
     window.loadAdminsList = async function() {
       const box = document.getElementById('adminsList'); box.innerHTML = '<p>Loading...</p>';
       const r = await firestoreAPI.getAdmins();
@@ -898,6 +1146,10 @@
       if ((r.admins||[]).length===0) { box.innerHTML = '<p>No admins found.</p>'; return; }
       box.innerHTML = r.admins.map(a=>`<div class="content-item"><div>${a}</div></div>`).join('');
     };
+
+    /*************************************************
+     * END
+     *************************************************/
   </script>
 </body>
 </html>
