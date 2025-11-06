@@ -780,12 +780,12 @@
             
             try {
                 const result = await firestoreAPI.getAllContent();
-                if (!result.success || !result.events) {
+                if (!result.success || !result.content.events) {
                     listContainer.innerHTML = '<p>No events found.</p>';
                     return;
                 }
                 
-                const events = result.events;
+                const events = result.content.events;
                 console.log(`[Admin Dashboard] Loaded ${events.length} events`);
                 
                 if (events.length === 0) {
