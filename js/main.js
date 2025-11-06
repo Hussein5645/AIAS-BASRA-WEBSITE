@@ -59,8 +59,9 @@ const observeRevealElement = (element) => {
         revealObserver.observe(element);
         
         // Immediately check if element is already in viewport (for dynamically added elements)
+        // Use same logic as IntersectionObserver (150px margin from bottom)
         const rect = element.getBoundingClientRect();
-        const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
+        const isInViewport = rect.top < (window.innerHeight - 150) && rect.bottom > 0;
         if (isInViewport) {
             // Element is already visible, activate it immediately
             element.classList.add('active');
@@ -75,16 +76,14 @@ document.querySelectorAll('.reveal').forEach(observeRevealElement);
 const revealMutationObserver = new MutationObserver((mutations) => {
     mutations.forEach(mutation => {
         mutation.addedNodes.forEach(node => {
-            // Check if the added node is an element
+            // Check if the added node is an element (nodeType 1)
             if (node.nodeType === 1) {
                 // If the node itself has .reveal class
-                if (node.classList && node.classList.contains('reveal')) {
+                if (node.classList.contains('reveal')) {
                     observeRevealElement(node);
                 }
                 // Check descendants for .reveal class
-                if (node.querySelectorAll) {
-                    node.querySelectorAll('.reveal').forEach(observeRevealElement);
-                }
+                node.querySelectorAll('.reveal').forEach(observeRevealElement);
             }
         });
     });
