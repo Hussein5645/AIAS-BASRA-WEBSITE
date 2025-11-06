@@ -101,9 +101,9 @@ class FirestoreAPI {
                 }
             };
 
-            // Fetch events
-            console.log('[Firestore API] Reading events collection...');
-            const eventsSnapshot = await getDocs(collection(this.db, 'events'));
+            // Fetch events from content subcollection
+            console.log('[Firestore API] Reading events from content/events/items...');
+            const eventsSnapshot = await getDocs(collection(this.db, 'content/events/items'));
             data.events = eventsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
             console.log(`[Firestore API] ✓ Retrieved ${data.events.length} events`);
 
@@ -115,9 +115,9 @@ class FirestoreAPI {
                 console.log('[Firestore API] ✓ Magazine content retrieved');
             }
 
-            // Fetch library items
-            console.log('[Firestore API] Reading library collection...');
-            const librarySnapshot = await getDocs(collection(this.db, 'library'));
+            // Fetch library items from content subcollection
+            console.log('[Firestore API] Reading library from content/library/items...');
+            const librarySnapshot = await getDocs(collection(this.db, 'content/library/items'));
             data.library = librarySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
             console.log(`[Firestore API] ✓ Retrieved ${data.library.length} library items`);
 
@@ -169,7 +169,7 @@ class FirestoreAPI {
         }
         
         try {
-            const docRef = await addDoc(collection(this.db, 'events'), event);
+            const docRef = await addDoc(collection(this.db, 'content/events/items'), event);
             console.log(`[Firestore API] ✓ Event added successfully with ID: ${docRef.id}`);
             return {
                 success: true,
@@ -258,7 +258,7 @@ class FirestoreAPI {
         }
         
         try {
-            const docRef = await addDoc(collection(this.db, 'library'), resource);
+            const docRef = await addDoc(collection(this.db, 'content/library/items'), resource);
             console.log(`[Firestore API] ✓ Library resource added with ID: ${docRef.id}`);
             return {
                 success: true,
@@ -372,7 +372,7 @@ class FirestoreAPI {
     async deleteEvent(eventId) {
         console.log(`[Firestore API] deleteEvent() called for ID: ${eventId}`);
         try {
-            await deleteDoc(doc(this.db, 'events', eventId));
+            await deleteDoc(doc(this.db, 'content/events/items', eventId));
             console.log(`[Firestore API] ✓ Event ${eventId} deleted successfully`);
             return {
                 success: true,
@@ -396,7 +396,7 @@ class FirestoreAPI {
     async updateEvent(eventId, event) {
         console.log(`[Firestore API] updateEvent() called for ID: ${eventId}`);
         try {
-            await updateDoc(doc(this.db, 'events', eventId), event);
+            await updateDoc(doc(this.db, 'content/events/items', eventId), event);
             console.log(`[Firestore API] ✓ Event ${eventId} updated successfully`);
             return {
                 success: true,
@@ -419,7 +419,7 @@ class FirestoreAPI {
     async deleteLibraryResource(resourceId) {
         console.log(`[Firestore API] deleteLibraryResource() called for ID: ${resourceId}`);
         try {
-            await deleteDoc(doc(this.db, 'library', resourceId));
+            await deleteDoc(doc(this.db, 'content/library/items', resourceId));
             console.log(`[Firestore API] ✓ Library resource ${resourceId} deleted successfully`);
             return {
                 success: true,
@@ -443,7 +443,7 @@ class FirestoreAPI {
     async updateLibraryResource(resourceId, resource) {
         console.log(`[Firestore API] updateLibraryResource() called for ID: ${resourceId}`);
         try {
-            await updateDoc(doc(this.db, 'library', resourceId), resource);
+            await updateDoc(doc(this.db, 'content/library/items', resourceId), resource);
             console.log(`[Firestore API] ✓ Library resource ${resourceId} updated successfully`);
             return {
                 success: true,

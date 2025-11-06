@@ -253,16 +253,16 @@
                     addLog('[Test] ⚠ No home content found (expected for new setup)', 'info');
                 }
 
-                // Test 2: Read events collection
-                addLog('[Test] Reading events collection...', 'info');
-                const eventsSnapshot = await getDocs(collection(db, 'events'));
+                // Test 2: Read events collection from content subcollection
+                addLog('[Test] Reading events from content/events/items...', 'info');
+                const eventsSnapshot = await getDocs(collection(db, 'content/events/items'));
                 const eventsCount = eventsSnapshot.size;
                 addLog(`[Test] ✓ Events collection read successfully: ${eventsCount} events found`, 'success');
                 document.getElementById('eventsCount').textContent = eventsCount;
 
-                // Test 3: Read library collection
-                addLog('[Test] Reading library collection...', 'info');
-                const librarySnapshot = await getDocs(collection(db, 'library'));
+                // Test 3: Read library collection from content subcollection
+                addLog('[Test] Reading library from content/library/items...', 'info');
+                const librarySnapshot = await getDocs(collection(db, 'content/library/items'));
                 const libraryCount = librarySnapshot.size;
                 addLog(`[Test] ✓ Library collection read successfully: ${libraryCount} items found`, 'success');
                 document.getElementById('libraryCount').textContent = libraryCount;

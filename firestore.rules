@@ -30,18 +30,17 @@ service cloud.firestore {
     match /content/{document} {
       allow read: if true;
       allow write: if isAdmin();
-    }
-    
-    // Events collection - admins can write, all can read
-    match /events/{eventId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    
-    // Library collection - admins can write, all can read
-    match /library/{itemId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      
+      // Subcollections for events and library under content
+      match /events/items/{eventId} {
+        allow read: if true;
+        allow write: if isAdmin();
+      }
+      
+      match /library/items/{libraryId} {
+        allow read: if true;
+        allow write: if isAdmin();
+      }
     }
   }
 }
