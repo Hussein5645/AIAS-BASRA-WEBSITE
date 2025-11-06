@@ -1,25 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Dashboard - AIAS Basra</title>
-  <link rel="stylesheet" href="css/style.css"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <script type="module" src="js/firestore-api.js"></script>
-  <script src="js/main.js" defer></script>
-  <style>
-    /* ... keep your existing styles ... */
-    .content-item{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1rem;border-bottom:1px solid #e2e8f0}
-    .btn{padding:.5rem 1rem;border:none;border-radius:6px;color:#fff;font-weight:600;cursor:pointer}
-    .edit-btn{background:#3182ce}.edit-btn:hover{background:#2b6cb0}
-    .delete-btn{background:#e53e3e}.delete-btn:hover{background:#c53030}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - AIAS Basra</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script type="module" src="js/firestore-api.js"></script>
+    <script src="js/main.js" defer></script>
+    <style>
+        .admin-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem 0; margin-bottom: 2rem; }
+        .admin-header .container { display: flex; justify-content: space-between; align-items: center; }
+        .admin-header h1 { font-size: 2rem; font-weight: 800; }
+        .admin-info { display: flex; align-items: center; gap: 1rem; }
+        .logout-btn { padding: 0.5rem 1.5rem; background: rgba(255,255,255,0.2); color: white; border: 2px solid white; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all .3s; }
+        .logout-btn:hover { background: white; color: #667eea; }
+        .dashboard-nav { margin-bottom: 2rem; }
+        .dashboard-nav ul { display: flex; gap: 1rem; list-style: none; padding: 0; border-bottom: 2px solid #e2e8f0; }
+        .dashboard-nav li button { padding: 1rem 2rem; background: none; border: none; cursor: pointer; font-size: 1rem; font-weight: 600; color: #718096; transition: all .3s; position: relative; }
+        .dashboard-nav li button.active { color: #667eea; }
+        .dashboard-nav li button.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: #667eea; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .content-form { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; color: #4a5568; font-size: .9rem; font-weight: 600; margin-bottom: .5rem; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: .75rem; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; font-family: 'Inter', sans-serif; transition: all .3s; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+        .form-group textarea { min-height: 120px; resize: vertical; }
+        .submit-btn { padding: 1rem 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all .3s; }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102,126,234,0.3); }
+        .message { padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: none; }
+        .message.success { background: #f0fff4; color: #38a169; border-left: 4px solid #38a169; }
+        .message.error { background: #fff5f5; color: #e53e3e; border-left: 4px solid #e53e3e; }
+        .content-list { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .content-item { padding: 1rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+        .content-item:last-child { border-bottom: none; }
+        .btn { padding: .5rem 1rem; border: none; border-radius: 6px; color: white; font-weight: 600; cursor: pointer; transition: all .2s; }
+        .delete-btn { background: #e53e3e; } .delete-btn:hover { background: #c53030; }
+        .edit-btn { background: #3182ce; } .edit-btn:hover { background: #2b6cb0; }
+        .user-actions { display: flex; gap: .5rem; }
+        .home-link { padding: .5rem 1.5rem; background: white; color: #667eea; border: 2px solid white; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all .3s; }
+        .home-link:hover { background: rgba(255,255,255,0.9); }
+    </style>
 </head>
 <body>
-  <!-- Header omitted for brevity (unchanged) -->
+    <!-- Admin Header -->
+    <div class="admin-header">
+        <div class="container">
+            <h1 data-en="Admin Dashboard" data-ar="لوحة التحكم الإدارية">Admin Dashboard</h1>
+            <div class="admin-info">
+                <button class="language-toggle" id="languageToggle" style="margin-right: 1rem; padding: 0.5rem 1rem; background: rgba(255, 255, 255, 0.2); color: white; border: 2px solid white; border-radius: 8px; display: inline-flex; align-items: center; gap:.5rem;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    </svg>
+                    <span id="currentLang">EN</span>
+                </button>
+                <span id="adminName"></span>
+                <a href="index.html" class="home-link" data-en="View Site" data-ar="عرض الموقع">View Site</a>
+                <button class="logout-btn" onclick="logout()" data-en="Logout" data-ar="تسجيل الخروج">Logout</button>
+            </div>
+        </div>
+    </div>
+
 
   <div class="container">
     <div id="message" class="message"></div>
