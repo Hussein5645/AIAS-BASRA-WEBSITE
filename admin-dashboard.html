@@ -133,21 +133,21 @@
               <div class="two-col">
                 <div class="form-group">
                   <label for="eventTitle">Event Title</label>
-                  <input id="eventTitle" required autocomplete="off"/>
+                  <input id="eventTitle" name="title" required autocomplete="off"/>
                 </div>
                 <div class="form-group">
                   <label for="eventTime">Date and Time</label>
-                  <input type="datetime-local" id="eventTime" required/>
+                  <input type="datetime-local" id="eventTime" name="time" required/>
                 </div>
               </div>
               <div class="two-col">
                 <div class="form-group">
                   <label for="eventLocation">Location</label>
-                  <input id="eventLocation" required/>
+                  <input id="eventLocation" name="location" required/>
                 </div>
                 <div class="form-group">
                   <label for="eventType">Event Type</label>
-                  <select id="eventType" required>
+                  <select id="eventType" name="type" required>
                     <option value="Workshop">Workshop</option>
                     <option value="Lecture">Lecture</option>
                     <option value="Social">Social</option>
@@ -157,16 +157,16 @@
               <div class="two-col">
                 <div class="form-group">
                   <label for="eventSeats">Available Seats</label>
-                  <input type="number" id="eventSeats" min="1" value="10" required/>
+                  <input type="number" id="eventSeats" name="seats" min="1" value="10" required/>
                 </div>
                 <div class="form-group">
                   <label for="eventImage">Emoji Icon</label>
-                  <input id="eventImage" placeholder="🎨" required/>
+                  <input id="eventImage" name="image" placeholder="🎨" required/>
                 </div>
               </div>
               <div class="form-group">
                 <label for="eventDescription">Description</label>
-                <textarea id="eventDescription" required></textarea>
+                <textarea id="eventDescription" name="description" required></textarea>
               </div>
               <div id="eventErrors" class="error-box"></div>
               <button type="submit" id="eventSubmitBtn" class="submit-btn">Add Event</button>
@@ -190,14 +190,14 @@
             <form id="articleForm" data-mode="add" novalidate>
               <input type="hidden" id="articleId"/>
               <div class="two-col">
-                <div class="form-group"><label for="articleTitle">Article Title</label><input id="articleTitle" required/></div>
-                <div class="form-group"><label for="articleAuthor">Author Name</label><input id="articleAuthor" required/></div>
+                <div class="form-group"><label for="articleTitle">Article Title</label><input id="articleTitle" name="title" required/></div>
+                <div class="form-group"><label for="articleAuthor">Author Name</label><input id="articleAuthor" name="author" required/></div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="articleDate">Publication Date</label><input type="date" id="articleDate" required/></div>
-                <div class="form-group"><label for="articleSummary">Summary</label><input id="articleSummary" required/></div>
+                <div class="form-group"><label for="articleDate">Publication Date</label><input type="date" id="articleDate" name="date" required/></div>
+                <div class="form-group"><label for="articleSummary">Summary</label><input id="articleSummary" name="summary" required/></div>
               </div>
-              <div class="form-group"><label for="articleContent">Full Content</label><textarea id="articleContent" required></textarea></div>
+              <div class="form-group"><label for="articleContent">Full Content</label><textarea id="articleContent" name="content" required></textarea></div>
               <div id="articleErrors" class="error-box"></div>
               <button type="submit" id="articleSubmitBtn" class="submit-btn">Add Article</button>
             </form>
@@ -220,10 +220,10 @@
             <form id="libraryForm" data-mode="add" novalidate>
               <input type="hidden" id="libId"/>
               <div class="two-col">
-                <div class="form-group"><label for="libName">Resource Name</label><input id="libName" required/></div>
+                <div class="form-group"><label for="libName">Resource Name</label><input id="libName" name="name" required/></div>
                 <div class="form-group">
                   <label for="libType">Type</label>
-                  <select id="libType" required>
+                  <select id="libType" name="type" required>
                     <option value="Book">Book</option>
                     <option value="Tutorial">Tutorial</option>
                     <option value="Software">Software</option>
@@ -231,12 +231,12 @@
                 </div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="libTags">Tags (comma-separated)</label><input id="libTags" placeholder="Design, Fundamentals, Theory" required/></div>
-                <div class="form-group"><label for="libImage">Emoji Icon</label><input id="libImage" placeholder="📚" required/></div>
+                <div class="form-group"><label for="libTags">Tags (comma-separated)</label><input id="libTags" name="tags" placeholder="Design, Fundamentals, Theory" required/></div>
+                <div class="form-group"><label for="libImage">Emoji Icon</label><input id="libImage" name="image" placeholder="📚" required/></div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="libDescription">Description</label><input id="libDescription" required/></div>
-                <div class="form-group"><label for="libLink">Download Link</label><input type="url" id="libLink" placeholder="https://" required/></div>
+                <div class="form-group"><label for="libDescription">Description</label><input id="libDescription" name="description" required/></div>
+                <div class="form-group"><label for="libLink">Download Link</label><input type="url" id="libLink" name="link" placeholder="https://" required/></div>
               </div>
               <div id="libraryErrors" class="error-box"></div>
               <button type="submit" id="libSubmitBtn" class="submit-btn">Add Resource</button>
@@ -252,10 +252,10 @@
           <div class="accordion-body panel">
             <form id="educationForm" novalidate>
               <div class="two-col">
-                <div class="form-group"><label for="weekTitle">Weekly Workshop Title</label><input id="weekTitle" required/></div>
-                <div class="form-group"><label for="lecturerName">Lecturer Name</label><input id="lecturerName" required/></div>
+                <div class="form-group"><label for="weekTitle">Weekly Workshop Title</label><input id="weekTitle" name="weekTitle" required/></div>
+                <div class="form-group"><label for="lecturerName">Lecturer Name</label><input id="lecturerName" name="lecturerName" required/></div>
               </div>
-              <div class="form-group"><label for="weekDescription">Workshop Description</label><textarea id="weekDescription" required></textarea></div>
+              <div class="form-group"><label for="weekDescription">Workshop Description</label><textarea id="weekDescription" name="description" required></textarea></div>
               <div id="educationErrors" class="error-box"></div>
               <button type="submit" class="submit-btn">Update Weekly Workshop</button>
             </form>
@@ -272,12 +272,12 @@
             <form id="courseForm" data-mode="add" novalidate>
               <input type="hidden" id="courseId"/>
               <div class="two-col">
-                <div class="form-group"><label for="courseTitle">Course Title</label><input id="courseTitle" required/></div>
-                <div class="form-group"><label for="courseLecturer">Lecturer (optional)</label><input id="courseLecturer"/></div>
+                <div class="form-group"><label for="courseTitle">Course Title</label><input id="courseTitle" name="title" required/></div>
+                <div class="form-group"><label for="courseLecturer">Lecturer (optional)</label><input id="courseLecturer" name="lecturer"/></div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="courseDescription">Course Description</label><input id="courseDescription" required/></div>
-                <div class="form-group"><label for="courseLink">Link (optional)</label><input id="courseLink" type="url" placeholder="https://"/></div>
+                <div class="form-group"><label for="courseDescription">Course Description</label><input id="courseDescription" name="description" required/></div>
+                <div class="form-group"><label for="courseLink">Link (optional)</label><input id="courseLink" name="link" type="url" placeholder="https://"/></div>
               </div>
               <div id="courseErrors" class="error-box"></div>
               <button type="submit" id="courseSubmitBtn" class="submit-btn">Add Course</button>
@@ -293,8 +293,8 @@
           <div class="accordion-body panel">
             <form id="fbdPageForm">
               <div class="two-col">
-                <div class="form-group"><label for="fbdTitle">Page Title</label><input id="fbdTitle" placeholder="FBD"/></div>
-                <div class="form-group"><label for="fbdAbout">About</label><input id="fbdAbout" placeholder="About FBD..."/></div>
+                <div class="form-group"><label for="fbdTitle">Page Title</label><input id="fbdTitle" name="pageTitle" placeholder="FBD"/></div>
+                <div class="form-group"><label for="fbdAbout">About</label><input id="fbdAbout" name="about" placeholder="About FBD..."/></div>
               </div>
               <button type="submit" class="submit-btn">Update FBD Page</button>
             </form>
@@ -311,14 +311,14 @@
             <form id="fbdEventForm" data-mode="add" novalidate>
               <input type="hidden" id="fbdEventId"/>
               <div class="two-col">
-                <div class="form-group"><label for="fbdEventTitle">Event Title</label><input id="fbdEventTitle" required/></div>
-                <div class="form-group"><label for="fbdEventTime">Date and Time</label><input id="fbdEventTime" type="datetime-local" required/></div>
+                <div class="form-group"><label for="fbdEventTitle">Event Title</label><input id="fbdEventTitle" name="title" required/></div>
+                <div class="form-group"><label for="fbdEventTime">Date and Time</label><input id="fbdEventTime" name="time" type="datetime-local" required/></div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="fbdEventLocation">Location</label><input id="fbdEventLocation" required/></div>
+                <div class="form-group"><label for="fbdEventLocation">Location</label><input id="fbdEventLocation" name="location" required/></div>
                 <div class="form-group">
                   <label for="fbdEventType">Event Type</label>
-                  <select id="fbdEventType">
+                  <select id="fbdEventType" name="type">
                     <option value="Workshop">Workshop</option>
                     <option value="Lecture">Lecture</option>
                     <option value="Social">Social</option>
@@ -326,10 +326,10 @@
                 </div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="fbdEventSeats">Available Seats</label><input id="fbdEventSeats" type="number" min="1" value="10" required/></div>
-                <div class="form-group"><label for="fbdEventImage">Emoji Icon</label><input id="fbdEventImage" placeholder="🎨" required/></div>
+                <div class="form-group"><label for="fbdEventSeats">Available Seats</label><input id="fbdEventSeats" name="seats" type="number" min="1" value="10" required/></div>
+                <div class="form-group"><label for="fbdEventImage">Emoji Icon</label><input id="fbdEventImage" name="image" placeholder="🎨" required/></div>
               </div>
-              <div class="form-group"><label for="fbdEventDescription">Description</label><textarea id="fbdEventDescription" required></textarea></div>
+              <div class="form-group"><label for="fbdEventDescription">Description</label><textarea id="fbdEventDescription" name="description" required></textarea></div>
               <div id="fbdEventErrors" class="error-box"></div>
               <button type="submit" id="fbdEventSubmitBtn" class="submit-btn">Add FBD Event</button>
             </form>
@@ -806,12 +806,13 @@
 
     function validateEventPayload(p) {
       const errors = [];
-      if (!p.title || p.title.trim().length < 3) errors.push('العنوان مطلوب (3 أحرف على الأقل).');
+      // p already contains trimmed values from submit handler
+      if (!p.title || p.title.length < 3) errors.push('العنوان مطلوب (3 أحرف على الأقل).');
       if (!p.time) errors.push('التاريخ والوقت مطلوبان.');
-      if (!p.location || p.location.trim().length < 2) errors.push('الموقع مطلوب.');
-      if (!p.description || p.description.trim().length < 10) errors.push('الوصف مطلوب (10 أحرف على الأقل).');
+      if (!p.location || p.location.length < 2) errors.push('الموقع مطلوب.');
+      if (!p.description || p.description.length < 10) errors.push('الوصف مطلوب (10 أحرف على الأقل).');
       if (!Number.isFinite(p.seats) || p.seats <= 0) errors.push('عدد المقاعد يجب أن يكون رقمًا أكبر من صفر.');
-      if (!p.image || p.image.trim().length === 0) errors.push('الإيموجي مطلوب (اكتبه داخل الحقل).');
+      if (!p.image || p.image.length === 0) errors.push('الإيموجي مطلوب (اكتبه داخل الحقل).');
       return errors;
     }
 
@@ -822,36 +823,40 @@
 
     function validateArticlePayload(p) {
       const errors = [];
-      if (!p.title.trim()) errors.push('عنوان المقال مطلوب.');
-      if (!p.author.trim()) errors.push('اسم الكاتب مطلوب.');
-      if (!p.date.trim()) errors.push('التاريخ مطلوب.');
-      if (!p.summary.trim() || p.summary.trim().length < 5) errors.push('الملخص قصير جداً.');
-      if (!p.content.trim() || p.content.trim().length < 20) errors.push('المحتوى يجب أن يكون 20 حرفاً فأكثر.');
+      // p already contains trimmed values from submit handler
+      if (!p.title || p.title.length === 0) errors.push('عنوان المقال مطلوب.');
+      if (!p.author || p.author.length === 0) errors.push('اسم الكاتب مطلوب.');
+      if (!p.date || p.date.length === 0) errors.push('التاريخ مطلوب.');
+      if (!p.summary || p.summary.length < 5) errors.push('الملخص قصير جداً.');
+      if (!p.content || p.content.length < 20) errors.push('المحتوى يجب أن يكون 20 حرفاً فأكثر.');
       return errors;
     }
 
     function validateLibraryPayload(p) {
       const errors = [];
-      if (!p.name.trim()) errors.push('اسم المصدر مطلوب.');
-      if (!p.type.trim()) errors.push('نوع المصدر مطلوب.');
-      if (!p.description.trim() || p.description.trim().length < 5) errors.push('الوصف قصير جداً.');
-      if (!p.image.trim()) errors.push('الإيموجي مطلوب.');
-      if (!p.link.trim()) errors.push('الرابط مطلوب.');
+      // p already contains trimmed values from submit handler
+      if (!p.name || p.name.length === 0) errors.push('اسم المصدر مطلوب.');
+      if (!p.type || p.type.length === 0) errors.push('نوع المصدر مطلوب.');
+      if (!p.description || p.description.length < 5) errors.push('الوصف قصير جداً.');
+      if (!p.image || p.image.length === 0) errors.push('الإيموجي مطلوب.');
+      if (!p.link || p.link.length === 0) errors.push('الرابط مطلوب.');
       return errors;
     }
 
     function validateCoursePayload(p) {
       const errors = [];
-      if (!p.title.trim()) errors.push('عنوان الدورة مطلوب.');
-      if (!p.description.trim() || p.description.trim().length < 5) errors.push('وصف الدورة قصير جداً.');
+      // p already contains trimmed values from submit handler
+      if (!p.title || p.title.length === 0) errors.push('عنوان الدورة مطلوب.');
+      if (!p.description || p.description.length < 5) errors.push('وصف الدورة قصير جداً.');
       return errors;
     }
 
     function validateWorkshopPayload(p) {
       const errors = [];
-      if (!p.weekTitle.trim()) errors.push('عنوان الورشة مطلوب.');
-      if (!p.lecturerName.trim()) errors.push('اسم المحاضر مطلوب.');
-      if (!p.description.trim() || p.description.trim().length < 10) errors.push('الوصف قصير جداً.');
+      // p already contains trimmed values from submit handler
+      if (!p.weekTitle || p.weekTitle.length === 0) errors.push('عنوان الورشة مطلوب.');
+      if (!p.lecturerName || p.lecturerName.length === 0) errors.push('اسم المحاضر مطلوب.');
+      if (!p.description || p.description.length < 10) errors.push('الوصف قصير جداً.');
       return errors;
     }
 
@@ -860,15 +865,30 @@
      *************************************************/
     eventForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      
       const mode = eventForm.dataset.mode || 'add';
-      const payload = {
+      
+      // Debug: Direct read before building payload
+      console.log('[DEBUG DIRECT READ]', {
         title: eventTitle.value,
-        time: toISO(eventTime.value),
+        timeRaw: eventTime.value,
         location: eventLocation.value,
         type: eventType.value,
-        seats: Number(eventSeats.value),
+        seats: eventSeats.value,
         image: eventImage.value,
         description: eventDescription.value
+      });
+      
+      const payload = {
+        title: eventTitle.value.trim(),
+        time: toISO(eventTime.value),
+        location: eventLocation.value.trim(),
+        type: eventType.value,
+        seats: Number(eventSeats.value),
+        image: eventImage.value.trim(),
+        description: eventDescription.value.trim()
       };
       console.log('[EventForm] Raw values:', payload);
       const errors = validateEventPayload(payload);
@@ -899,20 +919,23 @@
         eventSubmitBtn.disabled = false;
         if (mode !== 'edit') eventSubmitBtn.textContent = originalText;
       }
-    });
+    }, true);
 
     /*************************************************
      * إرسال نموذج المقال (Articles)
      *************************************************/
     articleForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      
       const mode = articleForm.dataset.mode || 'add';
       const payload = {
-        title: articleTitle.value,
-        author: articleAuthor.value,
+        title: articleTitle.value.trim(),
+        author: articleAuthor.value.trim(),
         date: articleDate.value,
-        summary: articleSummary.value,
-        content: articleContent.value
+        summary: articleSummary.value.trim(),
+        content: articleContent.value.trim()
       };
       const errors = validateArticlePayload(payload);
       showErrors(articleErrorsBox, errors);
@@ -942,21 +965,24 @@
         articleSubmitBtn.disabled = false;
         if (mode !== 'edit') articleSubmitBtn.textContent = originalText;
       }
-    });
+    }, true);
 
     /*************************************************
      * إرسال نموذج المكتبة (Library)
      *************************************************/
     libraryForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      
       const mode = libraryForm.dataset.mode || 'add';
       const payload = {
-        name: libName.value,
+        name: libName.value.trim(),
         type: libType.value,
         tags: libTags.value ? libTags.value.split(',').map(t=>t.trim()).filter(Boolean) : [],
-        image: libImage.value,
-        description: libDescription.value,
-        link: libLink.value
+        image: libImage.value.trim(),
+        description: libDescription.value.trim(),
+        link: libLink.value.trim()
       };
       const errors = validateLibraryPayload(payload);
       showErrors(libraryErrorsBox, errors);
@@ -986,17 +1012,20 @@
         libSubmitBtn.disabled = false;
         if (mode !== 'edit') libSubmitBtn.textContent = originalText;
       }
-    });
+    }, true);
 
     /*************************************************
      * إرسال نموذج الورشة الأسبوعية (Education)
      *************************************************/
     educationForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      
       const payload = {
-        weekTitle: weekTitle.value,
-        lecturerName: lecturerName.value,
-        description: weekDescription.value
+        weekTitle: weekTitle.value.trim(),
+        lecturerName: lecturerName.value.trim(),
+        description: weekDescription.value.trim()
       };
       const errors = validateWorkshopPayload(payload);
       showErrors(educationErrorsBox, errors);
@@ -1010,19 +1039,22 @@
         console.error('[EducationForm] Exception:', err);
         showMessage('Unexpected error updating education content', 'error');
       }
-    });
+    }, true);
 
     /*************************************************
      * إرسال نموذج الدورات (Courses)
      *************************************************/
     courseForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      
       const mode = courseForm.dataset.mode || 'add';
       const payload = {
-        title: courseTitle.value,
-        description: courseDescription.value,
-        lecturer: courseLecturer.value,
-        link: courseLink.value
+        title: courseTitle.value.trim(),
+        description: courseDescription.value.trim(),
+        lecturer: courseLecturer.value.trim(),
+        link: courseLink.value.trim()
       };
       const errors = validateCoursePayload(payload);
       showErrors(courseErrorsBox, errors);
@@ -1052,7 +1084,7 @@
         courseSubmitBtn.disabled = false;
         if (mode !== 'edit') courseSubmitBtn.textContent = originalText;
       }
-    });
+    }, true);
 
     /*************************************************
      * إرسال نموذج صفحة FBD
@@ -1077,15 +1109,30 @@
      *************************************************/
     fbdEventForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      
       const mode = fbdEventForm.dataset.mode || 'add';
-      const payload = {
+      
+      // Debug: Direct read before building payload
+      console.log('[DEBUG DIRECT READ - FBD]', {
         title: fbdEventTitle.value,
-        time: toISO(fbdEventTime.value),
+        timeRaw: fbdEventTime.value,
         location: fbdEventLocation.value,
         type: fbdEventType.value,
-        seats: Number(fbdEventSeats.value),
+        seats: fbdEventSeats.value,
         image: fbdEventImage.value,
         description: fbdEventDescription.value
+      });
+      
+      const payload = {
+        title: fbdEventTitle.value.trim(),
+        time: toISO(fbdEventTime.value),
+        location: fbdEventLocation.value.trim(),
+        type: fbdEventType.value,
+        seats: Number(fbdEventSeats.value),
+        image: fbdEventImage.value.trim(),
+        description: fbdEventDescription.value.trim()
       };
       const errors = validateFbdEventPayload(payload);
       showErrors(fbdEventErrorsBox, errors);
@@ -1115,7 +1162,7 @@
         fbdEventSubmitBtn.disabled = false;
         if (mode !== 'edit') fbdEventSubmitBtn.textContent = originalText;
       }
-    });
+    }, true);
 
     /*************************************************
      * إعدادات / أدوات الصيانة

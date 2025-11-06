@@ -124,10 +124,15 @@ window.addEventListener('load', () => {
     document.body.classList.add('loaded');
 });
 
-// Form Validation (for contact forms if added)
+// Form Validation (for contact forms if added, but exclude admin dashboard forms)
 const forms = document.querySelectorAll('form');
 
 forms.forEach(form => {
+    // Skip admin dashboard forms that have novalidate attribute or are within admin context
+    if (form.hasAttribute('novalidate') || form.closest('.dashboard')) {
+        return;
+    }
+    
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         
