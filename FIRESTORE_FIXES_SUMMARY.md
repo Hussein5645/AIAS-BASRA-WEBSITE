@@ -4,7 +4,7 @@
 
 ### 1. Duplicate Script Tag (Critical)
 **File:** `events.html`  
-**Problem:** Lines 159-160 had duplicate `<script type="module">` tags, which could cause the script to fail to execute properly.  
+**Problem:** There were duplicate `<script type="module">` tags (originally around lines 159-160), which could cause the script to fail to execute properly.  
 **Fix:** Removed the duplicate tag, keeping only one properly formatted script tag.
 
 ### 2. Missing Error Handling (Critical)

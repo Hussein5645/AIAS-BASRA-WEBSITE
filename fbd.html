@@ -435,9 +435,14 @@
                             <div class="error-icon" style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
                             <h3 class="error-title" style="color: var(--text-color); margin-bottom: 0.5rem;">Unable to Load Events</h3>
                             <p class="error-message" style="color: var(--text-secondary); margin-bottom: 1rem;">There was a problem loading the FBD events. Please check your connection and try again.</p>
-                            <button class="retry-btn" onclick="loadFBDData()" style="padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer;">Try Again</button>
+                            <button id="fbdRetryBtn" class="retry-btn" style="padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer;">Try Again</button>
                         </div>
                     `;
+                    // Add event listener to retry button
+                    const retryBtn = document.getElementById('fbdRetryBtn');
+                    if (retryBtn) {
+                        retryBtn.addEventListener('click', loadFBDData);
+                    }
                 }
             }
         }
