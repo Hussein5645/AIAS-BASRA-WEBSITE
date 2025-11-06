@@ -46,6 +46,7 @@ class FirestoreAPI {
       magazineDoc: ['content', 'magazine'],
       magazineArticlesCol: ['content', 'magazine', 'articles'],
       educationDoc: ['content', 'education'],
+      educationCoursesCol: ['content', 'education', 'courses'],
       fbdDoc: ['content', 'fbd'],
       fbdEventsCol: ['content', 'fbd', 'events'],
 
@@ -110,7 +111,7 @@ class FirestoreAPI {
     });
     await ensureDoc(this.paths.educationDoc, {
       weeklyWorkshop: {},
-      courses: []
+      courses: [] // legacy support
     });
     await ensureDoc(this.paths.fbdDoc, {
       pageTitle: "",
@@ -132,6 +133,7 @@ class FirestoreAPI {
         magazineDocSnap,
         magazineArticlesSnap,
         educationDocSnap,
+        coursesSnap,
         fbdDocSnap,
         fbdEventsSnap,
 
@@ -144,6 +146,7 @@ class FirestoreAPI {
         getDoc(this._docRef(this.paths.magazineDoc)),
         getDocs(this._colRef(this.paths.magazineArticlesCol)),
         getDoc(this._docRef(this.paths.educationDoc)),
+        getDocs(this._colRef(this.paths.educationCoursesCol)),
         getDoc(this._docRef(this.paths.fbdDoc)),
         getDocs(this._colRef(this.paths.fbdEventsCol)),
 
@@ -153,7 +156,6 @@ class FirestoreAPI {
 
       // Events
       let events = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      // If no new events but legacy exists, include legacy temporarily (until fixStructure migrates)
       if (events.length === 0 && legacyEventsSnap.size > 0) {
         events = legacyEventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
       }
@@ -187,9 +189,15 @@ class FirestoreAPI {
       if (educationDocSnap.exists()) {
         const ed = educationDocSnap.data();
         education.weeklyWorkshop = ed.weeklyWorkshop ?? {};
-        education.courses = ed.courses ?? [];
+        // legacy array support
+        if (Array.isArray(ed.courses) && ed.courses.length > 0) {
+          education.courses = ed.courses.map((c, idx) => ({ id: c.id || String(idx), ...c }));
+        }
       }
-      // FBD (separate doc + subcollection)
+      const courses = coursesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (courses.length > 0) education.courses = courses; // prefer subcollection
+
+      // FBD
       if (fbdDocSnap.exists()) {
         const f = fbdDocSnap.data();
         education.fbd.pageTitle = f.pageTitle ?? "";
@@ -300,7 +308,7 @@ class FirestoreAPI {
     }
   }
 
-  // EDUCATION (content/education document)
+  // EDUCATION (content/education document + courses subcollection)
   async updateEducation(education) {
     const required = ['weekTitle', 'lecturerName', 'description'];
     const v = this.validateRequiredFields(education, required);
@@ -312,6 +320,37 @@ class FirestoreAPI {
       const updated = { ...existing, weeklyWorkshop: education };
       await setDoc(edRef, updated);
       return { success: true, message: 'Education content updated successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Courses CRUD (content/education/courses)
+  async addCourse(course) {
+    const required = ['title', 'description'];
+    const v = this.validateRequiredFields(course, required);
+    if (!v.valid) return { success: false, error: v.message };
+    try {
+      const ref = await addDoc(this._colRef(this.paths.educationCoursesCol), course);
+      return { success: true, id: ref.id, message: 'Course added successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  async updateCourse(courseId, course) {
+    try {
+      await updateDoc(this._docRef([...this.paths.educationCoursesCol, courseId]), course);
+      return { success: true, message: 'Course updated successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  async deleteCourse(courseId) {
+    try {
+      await deleteDoc(this._docRef([...this.paths.educationCoursesCol, courseId]));
+      return { success: true, message: 'Course deleted successfully' };
     } catch (error) {
       return { success: false, error: error.message };
     }
@@ -408,6 +447,7 @@ class FirestoreAPI {
         { parent: ['content', 'events'], name: 'items' },
         { parent: ['content', 'library'], name: 'items' },
         { parent: ['content', 'magazine'], name: 'articles' },
+        { parent: ['content', 'education'], name: 'courses' },
         { parent: ['content', 'fbd'], name: 'events' }
       ],
       legacyCollections: ['events', 'library']
@@ -415,7 +455,7 @@ class FirestoreAPI {
   }
 
   /**
-   * Validate and fix Firestore structure + migrate legacy data (events, library)
+   * Validate and fix Firestore structure + migrate legacy data (events, library, courses)
    */
   async validateAndFixStructure() {
     const results = { success: true, actions: [], errors: [] };
@@ -450,7 +490,6 @@ class FirestoreAPI {
       }
 
       // Migrate legacy events and library if new subcollections are empty
-      // Events
       try {
         const newEventsSnap = await getDocs(this._colRef(this.paths.eventsCol));
         const legacyEventsSnap = await getDocs(this._colRef(this.paths.legacyEventsCol));
@@ -466,7 +505,6 @@ class FirestoreAPI {
         results.errors.push(`Error migrating legacy events: ${e.message}`);
       }
 
-      // Library
       try {
         const newLibSnap = await getDocs(this._colRef(this.paths.libraryCol));
         const legacyLibSnap = await getDocs(this._colRef(this.paths.legacyLibraryCol));
@@ -480,6 +518,27 @@ class FirestoreAPI {
         }
       } catch (e) {
         results.errors.push(`Error migrating legacy library: ${e.message}`);
+      }
+
+      // Migrate legacy courses array from content/education doc to subcollection
+      try {
+        const edDoc = await getDoc(this._docRef(this.paths.educationDoc));
+        const newCoursesSnap = await getDocs(this._colRef(this.paths.educationCoursesCol));
+        if (edDoc.exists() && newCoursesSnap.size === 0) {
+          const data = edDoc.data();
+          if (Array.isArray(data.courses) && data.courses.length > 0) {
+            for (const c of data.courses) {
+              await addDoc(this._colRef(this.paths.educationCoursesCol), c);
+            }
+            results.actions.push(`Migrated ${data.courses.length} legacy courses -> content/education/courses`);
+          } else {
+            results.actions.push('Courses migration not needed');
+          }
+        } else {
+          results.actions.push('Courses subcollection already populated');
+        }
+      } catch (e) {
+        results.errors.push(`Error migrating legacy courses: ${e.message}`);
       }
 
       if (results.errors.length > 0) results.success = false;
