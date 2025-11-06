@@ -256,6 +256,7 @@ class FirestoreAPI {
     const v = this.validateRequiredFields(weeklyWorkshop, required);
     if (!v.valid) return { success: false, error: v.message };
     try {
+      await this.ensureBaseDocs();
       const ref = this._docRef(this.paths.educationDoc);
       const snap = await getDoc(ref);
       const existing = snap.exists() ? snap.data() : { weeklyWorkshop: {}, courses: [] };
@@ -271,6 +272,7 @@ class FirestoreAPI {
     const v = this.validateRequiredFields(course, ['title', 'description']);
     if (!v.valid) return { success: false, error: v.message };
     try {
+      await this.ensureBaseDocs();
       const ref = await addDoc(this._colRef(this.paths.educationCoursesCol), course);
       return { success: true, id: ref.id, message: 'Course added successfully' };
     } catch (error) {
@@ -297,6 +299,7 @@ class FirestoreAPI {
   // FBD (doc + events subcollection)
   async updateFbdPage({ pageTitle, about }) {
     try {
+      await this.ensureBaseDocs();
       await setDoc(this._docRef(this.paths.fbdDoc), { pageTitle: pageTitle ?? "", about: about ?? "" }, { merge: true });
       return { success: true, message: 'FBD page updated successfully' };
     } catch (error) {
@@ -307,6 +310,7 @@ class FirestoreAPI {
     const v = this.validateRequiredFields(event, ['title', 'time', 'location', 'description']);
     if (!v.valid) return { success: false, error: v.message };
     try {
+      await this.ensureBaseDocs();
       const ref = await addDoc(this._colRef(this.paths.fbdEventsCol), event);
       return { success: true, id: ref.id, message: 'FBD event added successfully' };
     } catch (error) {
@@ -340,6 +344,7 @@ class FirestoreAPI {
   async updateAllContent(content) {
     // Only keeps magazine (doc data) and education (doc data) in sync; list items use subcollections
     try {
+      await this.ensureBaseDocs();
       if (content.magazine) {
         await setDoc(this._docRef(this.paths.magazineDoc), {
           featuredArticleId: content.magazine.featuredArticleId ?? null,
