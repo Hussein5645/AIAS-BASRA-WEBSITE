@@ -28,6 +28,63 @@ let app;
 try { app = getApp(); } catch { app = initializeApp(firebaseConfig); }
 const db = getFirestore(app);
 
+// Small sanitizers to make sure we always write the user's inputs (no undefineds)
+const toStr = (v) => (v === undefined || v === null) ? "" : String(v);
+const toNum = (v, d = 0) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : d;
+};
+const toArr = (v) => Array.isArray(v) ? v : [];
+
+const sanitizeEvent = (e) => ({
+  title: toStr(e.title),
+  time: toStr(e.time),
+  location: toStr(e.location),
+  type: toStr(e.type || "Workshop"),
+  seats: toNum(e.seats, 0),
+  image: toStr(e.image),
+  description: toStr(e.description)
+});
+const sanitizeLibrary = (r) => ({
+  name: toStr(r.name),
+  type: toStr(r.type || "Book"),
+  tags: toArr(r.tags),
+  image: toStr(r.image),
+  description: toStr(r.description),
+  link: toStr(r.link)
+});
+const sanitizeArticle = (a) => ({
+  title: toStr(a.title),
+  author: toStr(a.author),
+  date: toStr(a.date),
+  summary: toStr(a.summary),
+  content: toStr(a.content)
+});
+const sanitizeCourse = (c) => ({
+  title: toStr(c.title),
+  description: toStr(c.description),
+  lecturer: toStr(c.lecturer),
+  link: toStr(c.link)
+});
+const sanitizeWeekly = (w) => ({
+  weekTitle: toStr(w.weekTitle),
+  lecturerName: toStr(w.lecturerName),
+  description: toStr(w.description)
+});
+const sanitizeFbdEvent = (e) => sanitizeEvent(e);
+
+// Note: We only treat undefined or null as missing. Empty strings/arrays are allowed.
+// This prevents false "Missing field" errors when the UI intentionally sends empty values.
+function validateRequiredFields(obj, requiredFields) {
+  const missing = [];
+  for (const f of requiredFields) {
+    const v = obj[f];
+    if (v === undefined || v === null) missing.push(f);
+  }
+  if (missing.length) return { valid: false, message: `Missing required fields: ${missing.join(', ')}` };
+  return { valid: true, message: '' };
+}
+
 class FirestoreAPI {
   constructor() {
     this.db = db;
@@ -48,24 +105,7 @@ class FirestoreAPI {
 
   _docRef(pathArr) { return doc(this.db, ...pathArr); }
   _colRef(pathArr) { return collection(this.db, ...pathArr); }
-
-  // Validate required inputs (surface which fields are missing)
-  validateRequiredFields(obj, requiredFields) {
-    const emptyFields = [];
-    for (const f of requiredFields) {
-      const v = obj[f];
-      const isMissing =
-        v === undefined ||
-        v === null ||
-        (typeof v === 'string' && v.trim() === '') ||
-        (Array.isArray(v) && v.length === 0);
-      if (isMissing) emptyFields.push(f);
-    }
-    if (emptyFields.length > 0) {
-      return { valid: false, message: `Missing or empty required fields: ${emptyFields.join(', ')}` };
-    }
-    return { valid: true, message: '' };
-  }
+  validateRequiredFields = validateRequiredFields;
 
   // Ensure base docs exist and backfill any missing fields (including nested weeklyWorkshop fields)
   async ensureBaseDocs() {
@@ -75,7 +115,6 @@ class FirestoreAPI {
       if (!s.exists()) {
         await setDoc(r, data || {});
       } else if (data && typeof data === 'object') {
-        // Backfill only missing top-level fields
         const current = s.data() || {};
         const patches = {};
         for (const [k, v] of Object.entries(data)) {
@@ -188,12 +227,12 @@ class FirestoreAPI {
 
   // EVENTS (stored at content/events/items)
   async addEvent(event) {
-    const required = ['title', 'time', 'location', 'description'];
-    const v = this.validateRequiredFields(event, required);
+    const payload = sanitizeEvent(event);
+    const v = this.validateRequiredFields(payload, ['title','time','location','description']);
     if (!v.valid) return { success: false, error: v.message };
     try {
       await this.ensureBaseDocs();
-      const ref = await addDoc(this._colRef(this.paths.eventsCol), event);
+      const ref = await addDoc(this._colRef(this.paths.eventsCol), payload);
       return { success: true, id: ref.id, message: 'Event added successfully' };
     } catch (error) {
       return { success: false, error: error.message };
@@ -201,7 +240,8 @@ class FirestoreAPI {
   }
   async updateEvent(id, event) {
     try {
-      await updateDoc(this._docRef([...this.paths.eventsCol, id]), event);
+      const payload = sanitizeEvent(event);
+      await updateDoc(this._docRef([...this.paths.eventsCol, id]), payload);
       return { success: true, message: 'Event updated successfully' };
     } catch (error) {
       return { success: false, error: error.message };
@@ -218,12 +258,12 @@ class FirestoreAPI {
 
   // LIBRARY (stored at content/library/items)
   async addLibraryResource(resource) {
-    const required = ['name', 'type', 'description'];
-    const v = this.validateRequiredFields(resource, required);
+    const payload = sanitizeLibrary(resource);
+    const v = this.validateRequiredFields(payload, ['name','type','description']);
     if (!v.valid) return { success: false, error: v.message };
     try {
       await this.ensureBaseDocs();
-      const ref = await addDoc(this._colRef(this.paths.libraryCol), resource);
+      const ref = await addDoc(this._colRef(this.paths.libraryCol), payload);
       return { success: true, id: ref.id, message: 'Library resource added successfully' };
     } catch (error) {
       return { success: false, error: error.message };
@@ -231,7 +271,8 @@ class FirestoreAPI {
   }
   async updateLibraryResource(id, resource) {
     try {
-      await updateDoc(this._docRef([...this.paths.libraryCol, id]), resource);
+      const payload = sanitizeLibrary(resource);
+      await updateDoc(this._docRef([...this.paths.libraryCol, id]), payload);
       return { success: true, message: 'Library resource updated successfully' };
     } catch (error) {
       return { success: false, error: error.message };
@@ -248,12 +289,12 @@ class FirestoreAPI {
 
   // MAGAZINE (doc + subcollection)
   async addArticle(article) {
-    const required = ['title', 'author', 'date', 'summary', 'content'];
-    const v = this.validateRequiredFields(article, required);
+    const payload = sanitizeArticle(article);
+    const v = this.validateRequiredFields(payload, ['title','author','date','summary','content']);
     if (!v.valid) return { success: false, error: v.message };
     try {
       await this.ensureBaseDocs();
-      const ref = await addDoc(this._colRef(this.paths.magazineArticlesCol), article);
+      const ref = await addDoc(this._colRef(this.paths.magazineArticlesCol), payload);
       return { success: true, id: ref.id, message: 'Article added successfully' };
     } catch (error) {
       return { success: false, error: error.message };
@@ -261,7 +302,8 @@ class FirestoreAPI {
   }
   async updateArticle(id, article) {
     try {
-      await updateDoc(this._docRef([...this.paths.magazineArticlesCol, id]), article);
+      const payload = sanitizeArticle(article);
+      await updateDoc(this._docRef([...this.paths.magazineArticlesCol, id]), payload);
       return { success: true, message: 'Article updated successfully' };
     } catch (error) {
       return { success: false, error: error.message };
@@ -278,12 +320,7 @@ class FirestoreAPI {
 
   // EDUCATION (weekly workshop doc + courses subcollection)
   async updateEducation(weeklyWorkshop) {
-    // Accept empty strings; coalesce missing fields to empty to avoid "Missing fields" errors
-    const ww = {
-      weekTitle: (weeklyWorkshop.weekTitle ?? "").toString(),
-      lecturerName: (weeklyWorkshop.lecturerName ?? "").toString(),
-      description: (weeklyWorkshop.description ?? "").toString()
-    };
+    const ww = sanitizeWeekly(weeklyWorkshop); // Accept empty strings
     try {
       await this.ensureBaseDocs();
       const ref = this._docRef(this.paths.educationDoc);
@@ -298,11 +335,12 @@ class FirestoreAPI {
 
   // Courses CRUD (content/education/courses)
   async addCourse(course) {
-    const v = this.validateRequiredFields(course, ['title', 'description']);
+    const payload = sanitizeCourse(course);
+    const v = this.validateRequiredFields(payload, ['title','description']);
     if (!v.valid) return { success: false, error: v.message };
     try {
       await this.ensureBaseDocs();
-      const ref = await addDoc(this._colRef(this.paths.educationCoursesCol), course);
+      const ref = await addDoc(this._colRef(this.paths.educationCoursesCol), payload);
       return { success: true, id: ref.id, message: 'Course added successfully' };
     } catch (error) {
       return { success: false, error: error.message };
@@ -310,7 +348,8 @@ class FirestoreAPI {
   }
   async updateCourse(id, course) {
     try {
-      await updateDoc(this._docRef([...this.paths.educationCoursesCol, id]), course);
+      const payload = sanitizeCourse(course);
+      await updateDoc(this._docRef([...this.paths.educationCoursesCol, id]), payload);
       return { success: true, message: 'Course updated successfully' };
     } catch (error) {
       return { success: false, error: error.message };
@@ -329,18 +368,19 @@ class FirestoreAPI {
   async updateFbdPage({ pageTitle, about }) {
     try {
       await this.ensureBaseDocs();
-      await setDoc(this._docRef(this.paths.fbdDoc), { pageTitle: pageTitle ?? "", about: about ?? "" }, { merge: true });
+      await setDoc(this._docRef(this.paths.fbdDoc), { pageTitle: toStr(pageTitle), about: toStr(about) }, { merge: true });
       return { success: true, message: 'FBD page updated successfully' };
     } catch (error) {
       return { success: false, error: error.message };
     }
   }
   async addFbdEvent(event) {
-    const v = this.validateRequiredFields(event, ['title', 'time', 'location', 'description']);
+    const payload = sanitizeFbdEvent(event);
+    const v = this.validateRequiredFields(payload, ['title','time','location','description']);
     if (!v.valid) return { success: false, error: v.message };
     try {
       await this.ensureBaseDocs();
-      const ref = await addDoc(this._colRef(this.paths.fbdEventsCol), event);
+      const ref = await addDoc(this._colRef(this.paths.fbdEventsCol), payload);
       return { success: true, id: ref.id, message: 'FBD event added successfully' };
     } catch (error) {
       return { success: false, error: error.message };
@@ -348,7 +388,8 @@ class FirestoreAPI {
   }
   async updateFbdEvent(id, event) {
     try {
-      await updateDoc(this._docRef([...this.paths.fbdEventsCol, id]), event);
+      const payload = sanitizeFbdEvent(event);
+      await updateDoc(this._docRef([...this.paths.fbdEventsCol, id]), payload);
       return { success: true, message: 'FBD event updated successfully' };
     } catch (error) {
       return { success: false, error: error.message };
@@ -477,7 +518,7 @@ class FirestoreAPI {
       }
 
       // Validate subcollections and backfill each item with required UI fields
-      const backfillItems = async (parentPath, subName, defaults, label) => {
+      const backfillItems = async (parentPath, subName, defaults) => {
         try {
           const colRef = collection(this.db, ...parentPath, subName);
           const snap = await getDocs(colRef);
@@ -499,11 +540,11 @@ class FirestoreAPI {
         }
       };
 
-      await backfillItems(['content','events'],    'items',    expected.itemDefaults.events,    'events');
-      await backfillItems(['content','library'],   'items',    expected.itemDefaults.library,   'library');
-      await backfillItems(['content','magazine'],  'articles', expected.itemDefaults.articles,  'articles');
-      await backfillItems(['content','education'], 'courses',  expected.itemDefaults.courses,   'courses');
-      await backfillItems(['content','fbd'],       'events',   expected.itemDefaults.fbdEvents, 'fbdEvents');
+      await backfillItems(['content','events'],    'items',    expected.itemDefaults.events);
+      await backfillItems(['content','library'],   'items',    expected.itemDefaults.library);
+      await backfillItems(['content','magazine'],  'articles', expected.itemDefaults.articles);
+      await backfillItems(['content','education'], 'courses',  expected.itemDefaults.courses);
+      await backfillItems(['content','fbd'],       'events',   expected.itemDefaults.fbdEvents);
 
       if (results.errors.length > 0) results.success = false;
       return results;
