@@ -34,6 +34,47 @@ class FirestoreAPI {
     }
 
     /**
+     * Validate that an object has no empty required fields
+     * @param {Object} obj - Object to validate
+     * @param {Array<string>} requiredFields - Array of required field names
+     * @returns {Object} { valid: boolean, message: string }
+     */
+    validateRequiredFields(obj, requiredFields) {
+        const emptyFields = [];
+        
+        for (const field of requiredFields) {
+            const value = obj[field];
+            
+            // Check if field is missing, null, or undefined
+            if (value === undefined || value === null) {
+                emptyFields.push(field);
+                continue;
+            }
+            
+            // Check for empty or whitespace-only strings
+            if (typeof value === 'string' && value.trim() === '') {
+                emptyFields.push(field);
+                continue;
+            }
+            
+            // Check for empty arrays
+            if (Array.isArray(value) && value.length === 0) {
+                emptyFields.push(field);
+                continue;
+            }
+        }
+        
+        if (emptyFields.length > 0) {
+            return {
+                valid: false,
+                message: `Missing or empty required fields: ${emptyFields.join(', ')}`
+            };
+        }
+        
+        return { valid: true, message: '' };
+    }
+
+    /**
      * Get all content data (simulates getting data.json structure)
      * Note: home and about pages are static and not fetched from Firestore
      * @returns {Promise<object>} All content data
@@ -114,6 +155,19 @@ class FirestoreAPI {
      */
     async addEvent(event) {
         console.log('[Firestore API] addEvent() called with:', event);
+        
+        // Validate required fields
+        const requiredFields = ['title', 'time', 'location', 'description'];
+        const validation = this.validateRequiredFields(event, requiredFields);
+        
+        if (!validation.valid) {
+            console.error('[Firestore API] ✗ Event validation failed:', validation.message);
+            return {
+                success: false,
+                error: validation.message
+            };
+        }
+        
         try {
             const docRef = await addDoc(collection(this.db, 'events'), event);
             console.log(`[Firestore API] ✓ Event added successfully with ID: ${docRef.id}`);
@@ -138,6 +192,19 @@ class FirestoreAPI {
      */
     async addArticle(article) {
         console.log('[Firestore API] addArticle() called with:', article);
+        
+        // Validate required fields
+        const requiredFields = ['title', 'author', 'date', 'summary'];
+        const validation = this.validateRequiredFields(article, requiredFields);
+        
+        if (!validation.valid) {
+            console.error('[Firestore API] ✗ Article validation failed:', validation.message);
+            return {
+                success: false,
+                error: validation.message
+            };
+        }
+        
         try {
             // Get current magazine data
             const magazineDoc = await getDoc(doc(this.db, 'content', 'magazine'));
@@ -177,6 +244,19 @@ class FirestoreAPI {
      */
     async addLibraryResource(resource) {
         console.log('[Firestore API] addLibraryResource() called with:', resource);
+        
+        // Validate required fields
+        const requiredFields = ['name', 'type', 'description'];
+        const validation = this.validateRequiredFields(resource, requiredFields);
+        
+        if (!validation.valid) {
+            console.error('[Firestore API] ✗ Library resource validation failed:', validation.message);
+            return {
+                success: false,
+                error: validation.message
+            };
+        }
+        
         try {
             const docRef = await addDoc(collection(this.db, 'library'), resource);
             console.log(`[Firestore API] ✓ Library resource added with ID: ${docRef.id}`);
@@ -201,6 +281,19 @@ class FirestoreAPI {
      */
     async updateEducation(education) {
         console.log('[Firestore API] updateEducation() called with:', education);
+        
+        // Validate required fields
+        const requiredFields = ['weekTitle', 'lecturerName', 'description'];
+        const validation = this.validateRequiredFields(education, requiredFields);
+        
+        if (!validation.valid) {
+            console.error('[Firestore API] ✗ Education validation failed:', validation.message);
+            return {
+                success: false,
+                error: validation.message
+            };
+        }
+        
         try {
             // Get current education data
             const educationDoc = await getDoc(doc(this.db, 'content', 'education'));
