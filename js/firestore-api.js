@@ -67,7 +67,7 @@ class FirestoreAPI {
     return { valid: true, message: '' };
   }
 
-  // Ensure base docs exist and backfill any missing fields
+  // Ensure base docs exist and backfill any missing fields (including nested weeklyWorkshop fields)
   async ensureBaseDocs() {
     const ensure = async (pathArr, data) => {
       const r = this._docRef(pathArr);
@@ -75,7 +75,7 @@ class FirestoreAPI {
       if (!s.exists()) {
         await setDoc(r, data || {});
       } else if (data && typeof data === 'object') {
-        // Backfill only missing fields
+        // Backfill only missing top-level fields
         const current = s.data() || {};
         const patches = {};
         for (const [k, v] of Object.entries(data)) {
@@ -85,12 +85,39 @@ class FirestoreAPI {
       }
     };
 
-    await ensure(this.paths.eventsDoc, { createdAt: Date.now() });
-    await ensure(this.paths.libraryDoc, { createdAt: Date.now() });
+    await ensure(this.paths.eventsDoc,   { createdAt: Date.now() });
+    await ensure(this.paths.libraryDoc,  { createdAt: Date.now() });
     await ensure(this.paths.magazineDoc, { featuredArticleId: null, releases: [] });
-    // Weekly workshop edit-only — make sure all fields exist
-    await ensure(this.paths.educationDoc, { weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "" } });
-    await ensure(this.paths.fbdDoc, { pageTitle: "", about: "" });
+
+    // Education doc with nested weeklyWorkshop defaults backfilled
+    const eduRef = this._docRef(this.paths.educationDoc);
+    const eduSnap = await getDoc(eduRef);
+    if (!eduSnap.exists()) {
+      await setDoc(eduRef, { weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "" } });
+    } else {
+      const current = eduSnap.data() || {};
+      const ww = current.weeklyWorkshop || {};
+      const wwPatches = {};
+      if (ww.weekTitle === undefined) wwPatches.weekTitle = "";
+      if (ww.lecturerName === undefined) wwPatches.lecturerName = "";
+      if (ww.description === undefined) wwPatches.description = "";
+      if (Object.keys(wwPatches).length) {
+        await setDoc(eduRef, { weeklyWorkshop: { ...ww, ...wwPatches } }, { merge: true });
+      }
+    }
+
+    // FBD doc
+    const fbdRef = this._docRef(this.paths.fbdDoc);
+    const fbdSnap = await getDoc(fbdRef);
+    if (!fbdSnap.exists()) {
+      await setDoc(fbdRef, { pageTitle: "", about: "" });
+    } else {
+      const cur = fbdSnap.data() || {};
+      const patches = {};
+      if (cur.pageTitle === undefined) patches.pageTitle = "";
+      if (cur.about === undefined) patches.about = "";
+      if (Object.keys(patches).length) await setDoc(fbdRef, patches, { merge: true });
+    }
   }
 
   // Read all content (current structure only)
@@ -251,15 +278,18 @@ class FirestoreAPI {
 
   // EDUCATION (weekly workshop doc + courses subcollection)
   async updateEducation(weeklyWorkshop) {
-    const required = ['weekTitle', 'lecturerName', 'description'];
-    const v = this.validateRequiredFields(weeklyWorkshop, required);
-    if (!v.valid) return { success: false, error: v.message };
+    // Accept empty strings; coalesce missing fields to empty to avoid "Missing fields" errors
+    const ww = {
+      weekTitle: (weeklyWorkshop.weekTitle ?? "").toString(),
+      lecturerName: (weeklyWorkshop.lecturerName ?? "").toString(),
+      description: (weeklyWorkshop.description ?? "").toString()
+    };
     try {
       await this.ensureBaseDocs();
       const ref = this._docRef(this.paths.educationDoc);
       const snap = await getDoc(ref);
       const existing = snap.exists() ? snap.data() : { weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "" } };
-      await setDoc(ref, { ...existing, weeklyWorkshop });
+      await setDoc(ref, { ...existing, weeklyWorkshop: ww });
       return { success: true, message: 'Education content updated successfully' };
     } catch (error) {
       return { success: false, error: error.message };
@@ -333,6 +363,18 @@ class FirestoreAPI {
     }
   }
 
+  // Settings helpers (so Settings tab can list admins)
+  async getAdmins() {
+    try {
+      const r = await getDoc(this._docRef(['config', 'admins']));
+      if (!r.exists()) return { success: true, admins: [] };
+      const data = r.data() || {};
+      return { success: true, admins: Array.isArray(data.admins) ? data.admins : [] };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
   // Token compatibility with dashboard
   hasToken() { return true; }
   async getFileContent() { return this.getAllContent(); }
@@ -368,11 +410,11 @@ class FirestoreAPI {
   getExpectedStructure() {
     return {
       contentDocs: {
-        events: { createdAt: 0 },
-        library: { createdAt: 0 },
+        events:   { createdAt: 0 },
+        library:  { createdAt: 0 },
         magazine: { featuredArticleId: null, releases: [] },
-        education: { weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "" } },
-        fbd: { pageTitle: "", about: "" }
+        education:{ weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "" } },
+        fbd:      { pageTitle: "", about: "" }
       },
       subcollections: [
         { parent: ['content', 'events'], name: 'items' },
@@ -380,17 +422,25 @@ class FirestoreAPI {
         { parent: ['content', 'magazine'], name: 'articles' },
         { parent: ['content', 'education'], name: 'courses' },
         { parent: ['content', 'fbd'], name: 'events' }
-      ]
+      ],
+      // Per-item required/default fields used for backfill
+      itemDefaults: {
+        events:   { title: "", time: "", location: "", type: "Workshop", seats: 0, image: "", description: "" },
+        library:  { name: "", type: "Book", tags: [], image: "", description: "", link: "" },
+        articles: { title: "", author: "", date: "", summary: "", content: "" },
+        courses:  { title: "", description: "", lecturer: "", link: "" },
+        fbdEvents:{ title: "", time: "", location: "", type: "Workshop", seats: 0, image: "", description: "" }
+      }
     };
   }
 
-  // Validate and fix Firestore structure (create/backfill current structure only — no legacy)
+  // Validate and fix Firestore structure (create/backfill current structure and item fields — no legacy)
   async validateAndFixStructure() {
     const results = { success: true, actions: [], errors: [] };
     try {
       const expected = this.getExpectedStructure();
 
-      // Ensure and backfill base documents and required fields
+      // Ensure/backfill base documents and required fields
       for (const [docName, defaults] of Object.entries(expected.contentDocs)) {
         try {
           const ref = this._docRef(['content', docName]);
@@ -399,7 +449,7 @@ class FirestoreAPI {
             await setDoc(ref, defaults);
             results.actions.push(`Created content/${docName}`);
           } else {
-            // Backfill required fields
+            // Backfill required fields (including nested weeklyWorkshop)
             const current = snap.data() || {};
             const patches = {};
             for (const [k, v] of Object.entries(defaults)) {
@@ -426,16 +476,34 @@ class FirestoreAPI {
         }
       }
 
-      // Validate subcollections by performing a lightweight list call
-      for (const sc of expected.subcollections) {
+      // Validate subcollections and backfill each item with required UI fields
+      const backfillItems = async (parentPath, subName, defaults, label) => {
         try {
-          const colRef = collection(this.db, ...sc.parent, sc.name);
+          const colRef = collection(this.db, ...parentPath, subName);
           const snap = await getDocs(colRef);
-          results.actions.push(`Validated ${sc.parent.join('/')}/${sc.name} (${snap.size} docs)`);
+          let patched = 0;
+          await Promise.all(snap.docs.map(async d => {
+            const data = d.data() || {};
+            const patch = {};
+            for (const [k, v] of Object.entries(defaults)) {
+              if (data[k] === undefined || data[k] === null) patch[k] = v;
+            }
+            if (Object.keys(patch).length) {
+              await updateDoc(doc(this.db, ...parentPath, subName, d.id), patch);
+              patched++;
+            }
+          }));
+          results.actions.push(`Validated ${parentPath.join('/')}/${subName} (${snap.size} docs, backfilled ${patched})`);
         } catch (e) {
-          results.errors.push(`Subcollection ${sc.parent.join('/')}/${sc.name}: ${e.message}`);
+          results.errors.push(`Subcollection ${parentPath.join('/')}/${subName}: ${e.message}`);
         }
-      }
+      };
+
+      await backfillItems(['content','events'],    'items',    expected.itemDefaults.events,    'events');
+      await backfillItems(['content','library'],   'items',    expected.itemDefaults.library,   'library');
+      await backfillItems(['content','magazine'],  'articles', expected.itemDefaults.articles,  'articles');
+      await backfillItems(['content','education'], 'courses',  expected.itemDefaults.courses,   'courses');
+      await backfillItems(['content','fbd'],       'events',   expected.itemDefaults.fbdEvents, 'fbdEvents');
 
       if (results.errors.length > 0) results.success = false;
       return results;
