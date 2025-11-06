@@ -73,6 +73,12 @@ const sanitizeWeekly = (w) => ({
 });
 const sanitizeFbdEvent = (e) => sanitizeEvent(e);
 
+const logPayload = (label, data) => {
+  try { console.log(label, JSON.stringify(data, null, 2)); }
+  catch { console.log(label, data); }
+};
+
+
 // Note: We only treat undefined or null as missing. Empty strings/arrays are allowed.
 // This prevents false "Missing field" errors when the UI intentionally sends empty values.
 function validateRequiredFields(obj, requiredFields) {
@@ -230,18 +236,22 @@ class FirestoreAPI {
   }
 
   // EVENTS (stored at content/events/items)
-  async addEvent(event) {
-    const payload = sanitizeEvent(event);
-    const v = this.validateRequiredFields(payload, ['title','time','location','description']);
-    if (!v.valid) return { success: false, error: v.message };
-    try {
-      await this.ensureBaseDocs();
-      const ref = await addDoc(this._colRef(this.paths.eventsCol), payload);
-      return { success: true, id: ref.id, message: 'Event added successfully' };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
+
+// Example: inside addEvent
+async addEvent(event) {
+  logPayload('[FirestoreAPI] addEvent raw input', event);
+  const payload = sanitizeEvent(event);
+  logPayload('[FirestoreAPI] addEvent payload', payload);
+  const v = this.validateRequiredFields(payload, ['title','time','location','description']);
+  if (!v.valid) return { success: false, error: v.message };
+  try {
+    await this.ensureBaseDocs();
+    const ref = await addDoc(this._colRef(this.paths.eventsCol), payload);
+    return { success: true, id: ref.id, message: 'Event added successfully' };
+  } catch (error) {
+    return { success: false, error: error.message };
   }
+}
   async updateEvent(id, event) {
     try {
       const payload = sanitizeEvent(event);
