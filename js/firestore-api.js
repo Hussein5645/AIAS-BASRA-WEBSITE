@@ -79,9 +79,9 @@ function validateRequiredFields(obj, requiredFields) {
   const missing = [];
   for (const f of requiredFields) {
     const v = obj[f];
-    const isEmptyString = typeof v === 'string' && v.trim() === '';
+    
     const isEmptyArray = Array.isArray(v) && v.length === 0;
-    if (v === undefined || v === null || isEmptyString || isEmptyArray) {
+    if (v === undefined || v === null || isEmptyArray) {
       missing.push(f);
     }
   }
