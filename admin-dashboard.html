@@ -780,7 +780,7 @@
             
             try {
                 const result = await firestoreAPI.getAllContent();
-                if (!result.success || !result.content.events) {
+                if (!result.success || !result.content || !result.content.events) {
                     listContainer.innerHTML = '<p>No events found.</p>';
                     return;
                 }
@@ -846,7 +846,7 @@
             
             try {
                 const result = await firestoreAPI.getAllContent();
-                if (!result.success || !result.content.magazine || !result.content.magazine.articles) {
+                if (!result.success || !result.content || !result.content.magazine || !result.content.magazine.articles) {
                     listContainer.innerHTML = '<p>No articles found.</p>';
                     return;
                 }
@@ -912,7 +912,7 @@
             
             try {
                 const result = await firestoreAPI.getAllContent();
-                if (!result.success || !result.content.library) {
+                if (!result.success || !result.content || !result.content.library) {
                     listContainer.innerHTML = '<p>No resources found.</p>';
                     return;
                 }
