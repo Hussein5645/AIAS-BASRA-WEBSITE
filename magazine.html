@@ -300,6 +300,11 @@
         // Import Data Loader
         import dataLoader from "./js/data-loader.js";
 
+        // Debug toggle: enable via ?debug=true or localStorage.setItem('debug','true')
+        const DEBUG =
+          (new URLSearchParams(window.location.search).has('debug') ||
+           localStorage.getItem('debug') === 'true');
+
         // Load magazine data from Firebase using Data Loader
         async function loadMagazine() {
             const featuredContent = document.getElementById('featuredContent');
@@ -335,6 +340,16 @@
                 
                 const magazineData = result.magazine;
                 console.log('[Magazine] ✓ Magazine content loaded');
+                
+                // Debug logging
+                if (DEBUG) {
+                    const articlesCount = magazineData?.articles?.length || 0;
+                    const hasFeatured = !!magazineData?.featuredArticle;
+                    console.log(`[Magazine] Debug mode enabled - Articles: ${articlesCount}, Has Featured: ${hasFeatured}`);
+                    if (magazineData?.featuredArticle) {
+                        console.log('[Magazine] Featured article:', magazineData.featuredArticle.title);
+                    }
+                }
                 
                 if (magazineData) {
                     // Load featured article

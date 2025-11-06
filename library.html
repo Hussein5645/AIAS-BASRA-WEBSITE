@@ -322,6 +322,11 @@
         // Import Data Loader
         import dataLoader from "./js/data-loader.js";
 
+        // Debug toggle: enable via ?debug=true or localStorage.setItem('debug','true')
+        const DEBUG =
+          (new URLSearchParams(window.location.search).has('debug') ||
+           localStorage.getItem('debug') === 'true');
+
         let allResources = [];
         
         // Load library items from Firebase using Data Loader
@@ -348,6 +353,18 @@
                 
                 const libraryItems = result.library;
                 console.log(`[Library] ✓ Loaded ${libraryItems.length} library items`);
+                
+                // Debug logging
+                if (DEBUG && libraryItems.length > 0) {
+                    console.log('[Library] Debug mode enabled');
+                    const debugSummary = libraryItems.map(item => ({
+                        id: item.id,
+                        name: item.name,
+                        type: item.type,
+                        tags: (item.tags || []).join(', ')
+                    }));
+                    console.table(debugSummary);
+                }
                 
                 if (libraryItems && libraryItems.length > 0) {
                     allResources = libraryItems;
