@@ -267,19 +267,32 @@
                 addLog(`[Test] ✓ Library collection read successfully: ${libraryCount} items found`, 'success');
                 document.getElementById('libraryCount').textContent = libraryCount;
 
-                // Test 4: Read magazine content
-                addLog('[Test] Reading magazine content...', 'info');
+                // Test 4: Read magazine content (doc + articles subcollection)
+                addLog('[Test] Reading magazine doc...', 'info');
                 const magazineDoc = await getDoc(doc(db, 'content', 'magazine'));
+                addLog('[Test] Reading magazine articles from content/magazine/articles...', 'info');
+                const magazineArticlesSnap = await getDocs(collection(db, 'content/magazine/articles'));
+                const articlesCount = magazineArticlesSnap.size;
+                addLog(`[Test] ✓ Magazine articles retrieved: ${articlesCount} articles found`, 'success');
+                document.getElementById('articlesCount').textContent = articlesCount;
                 if (magazineDoc.exists()) {
-                    const articlesCount = magazineDoc.data().articles?.length || 0;
-                    addLog(`[Test] ✓ Magazine content retrieved: ${articlesCount} articles found`, 'success');
-                    document.getElementById('articlesCount').textContent = articlesCount;
-                } else {
-                    addLog('[Test] ⚠ No magazine content found (expected for new setup)', 'info');
-                    document.getElementById('articlesCount').textContent = 0;
+                    const featuredId = magazineDoc.data().featuredArticleId;
+                    addLog(`[Test] ✓ Magazine doc exists, featured article ID: ${featuredId || 'none'}`, 'info');
                 }
 
-                // Test 5: Read education content
+                // Test 5: Read FBD content (doc + events subcollection)
+                addLog('[Test] Reading FBD doc...', 'info');
+                const fbdDoc = await getDoc(doc(db, 'content', 'fbd'));
+                addLog('[Test] Reading FBD events from content/fbd/events...', 'info');
+                const fbdEventsSnap = await getDocs(collection(db, 'content/fbd/events'));
+                const fbdEventsCount = fbdEventsSnap.size;
+                if (fbdDoc.exists()) {
+                    addLog(`[Test] ✓ FBD content retrieved: ${fbdEventsCount} events found`, 'success');
+                } else {
+                    addLog('[Test] ⚠ No FBD doc found (expected for new setup)', 'info');
+                }
+
+                // Test 6: Read education content
                 addLog('[Test] Reading education content...', 'info');
                 const educationDoc = await getDoc(doc(db, 'content', 'education'));
                 if (educationDoc.exists()) {
@@ -288,7 +301,7 @@
                     addLog('[Test] ⚠ No education content found (expected for new setup)', 'info');
                 }
 
-                // Test 6: Read about content
+                // Test 7: Read about content
                 addLog('[Test] Reading about content...', 'info');
                 const aboutDoc = await getDoc(doc(db, 'content', 'about'));
                 if (aboutDoc.exists()) {

@@ -159,6 +159,11 @@
         // Import Data Loader
         import dataLoader from "./js/data-loader.js";
 
+        // Debug toggle: enable via ?debug=true or localStorage.setItem('debug','true')
+        const DEBUG =
+          (new URLSearchParams(window.location.search).has('debug') ||
+           localStorage.getItem('debug') === 'true');
+
         // Initialize view toggle with event delegation
         function initViewToggle() {
             const viewToggleSection = document.querySelector('.view-toggle');
@@ -222,6 +227,18 @@
                 const events = result.events;
                 console.log(`[Events] ✓ Loaded ${events.length} events`);
                 
+                // Debug logging
+                if (DEBUG && events.length > 0) {
+                    console.log('[Events] Debug mode enabled');
+                    const debugSummary = events.map(e => ({
+                        id: e.id,
+                        title: e.title,
+                        time: e.time,
+                        seats: e.seats ?? 'N/A'
+                    }));
+                    console.table(debugSummary);
+                }
+                
                 if (events && events.length > 0) {
                     // Clear existing content
                     gridContainer.innerHTML = '';
@@ -263,7 +280,7 @@
                                     </div>
                                     <div class="meta-item">
                                         <span>👥</span>
-                                        <span>${event.seatsAvailable || 'TBA'} Seats Available</span>
+                                        <span>${Number.isFinite(event.seats) ? event.seats : 'TBA'} Seats Available</span>
                                     </div>
                                 </div>
                                 <p class="event-description">${event.description}</p>

@@ -307,6 +307,11 @@
         // Import Data Loader
         import dataLoader from "./js/data-loader.js";
 
+        // Debug toggle: enable via ?debug=true or localStorage.setItem('debug','true')
+        const DEBUG =
+          (new URLSearchParams(window.location.search).has('debug') ||
+           localStorage.getItem('debug') === 'true');
+
         // Load FBD data and populate page using Data Loader
         async function loadFBDData() {
             try {
@@ -323,6 +328,12 @@
                 console.log('[FBD] ✓ Education content loaded');
                 
                 if (educationData && educationData.fbd) {
+                    // Set page title if available
+                    const fbdTitle = document.getElementById('fbdTitle');
+                    if (fbdTitle && educationData.fbd.pageTitle) {
+                        fbdTitle.textContent = educationData.fbd.pageTitle;
+                    }
+                    
                     // Set about text
                     const fbdAbout = document.getElementById('fbdAbout');
                     if (fbdAbout && educationData.fbd.about) {
@@ -332,6 +343,20 @@
                     // Load events
                     const eventsContainer = document.getElementById('fbdEventsContainer');
                     const events = educationData.fbd.events || [];
+                    
+                    console.log(`[FBD] ✓ Loaded ${events.length} FBD events`);
+                    
+                    // Debug logging
+                    if (DEBUG && events.length > 0) {
+                        console.log('[FBD] Debug mode enabled');
+                        const debugSummary = events.map(e => ({
+                            id: e.id,
+                            title: e.title,
+                            time: e.time,
+                            seats: e.seats ?? 'N/A'
+                        }));
+                        console.table(debugSummary);
+                    }
                     
                     if (events && events.length > 0) {
                         eventsContainer.innerHTML = events.map(event => {
@@ -365,7 +390,7 @@
                                             </div>
                                             <div class="meta-item">
                                                 <span>👥</span>
-                                                <span>${event.seatsAvailable || 'TBA'} Seats Available</span>
+                                                <span>${Number.isFinite(event.seats) ? event.seats : 'TBA'} Seats Available</span>
                                             </div>
                                         </div>
                                         <p class="event-description">${event.description}</p>

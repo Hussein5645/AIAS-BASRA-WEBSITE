@@ -475,6 +475,11 @@
         // Import Data Loader
         import dataLoader from "./js/data-loader.js";
 
+        // Debug toggle: enable via ?debug=true or localStorage.setItem('debug','true')
+        const DEBUG =
+          (new URLSearchParams(window.location.search).has('debug') ||
+           localStorage.getItem('debug') === 'true');
+
         // Load education data from Firebase using Data Loader
         async function loadEducationData() {
             try {
@@ -489,6 +494,25 @@
                 
                 const educationData = result.education;
                 console.log('[Education] ✓ Education content loaded');
+                
+                // Debug logging
+                if (DEBUG) {
+                    console.log('[Education] Debug mode enabled');
+                    const coursesCount = educationData?.courses?.length || 0;
+                    const fbdEventsCount = educationData?.fbd?.events?.length || 0;
+                    console.log(`[Education] Courses: ${coursesCount}, FBD Events: ${fbdEventsCount}`);
+                    if (educationData?.weeklyWorkshop) {
+                        console.log('[Education] Weekly workshop:', educationData.weeklyWorkshop);
+                    }
+                    if (coursesCount > 0) {
+                        const debugSummary = educationData.courses.map(c => ({
+                            title: c.title,
+                            level: c.level,
+                            duration: c.duration
+                        }));
+                        console.table(debugSummary);
+                    }
+                }
                 
                 // Load weekly workshop data
                 if (educationData && educationData.weeklyWorkshop) {
