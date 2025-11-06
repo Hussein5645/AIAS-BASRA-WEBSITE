@@ -345,10 +345,26 @@
                     const events = educationData.fbd.events || [];
                     
                     console.log(`[FBD] ✓ Loaded ${events.length} FBD events`);
+                    console.log('[FBD] Page title:', educationData.fbd.pageTitle || 'Not set');
+                    console.log('[FBD] About text:', educationData.fbd.about?.substring(0, 100) + '...' || 'Not set');
                     
-                    // Debug logging
+                    // Always log fetched FBD events for debugging
+                    if (events.length > 0) {
+                        console.log('[FBD] FBD events details:');
+                        events.forEach((e, index) => {
+                            console.log(`  Event ${index + 1}:`, {
+                                id: e.id,
+                                title: e.title,
+                                time: e.time,
+                                location: e.location,
+                                seats: e.seats ?? 'N/A'
+                            });
+                        });
+                    }
+                    
+                    // Additional debug logging
                     if (DEBUG && events.length > 0) {
-                        console.log('[FBD] Debug mode enabled');
+                        console.log('[FBD] Debug mode enabled - Full FBD details');
                         const debugSummary = events.map(e => ({
                             id: e.id,
                             title: e.title,

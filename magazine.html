@@ -339,15 +339,35 @@
                 }
                 
                 const magazineData = result.magazine;
-                console.log('[Magazine] ✓ Magazine content loaded');
+                const articlesCount = magazineData?.articles?.length || 0;
+                const hasFeatured = !!magazineData?.featuredArticle;
+                console.log(`[Magazine] ✓ Magazine content loaded - Articles: ${articlesCount}, Has Featured: ${hasFeatured}`);
                 
-                // Debug logging
+                // Always log fetched magazine data for debugging
+                if (magazineData?.featuredArticle) {
+                    console.log('[Magazine] Featured article:', {
+                        title: magazineData.featuredArticle.title,
+                        author: magazineData.featuredArticle.author,
+                        date: magazineData.featuredArticle.date
+                    });
+                }
+                if (articlesCount > 0) {
+                    console.log('[Magazine] Article list:');
+                    magazineData.articles.forEach((article, index) => {
+                        console.log(`  Article ${index + 1}:`, {
+                            id: article.id,
+                            title: article.title,
+                            author: article.author,
+                            date: article.date
+                        });
+                    });
+                }
+                
+                // Additional debug logging
                 if (DEBUG) {
-                    const articlesCount = magazineData?.articles?.length || 0;
-                    const hasFeatured = !!magazineData?.featuredArticle;
-                    console.log(`[Magazine] Debug mode enabled - Articles: ${articlesCount}, Has Featured: ${hasFeatured}`);
+                    console.log('[Magazine] Debug mode enabled - Full magazine details');
                     if (magazineData?.featuredArticle) {
-                        console.log('[Magazine] Featured article:', magazineData.featuredArticle.title);
+                        console.log('[Magazine] Featured article full data:', magazineData.featuredArticle);
                     }
                 }
                 

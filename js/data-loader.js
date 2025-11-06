@@ -95,12 +95,20 @@ class DataLoader {
             dlog('Fetching events from content/events/items...');
             const eventsSnapshot = await getDocs(collection(this.db, 'content/events/items'));
             this.cache.events = eventsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+            console.log(`[Data Loader] ✓ Loaded ${this.cache.events.length} events from Firestore`);
+            if (this.cache.events.length > 0) {
+                console.log('[Data Loader] Sample event:', this.cache.events[0]);
+            }
             dlog('✓ Loaded events', { count: this.cache.events.length, sample: this.cache.events[0] });
 
             // Fetch library from content subcollection
             dlog('Fetching library from content/library/items...');
             const librarySnapshot = await getDocs(collection(this.db, 'content/library/items'));
             this.cache.library = librarySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+            console.log(`[Data Loader] ✓ Loaded ${this.cache.library.length} library items from Firestore`);
+            if (this.cache.library.length > 0) {
+                console.log('[Data Loader] Sample library item:', this.cache.library[0]);
+            }
             dlog('✓ Loaded library items', { count: this.cache.library.length, sample: this.cache.library[0] });
 
             // Fetch magazine (doc + articles subcollection)
@@ -126,6 +134,13 @@ class DataLoader {
             }
             magazine.articles = magazineArticles;
             this.cache.magazine = magazine;
+            console.log(`[Data Loader] ✓ Loaded magazine with ${magazine.articles.length} articles`);
+            if (magazine.featuredArticle) {
+                console.log('[Data Loader] Featured article:', magazine.featuredArticle.title);
+            }
+            if (magazine.articles.length > 0) {
+                console.log('[Data Loader] Sample article:', magazine.articles[0]);
+            }
             dlog('✓ Magazine loaded', {
                 articles: magazine.articles.length,
                 hasFeatured: !!magazine.featuredArticle,
@@ -162,6 +177,9 @@ class DataLoader {
                 // Attach FBD under education to match page usage
                 fbd
             };
+            console.log(`[Data Loader] ✓ Loaded education with ${this.cache.education.courses.length} courses`);
+            console.log(`[Data Loader] ✓ Loaded FBD with ${this.cache.education.fbd.events.length} events`);
+            console.log('[Data Loader] Weekly workshop:', this.cache.education.weeklyWorkshop);
             dlog('✓ Education loaded', {
                 hasWeekly: !!this.cache.education.weeklyWorkshop,
                 courses: this.cache.education.courses.length,
@@ -172,12 +190,14 @@ class DataLoader {
             dlog('Fetching about doc...');
             const aboutDoc = await getDoc(doc(this.db, 'content', 'about'));
             this.cache.about = aboutDoc.exists() ? aboutDoc.data() : { story: { paragraphs: [] }, values: [], founders: [], team: [] };
+            console.log(`[Data Loader] ✓ Loaded about page (exists: ${aboutDoc.exists()})`);
             dlog('✓ About loaded', { hasStory: !!this.cache.about.story });
 
             // Fetch home
             dlog('Fetching home doc...');
             const homeDoc = await getDoc(doc(this.db, 'content', 'home'));
             this.cache.home = homeDoc.exists() ? homeDoc.data() : { hero: {}, mission: {} };
+            console.log(`[Data Loader] ✓ Loaded home page (exists: ${homeDoc.exists()})`);
             dlog('✓ Home loaded', { hasHero: !!this.cache.home.hero });
 
             this.cache.lastFetch = Date.now();

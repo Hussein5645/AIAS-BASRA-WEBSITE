@@ -352,11 +352,25 @@
                 }
                 
                 const libraryItems = result.library;
-                console.log(`[Library] ✓ Loaded ${libraryItems.length} library items`);
+                console.log(`[Library] ✓ Loaded ${libraryItems.length} library items from Data Loader`);
                 
-                // Debug logging
+                // Always log fetched library items for debugging
+                if (libraryItems.length > 0) {
+                    console.log('[Library] Fetched library items details:');
+                    libraryItems.forEach((item, index) => {
+                        console.log(`  Item ${index + 1}:`, {
+                            id: item.id,
+                            name: item.name,
+                            type: item.type,
+                            tags: (item.tags || []).join(', '),
+                            description: item.description?.substring(0, 50) + '...'
+                        });
+                    });
+                }
+                
+                // Additional debug logging
                 if (DEBUG && libraryItems.length > 0) {
-                    console.log('[Library] Debug mode enabled');
+                    console.log('[Library] Debug mode enabled - Full library details');
                     const debugSummary = libraryItems.map(item => ({
                         id: item.id,
                         name: item.name,

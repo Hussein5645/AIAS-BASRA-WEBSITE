@@ -225,11 +225,26 @@
                 }
                 
                 const events = result.events;
-                console.log(`[Events] ✓ Loaded ${events.length} events`);
+                console.log(`[Events] ✓ Loaded ${events.length} events from Data Loader`);
                 
-                // Debug logging
+                // Always log fetched events for debugging
+                if (events.length > 0) {
+                    console.log('[Events] Fetched events details:');
+                    events.forEach((e, index) => {
+                        console.log(`  Event ${index + 1}:`, {
+                            id: e.id,
+                            title: e.title,
+                            time: e.time,
+                            location: e.location,
+                            seats: e.seats ?? 'N/A',
+                            description: e.description?.substring(0, 50) + '...'
+                        });
+                    });
+                }
+                
+                // Additional debug logging
                 if (DEBUG && events.length > 0) {
-                    console.log('[Events] Debug mode enabled');
+                    console.log('[Events] Debug mode enabled - Full event details');
                     const debugSummary = events.map(e => ({
                         id: e.id,
                         title: e.title,
