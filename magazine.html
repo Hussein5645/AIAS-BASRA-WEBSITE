@@ -386,7 +386,10 @@
                                     <h2>${featured.title}</h2>
                                     <p>${featured.summary}</p>
                                     <p>${featured.content || ''}</p>
-                                    <a href="#" class="btn btn-primary">Read Full Article</a>
+                                    ${featured.readMoreUrl ? 
+                                        `<a href="${featured.readMoreUrl}" class="btn btn-primary" target="_blank" rel="noopener noreferrer">Read Full Article</a>` : 
+                                        ''
+                                    }
                                 </div>
                             `;
                         } else {
@@ -443,7 +446,10 @@
                                         <p class="article-excerpt">
                                             ${article.summary}
                                         </p>
-                                        <a href="#" class="read-more">Read More →</a>
+                                        ${article.readMoreUrl ? 
+                                            `<a href="${article.readMoreUrl}" class="read-more" target="_blank" rel="noopener noreferrer">Read More →</a>` : 
+                                            ''
+                                        }
                                     </div>
                                 </div>
                             `;

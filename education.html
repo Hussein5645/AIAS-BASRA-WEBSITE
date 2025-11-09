@@ -324,7 +324,7 @@
                 <div class="program-body">
                     <h3 class="program-title" id="lecturerName">Loading...</h3>
                     <p class="program-description" id="workshopDescription">Loading workshop details...</p>
-                    <div class="program-footer">
+                    <div class="program-footer" id="workshopButtonContainer">
                         <button class="enroll-btn">Join Workshop</button>
                     </div>
                 </div>
@@ -539,6 +539,7 @@
                     const weekTitle = document.getElementById('weekTitle');
                     const lecturerName = document.getElementById('lecturerName');
                     const workshopDescription = document.getElementById('workshopDescription');
+                    const workshopButtonContainer = document.getElementById('workshopButtonContainer');
                     
                     if (weekTitle && workshop.weekTitle) {
                         weekTitle.textContent = workshop.weekTitle;
@@ -548,6 +549,14 @@
                     }
                     if (workshopDescription && workshop.description) {
                         workshopDescription.textContent = workshop.description;
+                    }
+                    // Update workshop button with URL if available
+                    if (workshopButtonContainer) {
+                        if (workshop.workshopUrl) {
+                            workshopButtonContainer.innerHTML = `<a href="${workshop.workshopUrl}" class="enroll-btn" target="_blank" rel="noopener noreferrer">Join Workshop</a>`;
+                        } else {
+                            workshopButtonContainer.innerHTML = '<button class="enroll-btn" disabled style="opacity: 0.6; cursor: not-allowed;">Registration Coming Soon</button>';
+                        }
                     }
                 } else {
                     // Show default/placeholder content
@@ -595,7 +604,10 @@
                                                 <span>⏱️</span>
                                                 <span>${course.duration || 'TBA'}</span>
                                             </div>
-                                            <button class="enroll-btn">Enroll Now</button>
+                                            ${course.enrollUrl ? 
+                                                `<a href="${course.enrollUrl}" class="enroll-btn" target="_blank" rel="noopener noreferrer">Enroll Now</a>` : 
+                                                '<button class="enroll-btn" disabled style="opacity: 0.6; cursor: not-allowed;">Coming Soon</button>'
+                                            }
                                         </div>
                                     </div>
                                 </div>
