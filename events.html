@@ -295,8 +295,8 @@
                                 <div class="event-day">${dateInfo.day}</div>
                                 <div class="event-month">${dateInfo.monthShort}</div>
                             </div>
-                            <div class="event-image">
-                                ${event.image || '📅'}
+                            <div class="event-image" style="${event.imageUrl ? `background-image: url('${event.imageUrl}'); background-size: cover; background-position: center;` : ''}">
+                                ${event.imageUrl ? '' : (event.image || '📅')}
                                 <span class="event-status ${statusClass}">${status}</span>
                             </div>
                             <div class="event-content">

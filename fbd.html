@@ -393,8 +393,8 @@
                             
                             return `
                                 <div class="event-card reveal">
-                                    <div class="event-image">
-                                        ${event.image || '🏗️'}
+                                    <div class="event-image" style="${event.imageUrl ? `background-image: url('${event.imageUrl}'); background-size: cover; background-position: center;` : ''}">
+                                        ${event.imageUrl ? '' : (event.image || '🏗️')}
                                     </div>
                                     <div class="event-content">
                                         <h3 class="event-title">${event.title}</h3>

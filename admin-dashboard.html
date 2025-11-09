@@ -163,6 +163,10 @@
                   <label for="eventImage">Emoji Icon</label>
                   <input id="eventImage" name="image" placeholder="🎨" required/>
                 </div>
+                <div class="form-group">
+                  <label for="eventImageUrl">Image URL (Optional)</label>
+                  <input id="eventImageUrl" name="imageUrl" type="url" placeholder="https://example.com/image.jpg"/>
+                </div>
               </div>
               <div class="form-group">
                 <label for="eventDescription">Description</label>
@@ -196,6 +200,10 @@
               <div class="two-col">
                 <div class="form-group"><label for="articleDate">Publication Date</label><input type="date" id="articleDate" name="date" required/></div>
                 <div class="form-group"><label for="articleSummary">Summary</label><input id="articleSummary" name="summary" required/></div>
+              </div>
+              <div class="form-group">
+                <label for="articleImageUrl">Image URL (Optional)</label>
+                <input type="url" id="articleImageUrl" name="imageUrl" placeholder="https://example.com/image.jpg"/>
               </div>
               <div class="form-group"><label for="articleContent">Full Content</label><textarea id="articleContent" name="content" required></textarea></div>
               <div id="articleErrors" class="error-box"></div>
@@ -235,7 +243,10 @@
                 <div class="form-group"><label for="libImage">Emoji Icon</label><input id="libImage" name="image" placeholder="📚" required/></div>
               </div>
               <div class="two-col">
+                <div class="form-group"><label for="libImageUrl">Image URL (Optional)</label><input type="url" id="libImageUrl" name="imageUrl" placeholder="https://example.com/image.jpg"/></div>
                 <div class="form-group"><label for="libDescription">Description</label><input id="libDescription" name="description" required/></div>
+              </div>
+              <div class="two-col">
                 <div class="form-group"><label for="libLink">Download Link</label><input type="url" id="libLink" name="link" placeholder="https://" required/></div>
               </div>
               <div id="libraryErrors" class="error-box"></div>
@@ -278,6 +289,10 @@
               <div class="two-col">
                 <div class="form-group"><label for="courseDescription">Course Description</label><input id="courseDescription" name="description" required/></div>
                 <div class="form-group"><label for="courseLink">Link (optional)</label><input id="courseLink" name="link" type="url" placeholder="https://"/></div>
+              </div>
+              <div class="form-group">
+                <label for="courseImageUrl">Image URL (Optional)</label>
+                <input type="url" id="courseImageUrl" name="imageUrl" placeholder="https://example.com/image.jpg"/>
               </div>
               <div id="courseErrors" class="error-box"></div>
               <button type="submit" id="courseSubmitBtn" class="submit-btn">Add Course</button>
@@ -328,6 +343,10 @@
               <div class="two-col">
                 <div class="form-group"><label for="fbdEventSeats">Available Seats</label><input id="fbdEventSeats" name="seats" type="number" min="1" value="10" required/></div>
                 <div class="form-group"><label for="fbdEventImage">Emoji Icon</label><input id="fbdEventImage" name="image" placeholder="🎨" required/></div>
+              </div>
+              <div class="form-group">
+                <label for="fbdEventImageUrl">Image URL (Optional)</label>
+                <input type="url" id="fbdEventImageUrl" name="imageUrl" placeholder="https://example.com/image.jpg"/>
               </div>
               <div class="form-group"><label for="fbdEventDescription">Description</label><textarea id="fbdEventDescription" name="description" required></textarea></div>
               <div id="fbdEventErrors" class="error-box"></div>
@@ -532,6 +551,7 @@
       eventType.value = ev.type || 'Workshop';
       eventSeats.value = ev.seats ?? 10;
       eventImage.value = ev.image || '';
+      eventImageUrl.value = ev.imageUrl || '';
       eventDescription.value = ev.description || '';
       eventSubmitBtn.textContent = 'Update Event';
     };
@@ -573,6 +593,7 @@
       articleDate.value = a.date || '';
       articleSummary.value = a.summary || '';
       articleContent.value = a.content || '';
+      articleImageUrl.value = a.imageUrl || '';
       articleSubmitBtn.textContent = 'Update Article';
     };
 
@@ -612,6 +633,7 @@
       libType.value = r.type || 'Book';
       libTags.value = Array.isArray(r.tags) ? r.tags.join(', ') : (r.tags || '');
       libImage.value = r.image || '';
+      libImageUrl.value = r.imageUrl || '';
       libDescription.value = r.description || '';
       libLink.value = r.link || '';
       libSubmitBtn.textContent = 'Update Resource';
@@ -660,6 +682,7 @@
       courseDescription.value = c.description || '';
       courseLecturer.value = c.lecturer || '';
       courseLink.value = c.link || '';
+      courseImageUrl.value = c.imageUrl || '';
       courseSubmitBtn.textContent = 'Update Course';
     };
 
@@ -703,6 +726,7 @@
       fbdEventType.value = ev.type || 'Workshop';
       fbdEventSeats.value = ev.seats ?? 10;
       fbdEventImage.value = ev.image || '';
+      fbdEventImageUrl.value = ev.imageUrl || '';
       fbdEventDescription.value = ev.description || '';
       fbdEventSubmitBtn.textContent = 'Update FBD Event';
     };
@@ -725,6 +749,7 @@
     const eventType         = document.getElementById('eventType');
     const eventSeats        = document.getElementById('eventSeats');
     const eventImage        = document.getElementById('eventImage');
+    const eventImageUrl     = document.getElementById('eventImageUrl');
     const eventDescription  = document.getElementById('eventDescription');
     const eventSubmitBtn    = document.getElementById('eventSubmitBtn');
     const eventErrorsBox    = document.getElementById('eventErrors');
@@ -736,6 +761,7 @@
     const articleDate       = document.getElementById('articleDate');
     const articleSummary    = document.getElementById('articleSummary');
     const articleContent    = document.getElementById('articleContent');
+    const articleImageUrl   = document.getElementById('articleImageUrl');
     const articleSubmitBtn  = document.getElementById('articleSubmitBtn');
     const articleErrorsBox  = document.getElementById('articleErrors');
 
@@ -745,6 +771,7 @@
     const libType           = document.getElementById('libType');
     const libTags           = document.getElementById('libTags');
     const libImage          = document.getElementById('libImage');
+    const libImageUrl       = document.getElementById('libImageUrl');
     const libDescription    = document.getElementById('libDescription');
     const libLink           = document.getElementById('libLink');
     const libSubmitBtn      = document.getElementById('libSubmitBtn');
@@ -762,6 +789,7 @@
     const courseDescription = document.getElementById('courseDescription');
     const courseLecturer    = document.getElementById('courseLecturer');
     const courseLink        = document.getElementById('courseLink');
+    const courseImageUrl    = document.getElementById('courseImageUrl');
     const courseSubmitBtn   = document.getElementById('courseSubmitBtn');
     const courseErrorsBox   = document.getElementById('courseErrors');
 
@@ -777,6 +805,7 @@
     const fbdEventType          = document.getElementById('fbdEventType');
     const fbdEventSeats         = document.getElementById('fbdEventSeats');
     const fbdEventImage         = document.getElementById('fbdEventImage');
+    const fbdEventImageUrl      = document.getElementById('fbdEventImageUrl');
     const fbdEventDescription   = document.getElementById('fbdEventDescription');
     const fbdEventSubmitBtn     = document.getElementById('fbdEventSubmitBtn');
     const fbdEventErrorsBox     = document.getElementById('fbdEventErrors');
@@ -875,6 +904,7 @@
         type: eventType.value,
         seats: eventSeats.value,
         image: eventImage.value,
+        imageUrl: eventImageUrl.value,
         description: eventDescription.value
       });
       
@@ -885,6 +915,7 @@
         type: eventType.value,
         seats: Number(eventSeats.value),
         image: eventImage.value.trim(),
+        imageUrl: eventImageUrl.value.trim(),
         description: eventDescription.value.trim()
       };
       console.log('[EventForm] Raw values:', payload);
@@ -932,7 +963,8 @@
         author: articleAuthor.value.trim(),
         date: articleDate.value,
         summary: articleSummary.value.trim(),
-        content: articleContent.value.trim()
+        content: articleContent.value.trim(),
+        imageUrl: articleImageUrl.value.trim()
       };
       const errors = validateArticlePayload(payload);
       showErrors(articleErrorsBox, errors);
@@ -978,6 +1010,7 @@
         type: libType.value,
         tags: libTags.value ? libTags.value.split(',').map(t=>t.trim()).filter(Boolean) : [],
         image: libImage.value.trim(),
+        imageUrl: libImageUrl.value.trim(),
         description: libDescription.value.trim(),
         link: libLink.value.trim()
       };
@@ -1051,7 +1084,8 @@
         title: courseTitle.value.trim(),
         description: courseDescription.value.trim(),
         lecturer: courseLecturer.value.trim(),
-        link: courseLink.value.trim()
+        link: courseLink.value.trim(),
+        imageUrl: courseImageUrl.value.trim()
       };
       const errors = validateCoursePayload(payload);
       showErrors(courseErrorsBox, errors);
@@ -1119,6 +1153,7 @@
         type: fbdEventType.value,
         seats: fbdEventSeats.value,
         image: fbdEventImage.value,
+        imageUrl: fbdEventImageUrl.value,
         description: fbdEventDescription.value
       });
       
@@ -1129,6 +1164,7 @@
         type: fbdEventType.value,
         seats: Number(fbdEventSeats.value),
         image: fbdEventImage.value.trim(),
+        imageUrl: fbdEventImageUrl.value.trim(),
         description: fbdEventDescription.value.trim()
       };
       const errors = validateFbdEventPayload(payload);

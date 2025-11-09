@@ -43,6 +43,7 @@ const sanitizeEvent = (e) => ({
   type: toStr(e.type || "Workshop"),
   seats: toNum(e.seats, 0),
   image: toStr(e.image),
+  imageUrl: toStr(e.imageUrl),
   description: toStr(e.description)
 });
 const sanitizeLibrary = (r) => ({
@@ -50,6 +51,7 @@ const sanitizeLibrary = (r) => ({
   type: toStr(r.type || "Book"),
   tags: toArr(r.tags),
   image: toStr(r.image),
+  imageUrl: toStr(r.imageUrl),
   description: toStr(r.description),
   link: toStr(r.link)
 });
@@ -58,13 +60,15 @@ const sanitizeArticle = (a) => ({
   author: toStr(a.author),
   date: toStr(a.date),
   summary: toStr(a.summary),
-  content: toStr(a.content)
+  content: toStr(a.content),
+  imageUrl: toStr(a.imageUrl)
 });
 const sanitizeCourse = (c) => ({
   title: toStr(c.title),
   description: toStr(c.description),
   lecturer: toStr(c.lecturer),
-  link: toStr(c.link)
+  link: toStr(c.link),
+  imageUrl: toStr(c.imageUrl)
 });
 const sanitizeWeekly = (w) => ({
   weekTitle: toStr(w.weekTitle),
@@ -480,11 +484,11 @@ async addEvent(event) {
       ],
       // Per-item required/default fields used for backfill
       itemDefaults: {
-        events:   { title: "", time: "", location: "", type: "Workshop", seats: 0, image: "", description: "" },
-        library:  { name: "", type: "Book", tags: [], image: "", description: "", link: "" },
-        articles: { title: "", author: "", date: "", summary: "", content: "" },
-        courses:  { title: "", description: "", lecturer: "", link: "" },
-        fbdEvents:{ title: "", time: "", location: "", type: "Workshop", seats: 0, image: "", description: "" }
+        events:   { title: "", time: "", location: "", type: "Workshop", seats: 0, image: "", imageUrl: "", description: "" },
+        library:  { name: "", type: "Book", tags: [], image: "", imageUrl: "", description: "", link: "" },
+        articles: { title: "", author: "", date: "", summary: "", content: "", imageUrl: "" },
+        courses:  { title: "", description: "", lecturer: "", link: "", imageUrl: "" },
+        fbdEvents:{ title: "", time: "", location: "", type: "Workshop", seats: 0, image: "", imageUrl: "", description: "" }
       }
     };
   }

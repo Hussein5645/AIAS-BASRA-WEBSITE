@@ -397,7 +397,8 @@
                     libraryItems.forEach(item => {
                         const resourceCard = `
                             <div class="resource-card reveal" data-category="${(item.type || '').toLowerCase()}">
-                                <div class="resource-thumbnail">${item.image || '📄'}
+                                <div class="resource-thumbnail" style="${item.imageUrl ? `background-image: url('${item.imageUrl}'); background-size: cover; background-position: center;` : ''}">
+                                    ${item.imageUrl ? '' : (item.image || '📄')}
                                     <span class="resource-type">${item.type || 'Resource'}</span>
                                 </div>
                                 <div class="resource-content">
