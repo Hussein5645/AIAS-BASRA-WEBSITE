@@ -44,7 +44,10 @@ const sanitizeEvent = (e) => ({
   seats: toNum(e.seats, 0),
   image: toStr(e.image),
   imageUrl: toStr(e.imageUrl),
-  description: toStr(e.description)
+  description: toStr(e.description),
+  registerUrl: toStr(e.registerUrl),
+  detailsUrl: toStr(e.detailsUrl),
+  galleryUrl: toStr(e.galleryUrl)
 });
 const sanitizeLibrary = (r) => ({
   name: toStr(r.name),
@@ -61,19 +64,22 @@ const sanitizeArticle = (a) => ({
   date: toStr(a.date),
   summary: toStr(a.summary),
   content: toStr(a.content),
-  imageUrl: toStr(a.imageUrl)
+  imageUrl: toStr(a.imageUrl),
+  readMoreUrl: toStr(a.readMoreUrl)
 });
 const sanitizeCourse = (c) => ({
   title: toStr(c.title),
   description: toStr(c.description),
   lecturer: toStr(c.lecturer),
   link: toStr(c.link),
-  imageUrl: toStr(c.imageUrl)
+  imageUrl: toStr(c.imageUrl),
+  enrollUrl: toStr(c.enrollUrl)
 });
 const sanitizeWeekly = (w) => ({
   weekTitle: toStr(w.weekTitle),
   lecturerName: toStr(w.lecturerName),
-  description: toStr(w.description)
+  description: toStr(w.description),
+  workshopUrl: toStr(w.workshopUrl)
 });
 const sanitizeFbdEvent = (e) => sanitizeEvent(e);
 
@@ -146,7 +152,7 @@ class FirestoreAPI {
     const eduRef = this._docRef(this.paths.educationDoc);
     const eduSnap = await getDoc(eduRef);
     if (!eduSnap.exists()) {
-      await setDoc(eduRef, { weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "" } });
+      await setDoc(eduRef, { weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "", workshopUrl: "" } });
     } else {
       const current = eduSnap.data() || {};
       const ww = current.weeklyWorkshop || {};
@@ -154,6 +160,7 @@ class FirestoreAPI {
       if (ww.weekTitle === undefined) wwPatches.weekTitle = "";
       if (ww.lecturerName === undefined) wwPatches.lecturerName = "";
       if (ww.description === undefined) wwPatches.description = "";
+      if (ww.workshopUrl === undefined) wwPatches.workshopUrl = "";
       if (Object.keys(wwPatches).length) {
         await setDoc(eduRef, { weeklyWorkshop: { ...ww, ...wwPatches } }, { merge: true });
       }
@@ -213,14 +220,15 @@ class FirestoreAPI {
       magazine.articles = magazineArticlesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
       // Education (weekly + courses subcollection) + FBD
-      const education = { weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "" }, courses: [], fbd: { pageTitle: "", about: "", events: [] } };
+      const education = { weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "", workshopUrl: "" }, courses: [], fbd: { pageTitle: "", about: "", events: [] } };
       if (educationDocSnap.exists()) {
         const ed = educationDocSnap.data();
         const ww = ed.weeklyWorkshop || {};
         education.weeklyWorkshop = {
           weekTitle: ww.weekTitle ?? "",
           lecturerName: ww.lecturerName ?? "",
-          description: ww.description ?? ""
+          description: ww.description ?? "",
+          workshopUrl: ww.workshopUrl ?? ""
         };
       }
       education.courses = coursesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -472,7 +480,7 @@ async addEvent(event) {
         events:   { createdAt: 0 },
         library:  { createdAt: 0 },
         magazine: { featuredArticleId: null, releases: [] },
-        education:{ weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "" } },
+        education:{ weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "", workshopUrl: "" } },
         fbd:      { pageTitle: "", about: "" }
       },
       subcollections: [
@@ -484,11 +492,11 @@ async addEvent(event) {
       ],
       // Per-item required/default fields used for backfill
       itemDefaults: {
-        events:   { title: "", time: "", location: "", type: "Workshop", seats: 0, image: "", imageUrl: "", description: "" },
+        events:   { title: "", time: "", location: "", type: "Workshop", seats: 0, image: "", imageUrl: "", description: "", registerUrl: "", detailsUrl: "", galleryUrl: "" },
         library:  { name: "", type: "Book", tags: [], image: "", imageUrl: "", description: "", link: "" },
-        articles: { title: "", author: "", date: "", summary: "", content: "", imageUrl: "" },
-        courses:  { title: "", description: "", lecturer: "", link: "", imageUrl: "" },
-        fbdEvents:{ title: "", time: "", location: "", type: "Workshop", seats: 0, image: "", imageUrl: "", description: "" }
+        articles: { title: "", author: "", date: "", summary: "", content: "", imageUrl: "", readMoreUrl: "" },
+        courses:  { title: "", description: "", lecturer: "", link: "", imageUrl: "", enrollUrl: "" },
+        fbdEvents:{ title: "", time: "", location: "", type: "Workshop", seats: 0, image: "", imageUrl: "", description: "", registerUrl: "", detailsUrl: "", galleryUrl: "" }
       }
     };
   }
