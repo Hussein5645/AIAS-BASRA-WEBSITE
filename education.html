@@ -578,8 +578,8 @@
                             
                             const courseCard = `
                                 <div class="program-card reveal">
-                                    <div class="program-header">
-                                        <div class="program-icon">${course.icon || '📚'}</div>
+                                    <div class="program-header" style="${course.imageUrl ? `background-image: url('${course.imageUrl}'); background-size: cover; background-position: center;` : ''}">
+                                        <div class="program-icon">${course.imageUrl ? '' : (course.icon || '📚')}</div>
                                         <div class="program-level">${course.level || 'General'}</div>
                                     </div>
                                     <div class="program-body">

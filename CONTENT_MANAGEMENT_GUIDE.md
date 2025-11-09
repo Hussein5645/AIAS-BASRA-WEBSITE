@@ -61,6 +61,7 @@ aias-bsr (project)
 │       ├── eventType
 │       ├── seatsAvailable
 │       ├── image
+│       ├── imageUrl (NEW)
 │       └── description
 │
 ├── library/ (collection)
@@ -69,6 +70,7 @@ aias-bsr (project)
 │       ├── type
 │       ├── tags
 │       ├── image
+│       ├── imageUrl (NEW)
 │       ├── description
 │       └── link
 │
@@ -79,13 +81,41 @@ aias-bsr (project)
     │
     ├── magazine (document)
     │   ├── featuredArticle
+    │   │   ├── title
+    │   │   ├── author
+    │   │   ├── date
+    │   │   ├── summary
+    │   │   ├── content
+    │   │   └── imageUrl (NEW)
     │   ├── articles[]
+    │   │   ├── title
+    │   │   ├── author
+    │   │   ├── date
+    │   │   ├── summary
+    │   │   ├── content
+    │   │   └── imageUrl (NEW)
     │   └── releases[]
     │
     ├── education (document)
     │   ├── weeklyWorkshop
     │   ├── courses[]
+    │   │   ├── title
+    │   │   ├── description
+    │   │   ├── lecturer
+    │   │   ├── link
+    │   │   └── imageUrl (NEW)
     │   └── fbd
+    │       ├── pageTitle
+    │       ├── about
+    │       └── events[]
+    │           ├── title
+    │           ├── time
+    │           ├── location
+    │           ├── type
+    │           ├── seats
+    │           ├── image
+    │           ├── imageUrl (NEW)
+    │           └── description
     │
     └── about (document)
         ├── story
@@ -109,23 +139,57 @@ The admin dashboard (`admin-dashboard.html`) provides a comprehensive interface 
 - View list of existing events
 - Delete events
 - Automatic Firestore synchronization
+- **NEW**: Add custom image URLs for event visuals
 
 ### Magazine Article Management
 - Add new articles
 - View list of existing articles
 - Delete articles
 - Manage article metadata (title, author, date, summary, content)
+- **NEW**: Add custom image URLs for article visuals
 
 ### Library Resource Management
 - Add new resources
 - View list of existing resources
 - Delete resources
 - Manage resource metadata (name, type, tags, description, link)
+- **NEW**: Add custom image URLs for resource visuals
 
 ### Education Content Management
 - Update weekly workshop details
 - Edit lecturer information
 - Modify workshop descriptions
+- **NEW**: Add custom image URLs for course visuals
+
+### FBD Event Management
+- Add new FBD events
+- View list of existing FBD events
+- Delete FBD events
+- **NEW**: Add custom image URLs for FBD event visuals
+
+## Image Management
+
+### Image URL Field (NEW)
+All dynamic content types now support custom image URLs:
+
+- **Events**: Display event banners or promotional images
+- **Library Resources**: Show book covers or resource thumbnails
+- **Magazine Articles**: Display article header images
+- **Education Courses**: Show course thumbnails
+- **FBD Events**: Display event-specific images
+
+**How it works:**
+1. In the admin dashboard, enter a valid image URL in the "Image URL" field (optional)
+2. The system will display the image using CSS background-image
+3. If no image URL is provided, it falls back to the emoji icon
+4. Image URLs must be publicly accessible
+
+**Best Practices:**
+- Use high-quality images (recommended: 800x600px or larger)
+- Host images on reliable CDN or image hosting services
+- Ensure images are publicly accessible (no authentication required)
+- Use HTTPS URLs for security
+- Optimize images for web (compressed, appropriate format)
 
 ## Firebase Connection Logging
 
@@ -264,4 +328,4 @@ For issues or questions:
 
 ---
 
-Last Updated: 2025-11-05
+Last Updated: 2025-11-09

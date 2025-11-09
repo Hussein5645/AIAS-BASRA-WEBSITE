@@ -380,7 +380,7 @@
                         // Only show if date is valid
                         if (dateInfo) {
                             featuredContent.innerHTML = `
-                                <div class="featured-image reveal">${featured.image || '🏗️'}</div>
+                                <div class="featured-image reveal" style="${featured.imageUrl ? `background-image: url('${featured.imageUrl}'); background-size: cover; background-position: center;` : ''}">${featured.imageUrl ? '' : (featured.image || '🏗️')}</div>
                                 <div class="featured-text reveal">
                                     <div class="article-date">📅 ${dateInfo.month} ${dateInfo.year}</div>
                                     <h2>${featured.title}</h2>
@@ -430,8 +430,8 @@
                             
                             const articleCard = `
                                 <div class="article-card reveal">
-                                    <div class="article-image">
-                                        ${['📐', '🌿', '💻', '🏛️', '🎨', '👥'][index % 6]}
+                                    <div class="article-image" style="${article.imageUrl ? `background-image: url('${article.imageUrl}'); background-size: cover; background-position: center;` : ''}">
+                                        ${article.imageUrl ? '' : ['📐', '🌿', '💻', '🏛️', '🎨', '👥'][index % 6]}
                                         <span class="article-category">${category}</span>
                                     </div>
                                     <div class="article-content">
