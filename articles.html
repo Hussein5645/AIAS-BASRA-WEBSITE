@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article - AIAS Basra</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        /* Root Variables */
+        :root {
+            --primary-color: #661F22;
+            --secondary-color: #F0DAA1;
+            --accent-color: #945C50;
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+            --white: #ffffff;
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Dark mode variables */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #0f1419;
+                --bg-secondary: #1a1f2e;
+                --bg-tertiary: #252d3d;
+                --text-primary: #e4e6eb;
+                --text-secondary: #b0b3b8;
+                --border-color: #2d3748;
+                --code-bg: #1e2635;
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-primary: #ffffff;
+                --bg-secondary: #f7fafc;
+                --bg-tertiary: #edf2f7;
+                --text-primary: #1a202c;
+                --text-secondary: #4a5568;
+                --border-color: #e2e8f0;
+                --code-bg: #f7fafc;
+            }
+        }
+
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--bg-primary);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Loading and Error States */
+        .loading,
+        .error-message {
+            text-align: center;
+            padding: 4rem 2rem;
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+        }
+
+        .error-message {
+            color: #e53e3e;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 2px solid #e53e3e;
+        }
+
+        .loading::after {
+            content: "...";
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: "."; }
+            40% { content: ".."; }
+            60%, 100% { content: "..."; }
+        }
+
+        /* Article Content */
+        .article-content {
+            background: var(--bg-secondary);
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Typography for markdown content */
+        .article-content h1,
+        .article-content h2,
+        .article-content h3,
+        .article-content h4,
+        .article-content h5,
+        .article-content h6 {
+            color: var(--primary-color);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .article-content h1 {
+            font-size: 2.5rem;
+            margin-top: 0;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .article-content h2 {
+            font-size: 2rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.3rem;
+        }
+
+        .article-content h3 {
+            font-size: 1.5rem;
+        }
+
+        .article-content h4 {
+            font-size: 1.25rem;
+        }
+
+        .article-content p {
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        .article-content a {
+            color: var(--primary-color);
+            text-decoration: none;
+            border-bottom: 1px solid var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .article-content a:hover {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+        }
+
+        .article-content ul,
+        .article-content ol {
+            margin-bottom: 1.5rem;
+            padding-left: 2rem;
+        }
+
+        .article-content li {
+            margin-bottom: 0.5rem;
+            line-height: 1.8;
+        }
+
+        .article-content blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            background: var(--bg-tertiary);
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+        }
+
+        .article-content code {
+            background: var(--code-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            border: 1px solid var(--border-color);
+        }
+
+        .article-content pre {
+            background: var(--code-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .article-content pre code {
+            background: transparent;
+            padding: 0;
+            border: none;
+            font-size: 0.95rem;
+        }
+
+        .article-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            box-shadow: var(--shadow-md);
+            display: block;
+        }
+
+        .article-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .article-content th,
+        .article-content td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border: 1px solid var(--border-color);
+        }
+
+        .article-content th {
+            background: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        .article-content tr:nth-child(even) {
+            background: var(--bg-tertiary);
+        }
+
+        .article-content hr {
+            border: none;
+            border-top: 2px solid var(--border-color);
+            margin: 2rem 0;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem 0.5rem;
+            }
+
+            .article-content {
+                padding: 1.5rem;
+                border-radius: 12px;
+            }
+
+            .article-content h1 {
+                font-size: 2rem;
+            }
+
+            .article-content h2 {
+                font-size: 1.5rem;
+            }
+
+            .article-content h3 {
+                font-size: 1.25rem;
+            }
+
+            .article-content p,
+            .article-content li {
+                font-size: 1rem;
+            }
+
+            .article-content pre {
+                padding: 1rem;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="article-container">
+            <div class="loading">Loading article</div>
+        </div>
+    </div>
+
+    <script>
+        // Extract folder number from URL
+        const path = window.location.pathname.split("/");
+        const folder = path[path.length - 1] || path[path.length - 2];
+        
+        // Load article from the articles folder
+        async function loadArticle() {
+            const container = document.getElementById('article-container');
+            
+            try {
+                const baseUrl = `/articles/${folder}/`;
+                
+                // Try common markdown filenames
+                const fallbackFilenames = [
+                    'article.md', 'README.md', 'index.md', 'content.md', 
+                    `${folder}.md`, 'post.md', 'main.md'
+                ];
+
+                let markdownContent = null;
+                let markdownUrl = null;
+
+                // Try to find a markdown file
+                for (const filename of fallbackFilenames) {
+                    const url = baseUrl + filename;
+                    try {
+                        const response = await fetch(url);
+                        if (response.ok) {
+                            markdownContent = await response.text();
+                            markdownUrl = url;
+                            break;
+                        }
+                    } catch (error) {
+                        // Continue trying other filenames
+                        continue;
+                    }
+                }
+
+                if (!markdownContent) {
+                    showErrorMessage();
+                    return;
+                }
+
+                // Convert markdown to HTML using marked.js
+                const htmlContent = marked.parse(markdownContent);
+                
+                // Fix relative image paths in the markdown
+                const processedHtml = htmlContent.replace(
+                    /src="(?!http|\/\/|data:)([^"]+)"/g,
+                    `src="${baseUrl}$1"`
+                );
+
+                // Display the article
+                displayArticle(processedHtml);
+            } catch (error) {
+                console.error('Error loading article:', error);
+                showErrorMessage();
+            }
+        }
+
+        // Display article content
+        function displayArticle(htmlContent) {
+            const container = document.getElementById('article-container');
+            const article = document.createElement('article');
+            article.className = 'article-content';
+            article.innerHTML = htmlContent;
+            
+            container.innerHTML = '';
+            container.appendChild(article);
+
+            // Update page title if h1 exists
+            const h1 = article.querySelector('h1');
+            if (h1) {
+                document.title = h1.textContent + ' - AIAS Basra';
+            }
+        }
+
+        // Show error message
+        function showErrorMessage() {
+            const container = document.getElementById('article-container');
+            container.innerHTML = '<div class="error-message">Article not found.</div>';
+        }
+
+        // Configure marked.js options
+        if (typeof marked !== 'undefined') {
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+                headerIds: true,
+                mangle: false
+            });
+        }
+
+        // Initialize article loading
+        loadArticle();
+    </script>
+</body>
+</html>
