@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found - AIAS Basra</title>
+    <style>
+        :root {
+            --primary-color: #661F22;
+            --secondary-color: #F0DAA1;
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 600px;
+            background: var(--white);
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 6rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .redirect-message {
+            background: #fef3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            color: #856404;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--primary-color);
+            color: var(--white);
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+
+        .btn:hover {
+            background: #4a1417;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 31, 34, 0.3);
+        }
+
+        .loading {
+            display: inline-block;
+            margin-left: 0.5rem;
+        }
+
+        .loading::after {
+            content: "...";
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: "."; }
+            40% { content: ".."; }
+            60%, 100% { content: "..."; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>404</h1>
+        <h2>Page Not Found</h2>
+        <p id="message">The page you're looking for doesn't exist.</p>
+        <div id="redirect-info"></div>
+        <div>
+            <a href="/" class="btn">Go Home</a>
+        </div>
+    </div>
+
+    <script>
+        // Get the current path
+        const currentPath = window.location.pathname;
+        
+        // Check if this is an article URL pattern: /articles.html/[number]
+        const articlePattern = /^\/articles\.html\/(\d+)\/?$/;
+        const match = currentPath.match(articlePattern);
+        
+        if (match) {
+            const articleId = match[1];
+            const correctUrl = `/articles.html#${articleId}`;
+            
+            // Show redirect message
+            const redirectInfo = document.getElementById('redirect-info');
+            redirectInfo.innerHTML = `
+                <div class="redirect-message">
+                    <strong>Redirecting to article ${articleId}<span class="loading"></span></strong>
+                </div>
+            `;
+            
+            // Update message
+            document.getElementById('message').textContent = 
+                'This URL format is not supported. Redirecting you to the correct article page...';
+            
+            // Redirect after a short delay
+            setTimeout(() => {
+                window.location.href = correctUrl;
+            }, 1500);
+        } else {
+            // For other 404 errors, show standard message
+            document.getElementById('message').textContent = 
+                "The page you're looking for doesn't exist.";
+        }
+    </script>
+</body>
+</html>
