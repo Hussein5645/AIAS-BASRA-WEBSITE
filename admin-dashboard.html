@@ -167,6 +167,18 @@
                   <label for="eventImageUrl">Image URL (Optional)</label>
                   <input id="eventImageUrl" name="imageUrl" type="url" placeholder="https://example.com/image.jpg"/>
                 </div>
+                <div class="form-group">
+                  <label for="eventRegisterUrl">Register Button URL (Optional)</label>
+                  <input id="eventRegisterUrl" name="registerUrl" type="url" placeholder="https://example.com/register"/>
+                </div>
+                <div class="form-group">
+                  <label for="eventDetailsUrl">Details Button URL (Optional)</label>
+                  <input id="eventDetailsUrl" name="detailsUrl" type="url" placeholder="https://example.com/details"/>
+                </div>
+                <div class="form-group">
+                  <label for="eventGalleryUrl">Gallery Button URL (Optional)</label>
+                  <input id="eventGalleryUrl" name="galleryUrl" type="url" placeholder="https://example.com/gallery"/>
+                </div>
               </div>
               <div class="form-group">
                 <label for="eventDescription">Description</label>
@@ -204,6 +216,10 @@
               <div class="form-group">
                 <label for="articleImageUrl">Image URL (Optional)</label>
                 <input type="url" id="articleImageUrl" name="imageUrl" placeholder="https://example.com/image.jpg"/>
+              </div>
+              <div class="form-group">
+                <label for="articleReadMoreUrl">Read More Button URL (Optional)</label>
+                <input type="url" id="articleReadMoreUrl" name="readMoreUrl" placeholder="https://example.com/article"/>
               </div>
               <div class="form-group"><label for="articleContent">Full Content</label><textarea id="articleContent" name="content" required></textarea></div>
               <div id="articleErrors" class="error-box"></div>
@@ -267,6 +283,10 @@
                 <div class="form-group"><label for="lecturerName">Lecturer Name</label><input id="lecturerName" name="lecturerName" required/></div>
               </div>
               <div class="form-group"><label for="weekDescription">Workshop Description</label><textarea id="weekDescription" name="description" required></textarea></div>
+              <div class="form-group">
+                <label for="workshopUrl">Workshop Button URL (Optional)</label>
+                <input type="url" id="workshopUrl" name="workshopUrl" placeholder="https://example.com/join-workshop"/>
+              </div>
               <div id="educationErrors" class="error-box"></div>
               <button type="submit" class="submit-btn">Update Weekly Workshop</button>
             </form>
@@ -293,6 +313,10 @@
               <div class="form-group">
                 <label for="courseImageUrl">Image URL (Optional)</label>
                 <input type="url" id="courseImageUrl" name="imageUrl" placeholder="https://example.com/image.jpg"/>
+              </div>
+              <div class="form-group">
+                <label for="courseEnrollUrl">Enroll Button URL (Optional)</label>
+                <input type="url" id="courseEnrollUrl" name="enrollUrl" placeholder="https://example.com/enroll"/>
               </div>
               <div id="courseErrors" class="error-box"></div>
               <button type="submit" id="courseSubmitBtn" class="submit-btn">Add Course</button>
@@ -347,6 +371,18 @@
               <div class="form-group">
                 <label for="fbdEventImageUrl">Image URL (Optional)</label>
                 <input type="url" id="fbdEventImageUrl" name="imageUrl" placeholder="https://example.com/image.jpg"/>
+              </div>
+              <div class="form-group">
+                <label for="fbdEventRegisterUrl">Register Button URL (Optional)</label>
+                <input type="url" id="fbdEventRegisterUrl" name="registerUrl" placeholder="https://example.com/register"/>
+              </div>
+              <div class="form-group">
+                <label for="fbdEventDetailsUrl">Details Button URL (Optional)</label>
+                <input type="url" id="fbdEventDetailsUrl" name="detailsUrl" placeholder="https://example.com/details"/>
+              </div>
+              <div class="form-group">
+                <label for="fbdEventGalleryUrl">Gallery Button URL (Optional)</label>
+                <input type="url" id="fbdEventGalleryUrl" name="galleryUrl" placeholder="https://example.com/gallery"/>
               </div>
               <div class="form-group"><label for="fbdEventDescription">Description</label><textarea id="fbdEventDescription" name="description" required></textarea></div>
               <div id="fbdEventErrors" class="error-box"></div>
@@ -552,6 +588,9 @@
       eventSeats.value = ev.seats ?? 10;
       eventImage.value = ev.image || '';
       eventImageUrl.value = ev.imageUrl || '';
+      eventRegisterUrl.value = ev.registerUrl || '';
+      eventDetailsUrl.value = ev.detailsUrl || '';
+      eventGalleryUrl.value = ev.galleryUrl || '';
       eventDescription.value = ev.description || '';
       eventSubmitBtn.textContent = 'Update Event';
     };
@@ -594,6 +633,7 @@
       articleSummary.value = a.summary || '';
       articleContent.value = a.content || '';
       articleImageUrl.value = a.imageUrl || '';
+      articleReadMoreUrl.value = a.readMoreUrl || '';
       articleSubmitBtn.textContent = 'Update Article';
     };
 
@@ -650,7 +690,12 @@
       try {
         const r = await firestoreAPI.getAllContent();
         const w = r.success ? r.content.education?.weeklyWorkshop : null;
-        if (w) { weekTitle.value = w.weekTitle || ''; lecturerName.value = w.lecturerName || ''; weekDescription.value = w.description || ''; }
+        if (w) { 
+          weekTitle.value = w.weekTitle || ''; 
+          lecturerName.value = w.lecturerName || ''; 
+          weekDescription.value = w.description || ''; 
+          workshopUrl.value = w.workshopUrl || '';
+        }
       } catch (e) { console.error(e); }
     };
 
@@ -683,6 +728,7 @@
       courseLecturer.value = c.lecturer || '';
       courseLink.value = c.link || '';
       courseImageUrl.value = c.imageUrl || '';
+      courseEnrollUrl.value = c.enrollUrl || '';
       courseSubmitBtn.textContent = 'Update Course';
     };
 
@@ -727,6 +773,9 @@
       fbdEventSeats.value = ev.seats ?? 10;
       fbdEventImage.value = ev.image || '';
       fbdEventImageUrl.value = ev.imageUrl || '';
+      fbdEventRegisterUrl.value = ev.registerUrl || '';
+      fbdEventDetailsUrl.value = ev.detailsUrl || '';
+      fbdEventGalleryUrl.value = ev.galleryUrl || '';
       fbdEventDescription.value = ev.description || '';
       fbdEventSubmitBtn.textContent = 'Update FBD Event';
     };
@@ -750,6 +799,9 @@
     const eventSeats        = document.getElementById('eventSeats');
     const eventImage        = document.getElementById('eventImage');
     const eventImageUrl     = document.getElementById('eventImageUrl');
+    const eventRegisterUrl  = document.getElementById('eventRegisterUrl');
+    const eventDetailsUrl   = document.getElementById('eventDetailsUrl');
+    const eventGalleryUrl   = document.getElementById('eventGalleryUrl');
     const eventDescription  = document.getElementById('eventDescription');
     const eventSubmitBtn    = document.getElementById('eventSubmitBtn');
     const eventErrorsBox    = document.getElementById('eventErrors');
@@ -762,6 +814,7 @@
     const articleSummary    = document.getElementById('articleSummary');
     const articleContent    = document.getElementById('articleContent');
     const articleImageUrl   = document.getElementById('articleImageUrl');
+    const articleReadMoreUrl = document.getElementById('articleReadMoreUrl');
     const articleSubmitBtn  = document.getElementById('articleSubmitBtn');
     const articleErrorsBox  = document.getElementById('articleErrors');
 
@@ -781,6 +834,7 @@
     const weekTitle         = document.getElementById('weekTitle');
     const lecturerName      = document.getElementById('lecturerName');
     const weekDescription   = document.getElementById('weekDescription');
+    const workshopUrl       = document.getElementById('workshopUrl');
     const educationErrorsBox= document.getElementById('educationErrors');
 
     const courseForm        = document.getElementById('courseForm');
@@ -790,6 +844,7 @@
     const courseLecturer    = document.getElementById('courseLecturer');
     const courseLink        = document.getElementById('courseLink');
     const courseImageUrl    = document.getElementById('courseImageUrl');
+    const courseEnrollUrl   = document.getElementById('courseEnrollUrl');
     const courseSubmitBtn   = document.getElementById('courseSubmitBtn');
     const courseErrorsBox   = document.getElementById('courseErrors');
 
@@ -806,6 +861,9 @@
     const fbdEventSeats         = document.getElementById('fbdEventSeats');
     const fbdEventImage         = document.getElementById('fbdEventImage');
     const fbdEventImageUrl      = document.getElementById('fbdEventImageUrl');
+    const fbdEventRegisterUrl   = document.getElementById('fbdEventRegisterUrl');
+    const fbdEventDetailsUrl    = document.getElementById('fbdEventDetailsUrl');
+    const fbdEventGalleryUrl    = document.getElementById('fbdEventGalleryUrl');
     const fbdEventDescription   = document.getElementById('fbdEventDescription');
     const fbdEventSubmitBtn     = document.getElementById('fbdEventSubmitBtn');
     const fbdEventErrorsBox     = document.getElementById('fbdEventErrors');
@@ -905,6 +963,9 @@
         seats: eventSeats.value,
         image: eventImage.value,
         imageUrl: eventImageUrl.value,
+        registerUrl: eventRegisterUrl.value,
+        detailsUrl: eventDetailsUrl.value,
+        galleryUrl: eventGalleryUrl.value,
         description: eventDescription.value
       });
       
@@ -916,6 +977,9 @@
         seats: Number(eventSeats.value),
         image: eventImage.value.trim(),
         imageUrl: eventImageUrl.value.trim(),
+        registerUrl: eventRegisterUrl.value.trim(),
+        detailsUrl: eventDetailsUrl.value.trim(),
+        galleryUrl: eventGalleryUrl.value.trim(),
         description: eventDescription.value.trim()
       };
       console.log('[EventForm] Raw values:', payload);
@@ -964,7 +1028,8 @@
         date: articleDate.value,
         summary: articleSummary.value.trim(),
         content: articleContent.value.trim(),
-        imageUrl: articleImageUrl.value.trim()
+        imageUrl: articleImageUrl.value.trim(),
+        readMoreUrl: articleReadMoreUrl.value.trim()
       };
       const errors = validateArticlePayload(payload);
       showErrors(articleErrorsBox, errors);
@@ -1055,7 +1120,8 @@
       const payload = {
         weekTitle: weekTitle.value.trim(),
         lecturerName: lecturerName.value.trim(),
-        description: weekDescription.value.trim()
+        description: weekDescription.value.trim(),
+        workshopUrl: workshopUrl.value.trim()
       };
       const errors = validateWorkshopPayload(payload);
       showErrors(educationErrorsBox, errors);
@@ -1085,7 +1151,8 @@
         description: courseDescription.value.trim(),
         lecturer: courseLecturer.value.trim(),
         link: courseLink.value.trim(),
-        imageUrl: courseImageUrl.value.trim()
+        imageUrl: courseImageUrl.value.trim(),
+        enrollUrl: courseEnrollUrl.value.trim()
       };
       const errors = validateCoursePayload(payload);
       showErrors(courseErrorsBox, errors);
@@ -1154,6 +1221,9 @@
         seats: fbdEventSeats.value,
         image: fbdEventImage.value,
         imageUrl: fbdEventImageUrl.value,
+        registerUrl: fbdEventRegisterUrl.value,
+        detailsUrl: fbdEventDetailsUrl.value,
+        galleryUrl: fbdEventGalleryUrl.value,
         description: fbdEventDescription.value
       });
       
@@ -1165,6 +1235,9 @@
         seats: Number(fbdEventSeats.value),
         image: fbdEventImage.value.trim(),
         imageUrl: fbdEventImageUrl.value.trim(),
+        registerUrl: fbdEventRegisterUrl.value.trim(),
+        detailsUrl: fbdEventDetailsUrl.value.trim(),
+        galleryUrl: fbdEventGalleryUrl.value.trim(),
         description: fbdEventDescription.value.trim()
       };
       const errors = validateFbdEventPayload(payload);

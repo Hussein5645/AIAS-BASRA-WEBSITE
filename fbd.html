@@ -414,7 +414,16 @@
                                         </div>
                                         <p class="event-description">${event.description}</p>
                                         <div class="event-actions">
-                                            ${!isPast ? '<button class="action-btn btn-register">Register Now</button>' : '<button class="action-btn btn-register" disabled>Event Completed</button>'}
+                                            ${!isPast ? (
+                                                event.registerUrl 
+                                                    ? `<a href="${event.registerUrl}" class="action-btn btn-register" target="_blank" rel="noopener noreferrer">Register Now</a>` 
+                                                    : '<button class="action-btn btn-register" disabled style="opacity: 0.6; cursor: not-allowed;">Registration Coming Soon</button>'
+                                            ) : (
+                                                event.galleryUrl 
+                                                    ? `<a href="${event.galleryUrl}" class="action-btn btn-register" target="_blank" rel="noopener noreferrer">View Gallery</a>`
+                                                    : '<button class="action-btn btn-register" disabled>Event Completed</button>'
+                                            )}
+                                            ${event.detailsUrl && !isPast ? `<a href="${event.detailsUrl}" class="action-btn btn-details" target="_blank" rel="noopener noreferrer">Details</a>` : ''}
                                         </div>
                                     </div>
                                 </div>

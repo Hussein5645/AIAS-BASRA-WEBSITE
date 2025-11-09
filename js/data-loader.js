@@ -171,7 +171,8 @@ class DataLoader {
                 weeklyWorkshop: {
                     weekTitle: educationBase.weeklyWorkshop?.weekTitle ?? '',
                     lecturerName: educationBase.weeklyWorkshop?.lecturerName ?? '',
-                    description: educationBase.weeklyWorkshop?.description ?? ''
+                    description: educationBase.weeklyWorkshop?.description ?? '',
+                    workshopUrl: educationBase.weeklyWorkshop?.workshopUrl ?? ''
                 },
                 courses: educationBase.courses ?? [],
                 // Attach FBD under education to match page usage

@@ -318,9 +318,9 @@
                                 <p class="event-description">${event.description}</p>
                                 <div class="event-actions">
                                     ${!isPast ? 
-                                        `<a href="#" class="action-btn btn-register">Register Now</a>
-                                        <a href="#" class="action-btn btn-details">Details</a>` : 
-                                        `<a href="#" class="action-btn btn-details" style="flex: none; width: 100%;">View Gallery</a>`
+                                        `${event.registerUrl ? `<a href="${event.registerUrl}" class="action-btn btn-register" target="_blank" rel="noopener noreferrer">Register Now</a>` : ''}
+                                        ${event.detailsUrl ? `<a href="${event.detailsUrl}" class="action-btn btn-details" target="_blank" rel="noopener noreferrer">Details</a>` : ''}` : 
+                                        `${event.galleryUrl ? `<a href="${event.galleryUrl}" class="action-btn btn-details" style="flex: none; width: 100%;" target="_blank" rel="noopener noreferrer">View Gallery</a>` : ''}`
                                     }
                                 </div>
                             </div>
