@@ -289,9 +289,8 @@
     </div>
 
     <script>
-        // Extract folder number from URL
-        const path = window.location.pathname.split("#");
-        const folder = path[path.length - 1] || path[path.length - 2];
+        // Extract folder number from URL hash
+        const folder = window.location.hash.substring(1) || window.location.pathname.split('/').pop();
         
         // Load article from the articles folder
         async function loadArticle() {
