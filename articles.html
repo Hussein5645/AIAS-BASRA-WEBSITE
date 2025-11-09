@@ -290,7 +290,7 @@
 
     <script>
         // Extract folder number from URL
-        const path = window.location.pathname.split("/");
+        const path = window.location.pathname.split("#");
         const folder = path[path.length - 1] || path[path.length - 2];
         
         // Load article from the articles folder
