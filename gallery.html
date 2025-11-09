@@ -333,86 +333,38 @@
         let images = [];
         let currentImageIndex = 0;
 
-        // Supported image extensions (including uppercase for case-sensitive systems)
-        const imageExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'bmp', 'JPG', 'JPEG', 'PNG', 'WEBP', 'GIF', 'SVG', 'BMP'];
-
         // Update subtitle with folder number
         document.getElementById('gallery-subtitle').textContent = `Gallery #${folder}`;
 
-        // Load images from the gallery folder
+        // Load images from the gallery folder using the manifest
         async function loadGallery() {
             const galleryContent = document.getElementById('gallery-content');
             
             try {
-                // Try to fetch the directory listing (this might not work on GitHub Pages)
-                // We'll use a fallback approach with common filenames
-                const baseUrl = `/gallery/${folder}/`;
-                
-                // Fallback: Try common image filenames with all supported formats
-                // This includes numbered files, image/photo prefixes, and camera naming patterns
-                const fallbackFilenames = [];
-                
-                // All supported image formats (lowercase and uppercase)
-                const imageFormats = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'bmp', 'JPG', 'JPEG', 'PNG', 'WEBP', 'GIF', 'SVG', 'BMP'];
-                
-                // Numbered files (1-50) with all formats
-                for (let i = 1; i <= 50; i++) {
-                    imageFormats.forEach(ext => {
-                        fallbackFilenames.push(`${i}.${ext}`);
-                    });
+                // Fetch the gallery manifest
+                const response = await fetch('/gallery-manifest.json');
+                if (!response.ok) {
+                    throw new Error('Failed to load gallery manifest');
                 }
                 
-                // Common camera naming patterns (IMG_9600 through IMG_9800 to cover common ranges)
-                for (let i = 9600; i <= 9800; i++) {
-                    imageFormats.forEach(ext => {
-                        fallbackFilenames.push(`IMG_${i}.${ext}`);
-                    });
-                }
+                const manifest = await response.json();
                 
-                // Common prefixes with numbers (image1, photo1, img1, pic1) with all formats
-                const namePrefixes = ['image', 'photo', 'img', 'pic'];
-                namePrefixes.forEach(prefix => {
-                    for (let i = 1; i <= 20; i++) {
-                        imageFormats.forEach(ext => {
-                            fallbackFilenames.push(`${prefix}${i}.${ext}`);
-                        });
-                    }
-                });
+                // Get images for the current folder
+                const imageFiles = manifest[folder];
                 
-                // Specific known filenames (add custom names here as needed)
-                imageFormats.forEach(ext => {
-                    fallbackFilenames.push(`MARY.${ext}`);
-                });
-
-                // Try to load each potential image
-                const imagePromises = fallbackFilenames.map(filename => 
-                    checkImageExists(baseUrl + filename)
-                );
-
-                const results = await Promise.all(imagePromises);
-                images = results.filter(url => url !== null).sort();
-
-                if (images.length === 0) {
+                if (!imageFiles || imageFiles.length === 0) {
                     showEmptyMessage();
-                } else {
-                    displayGallery();
+                    return;
                 }
+                
+                // Build full URLs for the images
+                const baseUrl = `/gallery/${folder}/`;
+                images = imageFiles.map(filename => baseUrl + filename);
+                
+                displayGallery();
             } catch (error) {
                 console.error('Error loading gallery:', error);
                 showErrorMessage();
-            }
-        }
-
-        // Check if image exists
-        async function checkImageExists(url) {
-            try {
-                const response = await fetch(url, { method: 'HEAD' });
-                if (response.ok) {
-                    return url;
-                }
-                return null;
-            } catch {
-                return null;
             }
         }
 
