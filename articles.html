@@ -289,8 +289,24 @@
     </div>
 
     <script>
-        // Extract folder number from URL hash
-        const folder = window.location.hash.substring(1) || window.location.pathname.split('/').pop();
+        // Extract folder number from URL hash or pathname
+        // Priority: hash (#1, #2) > pathname (/articles/1/, /articles.html/1/)
+        let folder = window.location.hash.substring(1);
+        
+        if (!folder) {
+            // Fallback to pathname extraction
+            const pathParts = window.location.pathname.split('/').filter(part => part && part !== 'articles.html');
+            folder = pathParts[pathParts.length - 1];
+            // Remove .html extension if present
+            if (folder) {
+                folder = folder.replace('.html', '');
+            }
+        }
+        
+        // If still no folder or folder is 'articles', default to '1'
+        if (!folder || folder === 'articles') {
+            folder = '1';
+        }
         
         // Load article from the articles folder
         async function loadArticle() {
