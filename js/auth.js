@@ -23,7 +23,6 @@ try {
 const auth = getAuth(app);
 
 (function() {
-    const PASSWORD_PAGE = 'password.html';
     const LOGIN_PAGE = 'login.html';
     const SIGNUP_PAGE = 'signup.html';
     const ADMIN_PAGE = 'admin-dashboard.html';
@@ -32,7 +31,7 @@ const auth = getAuth(app);
     const currentPage = window.location.pathname.split('/').pop();
     
     // Don't check authentication on these pages
-    const publicPages = [PASSWORD_PAGE, LOGIN_PAGE, SIGNUP_PAGE];
+    const publicPages = [LOGIN_PAGE, SIGNUP_PAGE];
     if (publicPages.includes(currentPage)) {
         return;
     }
@@ -63,8 +62,8 @@ const auth = getAuth(app);
             const sessionAuth = sessionStorage.getItem('aias_authenticated');
             
             if (legacyAuth !== 'true' && sessionAuth !== 'true') {
-                // Not authenticated, redirect to password page (legacy) or login
-                window.location.href = PASSWORD_PAGE;
+                // Not authenticated, redirect to login
+                window.location.href = LOGIN_PAGE;
             }
         }
     });
