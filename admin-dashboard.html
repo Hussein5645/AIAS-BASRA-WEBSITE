@@ -526,6 +526,17 @@
         // Populate category dropdowns from JSON
         await populateCategoryDropdowns();
         
+        // Add language toggle event listener to re-populate categories
+        const langToggle = document.getElementById('languageToggle');
+        if (langToggle) {
+          langToggle.addEventListener('click', async () => {
+            // Wait a bit for main.js to update the language
+            setTimeout(async () => {
+              await populateCategoryDropdowns();
+            }, 100);
+          });
+        }
+        
         showTab('events'); // default
       });
     })();
@@ -537,6 +548,9 @@
       try {
         console.log('[Admin Dashboard] Loading categories from JSON...');
         
+        // Get current language
+        const currentLang = localStorage.getItem('language') || 'en';
+        
         // Load event types
         const eventTypes = await categoriesLoader.getEventTypes();
         const eventTypeSelect = document.getElementById('eventType');
@@ -544,17 +558,22 @@
         
         if (eventTypeSelect) {
           const currentValue = eventTypeSelect.value;
-          eventTypeSelect.innerHTML = eventTypes.map(type => 
-            `<option value="${type}">${type}</option>`
-          ).join('');
+          eventTypeSelect.innerHTML = eventTypes.map(type => {
+            // Handle both old format (string) and new format (object with en/ar)
+            const value = typeof type === 'string' ? type : type.en;
+            const label = typeof type === 'string' ? type : (currentLang === 'ar' ? type.ar : type.en);
+            return `<option value="${value}">${label}</option>`;
+          }).join('');
           if (currentValue) eventTypeSelect.value = currentValue;
         }
         
         if (fbdEventTypeSelect) {
           const currentValue = fbdEventTypeSelect.value;
-          fbdEventTypeSelect.innerHTML = eventTypes.map(type => 
-            `<option value="${type}">${type}</option>`
-          ).join('');
+          fbdEventTypeSelect.innerHTML = eventTypes.map(type => {
+            const value = typeof type === 'string' ? type : type.en;
+            const label = typeof type === 'string' ? type : (currentLang === 'ar' ? type.ar : type.en);
+            return `<option value="${value}">${label}</option>`;
+          }).join('');
           if (currentValue) fbdEventTypeSelect.value = currentValue;
         }
         
@@ -564,9 +583,14 @@
         
         if (libCategorySelect) {
           const currentValue = libCategorySelect.value;
-          libCategorySelect.innerHTML = libraryCategories.map(cat => 
-            `<option value="${cat.value}">${cat.label}</option>`
-          ).join('');
+          libCategorySelect.innerHTML = libraryCategories.map(cat => {
+            // Handle both old format and new format with translations
+            const value = cat.value;
+            const label = typeof cat.label === 'string' 
+              ? cat.label 
+              : (currentLang === 'ar' ? cat.label.ar : cat.label.en);
+            return `<option value="${value}">${label}</option>`;
+          }).join('');
           if (currentValue) libCategorySelect.value = currentValue;
         }
         
