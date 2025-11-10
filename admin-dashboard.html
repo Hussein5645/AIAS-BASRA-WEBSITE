@@ -255,8 +255,18 @@
                 </div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="libTags">Tags (comma-separated)</label><input id="libTags" name="tags" placeholder="Design, Fundamentals, Theory" required/></div>
+                <div class="form-group">
+                  <label for="libCategory">Category</label>
+                  <select id="libCategory" name="category" required>
+                    <option value="file">File</option>
+                    <option value="lecture">Lecture</option>
+                  </select>
+                </div>
                 <div class="form-group"><label for="libImage">Emoji Icon</label><input id="libImage" name="image" placeholder="📚" required/></div>
+              </div>
+              <div class="two-col">
+                <div class="form-group"><label for="libTags">Tags (comma-separated)</label><input id="libTags" name="tags" placeholder="Design, Fundamentals, Theory" required/></div>
+                <div class="form-group"><label for="libImageUrl">Image URL (Optional)</label><input type="url" id="libImageUrl" name="imageUrl" placeholder="https://example.com/image.jpg"/></div>
               </div>
               <div class="two-col">
                 <div class="form-group"><label for="libImageUrl">Image URL (Optional)</label><input type="url" id="libImageUrl" name="imageUrl" placeholder="https://example.com/image.jpg"/></div>
@@ -654,7 +664,7 @@
         if (CACHE.library.length===0) { box.innerHTML = '<p>No resources found.</p>'; return; }
         box.innerHTML = CACHE.library.map(it => `
           <div class="content-item">
-            <div><strong>${it.name || '(no name)'}</strong><br><small>${it.type || ''} ${Array.isArray(it.tags) && it.tags.length ? ' - ' + it.tags.join(', ') : ''}</small></div>
+            <div><strong>${it.name || '(no name)'}</strong><br><small>${it.type || ''} - ${it.category || 'file'}${Array.isArray(it.tags) && it.tags.length ? ' - ' + it.tags.join(', ') : ''}</small></div>
             <div class="user-actions">
               <button class="btn edit-btn" onclick="editLibrary('${it.id}')">Edit</button>
               <button class="btn delete-btn" onclick="deleteLibraryResource('${it.id}')">Delete</button>
@@ -671,6 +681,7 @@
       libId.value = r.id;
       libName.value = r.name || '';
       libType.value = r.type || 'Book';
+      libCategory.value = r.category || 'file';
       libTags.value = Array.isArray(r.tags) ? r.tags.join(', ') : (r.tags || '');
       libImage.value = r.image || '';
       libImageUrl.value = r.imageUrl || '';
@@ -822,6 +833,7 @@
     const libId             = document.getElementById('libId');
     const libName           = document.getElementById('libName');
     const libType           = document.getElementById('libType');
+    const libCategory       = document.getElementById('libCategory');
     const libTags           = document.getElementById('libTags');
     const libImage          = document.getElementById('libImage');
     const libImageUrl       = document.getElementById('libImageUrl');
@@ -1073,6 +1085,7 @@
       const payload = {
         name: libName.value.trim(),
         type: libType.value,
+        category: libCategory.value,
         tags: libTags.value ? libTags.value.split(',').map(t=>t.trim()).filter(Boolean) : [],
         image: libImage.value.trim(),
         imageUrl: libImageUrl.value.trim(),

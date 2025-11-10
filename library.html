@@ -178,6 +178,89 @@
             box-shadow: var(--shadow-md);
         }
         
+        /* YouTube Modal Styles */
+        #youtubeModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10000;
+        }
+        
+        .modal-overlay {
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        
+        .modal-content {
+            background: var(--white);
+            border-radius: 12px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.25rem;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.3s ease;
+        }
+        
+        .modal-close:hover {
+            color: var(--primary-color);
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+        }
+        
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
         @media (max-width: 768px) {
             .library-hero h1 {
                 font-size: 2rem;
@@ -185,6 +268,11 @@
             
             .resources-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                max-width: 100%;
+                border-radius: 0;
             }
         }
     </style>
@@ -329,6 +417,32 @@
 
         let allResources = [];
         
+        // Function to detect and extract YouTube video ID
+        function getYouTubeVideoId(url) {
+            if (!url) return null;
+            
+            // Regular expression patterns for different YouTube URL formats
+            const patterns = [
+                /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+                /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+                /youtube\.com\/v\/([a-zA-Z0-9_-]{11})/
+            ];
+            
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match && match[1]) {
+                    return match[1];
+                }
+            }
+            
+            return null;
+        }
+        
+        // Function to check if URL is a YouTube URL
+        function isYouTubeUrl(url) {
+            return getYouTubeVideoId(url) !== null;
+        }
+        
         // Load library items from Firebase using Data Loader
         async function loadLibrary() {
             const gridContainer = document.querySelector('.resources-grid');
@@ -395,6 +509,11 @@
                     gridContainer.innerHTML = '';
                     
                     libraryItems.forEach(item => {
+                        const youtubeVideoId = getYouTubeVideoId(item.link);
+                        const isYouTube = youtubeVideoId !== null;
+                        const category = item.category || 'file';
+                        const categoryLabel = category === 'lecture' ? '🎓 Lecture' : '📄 File';
+                        
                         const resourceCard = `
                             <div class="resource-card reveal" data-category="${(item.type || '').toLowerCase()}">
                                 <div class="resource-thumbnail" style="${item.imageUrl ? `background-image: url('${item.imageUrl}'); background-size: cover; background-position: center;` : ''}">
@@ -405,8 +524,11 @@
                                     <h3 class="resource-title">${item.name}</h3>
                                     <p class="resource-description">${item.description}</p>
                                     <div class="resource-meta">
-                                        <span class="resource-size">${(item.tags || []).join(', ')}</span>
-                                        <a href="${item.link || '#'}" class="download-btn">Download</a>
+                                        <span class="resource-size">${categoryLabel}${(item.tags || []).length > 0 ? ' • ' + (item.tags || []).join(', ') : ''}</span>
+                                        ${isYouTube 
+                                            ? `<a href="#" class="download-btn" onclick="openYouTubeModal('${youtubeVideoId}', '${item.name.replace(/'/g, "\\'")}'); return false;">Watch Video</a>`
+                                            : `<a href="${item.link || '#'}" class="download-btn" target="_blank" rel="noopener noreferrer">Download</a>`
+                                        }
                                     </div>
                                 </div>
                             </div>
@@ -493,6 +615,52 @@
                 });
             }
         }
+        
+        // Function to open YouTube video in a modal
+        window.openYouTubeModal = function(videoId, title) {
+            // Create modal if it doesn't exist
+            let modal = document.getElementById('youtubeModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'youtubeModal';
+                modal.innerHTML = `
+                    <div class="modal-overlay" onclick="closeYouTubeModal()">
+                        <div class="modal-content" onclick="event.stopPropagation()">
+                            <div class="modal-header">
+                                <h3 id="modalTitle"></h3>
+                                <button class="modal-close" onclick="closeYouTubeModal()">&times;</button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="video-container">
+                                    <iframe id="youtubeFrame" 
+                                        width="100%" 
+                                        height="100%" 
+                                        frameborder="0" 
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                        allowfullscreen>
+                                    </iframe>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+            
+            // Update modal content
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('youtubeFrame').src = `https://www.youtube.com/embed/${videoId}`;
+            modal.style.display = 'block';
+        };
+        
+        // Function to close YouTube modal
+        window.closeYouTubeModal = function() {
+            const modal = document.getElementById('youtubeModal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.getElementById('youtubeFrame').src = '';
+            }
+        };
         
         // Load library when page loads
         document.addEventListener('DOMContentLoaded', loadLibrary);
