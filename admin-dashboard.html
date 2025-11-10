@@ -96,14 +96,14 @@
   <div class="dashboard">
     <!-- Sidebar -->
     <aside class="sidebar">
-      <h3>Navigate</h3>
+      <h3 data-en="Navigate" data-ar="التنقل">Navigate</h3>
       <ul class="nav" id="mainNav">
-        <li><button data-tab="events" class="active">Events</button></li>
-        <li><button data-tab="articles">Magazine</button></li>
-        <li><button data-tab="library">Library</button></li>
-        <li><button data-tab="education">Education</button></li>
-        <li><button data-tab="fbd">FBD</button></li>
-        <li><button data-tab="settings">Settings</button></li>
+        <li><button data-tab="events" class="active" data-en="Events" data-ar="الفعاليات">Events</button></li>
+        <li><button data-tab="articles" data-en="Magazine" data-ar="المجلة">Magazine</button></li>
+        <li><button data-tab="library" data-en="Library" data-ar="المكتبة">Library</button></li>
+        <li><button data-tab="education" data-en="Education" data-ar="التعليم">Education</button></li>
+        <li><button data-tab="fbd" data-en="FBD" data-ar="FBD">FBD</button></li>
+        <li><button data-tab="settings" data-en="Settings" data-ar="الإعدادات">Settings</button></li>
       </ul>
     </aside>
 
@@ -113,80 +113,78 @@
 
       <!-- Top actions -->
       <div class="top-actions">
-        <button id="expandAll" class="mini-btn">Expand all</button>
-        <button id="collapseAll" class="mini-btn">Collapse all</button>
+        <button id="expandAll" class="mini-btn" data-en="Expand all" data-ar="توسيع الكل">Expand all</button>
+        <button id="collapseAll" class="mini-btn" data-en="Collapse all" data-ar="طي الكل">Collapse all</button>
       </div>
 
       <!-- Events -->
       <section id="events-tab" class="tab-content active">
         <details class="accordion" open>
-          <summary>Existing Events</summary>
+          <summary data-en="Existing Events" data-ar="الفعاليات الحالية">Existing Events</summary>
           <div class="accordion-body panel">
             <div id="existingEventsList"><p>Loading events...</p></div>
           </div>
         </details>
 
         <details class="accordion" open>
-          <summary>Add or Edit Event</summary>
+          <summary data-en="Add or Edit Event" data-ar="إضافة أو تعديل فعالية">Add or Edit Event</summary>
           <div class="accordion-body panel">
             <form id="eventForm" data-mode="add" novalidate>
               <input type="hidden" id="eventId"/>
               <div class="two-col">
                 <div class="form-group">
-                  <label for="eventTitle">Event Title</label>
+                  <label for="eventTitle" data-en="Event Title" data-ar="عنوان الفعالية">Event Title</label>
                   <input id="eventTitle" name="title" required autocomplete="off"/>
                 </div>
                 <div class="form-group">
-                  <label for="eventTime">Date and Time</label>
+                  <label for="eventTime" data-en="Date and Time" data-ar="التاريخ والوقت">Date and Time</label>
                   <input type="datetime-local" id="eventTime" name="time" required/>
                 </div>
               </div>
               <div class="two-col">
                 <div class="form-group">
-                  <label for="eventLocation">Location</label>
+                  <label for="eventLocation" data-en="Location" data-ar="الموقع">Location</label>
                   <input id="eventLocation" name="location" required/>
                 </div>
                 <div class="form-group">
-                  <label for="eventType">Event Type</label>
+                  <label for="eventType" data-en="Event Type" data-ar="نوع الفعالية">Event Type</label>
                   <select id="eventType" name="type" required>
-                    <option value="Workshop">Workshop</option>
-                    <option value="Lecture">Lecture</option>
-                    <option value="Social">Social</option>
+                    <!-- Options loaded dynamically from categories-loader -->
                   </select>
                 </div>
               </div>
               <div class="two-col">
                 <div class="form-group">
-                  <label for="eventSeats">Available Seats</label>
+                  <label for="eventSeats" data-en="Available Seats" data-ar="المقاعد المتاحة">Available Seats</label>
                   <input type="number" id="eventSeats" name="seats" min="1" value="10" required/>
                 </div>
                 <div class="form-group">
-                  <label for="eventImage">Emoji Icon</label>
+                  <label for="eventImage" data-en="Emoji Icon" data-ar="أيقونة الإيموجي">Emoji Icon</label>
                   <input id="eventImage" name="image" placeholder="🎨" required/>
                 </div>
                 <div class="form-group">
-                  <label for="eventImageUrl">Image URL (Optional)</label>
+                  <label for="eventImageUrl" data-en="Image URL (Optional)" data-ar="رابط الصورة (اختياري)">Image URL (Optional)</label>
                   <input id="eventImageUrl" name="imageUrl" type="url" placeholder="https://example.com/image.jpg"/>
                 </div>
                 <div class="form-group">
-                  <label for="eventRegisterUrl">Register Button URL (Optional)</label>
+                  <label for="eventRegisterUrl" data-en="Register Button URL (Optional)" data-ar="رابط زر التسجيل (اختياري)">Register Button URL (Optional)</label>
                   <input id="eventRegisterUrl" name="registerUrl" type="url" placeholder="https://example.com/register"/>
                 </div>
                 <div class="form-group">
-                  <label for="eventDetailsUrl">Details Button URL (Optional)</label>
+                  <label for="eventDetailsUrl" data-en="Details Button URL (Optional)" data-ar="رابط زر التفاصيل (اختياري)">Details Button URL (Optional)</label>
                   <input id="eventDetailsUrl" name="detailsUrl" type="url" placeholder="https://example.com/details"/>
                 </div>
                 <div class="form-group">
-                  <label for="eventGalleryUrl">Gallery Button URL (Optional)</label>
+                  <label for="eventGalleryUrl" data-en="Gallery Button URL (Optional)" data-ar="رابط زر المعرض (اختياري)">Gallery Button URL (Optional)</label>
                   <input id="eventGalleryUrl" name="galleryUrl" type="url" placeholder="https://example.com/gallery"/>
                 </div>
               </div>
               <div class="form-group">
-                <label for="eventDescription">Description</label>
+                <label for="eventDescription" data-en="Description" data-ar="الوصف">Description</label>
                 <textarea id="eventDescription" name="description" required></textarea>
               </div>
               <div id="eventErrors" class="error-box"></div>
-              <button type="submit" id="eventSubmitBtn" class="submit-btn">Add Event</button>
+              <button type="submit" id="eventSubmitBtn" class="submit-btn" data-en="Add Event" data-ar="إضافة فعالية">Add Event</button>
             </form>
           </div>
         </details>
@@ -195,36 +193,36 @@
       <!-- Articles -->
       <section id="articles-tab" class="tab-content">
         <details class="accordion" open>
-          <summary>Existing Articles</summary>
+          <summary data-en="Existing Articles" data-ar="المقالات الحالية">Existing Articles</summary>
           <div class="accordion-body panel">
             <div id="existingArticlesList"><p>Loading articles...</p></div>
           </div>
         </details>
 
         <details class="accordion" open>
-          <summary>Add or Edit Article</summary>
+          <summary data-en="Add or Edit Article" data-ar="إضافة أو تعديل مقال">Add or Edit Article</summary>
           <div class="accordion-body panel">
             <form id="articleForm" data-mode="add" novalidate>
               <input type="hidden" id="articleId"/>
               <div class="two-col">
-                <div class="form-group"><label for="articleTitle">Article Title</label><input id="articleTitle" name="title" required/></div>
-                <div class="form-group"><label for="articleAuthor">Author Name</label><input id="articleAuthor" name="author" required/></div>
+                <div class="form-group"><label for="articleTitle" data-en="Article Title" data-ar="عنوان المقال">Article Title</label><input id="articleTitle" name="title" required/></div>
+                <div class="form-group"><label for="articleAuthor" data-en="Author Name" data-ar="اسم الكاتب">Author Name</label><input id="articleAuthor" name="author" required/></div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="articleDate">Publication Date</label><input type="date" id="articleDate" name="date" required/></div>
-                <div class="form-group"><label for="articleSummary">Summary</label><input id="articleSummary" name="summary" required/></div>
+                <div class="form-group"><label for="articleDate" data-en="Publication Date" data-ar="تاريخ النشر">Publication Date</label><input type="date" id="articleDate" name="date" required/></div>
+                <div class="form-group"><label for="articleSummary" data-en="Summary" data-ar="الملخص">Summary</label><input id="articleSummary" name="summary" required/></div>
               </div>
               <div class="form-group">
-                <label for="articleImageUrl">Image URL (Optional)</label>
+                <label for="articleImageUrl" data-en="Image URL (Optional)" data-ar="رابط الصورة (اختياري)">Image URL (Optional)</label>
                 <input type="url" id="articleImageUrl" name="imageUrl" placeholder="https://example.com/image.jpg"/>
               </div>
               <div class="form-group">
-                <label for="articleReadMoreUrl">Read More Button URL (Optional)</label>
+                <label for="articleReadMoreUrl" data-en="Read More Button URL (Optional)" data-ar="رابط زر اقرأ المزيد (اختياري)">Read More Button URL (Optional)</label>
                 <input type="url" id="articleReadMoreUrl" name="readMoreUrl" placeholder="https://example.com/article"/>
               </div>
-              <div class="form-group"><label for="articleContent">Full Content</label><textarea id="articleContent" name="content" required></textarea></div>
+              <div class="form-group"><label for="articleContent" data-en="Full Content" data-ar="المحتوى الكامل">Full Content</label><textarea id="articleContent" name="content" required></textarea></div>
               <div id="articleErrors" class="error-box"></div>
-              <button type="submit" id="articleSubmitBtn" class="submit-btn">Add Article</button>
+              <button type="submit" id="articleSubmitBtn" class="submit-btn" data-en="Add Article" data-ar="إضافة مقال">Add Article</button>
             </form>
           </div>
         </details>
@@ -233,21 +231,21 @@
       <!-- Library -->
       <section id="library-tab" class="tab-content">
         <details class="accordion" open>
-          <summary>Existing Resources</summary>
+          <summary data-en="Existing Resources" data-ar="الموارد الحالية">Existing Resources</summary>
           <div class="accordion-body panel">
             <div id="existingLibraryList"><p>Loading resources...</p></div>
           </div>
         </details>
 
         <details class="accordion" open>
-          <summary>Add or Edit Resource</summary>
+          <summary data-en="Add or Edit Resource" data-ar="إضافة أو تعديل مصدر">Add or Edit Resource</summary>
           <div class="accordion-body panel">
             <form id="libraryForm" data-mode="add" novalidate>
               <input type="hidden" id="libId"/>
               <div class="two-col">
-                <div class="form-group"><label for="libName">Resource Name</label><input id="libName" name="name" required/></div>
+                <div class="form-group"><label for="libName" data-en="Resource Name" data-ar="اسم المصدر">Resource Name</label><input id="libName" name="name" required/></div>
                 <div class="form-group">
-                  <label for="libType">Type</label>
+                  <label for="libType" data-en="Type" data-ar="النوع">Type</label>
                   <select id="libType" name="type" required>
                     <option value="Book">Book</option>
                     <option value="Tutorial">Tutorial</option>
@@ -257,28 +255,23 @@
               </div>
               <div class="two-col">
                 <div class="form-group">
-                  <label for="libCategory">Category</label>
+                  <label for="libCategory" data-en="Category" data-ar="الفئة">Category</label>
                   <select id="libCategory" name="category" required>
-                    <option value="file">File</option>
-                    <option value="lecture">Lecture</option>
-                    <option value="External content">External content</option>
+                    <!-- Options loaded dynamically from categories-loader -->
                   </select>
                 </div>
-                <div class="form-group"><label for="libImage">Emoji Icon</label><input id="libImage" name="image" placeholder="📚" required/></div>
+                <div class="form-group"><label for="libImage" data-en="Emoji Icon" data-ar="أيقونة الإيموجي">Emoji Icon</label><input id="libImage" name="image" placeholder="📚" required/></div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="libTags">Tags (comma-separated)</label><input id="libTags" name="tags" placeholder="Design, Fundamentals, Theory" required/></div>
-                <div class="form-group"><label for="libImageUrl">Image URL (Optional)</label><input type="url" id="libImageUrl" name="imageUrl" placeholder="https://example.com/image.jpg"/></div>
+                <div class="form-group"><label for="libTags" data-en="Tags (comma-separated)" data-ar="الوسوم (مفصولة بفواصل)">Tags (comma-separated)</label><input id="libTags" name="tags" placeholder="Design, Fundamentals, Theory" required/></div>
+                <div class="form-group"><label for="libImageUrl" data-en="Image URL (Optional)" data-ar="رابط الصورة (اختياري)">Image URL (Optional)</label><input type="url" id="libImageUrl" name="imageUrl" placeholder="https://example.com/image.jpg"/></div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="libImageUrl">Image URL (Optional)</label><input type="url" id="libImageUrl" name="imageUrl" placeholder="https://example.com/image.jpg"/></div>
-                <div class="form-group"><label for="libDescription">Description</label><input id="libDescription" name="description" required/></div>
-              </div>
-              <div class="two-col">
-                <div class="form-group"><label for="libLink">Download Link</label><input type="url" id="libLink" name="link" placeholder="https://" required/></div>
+                <div class="form-group"><label for="libDescription" data-en="Description" data-ar="الوصف">Description</label><input id="libDescription" name="description" required/></div>
+                <div class="form-group"><label for="libLink" data-en="Download Link" data-ar="رابط التنزيل">Download Link</label><input type="url" id="libLink" name="link" placeholder="https://" required/></div>
               </div>
               <div id="libraryErrors" class="error-box"></div>
-              <button type="submit" id="libSubmitBtn" class="submit-btn">Add Resource</button>
+              <button type="submit" id="libSubmitBtn" class="submit-btn" data-en="Add Resource" data-ar="إضافة مصدر">Add Resource</button>
             </form>
           </div>
         </details>
@@ -287,51 +280,51 @@
       <!-- Education -->
       <section id="education-tab" class="tab-content">
         <details class="accordion" open>
-          <summary>Weekly Workshop</summary>
+          <summary data-en="Weekly Workshop" data-ar="الورشة الأسبوعية">Weekly Workshop</summary>
           <div class="accordion-body panel">
             <form id="educationForm" novalidate>
               <div class="two-col">
-                <div class="form-group"><label for="weekTitle">Weekly Workshop Title</label><input id="weekTitle" name="weekTitle" required/></div>
-                <div class="form-group"><label for="lecturerName">Lecturer Name</label><input id="lecturerName" name="lecturerName" required/></div>
+                <div class="form-group"><label for="weekTitle" data-en="Weekly Workshop Title" data-ar="عنوان الورشة الأسبوعية">Weekly Workshop Title</label><input id="weekTitle" name="weekTitle" required/></div>
+                <div class="form-group"><label for="lecturerName" data-en="Lecturer Name" data-ar="اسم المحاضر">Lecturer Name</label><input id="lecturerName" name="lecturerName" required/></div>
               </div>
-              <div class="form-group"><label for="weekDescription">Workshop Description</label><textarea id="weekDescription" name="description" required></textarea></div>
+              <div class="form-group"><label for="weekDescription" data-en="Workshop Description" data-ar="وصف الورشة">Workshop Description</label><textarea id="weekDescription" name="description" required></textarea></div>
               <div class="form-group">
-                <label for="workshopUrl">Workshop Button URL (Optional)</label>
+                <label for="workshopUrl" data-en="Workshop Button URL (Optional)" data-ar="رابط زر الورشة (اختياري)">Workshop Button URL (Optional)</label>
                 <input type="url" id="workshopUrl" name="workshopUrl" placeholder="https://example.com/join-workshop"/>
               </div>
               <div id="educationErrors" class="error-box"></div>
-              <button type="submit" class="submit-btn">Update Weekly Workshop</button>
+              <button type="submit" class="submit-btn" data-en="Update Weekly Workshop" data-ar="تحديث الورشة الأسبوعية">Update Weekly Workshop</button>
             </form>
           </div>
         </details>
 
         <details class="accordion" open>
-          <summary>Courses</summary>
+          <summary data-en="Courses" data-ar="الدورات">Courses</summary>
           <div class="accordion-body panel">
             <div class="panel" style="margin-bottom: .75rem">
-              <h4 style="margin-top:0">Existing Courses</h4>
+              <h4 style="margin-top:0" data-en="Existing Courses" data-ar="الدورات الحالية">Existing Courses</h4>
               <div id="existingCoursesList"><p>Loading courses...</p></div>
             </div>
             <form id="courseForm" data-mode="add" novalidate>
               <input type="hidden" id="courseId"/>
               <div class="two-col">
-                <div class="form-group"><label for="courseTitle">Course Title</label><input id="courseTitle" name="title" required/></div>
-                <div class="form-group"><label for="courseLecturer">Lecturer (optional)</label><input id="courseLecturer" name="lecturer"/></div>
+                <div class="form-group"><label for="courseTitle" data-en="Course Title" data-ar="عنوان الدورة">Course Title</label><input id="courseTitle" name="title" required/></div>
+                <div class="form-group"><label for="courseLecturer" data-en="Lecturer (optional)" data-ar="المحاضر (اختياري)">Lecturer (optional)</label><input id="courseLecturer" name="lecturer"/></div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="courseDescription">Course Description</label><input id="courseDescription" name="description" required/></div>
-                <div class="form-group"><label for="courseLink">Link (optional)</label><input id="courseLink" name="link" type="url" placeholder="https://"/></div>
+                <div class="form-group"><label for="courseDescription" data-en="Course Description" data-ar="وصف الدورة">Course Description</label><input id="courseDescription" name="description" required/></div>
+                <div class="form-group"><label for="courseLink" data-en="Link (optional)" data-ar="الرابط (اختياري)">Link (optional)</label><input id="courseLink" name="link" type="url" placeholder="https://"/></div>
               </div>
               <div class="form-group">
-                <label for="courseImageUrl">Image URL (Optional)</label>
+                <label for="courseImageUrl" data-en="Image URL (Optional)" data-ar="رابط الصورة (اختياري)">Image URL (Optional)</label>
                 <input type="url" id="courseImageUrl" name="imageUrl" placeholder="https://example.com/image.jpg"/>
               </div>
               <div class="form-group">
-                <label for="courseEnrollUrl">Enroll Button URL (Optional)</label>
+                <label for="courseEnrollUrl" data-en="Enroll Button URL (Optional)" data-ar="رابط زر التسجيل (اختياري)">Enroll Button URL (Optional)</label>
                 <input type="url" id="courseEnrollUrl" name="enrollUrl" placeholder="https://example.com/enroll"/>
               </div>
               <div id="courseErrors" class="error-box"></div>
-              <button type="submit" id="courseSubmitBtn" class="submit-btn">Add Course</button>
+              <button type="submit" id="courseSubmitBtn" class="submit-btn" data-en="Add Course" data-ar="إضافة دورة">Add Course</button>
             </form>
           </div>
         </details>
@@ -340,65 +333,63 @@
       <!-- FBD -->
       <section id="fbd-tab" class="tab-content">
         <details class="accordion" open>
-          <summary>FBD Page</summary>
+          <summary data-en="FBD Page" data-ar="صفحة FBD">FBD Page</summary>
           <div class="accordion-body panel">
             <form id="fbdPageForm">
               <div class="two-col">
-                <div class="form-group"><label for="fbdTitle">Page Title</label><input id="fbdTitle" name="pageTitle" placeholder="FBD"/></div>
-                <div class="form-group"><label for="fbdAbout">About</label><input id="fbdAbout" name="about" placeholder="About FBD..."/></div>
+                <div class="form-group"><label for="fbdTitle" data-en="Page Title" data-ar="عنوان الصفحة">Page Title</label><input id="fbdTitle" name="pageTitle" placeholder="FBD"/></div>
+                <div class="form-group"><label for="fbdAbout" data-en="About" data-ar="نبذة">About</label><input id="fbdAbout" name="about" placeholder="About FBD..."/></div>
               </div>
-              <button type="submit" class="submit-btn">Update FBD Page</button>
+              <button type="submit" class="submit-btn" data-en="Update FBD Page" data-ar="تحديث صفحة FBD">Update FBD Page</button>
             </form>
           </div>
         </details>
 
         <details class="accordion" open>
-          <summary>FBD Events</summary>
+          <summary data-en="FBD Events" data-ar="فعاليات FBD">FBD Events</summary>
           <div class="accordion-body panel">
             <div class="panel" style="margin-bottom:.75rem">
-              <h4 style="margin-top:0">Existing FBD Events</h4>
+              <h4 style="margin-top:0" data-en="Existing FBD Events" data-ar="فعاليات FBD الحالية">Existing FBD Events</h4>
               <div id="existingFbdEventsList"><p>Loading FBD events...</p></div>
             </div>
             <form id="fbdEventForm" data-mode="add" novalidate>
               <input type="hidden" id="fbdEventId"/>
               <div class="two-col">
-                <div class="form-group"><label for="fbdEventTitle">Event Title</label><input id="fbdEventTitle" name="title" required/></div>
-                <div class="form-group"><label for="fbdEventTime">Date and Time</label><input id="fbdEventTime" name="time" type="datetime-local" required/></div>
+                <div class="form-group"><label for="fbdEventTitle" data-en="Event Title" data-ar="عنوان الفعالية">Event Title</label><input id="fbdEventTitle" name="title" required/></div>
+                <div class="form-group"><label for="fbdEventTime" data-en="Date and Time" data-ar="التاريخ والوقت">Date and Time</label><input id="fbdEventTime" name="time" type="datetime-local" required/></div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="fbdEventLocation">Location</label><input id="fbdEventLocation" name="location" required/></div>
+                <div class="form-group"><label for="fbdEventLocation" data-en="Location" data-ar="الموقع">Location</label><input id="fbdEventLocation" name="location" required/></div>
                 <div class="form-group">
-                  <label for="fbdEventType">Event Type</label>
+                  <label for="fbdEventType" data-en="Event Type" data-ar="نوع الفعالية">Event Type</label>
                   <select id="fbdEventType" name="type">
-                    <option value="Workshop">Workshop</option>
-                    <option value="Lecture">Lecture</option>
-                    <option value="Social">Social</option>
+                    <!-- Options loaded dynamically from categories-loader -->
                   </select>
                 </div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="fbdEventSeats">Available Seats</label><input id="fbdEventSeats" name="seats" type="number" min="1" value="10" required/></div>
-                <div class="form-group"><label for="fbdEventImage">Emoji Icon</label><input id="fbdEventImage" name="image" placeholder="🎨" required/></div>
+                <div class="form-group"><label for="fbdEventSeats" data-en="Available Seats" data-ar="المقاعد المتاحة">Available Seats</label><input id="fbdEventSeats" name="seats" type="number" min="1" value="10" required/></div>
+                <div class="form-group"><label for="fbdEventImage" data-en="Emoji Icon" data-ar="أيقونة الإيموجي">Emoji Icon</label><input id="fbdEventImage" name="image" placeholder="🎨" required/></div>
               </div>
               <div class="form-group">
-                <label for="fbdEventImageUrl">Image URL (Optional)</label>
+                <label for="fbdEventImageUrl" data-en="Image URL (Optional)" data-ar="رابط الصورة (اختياري)">Image URL (Optional)</label>
                 <input type="url" id="fbdEventImageUrl" name="imageUrl" placeholder="https://example.com/image.jpg"/>
               </div>
               <div class="form-group">
-                <label for="fbdEventRegisterUrl">Register Button URL (Optional)</label>
+                <label for="fbdEventRegisterUrl" data-en="Register Button URL (Optional)" data-ar="رابط زر التسجيل (اختياري)">Register Button URL (Optional)</label>
                 <input type="url" id="fbdEventRegisterUrl" name="registerUrl" placeholder="https://example.com/register"/>
               </div>
               <div class="form-group">
-                <label for="fbdEventDetailsUrl">Details Button URL (Optional)</label>
+                <label for="fbdEventDetailsUrl" data-en="Details Button URL (Optional)" data-ar="رابط زر التفاصيل (اختياري)">Details Button URL (Optional)</label>
                 <input type="url" id="fbdEventDetailsUrl" name="detailsUrl" placeholder="https://example.com/details"/>
               </div>
               <div class="form-group">
-                <label for="fbdEventGalleryUrl">Gallery Button URL (Optional)</label>
+                <label for="fbdEventGalleryUrl" data-en="Gallery Button URL (Optional)" data-ar="رابط زر المعرض (اختياري)">Gallery Button URL (Optional)</label>
                 <input type="url" id="fbdEventGalleryUrl" name="galleryUrl" placeholder="https://example.com/gallery"/>
               </div>
-              <div class="form-group"><label for="fbdEventDescription">Description</label><textarea id="fbdEventDescription" name="description" required></textarea></div>
+              <div class="form-group"><label for="fbdEventDescription" data-en="Description" data-ar="الوصف">Description</label><textarea id="fbdEventDescription" name="description" required></textarea></div>
               <div id="fbdEventErrors" class="error-box"></div>
-              <button type="submit" id="fbdEventSubmitBtn" class="submit-btn">Add FBD Event</button>
+              <button type="submit" id="fbdEventSubmitBtn" class="submit-btn" data-en="Add FBD Event" data-ar="إضافة فعالية FBD">Add FBD Event</button>
             </form>
           </div>
         </details>
@@ -407,29 +398,29 @@
       <!-- Settings -->
       <section id="settings-tab" class="tab-content">
         <details class="accordion" open>
-          <summary>Connection</summary>
+          <summary data-en="Connection" data-ar="الاتصال">Connection</summary>
           <div class="accordion-body panel">
             <div id="tokenStatus" style="padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem; background:#f8fafc;">
-              <p><strong>Status:</strong> <span id="tokenStatusText">Checking...</span></p>
+              <p><strong data-en="Status:" data-ar="الحالة:">Status:</strong> <span id="tokenStatusText">Checking...</span></p>
             </div>
-            <p style="color:#4a5568;margin-bottom:1rem">Content is now stored in Firebase Firestore. No additional configuration needed.</p>
-            <button type="button" class="submit-btn" onclick="testFirestoreConnection()" style="background:#38a169;">Test Connection</button>
+            <p style="color:#4a5568;margin-bottom:1rem" data-en="Content is now stored in Firebase Firestore. No additional configuration needed." data-ar="يتم تخزين المحتوى الآن في Firebase Firestore. لا حاجة لتكوين إضافي.">Content is now stored in Firebase Firestore. No additional configuration needed.</p>
+            <button type="button" class="submit-btn" onclick="testFirestoreConnection()" style="background:#38a169;" data-en="Test Connection" data-ar="اختبار الاتصال">Test Connection</button>
           </div>
         </details>
 
         <details class="accordion" open>
-          <summary>Firestore Structure</summary>
+          <summary data-en="Firestore Structure" data-ar="بنية Firestore">Firestore Structure</summary>
           <div class="accordion-body panel">
             <div id="structureResults" style="display:none;padding:1rem;border-radius:8px;margin-bottom:1rem;max-height:300px;overflow-y:auto;background:#f8fafc;">
-              <h4>Structure Validation Results:</h4>
+              <h4 data-en="Structure Validation Results:" data-ar="نتائج التحقق من البنية:">Structure Validation Results:</h4>
               <div id="structureResultsContent"></div>
             </div>
-            <button type="button" class="submit-btn" onclick="fixFirestoreStructure()" style="background:#667eea;">Fix Firestore Structure</button>
+            <button type="button" class="submit-btn" onclick="fixFirestoreStructure()" style="background:#667eea;" data-en="Fix Firestore Structure" data-ar="إصلاح بنية Firestore">Fix Firestore Structure</button>
           </div>
         </details>
 
         <details class="accordion" open>
-          <summary>Admin Management</summary>
+          <summary data-en="Admin Management" data-ar="إدارة المسؤولين">Admin Management</summary>
           <div class="accordion-body panel">
             <div style="margin-bottom:1rem">
               <h4>Current Admins:</h4>
