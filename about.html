@@ -42,6 +42,13 @@
             align-items: center;
             justify-content: center;
             font-size: 5rem;
+            overflow: hidden;
+        }
+        
+        .story-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         
         .story-text h2 {
@@ -213,11 +220,13 @@
     <section class="story-section">
         <div class="container">
             <div class="story-content">
-                <div class="story-image reveal">🏛️</div>
+                <div class="story-image reveal">
+                    <img src="static/images/branding/LOGO.png" alt="AIAS Basra Logo">
+                </div>
                 <div class="story-text reveal">
                     <h2 data-en="Our Story" data-ar="قصتنا">Our Story</h2>
-                    <p>Founded by a passionate group of architecture students, the AIAS Basra Chapter was established to create a vibrant community for design, innovation, and collaboration.</p>
-                    <p>We aim to bridge the gap between academic learning and professional practice, offering workshops, lectures, and networking events that empower our members to become future leaders in architecture.</p>
+                    <p data-en="Founded by a passionate group of architecture students, the AIAS Basra Chapter was established to create a vibrant community for design, innovation, and collaboration." data-ar="تأسس فرع AIAS البصرة من قبل مجموعة متحمسة من طلاب الهندسة المعمارية، لإنشاء مجتمع نابض بالحياة للتصميم والابتكار والتعاون.">Founded by a passionate group of architecture students, the AIAS Basra Chapter was established to create a vibrant community for design, innovation, and collaboration.</p>
+                    <p data-en="We aim to bridge the gap between academic learning and professional practice, offering workshops, lectures, and networking events that empower our members to become future leaders in architecture." data-ar="نهدف إلى سد الفجوة بين التعلم الأكاديمي والممارسة المهنية، من خلال تقديم ورش العمل والمحاضرات والفعاليات التي تمكن أعضاءنا من أن يصبحوا قادة المستقبل في الهندسة المعمارية.">We aim to bridge the gap between academic learning and professional practice, offering workshops, lectures, and networking events that empower our members to become future leaders in architecture.</p>
                 </div>
             </div>
         </div>
@@ -252,8 +261,8 @@
     <section class="team-section">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title" data-en="Our Founders" data-ar="Our board">Our board</h2>
-                <p class="section-subtitle" data-en="The visionaries who started it all" data-ar="الرؤساء الذين بدأوا كل شيء">The visionaries who started it all</p>
+                <h2 class="section-title" data-en="Our Founders" data-ar="مؤسسونا">Our Founders</h2>
+                <p class="section-subtitle" data-en="The visionaries who started it all" data-ar="أصحاب الرؤية الذين بدأوا كل شيء">The visionaries who started it all</p>
             </div>
             <div class="team-grid">
                 <div class="team-card reveal">
@@ -262,8 +271,8 @@
                     </div>
                     <div class="team-info">
                         <h3>Hussein</h3>
-                        <div class="team-role">Co-Founder</div>
-                        <p>Visionary leader guiding the chapter's mission.</p>
+                        <div class="team-role" data-en="Founder" data-ar="مؤسس">Founder</div>
+                        <p data-en="Visionary leader guiding the chapter's mission." data-ar="قائد صاحب رؤية يوجه مهمة الفرع.">Visionary leader guiding the chapter's mission.</p>
                     </div>
                 </div>
                 <div class="team-card reveal">
@@ -272,48 +281,103 @@
                     </div>
                     <div class="team-info">
                         <h3>Farah</h3>
-                        <div class="team-role">Co-Founder</div>
-                        <p>Organizing and managing chapter activities.</p>
+                        <div class="team-role" data-en="Founder" data-ar="مؤسسة">Founder</div>
+                        <p data-en="Organizing and managing chapter activities." data-ar="تنظيم وإدارة أنشطة الفرع.">Organizing and managing chapter activities.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section-header" style="margin-top: 4rem;">
+                <h2 class="section-title" data-en="Our Board" data-ar="مجلس إدارتنا">Our Board</h2>
+                <p class="section-subtitle" data-en="Leading the chapter forward" data-ar="قيادة الفرع نحو المستقبل">Leading the chapter forward</p>
+            </div>
+            <div class="team-grid">
+                <div class="team-card reveal">
+                    <div class="team-image">👤</div>
+                    <div class="team-info">
+                        <h3 data-en="To Be Announced" data-ar="سيتم الإعلان عنه">To Be Announced</h3>
+                        <div class="team-role" data-en="President" data-ar="الرئيس">President</div>
+                        <p data-en="Leading the chapter's vision and strategy." data-ar="قيادة رؤية واستراتيجية الفرع.">Leading the chapter's vision and strategy.</p>
                     </div>
                 </div>
                 <div class="team-card reveal">
-                    <div class="team-image" style="background-image: url('static/images/team/haider.png'); background-size: cover; background-position: center;">
-                        <img src="static/images/team/haider.png" alt="Haider" style="width: 100%; height: 100%; object-fit: cover;">
-                    </div>
+                    <div class="team-image">👤</div>
                     <div class="team-info">
-                        <h3>Haider</h3>
-                        <div class="team-role">Founder</div>
-                        <p>Passionate about community building.</p>
+                        <h3 data-en="To Be Announced" data-ar="سيتم الإعلان عنه">To Be Announced</h3>
+                        <div class="team-role" data-en="Vice President" data-ar="نائب الرئيس">Vice President</div>
+                        <p data-en="Supporting the president and managing operations." data-ar="دعم الرئيس وإدارة العمليات.">Supporting the president and managing operations.</p>
                     </div>
                 </div>
                 <div class="team-card reveal">
-                    <div class="team-image" style="background-image: url('static/images/team/montader.png'); background-size: cover; background-position: center;">
-                        <img src="static/images/team/montader.png" alt="Montader" style="width: 100%; height: 100%; object-fit: cover;">
-                    </div>
+                    <div class="team-image">👤</div>
                     <div class="team-info">
-                        <h3>Montader</h3>
-                        <div class="team-role">Founder</div>
-                        <p>Driving creative workshops and events.</p>
+                        <h3 data-en="To Be Announced" data-ar="سيتم الإعلان عنه">To Be Announced</h3>
+                        <div class="team-role" data-en="Public Relations" data-ar="العلاقات العامة">Public Relations</div>
+                        <p data-en="Managing external communications and partnerships." data-ar="إدارة الاتصالات الخارجية والشراكات.">Managing external communications and partnerships.</p>
                     </div>
                 </div>
                 <div class="team-card reveal">
-                    <div class="team-image" style="background-image: url('static/images/team/mustafa.png'); background-size: cover; background-position: center;">
-                        <img src="static/images/team/mustafa.png" alt="Mustafa" style="width: 100%; height: 100%; object-fit: cover;">
-                    </div>
+                    <div class="team-image">👤</div>
                     <div class="team-info">
-                        <h3>Mustafa</h3>
-                        <div class="team-role">Founder</div>
-                        <p>Focusing on technology and design.</p>
+                        <h3 data-en="To Be Announced" data-ar="سيتم الإعلان عنه">To Be Announced</h3>
+                        <div class="team-role" data-en="Member Director" data-ar="مدير الأعضاء">Member Director</div>
+                        <p data-en="Overseeing member engagement and activities." data-ar="الإشراف على مشاركة الأعضاء والأنشطة.">Overseeing member engagement and activities.</p>
                     </div>
                 </div>
                 <div class="team-card reveal">
-                    <div class="team-image" style="background-image: url('static/images/team/sara.png'); background-size: cover; background-position: center;">
-                        <img src="static/images/team/sara.png" alt="Sara" style="width: 100%; height: 100%; object-fit: cover;">
-                    </div>
+                    <div class="team-image">👤</div>
                     <div class="team-info">
-                        <h3>Sara</h3>
-                        <div class="team-role">Founder</div>
-                        <p>Leading outreach and member relations.</p>
+                        <h3 data-en="To Be Announced" data-ar="سيتم الإعلان عنه">To Be Announced</h3>
+                        <div class="team-role" data-en="Secretary" data-ar="السكرتير">Secretary</div>
+                        <p data-en="Maintaining records and coordinating meetings." data-ar="الحفاظ على السجلات وتنسيق الاجتماعات.">Maintaining records and coordinating meetings.</p>
+                    </div>
+                </div>
+                <div class="team-card reveal">
+                    <div class="team-image">👤</div>
+                    <div class="team-info">
+                        <h3 data-en="To Be Announced" data-ar="سيتم الإعلان عنه">To Be Announced</h3>
+                        <div class="team-role" data-en="Treasurer" data-ar="أمين الصندوق">Treasurer</div>
+                        <p data-en="Managing finances and budget." data-ar="إدارة المالية والميزانية.">Managing finances and budget.</p>
+                    </div>
+                </div>
+                <div class="team-card reveal">
+                    <div class="team-image">👤</div>
+                    <div class="team-info">
+                        <h3 data-en="To Be Announced" data-ar="سيتم الإعلان عنه">To Be Announced</h3>
+                        <div class="team-role" data-en="Head of Media" data-ar="رئيس الإعلام">Head of Media</div>
+                        <p data-en="Overseeing media presence and content." data-ar="الإشراف على التواجد الإعلامي والمحتوى.">Overseeing media presence and content.</p>
+                    </div>
+                </div>
+                <div class="team-card reveal">
+                    <div class="team-image">👤</div>
+                    <div class="team-info">
+                        <h3 data-en="To Be Announced" data-ar="سيتم الإعلان عنه">To Be Announced</h3>
+                        <div class="team-role" data-en="Head of Graphic" data-ar="رئيس التصميم الجرافيكي">Head of Graphic</div>
+                        <p data-en="Leading visual design and branding." data-ar="قيادة التصميم البصري والعلامة التجارية.">Leading visual design and branding.</p>
+                    </div>
+                </div>
+                <div class="team-card reveal">
+                    <div class="team-image">👤</div>
+                    <div class="team-info">
+                        <h3 data-en="To Be Announced" data-ar="سيتم الإعلان عنه">To Be Announced</h3>
+                        <div class="team-role" data-en="Journalism" data-ar="الصحافة">Journalism</div>
+                        <p data-en="Writing and publishing chapter news." data-ar="كتابة ونشر أخبار الفرع.">Writing and publishing chapter news.</p>
+                    </div>
+                </div>
+                <div class="team-card reveal">
+                    <div class="team-image">👤</div>
+                    <div class="team-info">
+                        <h3 data-en="To Be Announced" data-ar="سيتم الإعلان عنه">To Be Announced</h3>
+                        <div class="team-role" data-en="Board Member" data-ar="عضو مجلس الإدارة">Board Member</div>
+                        <p data-en="Contributing to chapter decisions." data-ar="المساهمة في قرارات الفرع.">Contributing to chapter decisions.</p>
+                    </div>
+                </div>
+                <div class="team-card reveal">
+                    <div class="team-image">👤</div>
+                    <div class="team-info">
+                        <h3 data-en="To Be Announced" data-ar="سيتم الإعلان عنه">To Be Announced</h3>
+                        <div class="team-role" data-en="Board Member" data-ar="عضو مجلس الإدارة">Board Member</div>
+                        <p data-en="Contributing to chapter decisions." data-ar="المساهمة في قرارات الفرع.">Contributing to chapter decisions.</p>
                     </div>
                 </div>
             </div>
