@@ -165,6 +165,200 @@
             gap: 1rem;
         }
         
+        .magazine-releases {
+            padding: 5rem 0;
+            background: var(--white);
+        }
+        
+        .releases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .release-card {
+            background: var(--white);
+            border: 2px solid var(--light-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .release-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-color);
+        }
+        
+        .release-preview {
+            background: var(--gradient-1);
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            color: var(--white);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .release-preview::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.3) 100%);
+        }
+        
+        .release-info {
+            padding: 1.5rem;
+        }
+        
+        .release-title {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        
+        .release-date {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .release-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .release-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-view {
+            background: var(--gradient-1);
+            color: var(--white);
+        }
+        
+        .btn-view:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn-download {
+            background: var(--white);
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+        
+        .btn-download:hover {
+            background: var(--primary-color);
+            color: var(--white);
+        }
+        
+        .empty-releases {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: var(--light-bg);
+            border-radius: 12px;
+        }
+        
+        .empty-releases-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .empty-releases h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .empty-releases p {
+            color: var(--text-secondary);
+        }
+        
+        /* PDF Viewer Modal */
+        .pdf-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10000;
+            overflow: hidden;
+        }
+        
+        .pdf-modal.active {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .pdf-modal-header {
+            background: var(--primary-color);
+            color: var(--white);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .pdf-modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .pdf-modal-close {
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .pdf-modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .pdf-modal-content {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .pdf-viewer-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
         @media (max-width: 768px) {
             .magazine-hero h1 {
                 font-size: 2rem;
@@ -172,6 +366,18 @@
             
             .featured-content {
                 grid-template-columns: 1fr;
+            }
+            
+            .releases-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .release-actions {
+                flex-direction: column;
+            }
+            
+            .release-btn {
+                width: 100%;
             }
         }
     </style>
@@ -236,11 +442,76 @@
                 <!-- Featured article will be loaded dynamically -->
             </div>
         </div>
+    </section>
+
+    <!-- Magazine Releases -->
+    <section class="magazine-releases">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title" data-en="Magazine Releases" data-ar="إصدارات المجلة">Magazine Releases</h2>
+                <p class="section-subtitle" data-en="Download and read our latest magazine issues" data-ar="حمل واقرأ أحدث إصدارات مجلتنا">Download and read our latest magazine issues</p>
+            </div>
+            <div class="releases-grid" id="releasesGrid">
+                <!-- Magazine releases will be loaded here -->
+                <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">⏳</div>
+                    <p style="color: var(--text-secondary);">Loading magazine releases...</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
 
     <!-- Articles Section -->
     <section class="articles-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title" data-en="Latest Articles" data-ar="أحدث المقالات">Latest Articles</h2>
+                <p class="section-subtitle" data-en="Stay updated with the latest insights and stories" data-ar="ابق على اطلاع بأحدث الأفكار والقصص">Stay updated with the latest insights and stories</p>
+            </div>
+            <div class="articles-grid" id="latestArticles">
+                <!-- Latest articles will be loaded here -->
+            </div>
+        </div>
+    </section>
 
+    <!-- Design & Architecture Section -->
+    <section class="articles-section" style="background: var(--light-bg);">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title" data-en="Design & Architecture" data-ar="التصميم والعمارة">Design & Architecture</h2>
+                <p class="section-subtitle" data-en="Exploring innovative design concepts and architectural trends" data-ar="استكشاف مفاهيم التصميم المبتكرة واتجاهات العمارة">Exploring innovative design concepts and architectural trends</p>
+            </div>
+            <div class="articles-grid" id="designArticles">
+                <!-- Design articles will be loaded here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Community & Events Section -->
+    <section class="articles-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title" data-en="Community & Events" data-ar="المجتمع والفعاليات">Community & Events</h2>
+                <p class="section-subtitle" data-en="Stories from our vibrant community and event highlights" data-ar="قصص من مجتمعنا النابض بالحياة وأبرز الفعاليات">Stories from our vibrant community and event highlights</p>
+            </div>
+            <div class="articles-grid" id="communityArticles">
+                <!-- Community articles will be loaded here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- All Articles Section -->
+    <section class="articles-section" style="background: var(--light-bg);">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title" data-en="All Articles" data-ar="جميع المقالات">All Articles</h2>
+                <p class="section-subtitle" data-en="Browse our complete collection of articles" data-ar="تصفح مجموعتنا الكاملة من المقالات">Browse our complete collection of articles</p>
+            </div>
+            <div class="articles-grid" id="allArticles">
+                <!-- All articles will be loaded here -->
+            </div>
+        </div>
     </section>
 
     <!-- Footer -->
@@ -294,6 +565,17 @@
         </div>
     </footer>
 
+    <!-- PDF Viewer Modal -->
+    <div class="pdf-modal" id="pdfModal">
+        <div class="pdf-modal-header">
+            <div class="pdf-modal-title" id="pdfModalTitle">Magazine Preview</div>
+            <button class="pdf-modal-close" id="pdfModalClose" aria-label="Close">&times;</button>
+        </div>
+        <div class="pdf-modal-content">
+            <iframe class="pdf-viewer-iframe" id="pdfViewerFrame"></iframe>
+        </div>
+    </div>
+
     <script src="js/three-effects.js"></script>
     <script src="js/main.js"></script>
     <script type="module">
@@ -305,28 +587,218 @@
           (new URLSearchParams(window.location.search).has('debug') ||
            localStorage.getItem('debug') === 'true');
 
+        // Magazine releases configuration
+        const RELEASES_FOLDER = 'static/magazine-releases/';
+        
+        // PDF Modal functionality
+        function initPDFModal() {
+            const modal = document.getElementById('pdfModal');
+            const closeBtn = document.getElementById('pdfModalClose');
+            const iframe = document.getElementById('pdfViewerFrame');
+            
+            window.openPDFViewer = function(pdfUrl, title) {
+                document.getElementById('pdfModalTitle').textContent = title;
+                iframe.src = pdfUrl;
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            };
+            
+            window.closePDFViewer = function() {
+                modal.classList.remove('active');
+                iframe.src = '';
+                document.body.style.overflow = '';
+            };
+            
+            closeBtn.addEventListener('click', window.closePDFViewer);
+            
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    window.closePDFViewer();
+                }
+            });
+            
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && modal.classList.contains('active')) {
+                    window.closePDFViewer();
+                }
+            });
+        }
+        
+        // Load magazine releases from static folder
+        async function loadMagazineReleases() {
+            const releasesGrid = document.getElementById('releasesGrid');
+            
+            if (!releasesGrid) return;
+            
+            try {
+                console.log('[Magazine] Loading magazine releases...');
+                
+                // List of PDF files in the releases folder
+                // Since we can't dynamically list files from a static folder in browser,
+                // we'll try to load a manifest file or use a predefined list
+                const releases = await fetchMagazineReleases();
+                
+                if (releases.length === 0) {
+                    releasesGrid.innerHTML = `
+                        <div class="empty-releases" style="grid-column: 1/-1;">
+                            <div class="empty-releases-icon">📚</div>
+                            <h3 data-en="No Releases Yet" data-ar="لا توجد إصدارات بعد">No Releases Yet</h3>
+                            <p data-en="Check back soon for our magazine releases!" data-ar="تحقق مرة أخرى قريباً للحصول على إصدارات مجلتنا!">Check back soon for our magazine releases!</p>
+                        </div>
+                    `;
+                    console.log('[Magazine] No releases found');
+                    return;
+                }
+                
+                console.log(`[Magazine] Found ${releases.length} release(s)`);
+                
+                // Display releases
+                releasesGrid.innerHTML = releases.map((release, index) => `
+                    <div class="release-card reveal">
+                        <div class="release-preview">
+                            📖
+                        </div>
+                        <div class="release-info">
+                            <h3 class="release-title">${release.title}</h3>
+                            <div class="release-date">📅 ${release.date}</div>
+                            <div class="release-actions">
+                                <a href="#" onclick="openPDFViewer('${release.url}', '${release.title}'); return false;" class="release-btn btn-view">
+                                    👁️ View
+                                </a>
+                                <a href="${release.url}" download class="release-btn btn-download">
+                                    ⬇️ Download
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('[Magazine] Error loading releases:', error);
+                releasesGrid.innerHTML = `
+                    <div class="empty-releases" style="grid-column: 1/-1;">
+                        <div class="empty-releases-icon">📚</div>
+                        <h3 data-en="No Releases Yet" data-ar="لا توجد إصدارات بعد">No Releases Yet</h3>
+                        <p data-en="Check back soon for our magazine releases!" data-ar="تحقق مرة أخرى قريباً للحصول على إصدارات مجلتنا!">Check back soon for our magazine releases!</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Fetch magazine releases
+        async function fetchMagazineReleases() {
+            // Try to fetch manifest file
+            try {
+                const response = await fetch(`${RELEASES_FOLDER}manifest.json`);
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.releases || [];
+                }
+            } catch (e) {
+                console.log('[Magazine] No manifest file found, checking for individual files');
+            }
+            
+            // If no manifest, try common filenames
+            const commonFiles = [
+                'issue-01.pdf',
+                'issue-02.pdf',
+                'issue-03.pdf',
+                'volume-1-issue-1.pdf',
+                'spring-2025.pdf',
+                'fall-2024.pdf',
+                'winter-2024.pdf'
+            ];
+            
+            const releases = [];
+            
+            for (const filename of commonFiles) {
+                try {
+                    const url = `${RELEASES_FOLDER}${filename}`;
+                    const response = await fetch(url, { method: 'HEAD' });
+                    if (response.ok) {
+                        // Extract title from filename
+                        const title = filename
+                            .replace('.pdf', '')
+                            .split('-')
+                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                            .join(' ');
+                        
+                        releases.push({
+                            title: title,
+                            url: url,
+                            date: 'Release Date',
+                            filename: filename
+                        });
+                    }
+                } catch (e) {
+                    // File doesn't exist, continue
+                }
+            }
+            
+            return releases;
+        }
+
+        // Function to create article card HTML
+        function createArticleCard(article, index, categoryOverride = null) {
+            const dateInfo = dataLoader.formatDate(article.date);
+            
+            // Skip articles with invalid dates
+            if (!dateInfo) {
+                console.warn('[Magazine] Skipping article with invalid date:', article.title);
+                return '';
+            }
+            
+            const categories = ['Design', 'Sustainability', 'Technology', 'History', 'Inspiration', 'Community'];
+            const category = categoryOverride || categories[index % categories.length];
+            const icons = ['📐', '🌿', '💻', '🏛️', '🎨', '👥'];
+            const icon = icons[index % icons.length];
+            
+            return `
+                <div class="article-card reveal">
+                    <div class="article-image" style="${article.imageUrl ? `background-image: url('${article.imageUrl}'); background-size: cover; background-position: center;` : ''}">
+                        ${article.imageUrl ? '' : icon}
+                        <span class="article-category">${category}</span>
+                    </div>
+                    <div class="article-content">
+                        <div class="article-meta">
+                            <span>📅 ${dateInfo.month} ${dateInfo.day}, ${dateInfo.year}</span>
+                            <span>⏱️ ${Math.floor(Math.random() * 5) + 3} min read</span>
+                        </div>
+                        <h3 class="article-title">${article.title}</h3>
+                        <p class="article-excerpt">
+                            ${article.summary}
+                        </p>
+                        ${article.readMoreUrl ? 
+                            `<a href="${article.readMoreUrl}" class="read-more" target="_blank" rel="noopener noreferrer">Read More →</a>` : 
+                            `<a href="articles.html?id=${article.id}" class="read-more">Read More →</a>`
+                        }
+                    </div>
+                </div>
+            `;
+        }
+
         // Load magazine data from Firebase using Data Loader
         async function loadMagazine() {
             const featuredContent = document.getElementById('featuredContent');
-            const gridContainer = document.querySelector('.articles-grid');
+            const latestArticles = document.getElementById('latestArticles');
+            const designArticles = document.getElementById('designArticles');
+            const communityArticles = document.getElementById('communityArticles');
+            const allArticles = document.getElementById('allArticles');
             
-            // Show loading state
+            // Show loading state for all grids
+            const loadingHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">⏳</div>
+                    <p style="color: var(--text-secondary);">Loading articles...</p>
+                </div>
+            `;
+            
             if (featuredContent) {
-                featuredContent.innerHTML = `
-                    <div class="loading-container">
-                        <div class="loading-spinner"></div>
-                        <p class="loading-text">Loading magazine content...</p>
-                    </div>
-                `;
+                featuredContent.innerHTML = loadingHTML;
             }
-            if (gridContainer) {
-                gridContainer.innerHTML = `
-                    <div class="loading-container">
-                        <div class="loading-spinner"></div>
-                        <p class="loading-text">Loading articles...</p>
-                    </div>
-                `;
-            }
+            [latestArticles, designArticles, communityArticles, allArticles].forEach(grid => {
+                if (grid) grid.innerHTML = loadingHTML;
+            });
             
             try {
                 console.log('[Magazine] Loading magazine using Data Loader...');
@@ -385,121 +857,152 @@
                                     <div class="article-date">📅 ${dateInfo.month} ${dateInfo.year}</div>
                                     <h2>${featured.title}</h2>
                                     <p>${featured.summary}</p>
-                                    <p>${featured.content || ''}</p>
+                                    ${featured.content ? `<p>${featured.content.substring(0, 200)}...</p>` : ''}
                                     ${featured.readMoreUrl ? 
                                         `<a href="${featured.readMoreUrl}" class="btn btn-primary" target="_blank" rel="noopener noreferrer">Read Full Article</a>` : 
-                                        ''
+                                        `<a href="articles.html?id=${featured.id}" class="btn btn-primary">Read Full Article</a>`
                                     }
                                 </div>
                             `;
                         } else {
                             console.warn('[Magazine] Featured article has invalid date');
                             featuredContent.innerHTML = `
-                                <div class="empty-state">
-                                    <div class="empty-icon">📰</div>
-                                    <h3 class="empty-title">No Featured Article</h3>
-                                    <p class="empty-message">Check back soon for our featured content!</p>
+                                <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                                    <div style="font-size: 4rem; margin-bottom: 1rem;">📰</div>
+                                    <h3 style="color: var(--primary-color); margin-bottom: 0.5rem;">No Featured Article</h3>
+                                    <p style="color: var(--text-secondary);">Check back soon for our featured content!</p>
                                 </div>
                             `;
                         }
                     } else if (featuredContent) {
                         featuredContent.innerHTML = `
-                            <div class="empty-state">
-                                <div class="empty-icon">📰</div>
-                                <h3 class="empty-title">No Featured Article</h3>
-                                <p class="empty-message">Check back soon for our featured content!</p>
+                            <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                                <div style="font-size: 4rem; margin-bottom: 1rem;">📰</div>
+                                <h3 style="color: var(--primary-color); margin-bottom: 0.5rem;">No Featured Article</h3>
+                                <p style="color: var(--text-secondary);">Check back soon for our featured content!</p>
                             </div>
                         `;
                     }
                     
-                    // Load articles grid
-                    if (magazineData.articles && magazineData.articles.length > 0 && gridContainer) {
-                        gridContainer.innerHTML = '';
+                    // Process all articles
+                    if (magazineData.articles && magazineData.articles.length > 0) {
+                        const allArticlesList = [...magazineData.articles];
                         
-                        // Show all or skip first if it's featured
-                        const articlesToShow = magazineData.featuredArticle ? magazineData.articles.slice(1) : magazineData.articles;
-                        
-                        articlesToShow.forEach((article, index) => {
-                            const dateInfo = dataLoader.formatDate(article.date);
-                            
-                            // Skip articles with invalid dates
-                            if (!dateInfo) {
-                                console.warn('[Magazine] Skipping article with invalid date:', article.title);
-                                return;
+                        // Latest Articles (first 3)
+                        if (latestArticles) {
+                            const latest = allArticlesList.slice(0, 3);
+                            if (latest.length > 0) {
+                                latestArticles.innerHTML = latest.map((article, index) => 
+                                    createArticleCard(article, index)
+                                ).join('');
+                            } else {
+                                latestArticles.innerHTML = `
+                                    <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                                        <p style="color: var(--text-secondary);">No articles available yet</p>
+                                    </div>
+                                `;
                             }
-                            
-                            const categories = ['Design', 'Sustainability', 'Technology', 'History', 'Inspiration', 'Community'];
-                            const category = categories[index % categories.length];
-                            
-                            const articleCard = `
-                                <div class="article-card reveal">
-                                    <div class="article-image" style="${article.imageUrl ? `background-image: url('${article.imageUrl}'); background-size: cover; background-position: center;` : ''}">
-                                        ${article.imageUrl ? '' : ['📐', '🌿', '💻', '🏛️', '🎨', '👥'][index % 6]}
-                                        <span class="article-category">${category}</span>
+                        }
+                        
+                        // Design Articles (articles 3-6 or with Design category)
+                        if (designArticles) {
+                            const design = allArticlesList.slice(3, 6);
+                            if (design.length > 0) {
+                                designArticles.innerHTML = design.map((article, index) => 
+                                    createArticleCard(article, index, 'Design')
+                                ).join('');
+                            } else {
+                                designArticles.innerHTML = `
+                                    <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                                        <p style="color: var(--text-secondary);">No design articles available yet</p>
                                     </div>
-                                    <div class="article-content">
-                                        <div class="article-meta">
-                                            <span>📅 ${dateInfo.month} ${dateInfo.day}, ${dateInfo.year}</span>
-                                            <span>⏱️ 5 min read</span>
-                                        </div>
-                                        <h3 class="article-title">${article.title}</h3>
-                                        <p class="article-excerpt">
-                                            ${article.summary}
-                                        </p>
-                                        ${article.readMoreUrl ? 
-                                            `<a href="${article.readMoreUrl}" class="read-more" target="_blank" rel="noopener noreferrer">Read More →</a>` : 
-                                            ''
-                                        }
+                                `;
+                            }
+                        }
+                        
+                        // Community Articles (articles 6-9 or with Community category)
+                        if (communityArticles) {
+                            const community = allArticlesList.slice(6, 9);
+                            if (community.length > 0) {
+                                communityArticles.innerHTML = community.map((article, index) => 
+                                    createArticleCard(article, index, 'Community')
+                                ).join('');
+                            } else {
+                                communityArticles.innerHTML = `
+                                    <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                                        <p style="color: var(--text-secondary);">No community articles available yet</p>
                                     </div>
-                                </div>
-                            `;
-                            gridContainer.innerHTML += articleCard;
-                        });
-                    } else if (gridContainer) {
-                        gridContainer.innerHTML = `
-                            <div class="empty-state">
-                                <div class="empty-icon">📄</div>
-                                <h3 class="empty-title">No Articles Available</h3>
-                                <p class="empty-message">New articles coming soon!</p>
+                                `;
+                            }
+                        }
+                        
+                        // All Articles
+                        if (allArticles) {
+                            if (allArticlesList.length > 0) {
+                                allArticles.innerHTML = allArticlesList.map((article, index) => 
+                                    createArticleCard(article, index)
+                                ).join('');
+                            } else {
+                                allArticles.innerHTML = `
+                                    <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                                        <div style="font-size: 4rem; margin-bottom: 1rem;">📄</div>
+                                        <h3 style="color: var(--primary-color); margin-bottom: 0.5rem;">No Articles Available</h3>
+                                        <p style="color: var(--text-secondary);">New articles coming soon!</p>
+                                    </div>
+                                `;
+                            }
+                        }
+                    } else {
+                        // Show empty state for all grids
+                        const emptyHTML = `
+                            <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                                <div style="font-size: 4rem; margin-bottom: 1rem;">📄</div>
+                                <h3 style="color: var(--primary-color); margin-bottom: 0.5rem;">No Articles Available</h3>
+                                <p style="color: var(--text-secondary);">New articles coming soon!</p>
                             </div>
                         `;
+                        [latestArticles, designArticles, communityArticles, allArticles].forEach(grid => {
+                            if (grid) grid.innerHTML = emptyHTML;
+                        });
                     }
                 } else {
                     // Show empty state for all containers
-                    if (featuredContent) {
-                        featuredContent.innerHTML = `
-                            <div class="empty-state">
-                                <div class="empty-icon">📰</div>
-                                <h3 class="empty-title">No Content Available</h3>
-                                <p class="empty-message">Magazine content is being prepared. Check back soon!</p>
-                            </div>
-                        `;
-                    }
-                    if (gridContainer) {
-                        gridContainer.innerHTML = '';
-                    }
+                    const emptyHTML = `
+                        <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                            <div style="font-size: 4rem; margin-bottom: 1rem;">📰</div>
+                            <h3 style="color: var(--primary-color); margin-bottom: 0.5rem;">No Content Available</h3>
+                            <p style="color: var(--text-secondary);">Magazine content is being prepared. Check back soon!</p>
+                        </div>
+                    `;
+                    if (featuredContent) featuredContent.innerHTML = emptyHTML;
+                    [latestArticles, designArticles, communityArticles, allArticles].forEach(grid => {
+                        if (grid) grid.innerHTML = emptyHTML;
+                    });
                 }
             } catch (error) {
                 console.error('[Magazine] ✗ Error loading magazine:', error);
                 // Show error state
-                if (featuredContent) {
-                    featuredContent.innerHTML = `
-                        <div class="error-container">
-                            <div class="error-icon">⚠️</div>
-                            <h3 class="error-title">Unable to Load Magazine</h3>
-                            <p class="error-message">There was a problem loading the magazine content. Please check your connection and try again.</p>
-                            <button class="retry-btn" onclick="location.reload()">Try Again</button>
-                        </div>
-                    `;
-                }
-                if (gridContainer) {
-                    gridContainer.innerHTML = '';
-                }
+                const errorHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">⚠️</div>
+                        <h3 style="color: var(--primary-color); margin-bottom: 0.5rem;">Unable to Load Articles</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem;">There was a problem loading the content. Please try again.</p>
+                        <button class="btn btn-primary" onclick="location.reload()">Retry</button>
+                    </div>
+                `;
+                if (featuredContent) featuredContent.innerHTML = errorHTML;
+                [latestArticles, designArticles, communityArticles, allArticles].forEach(grid => {
+                    if (grid) grid.innerHTML = errorHTML;
+                });
             }
         }
         
         // Load magazine when page loads
-        document.addEventListener('DOMContentLoaded', loadMagazine);
+        document.addEventListener('DOMContentLoaded', function() {
+            initPDFModal();
+            loadMagazineReleases();
+            loadMagazine();
+        });
     </script>
 </body>
 </html>
