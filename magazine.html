@@ -808,6 +808,9 @@
                 
                 console.log('[PDF Viewer] Full PDF URL:', fullPdfUrl);
                 
+                // Sanitize filename for download
+                const sanitizedFilename = title.replace(/[^a-z0-9]/gi, '-').toLowerCase() + '.pdf';
+                
                 // Use iframe with PDF.js viewer or native browser PDF viewer
                 modalContent.innerHTML = `
                     <iframe 
@@ -820,7 +823,7 @@
                         <h3>📄 PDF Viewer</h3>
                         <p>Unable to display PDF inline.</p>
                         <p>You can download or view the PDF:</p>
-                        <a href="${fullPdfUrl}" class="btn btn-primary" download="${title}.pdf" style="display: inline-block; padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 8px; margin: 0.5rem; font-weight: 600;">
+                        <a href="#" onclick="downloadPDF('${pdfUrl}', '${sanitizedFilename}'); return false;" class="btn btn-primary" style="display: inline-block; padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 8px; margin: 0.5rem; font-weight: 600;">
                             ⬇️ Download PDF
                         </a>
                         <a href="${fullPdfUrl}" class="btn btn-secondary" target="_blank" style="display: inline-block; padding: 0.75rem 1.5rem; background: #718096; color: white; text-decoration: none; border-radius: 8px; margin: 0.5rem; font-weight: 600;">
@@ -973,7 +976,11 @@
                 console.log(`[Magazine] Found ${releases.length} release(s)`);
                 
                 // Display releases
-                releasesGrid.innerHTML = releases.map((release, index) => `
+                releasesGrid.innerHTML = releases.map((release, index) => {
+                    // Sanitize filename for download
+                    const downloadFilename = release.filename || (release.title.replace(/[^a-z0-9]/gi, '-').toLowerCase() + '.pdf');
+                    
+                    return `
                     <div class="release-card reveal">
                         <div class="release-preview" id="pdf-preview-${index}">
                             📖
@@ -985,13 +992,14 @@
                                 <a href="#" onclick="openPDFViewer('${release.url}', '${release.title.replace(/'/g, "\\'")}'); return false;" class="release-btn btn-view">
                                     👁️ View
                                 </a>
-                                <a href="${release.url}" download="${release.filename || release.title + '.pdf'}" class="release-btn btn-download">
+                                <a href="#" onclick="downloadPDF('${release.url}', '${downloadFilename}'); return false;" class="release-btn btn-download">
                                     ⬇️ Download
                                 </a>
                             </div>
                         </div>
                     </div>
-                `).join('');
+                `;
+                }).join('');
                 
                 // Generate thumbnails for each release
                 releases.forEach((release, index) => {
@@ -1379,18 +1387,39 @@
         window.downloadPDF = function(url, filename) {
             console.log('[PDF Download] Downloading:', url);
             
-            // Create a temporary link element
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename || 'magazine.pdf';
-            link.style.display = 'none';
-            
-            // Append to body, click, and remove
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            console.log('[PDF Download] Download initiated');
+            try {
+                // Ensure URL is properly formatted
+                let downloadUrl = url;
+                if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('blob:')) {
+                    // Remove leading slash if present to avoid double slash
+                    const cleanPath = url.startsWith('/') ? url.substring(1) : url;
+                    downloadUrl = `${window.location.origin}/${cleanPath}`;
+                }
+                
+                console.log('[PDF Download] Download URL:', downloadUrl);
+                
+                // Create a temporary link element
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = filename || 'magazine.pdf';
+                link.style.display = 'none';
+                link.target = '_blank';  // Fallback if download attribute is not supported
+                
+                // Append to body, click, and remove
+                document.body.appendChild(link);
+                link.click();
+                
+                // Clean up after a short delay
+                setTimeout(() => {
+                    document.body.removeChild(link);
+                }, 100);
+                
+                console.log('[PDF Download] ✓ Download initiated');
+            } catch (error) {
+                console.error('[PDF Download] ✗ Error downloading PDF:', error);
+                // Fallback: open in new tab
+                window.open(url, '_blank');
+            }
         };
         
         // Load magazine when page loads
