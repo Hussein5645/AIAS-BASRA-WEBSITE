@@ -406,8 +406,9 @@
 
     <script src="js/main.js"></script>
     <script type="module">
-        // Import Data Loader
+        // Import Data Loader and Categories Loader
         import dataLoader from "./js/data-loader.js";
+        import categoriesLoader from "./js/categories-loader.js";
 
         // Debug toggle: enable via ?debug=true or localStorage.setItem('debug','true')
         const DEBUG =
@@ -567,26 +568,8 @@
         }
         
         function initializeFilters() {
-            // Filter functionality
-            const filterBtns = document.querySelectorAll('.filter-btn');
-            const resourceCards = document.querySelectorAll('.resource-card');
-            
-            filterBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    filterBtns.forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    
-                    const category = btn.dataset.category;
-                    
-                    resourceCards.forEach(card => {
-                        if (category === 'all' || card.dataset.category === category) {
-                            card.style.display = 'block';
-                        } else {
-                            card.style.display = 'none';
-                        }
-                    });
-                });
-            });
+            // Filter functionality - this will be called after categories are loaded
+            attachFilterListeners();
             
             // Search functionality with debouncing
             const searchInput = document.getElementById('searchInput');
@@ -599,10 +582,11 @@
                     // Set new timeout for debounced search
                     searchTimeout = setTimeout(() => {
                         const searchTerm = e.target.value.toLowerCase();
+                        const resourceCards = document.querySelectorAll('.resource-card');
                         
                         resourceCards.forEach(card => {
-                            const title = card.querySelector('.resource-title').textContent.toLowerCase();
-                            const description = card.querySelector('.resource-description').textContent.toLowerCase();
+                            const title = card.querySelector('.resource-title')?.textContent.toLowerCase() || '';
+                            const description = card.querySelector('.resource-description')?.textContent.toLowerCase() || '';
                             
                             if (title.includes(searchTerm) || description.includes(searchTerm)) {
                                 card.style.display = 'block';
@@ -652,6 +636,59 @@
             modal.style.display = 'block';
         };
         
+        // Function to populate category filter buttons from JSON
+        async function populateCategoryFilters() {
+            try {
+                console.log('[Library] Loading category filters from JSON...');
+                const categories = await categoriesLoader.getLibraryCategoriesBasic();
+                const filterContainer = document.querySelector('.category-filters');
+                
+                if (!filterContainer) {
+                    console.warn('[Library] Category filter container not found');
+                    return;
+                }
+                
+                // Build filter buttons HTML
+                let filtersHTML = '<button class="filter-btn active" data-category="all" data-en="All Resources" data-ar="جميع الموارد">All Resources</button>';
+                
+                categories.forEach(cat => {
+                    const labelEn = cat.label;
+                    const labelAr = cat.label === 'File' ? 'ملفات' : 'محاضرات';
+                    filtersHTML += `<button class="filter-btn" data-category="${cat.value}" data-en="${labelEn}s" data-ar="${labelAr}">${labelEn}s</button>`;
+                });
+                
+                filterContainer.innerHTML = filtersHTML;
+                
+                // Re-attach event listeners for filters
+                attachFilterListeners();
+                
+                console.log('[Library] ✓ Category filters loaded successfully');
+            } catch (error) {
+                console.error('[Library] ✗ Error loading category filters:', error);
+            }
+        }
+        
+        // Function to attach filter button event listeners
+        function attachFilterListeners() {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    const category = btn.dataset.category;
+                    const cards = document.querySelectorAll('.resource-card');
+                    
+                    cards.forEach(card => {
+                        if (category === 'all' || card.dataset.category === category) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        }
+        
         // Function to close YouTube modal
         window.closeYouTubeModal = function() {
             const modal = document.getElementById('youtubeModal');
@@ -661,8 +698,11 @@
             }
         };
         
-        // Load library when page loads
-        document.addEventListener('DOMContentLoaded', loadLibrary);
+        // Load library and category filters when page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            await populateCategoryFilters();
+            await loadLibrary();
+        });
     </script>
     <script src="js/three-effects.js"></script>
 </body>

@@ -471,6 +471,54 @@
     <script src="js/navigation.js"></script>
     <script src="js/control-panel.js"></script>
     <script>
+        // Load categories from data.json and populate filter panel
+        async function loadCategoriesFromJSON() {
+            try {
+                const response = await fetch('data/data.json');
+                const data = await response.json();
+                const categories = data.categories?.library?.enhanced || ['Books', 'Guides', 'Templates', 'Research'];
+                
+                // Find the categories filter group
+                const filterGroups = document.querySelectorAll('.filter-group');
+                let categoryGroup = null;
+                filterGroups.forEach(group => {
+                    const title = group.querySelector('.filter-group-title');
+                    if (title && title.textContent === 'Categories') {
+                        categoryGroup = group;
+                    }
+                });
+                
+                if (categoryGroup) {
+                    // Keep the title, rebuild the options
+                    const titleEl = categoryGroup.querySelector('.filter-group-title');
+                    categoryGroup.innerHTML = '';
+                    categoryGroup.appendChild(titleEl);
+                    
+                    categories.forEach(cat => {
+                        const optionDiv = document.createElement('div');
+                        optionDiv.className = 'filter-option';
+                        optionDiv.innerHTML = `
+                            <label class="filter-checkbox">
+                                <input type="checkbox" data-filter-type="category" value="${cat}">
+                                <span class="checkmark"></span>
+                            </label>
+                            <span class="filter-label">${cat}</span>
+                            <span class="filter-count">(0)</span>
+                        `;
+                        categoryGroup.appendChild(optionDiv);
+                    });
+                    
+                    console.log('[Library Enhanced] ✓ Categories loaded from JSON');
+                }
+            } catch (error) {
+                console.error('[Library Enhanced] ✗ Error loading categories:', error);
+            }
+        }
+        
+        // Load categories when page loads
+        document.addEventListener('DOMContentLoaded', loadCategoriesFromJSON);
+    </script>
+    <script>
         // Sample data for demonstration
         const sampleResources = [
             {

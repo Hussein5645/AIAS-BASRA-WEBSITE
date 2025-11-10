@@ -452,6 +452,7 @@
     import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import FirestoreAPI from "./js/firestore-api.js";
+    import categoriesLoader from "./js/categories-loader.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
@@ -529,9 +530,59 @@
         localStorage.setItem('aias_is_admin','true');
         localStorage.setItem('aias_user_uid', user.uid);
         document.getElementById('currentLang').textContent = (localStorage.getItem('language') || 'EN').toUpperCase();
+        
+        // Populate category dropdowns from JSON
+        await populateCategoryDropdowns();
+        
         showTab('events'); // default
       });
     })();
+
+    /*************************************************
+     * تحميل الفئات من JSON
+     *************************************************/
+    async function populateCategoryDropdowns() {
+      try {
+        console.log('[Admin Dashboard] Loading categories from JSON...');
+        
+        // Load event types
+        const eventTypes = await categoriesLoader.getEventTypes();
+        const eventTypeSelect = document.getElementById('eventType');
+        const fbdEventTypeSelect = document.getElementById('fbdEventType');
+        
+        if (eventTypeSelect) {
+          const currentValue = eventTypeSelect.value;
+          eventTypeSelect.innerHTML = eventTypes.map(type => 
+            `<option value="${type}">${type}</option>`
+          ).join('');
+          if (currentValue) eventTypeSelect.value = currentValue;
+        }
+        
+        if (fbdEventTypeSelect) {
+          const currentValue = fbdEventTypeSelect.value;
+          fbdEventTypeSelect.innerHTML = eventTypes.map(type => 
+            `<option value="${type}">${type}</option>`
+          ).join('');
+          if (currentValue) fbdEventTypeSelect.value = currentValue;
+        }
+        
+        // Load library categories (basic)
+        const libraryCategories = await categoriesLoader.getLibraryCategoriesBasic();
+        const libCategorySelect = document.getElementById('libCategory');
+        
+        if (libCategorySelect) {
+          const currentValue = libCategorySelect.value;
+          libCategorySelect.innerHTML = libraryCategories.map(cat => 
+            `<option value="${cat.value}">${cat.label}</option>`
+          ).join('');
+          if (currentValue) libCategorySelect.value = currentValue;
+        }
+        
+        console.log('[Admin Dashboard] ✓ Categories loaded successfully');
+      } catch (error) {
+        console.error('[Admin Dashboard] ✗ Error loading categories:', error);
+      }
+    }
 
     /*************************************************
      * رسائل واجهة
