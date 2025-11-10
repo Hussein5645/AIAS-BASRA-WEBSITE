@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Library - AIAS Basra Chapter</title>
+    <link rel="icon" type="image/png" href="static/images/branding/LOGO.png">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/animations.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -342,10 +343,8 @@
         <div class="container">
             <div class="category-filters">
                 <button class="filter-btn active" data-category="all" data-en="All Resources" data-ar="جميع الموارد">All Resources</button>
-                <button class="filter-btn" data-category="books" data-en="Books" data-ar="كتب">Books</button>
-                <button class="filter-btn" data-category="guides" data-en="Guides" data-ar="أدلة">Guides</button>
-                <button class="filter-btn" data-category="templates" data-en="Templates" data-ar="قوالب">Templates</button>
-                <button class="filter-btn" data-category="research" data-en="Research" data-ar="بحث">Research</button>
+                <button class="filter-btn" data-category="file" data-en="Files" data-ar="ملفات">Files</button>
+                <button class="filter-btn" data-category="lecture" data-en="Lectures" data-ar="محاضرات">Lectures</button>
             </div>
             
             <div class="resources-grid">
@@ -515,7 +514,7 @@
                         const categoryLabel = category === 'lecture' ? '🎓 Lecture' : '📄 File';
                         
                         const resourceCard = `
-                            <div class="resource-card reveal" data-category="${(item.type || '').toLowerCase()}">
+                            <div class="resource-card reveal" data-category="${category}">
                                 <div class="resource-thumbnail" style="${item.imageUrl ? `background-image: url('${item.imageUrl}'); background-size: cover; background-position: center;` : ''}">
                                     ${item.imageUrl ? '' : (item.image || '📄')}
                                     <span class="resource-type">${item.type || 'Resource'}</span>

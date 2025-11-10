@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Magazine - AIAS Basra Chapter</title>
+    <link rel="icon" type="image/png" href="static/images/branding/LOGO.png">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/animations.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,6 +12,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Authentication Check -->
     <script type="module" src="js/auth.js"></script>
+    <!-- PDF.js Library for PDF thumbnails -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // Configure PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
     <style>
         .magazine-hero {
             background: var(--gradient-1);
@@ -335,6 +342,36 @@
             overflow: hidden;
         }
         
+        .release-preview canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .release-preview .pdf-thumbnail {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #f0f0f0;
+        }
+        
+        .release-preview .loading-indicator {
+            position: absolute;
+            font-size: 2rem;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
         .release-preview::after {
             content: '';
             position: absolute;
@@ -343,6 +380,7 @@
             right: 0;
             height: 50%;
             background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.3) 100%);
+            z-index: 1;
         }
         
         .release-info {
@@ -752,6 +790,7 @@
             const modalContent = document.querySelector('.pdf-modal-content');
             
             window.openPDFViewer = function(pdfUrl, title) {
+                console.log('[PDF Viewer] Opening PDF:', pdfUrl);
                 document.getElementById('pdfModalTitle').textContent = title;
                 modal.classList.add('active');
                 document.body.style.overflow = 'hidden';
@@ -759,66 +798,61 @@
                 // Clear previous content
                 modalContent.innerHTML = '';
                 
-                // Create full URL for PDF
-                const fullPdfUrl = pdfUrl.startsWith('http') ? pdfUrl : `${window.location.origin}/${pdfUrl}`;
+                // Ensure URL is absolute
+                let fullPdfUrl = pdfUrl;
+                if (!pdfUrl.startsWith('http://') && !pdfUrl.startsWith('https://')) {
+                    // Remove leading slash if present to avoid double slash
+                    const cleanPath = pdfUrl.startsWith('/') ? pdfUrl.substring(1) : pdfUrl;
+                    fullPdfUrl = `${window.location.origin}/${cleanPath}`;
+                }
                 
-                // Add parameters to disable download prompt and show viewer
-                const pdfUrlWithParams = fullPdfUrl + '#toolbar=0&navpanes=0&scrollbar=1&view=FitH';
+                console.log('[PDF Viewer] Full PDF URL:', fullPdfUrl);
                 
-                // Try using object/embed for better PDF viewing
+                // Use iframe with PDF.js viewer or native browser PDF viewer
                 modalContent.innerHTML = `
-                    <object 
-                        class="pdf-viewer-object" 
-                        data="${pdfUrlWithParams}" 
+                    <iframe 
+                        class="pdf-viewer-iframe" 
+                        src="${fullPdfUrl}"
                         type="application/pdf"
-                        aria-label="PDF Viewer"
-                    >
-                        <embed 
-                            class="pdf-viewer-embed" 
-                            src="${pdfUrlWithParams}" 
-                            type="application/pdf"
-                        >
-                            <div class="pdf-fallback">
-                                <h3>📄 PDF Viewer</h3>
-                                <p>Your browser has built-in PDF support disabled or not available.</p>
-                                <p>You can still download or view the PDF:</p>
-                                <a href="${pdfUrl}" class="btn btn-primary" download="${title}.pdf">
-                                    ⬇️ Download PDF
-                                </a>
-                                <a href="${pdfUrl}" class="btn btn-secondary" target="_blank">
-                                    👁️ Open in New Tab
-                                </a>
-                            </div>
-                        </embed>
-                    </object>
+                        allowfullscreen
+                    ></iframe>
+                    <div class="pdf-fallback" style="display: none;">
+                        <h3>📄 PDF Viewer</h3>
+                        <p>Unable to display PDF inline.</p>
+                        <p>You can download or view the PDF:</p>
+                        <a href="${fullPdfUrl}" class="btn btn-primary" download="${title}.pdf" style="display: inline-block; padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 8px; margin: 0.5rem; font-weight: 600;">
+                            ⬇️ Download PDF
+                        </a>
+                        <a href="${fullPdfUrl}" class="btn btn-secondary" target="_blank" style="display: inline-block; padding: 0.75rem 1.5rem; background: #718096; color: white; text-decoration: none; border-radius: 8px; margin: 0.5rem; font-weight: 600;">
+                            👁️ Open in New Tab
+                        </a>
+                    </div>
                 `;
                 
-                // Alternative: If object/embed fails, try iframe as fallback
-                setTimeout(() => {
-                    const objectElement = modalContent.querySelector('object');
-                    if (objectElement && !objectElement.contentDocument) {
-                        console.log('[PDF Viewer] Trying iframe fallback');
-                        modalContent.innerHTML = `
-                            <iframe 
-                                class="pdf-viewer-iframe" 
-                                src="${pdfUrlWithParams}"
-                                type="application/pdf"
-                                allowfullscreen
-                            >
-                                <div class="pdf-fallback">
-                                    <h3>📄 PDF Viewer</h3>
-                                    <p>Your browser doesn't support inline PDF viewing.</p>
-                                    <a href="${pdfUrl}" class="btn btn-primary" download="${title}.pdf">
-                                        ⬇️ Download PDF
-                                    </a>
-                                    <a href="${pdfUrl}" class="btn btn-secondary" target="_blank">
-                                        👁️ Open in New Tab
-                                    </a>
-                                </div>
-                            </iframe>
-                        `;
-                    }
-                }, 1000);
+                // Check if iframe loaded successfully
+                const iframe = modalContent.querySelector('iframe');
+                const fallback = modalContent.querySelector('.pdf-fallback');
+                
+                // Show fallback after timeout if iframe doesn't load
+                const timeoutId = setTimeout(() => {
+                    console.log('[PDF Viewer] Timeout - showing fallback options');
+                    iframe.style.display = 'none';
+                    fallback.style.display = 'flex';
+                }, 5000);
+                
+                // If iframe loads successfully, clear timeout
+                iframe.addEventListener('load', () => {
+                    console.log('[PDF Viewer] PDF loaded successfully');
+                    clearTimeout(timeoutId);
+                });
+                
+                // If iframe fails to load, show fallback
+                iframe.addEventListener('error', () => {
+                    console.log('[PDF Viewer] Error loading PDF - showing fallback');
+                    clearTimeout(timeoutId);
+                    iframe.style.display = 'none';
+                    fallback.style.display = 'flex';
+                });
             };
             
             window.closePDFViewer = function() {
@@ -840,6 +874,74 @@
                     window.closePDFViewer();
                 }
             });
+        }
+        
+        // Function to generate PDF thumbnail from first page
+        async function generatePDFThumbnail(pdfUrl, containerId) {
+            try {
+                console.log(`[PDF Thumbnail] Generating thumbnail for: ${pdfUrl}`);
+                
+                // Get the container element
+                const container = document.getElementById(containerId);
+                if (!container) {
+                    console.error(`[PDF Thumbnail] Container not found: ${containerId}`);
+                    return;
+                }
+                
+                // Show loading indicator
+                container.innerHTML = '<div class="loading-indicator">⏳</div>';
+                
+                // Ensure URL is absolute
+                let fullPdfUrl = pdfUrl;
+                if (!pdfUrl.startsWith('http://') && !pdfUrl.startsWith('https://')) {
+                    const cleanPath = pdfUrl.startsWith('/') ? pdfUrl.substring(1) : pdfUrl;
+                    fullPdfUrl = `${window.location.origin}/${cleanPath}`;
+                }
+                
+                // Load PDF
+                const loadingTask = pdfjsLib.getDocument(fullPdfUrl);
+                const pdf = await loadingTask.promise;
+                
+                console.log(`[PDF Thumbnail] PDF loaded, pages: ${pdf.numPages}`);
+                
+                // Get first page
+                const page = await pdf.getPage(1);
+                
+                // Calculate scale to fit container
+                const viewport = page.getViewport({ scale: 1.0 });
+                const containerWidth = container.offsetWidth || 300;
+                const scale = containerWidth / viewport.width;
+                const scaledViewport = page.getViewport({ scale: scale * 2 }); // 2x for retina
+                
+                // Create canvas
+                const canvas = document.createElement('canvas');
+                canvas.className = 'pdf-thumbnail';
+                const context = canvas.getContext('2d');
+                canvas.height = scaledViewport.height;
+                canvas.width = scaledViewport.width;
+                
+                // Render PDF page to canvas
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: scaledViewport
+                };
+                
+                await page.render(renderContext).promise;
+                
+                // Replace loading indicator with canvas
+                container.innerHTML = '';
+                container.appendChild(canvas);
+                
+                console.log(`[PDF Thumbnail] ✓ Thumbnail generated successfully`);
+                
+            } catch (error) {
+                console.error('[PDF Thumbnail] Error generating thumbnail:', error);
+                // Keep the fallback emoji
+                const container = document.getElementById(containerId);
+                if (container) {
+                    container.innerHTML = '📖';
+                }
+            }
         }
         
         // Load magazine releases from static folder
@@ -873,23 +975,31 @@
                 // Display releases
                 releasesGrid.innerHTML = releases.map((release, index) => `
                     <div class="release-card reveal">
-                        <div class="release-preview">
+                        <div class="release-preview" id="pdf-preview-${index}">
                             📖
                         </div>
                         <div class="release-info">
                             <h3 class="release-title">${release.title}</h3>
                             <div class="release-date">📅 ${release.date}</div>
                             <div class="release-actions">
-                                <a href="#" onclick="openPDFViewer('${release.url}', '${release.title}'); return false;" class="release-btn btn-view">
+                                <a href="#" onclick="openPDFViewer('${release.url}', '${release.title.replace(/'/g, "\\'")}'); return false;" class="release-btn btn-view">
                                     👁️ View
                                 </a>
-                                <a href="${release.url}" download class="release-btn btn-download">
+                                <a href="${release.url}" download="${release.filename || release.title + '.pdf'}" class="release-btn btn-download">
                                     ⬇️ Download
                                 </a>
                             </div>
                         </div>
                     </div>
                 `).join('');
+                
+                // Generate thumbnails for each release
+                releases.forEach((release, index) => {
+                    // Use setTimeout to avoid blocking the UI
+                    setTimeout(() => {
+                        generatePDFThumbnail(release.url, `pdf-preview-${index}`);
+                    }, index * 100); // Stagger the thumbnail generation
+                });
                 
             } catch (error) {
                 console.error('[Magazine] Error loading releases:', error);
@@ -1264,6 +1374,24 @@
                 }
             });
         }
+        
+        // Helper function to download PDF
+        window.downloadPDF = function(url, filename) {
+            console.log('[PDF Download] Downloading:', url);
+            
+            // Create a temporary link element
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename || 'magazine.pdf';
+            link.style.display = 'none';
+            
+            // Append to body, click, and remove
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            console.log('[PDF Download] Download initiated');
+        };
         
         // Load magazine when page loads
         document.addEventListener('DOMContentLoaded', function() {
