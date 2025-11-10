@@ -958,8 +958,9 @@
     <script src="js/three-effects.js"></script>
     <script src="js/main.js"></script>
     <script type="module">
-        // Import Data Loader
+        // Import Data Loader and Categories Loader
         import dataLoader from "./js/data-loader.js";
+        import categoriesLoader from "./js/categories-loader.js";
 
         // Debug toggle: enable via ?debug=true or localStorage.setItem('debug','true')
         const DEBUG =
@@ -1532,7 +1533,7 @@
         }
 
         // Function to create article card HTML
-        function createArticleCard(article, index, categoryOverride = null) {
+        async function createArticleCard(article, index, categoryOverride = null) {
             const dateInfo = dataLoader.formatDate(article.date);
             
             // Skip articles with invalid dates
@@ -1541,7 +1542,8 @@
                 return '';
             }
             
-            const categories = ['Design', 'Sustainability', 'Technology', 'History', 'Inspiration', 'Community'];
+            // Load categories from JSON configuration
+            const categories = await categoriesLoader.getMagazineCategories();
             const category = categoryOverride || categories[index % categories.length];
             const icons = ['📐', '🌿', '💻', '🏛️', '🎨', '👥'];
             const icon = icons[index % icons.length];
@@ -1685,9 +1687,10 @@
                         if (latestArticles) {
                             const latest = allArticlesList.slice(0, 3);
                             if (latest.length > 0) {
-                                latestArticles.innerHTML = latest.map((article, index) => 
+                                const cards = await Promise.all(latest.map((article, index) => 
                                     createArticleCard(article, index)
-                                ).join('');
+                                ));
+                                latestArticles.innerHTML = cards.join('');
                             } else {
                                 latestArticles.innerHTML = `
                                     <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
@@ -1701,9 +1704,10 @@
                         if (designArticles) {
                             const design = allArticlesList.slice(3, 6);
                             if (design.length > 0) {
-                                designArticles.innerHTML = design.map((article, index) => 
+                                const cards = await Promise.all(design.map((article, index) => 
                                     createArticleCard(article, index, 'Design')
-                                ).join('');
+                                ));
+                                designArticles.innerHTML = cards.join('');
                             } else {
                                 designArticles.innerHTML = `
                                     <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
@@ -1717,9 +1721,10 @@
                         if (communityArticles) {
                             const community = allArticlesList.slice(6, 9);
                             if (community.length > 0) {
-                                communityArticles.innerHTML = community.map((article, index) => 
+                                const cards = await Promise.all(community.map((article, index) => 
                                     createArticleCard(article, index, 'Community')
-                                ).join('');
+                                ));
+                                communityArticles.innerHTML = cards.join('');
                             } else {
                                 communityArticles.innerHTML = `
                                     <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
@@ -1732,9 +1737,10 @@
                         // All Articles
                         if (allArticles) {
                             if (allArticlesList.length > 0) {
-                                allArticles.innerHTML = allArticlesList.map((article, index) => 
+                                const cards = await Promise.all(allArticlesList.map((article, index) => 
                                     createArticleCard(article, index)
-                                ).join('');
+                                ));
+                                allArticles.innerHTML = cards.join('');
                             } else {
                                 allArticles.innerHTML = `
                                     <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">

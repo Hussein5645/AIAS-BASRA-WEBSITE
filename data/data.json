@@ -277,5 +277,32 @@
         "bio": "Committed to providing quality architectural education."
       }
     ]
+  },
+  "categories": {
+    "magazine": [
+      "Design",
+      "Sustainability",
+      "Technology",
+      "History",
+      "Inspiration",
+      "Community"
+    ],
+    "library": {
+      "basic": [
+        { "value": "file", "label": "File" },
+        { "value": "lecture", "label": "Lecture" }
+      ],
+      "enhanced": [
+        "Books",
+        "Guides",
+        "Templates",
+        "Research"
+      ]
+    },
+    "events": [
+      "Workshop",
+      "Lecture",
+      "Social"
+    ]
   }
 }
