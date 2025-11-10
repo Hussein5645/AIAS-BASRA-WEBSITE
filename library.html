@@ -648,13 +648,27 @@
                     return;
                 }
                 
+                // Get current language
+                const currentLang = localStorage.getItem('language') || 'en';
+                
                 // Build filter buttons HTML
                 let filtersHTML = '<button class="filter-btn active" data-category="all" data-en="All Resources" data-ar="جميع الموارد">All Resources</button>';
                 
                 categories.forEach(cat => {
-                    const labelEn = cat.label;
-                    const labelAr = cat.label === 'File' ? 'ملفات' : 'محاضرات';
-                    filtersHTML += `<button class="filter-btn" data-category="${cat.value}" data-en="${labelEn}s" data-ar="${labelAr}">${labelEn}s</button>`;
+                    // Handle both old format and new format with translations
+                    let labelEn, labelAr;
+                    
+                    if (typeof cat.label === 'string') {
+                        // Old format - use hardcoded translations
+                        labelEn = cat.label;
+                        labelAr = cat.label === 'File' ? 'ملفات' : 'محاضرات';
+                    } else {
+                        // New format with en/ar properties
+                        labelEn = cat.label.en;
+                        labelAr = cat.label.ar;
+                    }
+                    
+                    filtersHTML += `<button class="filter-btn" data-category="${cat.value}" data-en="${labelEn}s" data-ar="${labelAr}">${currentLang === 'ar' ? labelAr : labelEn + 's'}</button>`;
                 });
                 
                 filterContainer.innerHTML = filtersHTML;

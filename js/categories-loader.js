@@ -48,15 +48,31 @@ class CategoriesLoader {
      */
     getDefaultCategories() {
         return {
-            magazine: ['Design', 'Sustainability', 'Technology', 'History', 'Inspiration', 'Community'],
+            magazine: [
+                { en: 'Design', ar: 'التصميم' },
+                { en: 'Sustainability', ar: 'الاستدامة' },
+                { en: 'Technology', ar: 'التكنولوجيا' },
+                { en: 'History', ar: 'التاريخ' },
+                { en: 'Inspiration', ar: 'الإلهام' },
+                { en: 'Community', ar: 'المجتمع' }
+            ],
             library: {
                 basic: [
-                    { value: 'file', label: 'File' },
-                    { value: 'lecture', label: 'Lecture' }
+                    { value: 'file', label: { en: 'File', ar: 'ملف' } },
+                    { value: 'lecture', label: { en: 'Lecture', ar: 'محاضرة' } }
                 ],
-                enhanced: ['File', 'Lecture']
+                enhanced: [
+                    { en: 'Books', ar: 'كتب' },
+                    { en: 'Guides', ar: 'أدلة' },
+                    { en: 'Templates', ar: 'قوالب' },
+                    { en: 'Research', ar: 'أبحاث' }
+                ]
             },
-            events: ['Workshop', 'Lecture', 'Social']
+            events: [
+                { en: 'Workshop', ar: 'ورشة عمل' },
+                { en: 'Lecture', ar: 'محاضرة' },
+                { en: 'Social', ar: 'اجتماعي' }
+            ]
         };
     }
 
