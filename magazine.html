@@ -481,12 +481,50 @@
             flex: 1;
             overflow: hidden;
             position: relative;
+            background: #525659;
         }
         
         .pdf-viewer-iframe {
             width: 100%;
             height: 100%;
             border: none;
+            background: #fff;
+        }
+        
+        .pdf-viewer-embed {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .pdf-viewer-object {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .pdf-fallback {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--white);
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .pdf-fallback h3 {
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .pdf-fallback p {
+            margin-bottom: 1.5rem;
+            opacity: 0.9;
+        }
+        
+        .pdf-fallback .btn {
+            margin: 0.5rem;
         }
         
         @media (max-width: 768px) {
@@ -689,7 +727,7 @@
             <button class="pdf-modal-close" id="pdfModalClose" aria-label="Close">&times;</button>
         </div>
         <div class="pdf-modal-content">
-            <iframe class="pdf-viewer-iframe" id="pdfViewerFrame"></iframe>
+            <!-- PDF content will be loaded here dynamically -->
         </div>
     </div>
 
@@ -711,18 +749,81 @@
         function initPDFModal() {
             const modal = document.getElementById('pdfModal');
             const closeBtn = document.getElementById('pdfModalClose');
-            const iframe = document.getElementById('pdfViewerFrame');
+            const modalContent = document.querySelector('.pdf-modal-content');
             
             window.openPDFViewer = function(pdfUrl, title) {
                 document.getElementById('pdfModalTitle').textContent = title;
-                iframe.src = pdfUrl;
                 modal.classList.add('active');
                 document.body.style.overflow = 'hidden';
+                
+                // Clear previous content
+                modalContent.innerHTML = '';
+                
+                // Create full URL for PDF
+                const fullPdfUrl = pdfUrl.startsWith('http') ? pdfUrl : `${window.location.origin}/${pdfUrl}`;
+                
+                // Add parameters to disable download prompt and show viewer
+                const pdfUrlWithParams = fullPdfUrl + '#toolbar=0&navpanes=0&scrollbar=1&view=FitH';
+                
+                // Try using object/embed for better PDF viewing
+                modalContent.innerHTML = `
+                    <object 
+                        class="pdf-viewer-object" 
+                        data="${pdfUrlWithParams}" 
+                        type="application/pdf"
+                        aria-label="PDF Viewer"
+                    >
+                        <embed 
+                            class="pdf-viewer-embed" 
+                            src="${pdfUrlWithParams}" 
+                            type="application/pdf"
+                        >
+                            <div class="pdf-fallback">
+                                <h3>📄 PDF Viewer</h3>
+                                <p>Your browser has built-in PDF support disabled or not available.</p>
+                                <p>You can still download or view the PDF:</p>
+                                <a href="${pdfUrl}" class="btn btn-primary" download="${title}.pdf">
+                                    ⬇️ Download PDF
+                                </a>
+                                <a href="${pdfUrl}" class="btn btn-secondary" target="_blank">
+                                    👁️ Open in New Tab
+                                </a>
+                            </div>
+                        </embed>
+                    </object>
+                `;
+                
+                // Alternative: If object/embed fails, try iframe as fallback
+                setTimeout(() => {
+                    const objectElement = modalContent.querySelector('object');
+                    if (objectElement && !objectElement.contentDocument) {
+                        console.log('[PDF Viewer] Trying iframe fallback');
+                        modalContent.innerHTML = `
+                            <iframe 
+                                class="pdf-viewer-iframe" 
+                                src="${pdfUrlWithParams}"
+                                type="application/pdf"
+                                allowfullscreen
+                            >
+                                <div class="pdf-fallback">
+                                    <h3>📄 PDF Viewer</h3>
+                                    <p>Your browser doesn't support inline PDF viewing.</p>
+                                    <a href="${pdfUrl}" class="btn btn-primary" download="${title}.pdf">
+                                        ⬇️ Download PDF
+                                    </a>
+                                    <a href="${pdfUrl}" class="btn btn-secondary" target="_blank">
+                                        👁️ Open in New Tab
+                                    </a>
+                                </div>
+                            </iframe>
+                        `;
+                    }
+                }, 1000);
             };
             
             window.closePDFViewer = function() {
                 modal.classList.remove('active');
-                iframe.src = '';
+                modalContent.innerHTML = '';
                 document.body.style.overflow = '';
             };
             
