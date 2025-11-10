@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Library - AIAS Basra Chapter</title>
+    <link rel="icon" type="image/png" href="static/images/branding/LOGO.png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/navigation.css">
+    <link rel="stylesheet" href="css/control-panel.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .library-hero {
+            background: var(--gradient-1);
+            color: var(--white);
+            padding: 8rem 0 4rem;
+            text-align: center;
+            margin-top: 70px;
+        }
+        
+        .library-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .library-hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content-section {
+            padding: 3rem 0;
+        }
+        
+        .content-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .content-card-image {
+            height: 200px;
+            background: var(--gradient-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            position: relative;
+        }
+        
+        .content-card-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .content-card-body {
+            padding: 1.5rem;
+        }
+        
+        .content-card-title {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .content-card-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+        
+        .content-card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+            font-size: 0.875rem;
+        }
+        
+        .content-card-category {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .content-card-date {
+            color: var(--text-light);
+        }
+        
+        .content-card-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+        
+        .tag {
+            background: var(--light-bg);
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        @media (max-width: 768px) {
+            .library-hero h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Enhanced Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">
+                    <img src="static/images/branding/LOGO.png" alt="AIAS Basra Logo">
+                    <span>AIAS Basra</span>
+                </div>
+                <button class="menu-toggle" id="menuToggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <ul class="nav-links" id="navLinks">
+                    <li class="nav-item"><a href="index.html">Home</a></li>
+                    
+                    <!-- Programs Mega Menu -->
+                    <li class="nav-item">
+                        <a href="#" data-mega-menu="programsMegaMenu">Programs</a>
+                        <div class="mega-menu" id="programsMegaMenu">
+                            <div class="mega-menu-content">
+                                <div class="mega-menu-section">
+                                    <h3>Get Involved</h3>
+                                    <a href="events.html" class="mega-menu-link">
+                                        <div class="mega-menu-icon">📅</div>
+                                        <div class="mega-menu-link-content">
+                                            <div class="mega-menu-link-title">Events</div>
+                                            <div class="mega-menu-link-desc">Workshops, meetings, and competitions</div>
+                                        </div>
+                                    </a>
+                                    <a href="education.html" class="mega-menu-link">
+                                        <div class="mega-menu-icon">🎓</div>
+                                        <div class="mega-menu-link-content">
+                                            <div class="mega-menu-link-title">Education</div>
+                                            <div class="mega-menu-link-desc">Learning programs and courses</div>
+                                        </div>
+                                    </a>
+                                    <a href="fbd.html" class="mega-menu-link">
+                                        <div class="mega-menu-icon">🏗️</div>
+                                        <div class="mega-menu-link-content">
+                                            <div class="mega-menu-link-title">Freedom By Design</div>
+                                            <div class="mega-menu-link-desc">Community service projects</div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <!-- Resources Mega Menu -->
+                    <li class="nav-item">
+                        <a href="#" data-mega-menu="resourcesMegaMenu">Resources</a>
+                        <div class="mega-menu" id="resourcesMegaMenu">
+                            <div class="mega-menu-content">
+                                <div class="mega-menu-section">
+                                    <h3>Learn & Explore</h3>
+                                    <a href="library-enhanced.html" class="mega-menu-link">
+                                        <div class="mega-menu-icon">📚</div>
+                                        <div class="mega-menu-link-content">
+                                            <div class="mega-menu-link-title">Library</div>
+                                            <div class="mega-menu-link-desc">Books, guides, and templates</div>
+                                        </div>
+                                    </a>
+                                    <a href="magazine.html" class="mega-menu-link">
+                                        <div class="mega-menu-icon">📰</div>
+                                        <div class="mega-menu-link-content">
+                                            <div class="mega-menu-link-title">Magazine</div>
+                                            <div class="mega-menu-link-desc">Articles and publications</div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <!-- About Dropdown -->
+                    <li class="nav-item">
+                        <a href="#">About</a>
+                        <div class="dropdown-menu">
+                            <a href="about.html">About Us</a>
+                            <a href="gallery.html">Gallery</a>
+                        </div>
+                    </li>
+                    
+                    <!-- Search -->
+                    <li class="header-search">
+                        <button class="search-trigger" id="searchTrigger">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="m21 21-4.35-4.35"/>
+                            </svg>
+                            <span>Search...</span>
+                        </button>
+                    </li>
+                    
+                    <!-- CTA Button -->
+                    <li class="nav-cta">
+                        <a href="signup.html" class="btn-cta">Join Us</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Search Modal -->
+    <div class="search-modal" id="searchModal">
+        <div class="search-modal-content">
+            <div class="search-input-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input 
+                    type="text" 
+                    id="siteSearchInput" 
+                    placeholder="Search pages, events, articles..."
+                    autocomplete="off"
+                >
+            </div>
+            <div class="search-suggestions" id="searchSuggestions">
+                <div style="padding: 2rem; text-align: center; color: var(--text-light);">Type to search...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Breadcrumb Navigation -->
+    <div class="breadcrumb">
+        <div class="container">
+            <nav class="breadcrumb-nav" id="breadcrumbNav">
+                <div class="breadcrumb-item">
+                    <a href="index.html">Home</a>
+                </div>
+                <div class="breadcrumb-item">
+                    <span class="breadcrumb-separator">›</span>
+                    <a href="#">Resources</a>
+                </div>
+                <div class="breadcrumb-item">
+                    <span class="breadcrumb-separator">›</span>
+                    <a href="library-enhanced.html">Library</a>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="library-hero">
+        <div class="container">
+            <h1>Resource Library</h1>
+            <p>Access our curated collection of architecture resources</p>
+        </div>
+    </section>
+
+    <!-- Content Section with Control Panel -->
+    <section class="content-section">
+        <div class="container">
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <div class="control-panel-top">
+                    <div class="control-panel-left">
+                        <!-- View Toggle -->
+                        <div class="view-toggle">
+                            <button class="view-btn active" data-view="grid">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="7"/>
+                                    <rect x="14" y="3" width="7" height="7"/>
+                                    <rect x="3" y="14" width="7" height="7"/>
+                                    <rect x="14" y="14" width="7" height="7"/>
+                                </svg>
+                                <span>Grid</span>
+                            </button>
+                            <button class="view-btn" data-view="list">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="8" y1="6" x2="21" y2="6"/>
+                                    <line x1="8" y1="12" x2="21" y2="12"/>
+                                    <line x1="8" y1="18" x2="21" y2="18"/>
+                                    <line x1="3" y1="6" x2="3.01" y2="6"/>
+                                    <line x1="3" y1="12" x2="3.01" y2="12"/>
+                                    <line x1="3" y1="18" x2="3.01" y2="18"/>
+                                </svg>
+                                <span>List</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Sort Dropdown -->
+                        <div class="sort-dropdown">
+                            <label class="sort-label" for="sortSelect">Sort by:</label>
+                            <select id="sortSelect" class="sort-select">
+                                <option value="newest">Newest</option>
+                                <option value="oldest">Oldest</option>
+                                <option value="popular">Most Popular</option>
+                                <option value="title">Title (A-Z)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="control-panel-right">
+                        <!-- Filter Button -->
+                        <button class="filter-btn" id="filterBtn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                            </svg>
+                            Filters
+                            <span class="filter-badge" id="filterBadge" style="display: none;">0</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Active Filters -->
+                <div class="active-filters" id="activeFilters" style="display: none;"></div>
+            </div>
+            
+            <!-- Results Info -->
+            <div class="results-info" id="resultsInfo">
+                Loading...
+            </div>
+            
+            <!-- Content Grid -->
+            <div class="content-grid" id="contentGrid">
+                <!-- Items will be rendered here by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Filter Panel (Sidebar) -->
+    <div class="filter-overlay" id="filterOverlay"></div>
+    <div class="filter-panel" id="filterPanel">
+        <div class="filter-panel-header">
+            <h3 class="filter-panel-title">Filter Resources</h3>
+            <button class="filter-close" id="filterClose">&times;</button>
+        </div>
+        
+        <div class="filter-panel-content">
+            <!-- Categories -->
+            <div class="filter-group">
+                <div class="filter-group-title">Categories</div>
+                <div class="filter-option">
+                    <label class="filter-checkbox">
+                        <input type="checkbox" data-filter-type="category" value="Books">
+                        <span class="checkmark"></span>
+                    </label>
+                    <span class="filter-label">Books</span>
+                    <span class="filter-count">(12)</span>
+                </div>
+                <div class="filter-option">
+                    <label class="filter-checkbox">
+                        <input type="checkbox" data-filter-type="category" value="Guides">
+                        <span class="checkmark"></span>
+                    </label>
+                    <span class="filter-label">Guides</span>
+                    <span class="filter-count">(8)</span>
+                </div>
+                <div class="filter-option">
+                    <label class="filter-checkbox">
+                        <input type="checkbox" data-filter-type="category" value="Templates">
+                        <span class="checkmark"></span>
+                    </label>
+                    <span class="filter-label">Templates</span>
+                    <span class="filter-count">(6)</span>
+                </div>
+                <div class="filter-option">
+                    <label class="filter-checkbox">
+                        <input type="checkbox" data-filter-type="category" value="Research">
+                        <span class="checkmark"></span>
+                    </label>
+                    <span class="filter-label">Research</span>
+                    <span class="filter-count">(4)</span>
+                </div>
+            </div>
+            
+            <!-- Tags -->
+            <div class="filter-group">
+                <div class="filter-group-title">Tags</div>
+                <div class="filter-option">
+                    <label class="filter-checkbox">
+                        <input type="checkbox" data-filter-type="tag" value="Design">
+                        <span class="checkmark"></span>
+                    </label>
+                    <span class="filter-label">Design</span>
+                    <span class="filter-count">(15)</span>
+                </div>
+                <div class="filter-option">
+                    <label class="filter-checkbox">
+                        <input type="checkbox" data-filter-type="tag" value="Theory">
+                        <span class="checkmark"></span>
+                    </label>
+                    <span class="filter-label">Theory</span>
+                    <span class="filter-count">(10)</span>
+                </div>
+                <div class="filter-option">
+                    <label class="filter-checkbox">
+                        <input type="checkbox" data-filter-type="tag" value="Sustainability">
+                        <span class="checkmark"></span>
+                    </label>
+                    <span class="filter-label">Sustainability</span>
+                    <span class="filter-count">(7)</span>
+                </div>
+                <div class="filter-option">
+                    <label class="filter-checkbox">
+                        <input type="checkbox" data-filter-type="tag" value="Technology">
+                        <span class="checkmark"></span>
+                    </label>
+                    <span class="filter-label">Technology</span>
+                    <span class="filter-count">(12)</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="filter-panel-footer">
+            <button class="btn-clear-filters" id="clearFilters">Clear All</button>
+            <button class="btn-apply-filters" id="applyFilters">Apply</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>AIAS Basra Chapter</h3>
+                    <p>American Institute of Architecture Students - Basra Chapter</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="events.html">Events</a></li>
+                        <li><a href="library.html">Library</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 AIAS Basra Chapter. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/control-panel.js"></script>
+    <script>
+        // Sample data for demonstration
+        const sampleResources = [
+            {
+                id: 1,
+                title: 'Architecture Design Fundamentals',
+                description: 'Complete guide to architectural design principles and best practices',
+                category: 'Books',
+                tags: ['Design', 'Theory'],
+                date: '2024-01-15',
+                views: 250,
+                icon: '📘'
+            },
+            {
+                id: 2,
+                title: 'Sustainable Building Guide',
+                description: 'Methods and techniques for sustainable architecture',
+                category: 'Guides',
+                tags: ['Sustainability', 'Design'],
+                date: '2024-02-10',
+                views: 180,
+                icon: '🌱'
+            },
+            {
+                id: 3,
+                title: 'CAD Template Collection',
+                description: 'Professional AutoCAD templates for architecture projects',
+                category: 'Templates',
+                tags: ['Technology', 'Design'],
+                date: '2024-01-20',
+                views: 320,
+                icon: '📐'
+            },
+            {
+                id: 4,
+                title: 'Urban Planning Research',
+                description: 'Contemporary urban planning theories and case studies',
+                category: 'Research',
+                tags: ['Theory', 'Design'],
+                date: '2024-03-05',
+                views: 95,
+                icon: '🏙️'
+            },
+            {
+                id: 5,
+                title: 'Modern Architecture History',
+                description: 'From Bauhaus to contemporary architecture movements',
+                category: 'Books',
+                tags: ['Theory'],
+                date: '2023-12-10',
+                views: 210,
+                icon: '🏛️'
+            },
+            {
+                id: 6,
+                title: 'BIM Implementation Guide',
+                description: 'Building Information Modeling for modern projects',
+                category: 'Guides',
+                tags: ['Technology'],
+                date: '2024-02-28',
+                views: 165,
+                icon: '💻'
+            }
+        ];
+
+        // Initialize control panel
+        const controlPanel = new ContentControlPanel({
+            container: '#contentGrid',
+            defaultView: localStorage.getItem('preferredView') || 'grid',
+            defaultSort: 'newest'
+        });
+        
+        // Override render method for custom styling
+        controlPanel.renderItem = function(item) {
+            return `
+                <div class="content-card" data-id="${item.id}">
+                    <div class="content-card-image">
+                        <span style="font-size: 4rem;">${item.icon}</span>
+                        <div class="content-card-badge">${item.category}</div>
+                    </div>
+                    <div class="content-card-body">
+                        <h3 class="content-card-title">${item.title}</h3>
+                        <p class="content-card-description">${item.description}</p>
+                        <div class="content-card-tags">
+                            ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
+                        <div class="content-card-meta">
+                            <span class="content-card-category">${item.category}</span>
+                            <span class="content-card-date">${new Date(item.date).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+        
+        // Set items
+        controlPanel.setItems(sampleResources);
+    </script>
+</body>
+</html>
