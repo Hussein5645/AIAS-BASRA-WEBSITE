@@ -12,11 +12,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Authentication Check -->
     <script type="module" src="js/auth.js"></script>
-    <!-- PDF.js Library for PDF thumbnails -->
+    <!-- PDF.js Library for PDF thumbnails and book mode -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
         // Configure PDF.js worker
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        } else {
+            console.warn('[PDF] PDF.js library not loaded - book mode and thumbnails will not work');
+        }
     </script>
     <style>
         .magazine-hero {
@@ -565,6 +569,165 @@
             margin: 0.5rem;
         }
         
+        /* Book Mode Styles */
+        .pdf-book-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: #2d3436;
+        }
+        
+        .pdf-book-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: #1a1d1f;
+            border-bottom: 2px solid #404448;
+        }
+        
+        .pdf-book-nav {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .pdf-book-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .pdf-book-btn:hover:not(:disabled) {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .pdf-book-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .pdf-page-info {
+            color: white;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 0.6rem 1.2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+        }
+        
+        .pdf-view-toggle {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .pdf-view-toggle .pdf-book-btn {
+            padding: 0.6rem 1rem;
+        }
+        
+        .pdf-view-toggle .pdf-book-btn.active {
+            background: var(--primary-color);
+        }
+        
+        .pdf-book-viewer {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            overflow: auto;
+            position: relative;
+        }
+        
+        .pdf-book-spread {
+            display: flex;
+            gap: 2rem;
+            max-width: 100%;
+            height: 100%;
+            position: relative;
+            perspective: 2000px;
+        }
+        
+        .pdf-book-page {
+            background: white;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4),
+                        0 0 20px rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            position: relative;
+            transition: transform 0.6s ease;
+        }
+        
+        .pdf-book-page canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 4px;
+        }
+        
+        .pdf-book-page-left {
+            transform-origin: right center;
+        }
+        
+        .pdf-book-page-right {
+            transform-origin: left center;
+        }
+        
+        .pdf-book-page-single {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .pdf-loading {
+            color: white;
+            font-size: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .pdf-loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        /* Page turn animation */
+        .pdf-book-page.turning-next {
+            animation: turnPageNext 0.6s ease-in-out;
+        }
+        
+        .pdf-book-page.turning-prev {
+            animation: turnPagePrev 0.6s ease-in-out;
+        }
+        
+        @keyframes turnPageNext {
+            0% { transform: rotateY(0deg); }
+            50% { transform: rotateY(-90deg); }
+            100% { transform: rotateY(0deg); }
+        }
+        
+        @keyframes turnPagePrev {
+            0% { transform: rotateY(0deg); }
+            50% { transform: rotateY(90deg); }
+            100% { transform: rotateY(0deg); }
+        }
+        
         @media (max-width: 768px) {
             .magazine-hero h1 {
                 font-size: 2rem;
@@ -606,6 +769,21 @@
             
             .articles-grid.view-large {
                 grid-template-columns: 1fr;
+            }
+            
+            .pdf-book-spread {
+                gap: 1rem;
+            }
+            
+            .pdf-book-controls {
+                padding: 0.75rem 1rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .pdf-book-nav {
+                flex-wrap: wrap;
+                justify-content: center;
             }
         }
     </style>
@@ -762,6 +940,14 @@
     <div class="pdf-modal" id="pdfModal">
         <div class="pdf-modal-header">
             <div class="pdf-modal-title" id="pdfModalTitle">Magazine Preview</div>
+            <div class="pdf-view-toggle" id="pdfViewToggle" style="display: none;">
+                <button class="pdf-book-btn" id="normalViewBtn" title="Normal View">
+                    📄 Normal
+                </button>
+                <button class="pdf-book-btn active" id="bookViewBtn" title="Book View">
+                    📖 Book Mode
+                </button>
+            </div>
             <button class="pdf-modal-close" id="pdfModalClose" aria-label="Close">&times;</button>
         </div>
         <div class="pdf-modal-content">
@@ -783,35 +969,63 @@
         // Magazine releases configuration
         const RELEASES_FOLDER = 'static/magazine-releases/';
         
-        // PDF Modal functionality
+        // PDF Modal functionality with Book Mode
         function initPDFModal() {
             const modal = document.getElementById('pdfModal');
             const closeBtn = document.getElementById('pdfModalClose');
             const modalContent = document.querySelector('.pdf-modal-content');
+            const viewToggle = document.getElementById('pdfViewToggle');
+            const normalViewBtn = document.getElementById('normalViewBtn');
+            const bookViewBtn = document.getElementById('bookViewBtn');
             
+            let currentPdfUrl = '';
+            let currentTitle = '';
+            let currentViewMode = 'book'; // default to book mode
+            let pdfDocument = null;
+            let currentPage = 1;
+            let totalPages = 0;
+            
+            // Open PDF Viewer
             window.openPDFViewer = function(pdfUrl, title) {
                 console.log('[PDF Viewer] Opening PDF:', pdfUrl);
+                currentPdfUrl = pdfUrl;
+                currentTitle = title;
+                
                 document.getElementById('pdfModalTitle').textContent = title;
                 modal.classList.add('active');
                 document.body.style.overflow = 'hidden';
+                viewToggle.style.display = 'flex';
                 
-                // Clear previous content
+                // Load in book mode by default
+                loadBookMode();
+            };
+            
+            // Close PDF Viewer
+            window.closePDFViewer = function() {
+                modal.classList.remove('active');
                 modalContent.innerHTML = '';
+                document.body.style.overflow = '';
+                viewToggle.style.display = 'none';
+                pdfDocument = null;
+                currentPage = 1;
+                totalPages = 0;
+            };
+            
+            // Switch to Normal View
+            function loadNormalView() {
+                currentViewMode = 'normal';
+                normalViewBtn.classList.add('active');
+                bookViewBtn.classList.remove('active');
                 
                 // Ensure URL is absolute
-                let fullPdfUrl = pdfUrl;
-                if (!pdfUrl.startsWith('http://') && !pdfUrl.startsWith('https://')) {
-                    // Remove leading slash if present to avoid double slash
-                    const cleanPath = pdfUrl.startsWith('/') ? pdfUrl.substring(1) : pdfUrl;
+                let fullPdfUrl = currentPdfUrl;
+                if (!currentPdfUrl.startsWith('http://') && !currentPdfUrl.startsWith('https://')) {
+                    const cleanPath = currentPdfUrl.startsWith('/') ? currentPdfUrl.substring(1) : currentPdfUrl;
                     fullPdfUrl = `${window.location.origin}/${cleanPath}`;
                 }
                 
-                console.log('[PDF Viewer] Full PDF URL:', fullPdfUrl);
+                const sanitizedFilename = currentTitle.replace(/[^a-z0-9]/gi, '-').toLowerCase() + '.pdf';
                 
-                // Sanitize filename for download
-                const sanitizedFilename = title.replace(/[^a-z0-9]/gi, '-').toLowerCase() + '.pdf';
-                
-                // Use iframe with PDF.js viewer or native browser PDF viewer
                 modalContent.innerHTML = `
                     <iframe 
                         class="pdf-viewer-iframe" 
@@ -823,7 +1037,7 @@
                         <h3>📄 PDF Viewer</h3>
                         <p>Unable to display PDF inline.</p>
                         <p>You can download or view the PDF:</p>
-                        <a href="#" onclick="downloadPDF('${pdfUrl}', '${sanitizedFilename}'); return false;" class="btn btn-primary" style="display: inline-block; padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 8px; margin: 0.5rem; font-weight: 600;">
+                        <a href="#" onclick="downloadPDF('${currentPdfUrl}', '${sanitizedFilename}'); return false;" class="btn btn-primary" style="display: inline-block; padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 8px; margin: 0.5rem; font-weight: 600;">
                             ⬇️ Download PDF
                         </a>
                         <a href="${fullPdfUrl}" class="btn btn-secondary" target="_blank" style="display: inline-block; padding: 0.75rem 1.5rem; background: #718096; color: white; text-decoration: none; border-radius: 8px; margin: 0.5rem; font-weight: 600;">
@@ -831,39 +1045,266 @@
                         </a>
                     </div>
                 `;
-                
-                // Check if iframe loaded successfully
-                const iframe = modalContent.querySelector('iframe');
-                const fallback = modalContent.querySelector('.pdf-fallback');
-                
-                // Show fallback after timeout if iframe doesn't load
-                const timeoutId = setTimeout(() => {
-                    console.log('[PDF Viewer] Timeout - showing fallback options');
-                    iframe.style.display = 'none';
-                    fallback.style.display = 'flex';
-                }, 5000);
-                
-                // If iframe loads successfully, clear timeout
-                iframe.addEventListener('load', () => {
-                    console.log('[PDF Viewer] PDF loaded successfully');
-                    clearTimeout(timeoutId);
-                });
-                
-                // If iframe fails to load, show fallback
-                iframe.addEventListener('error', () => {
-                    console.log('[PDF Viewer] Error loading PDF - showing fallback');
-                    clearTimeout(timeoutId);
-                    iframe.style.display = 'none';
-                    fallback.style.display = 'flex';
-                });
-            };
+            }
             
-            window.closePDFViewer = function() {
-                modal.classList.remove('active');
-                modalContent.innerHTML = '';
-                document.body.style.overflow = '';
-            };
+            // Switch to Book Mode
+            async function loadBookMode() {
+                currentViewMode = 'book';
+                bookViewBtn.classList.add('active');
+                normalViewBtn.classList.remove('active');
+                
+                // Check if PDF.js is available
+                if (typeof pdfjsLib === 'undefined') {
+                    console.error('[Book Mode] PDF.js library not loaded');
+                    modalContent.innerHTML = `
+                        <div class="pdf-book-container">
+                            <div class="pdf-book-viewer">
+                                <div class="pdf-loading" style="color: #ff6b6b;">
+                                    <div style="font-size: 3rem;">⚠️</div>
+                                    <div>Book Mode Unavailable</div>
+                                    <p style="max-width: 400px; text-align: center; margin: 1rem 0;">
+                                        PDF.js library is required for book mode but could not be loaded.
+                                        Please try normal view mode instead.
+                                    </p>
+                                    <button class="pdf-book-btn" onclick="document.getElementById('normalViewBtn').click()">
+                                        Switch to Normal View
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Show loading
+                modalContent.innerHTML = `
+                    <div class="pdf-book-container">
+                        <div class="pdf-book-viewer">
+                            <div class="pdf-loading">
+                                <div class="pdf-loading-spinner"></div>
+                                <div>Loading book...</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                try {
+                    // Ensure URL is absolute
+                    let fullPdfUrl = currentPdfUrl;
+                    if (!currentPdfUrl.startsWith('http://') && !currentPdfUrl.startsWith('https://')) {
+                        const cleanPath = currentPdfUrl.startsWith('/') ? currentPdfUrl.substring(1) : currentPdfUrl;
+                        fullPdfUrl = `${window.location.origin}/${cleanPath}`;
+                    }
+                    
+                    console.log('[Book Mode] Loading PDF:', fullPdfUrl);
+                    
+                    // Load PDF document
+                    const loadingTask = pdfjsLib.getDocument(fullPdfUrl);
+                    pdfDocument = await loadingTask.promise;
+                    totalPages = pdfDocument.numPages;
+                    
+                    console.log(`[Book Mode] PDF loaded - ${totalPages} pages`);
+                    
+                    // Initialize book viewer
+                    initBookViewer();
+                    
+                    // Render first page(s)
+                    await renderBookPages();
+                    
+                } catch (error) {
+                    console.error('[Book Mode] Error loading PDF:', error);
+                    modalContent.innerHTML = `
+                        <div class="pdf-book-container">
+                            <div class="pdf-book-viewer">
+                                <div class="pdf-loading" style="color: #ff6b6b;">
+                                    <div style="font-size: 3rem;">⚠️</div>
+                                    <div>Failed to load PDF in book mode</div>
+                                    <button class="pdf-book-btn" onclick="document.getElementById('normalViewBtn').click()">
+                                        Try Normal View
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
             
+            // Initialize book viewer UI
+            function initBookViewer() {
+                const sanitizedFilename = currentTitle.replace(/[^a-z0-9]/gi, '-').toLowerCase() + '.pdf';
+                
+                modalContent.innerHTML = `
+                    <div class="pdf-book-container">
+                        <div class="pdf-book-controls">
+                            <div class="pdf-book-nav">
+                                <button class="pdf-book-btn" id="firstPageBtn" title="First Page">
+                                    ⏮️ First
+                                </button>
+                                <button class="pdf-book-btn" id="prevPageBtn" title="Previous Page">
+                                    ◀️ Previous
+                                </button>
+                                <span class="pdf-page-info" id="pageInfo">Page 1 of ${totalPages}</span>
+                                <button class="pdf-book-btn" id="nextPageBtn" title="Next Page">
+                                    Next ▶️
+                                </button>
+                                <button class="pdf-book-btn" id="lastPageBtn" title="Last Page">
+                                    Last ⏭️
+                                </button>
+                            </div>
+                            <div class="pdf-book-nav">
+                                <button class="pdf-book-btn" onclick="downloadPDF('${currentPdfUrl}', '${sanitizedFilename}')" title="Download PDF">
+                                    ⬇️ Download
+                                </button>
+                            </div>
+                        </div>
+                        <div class="pdf-book-viewer" id="bookViewer">
+                            <div class="pdf-book-spread" id="bookSpread">
+                                <!-- Pages will be rendered here -->
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Attach event listeners
+                document.getElementById('firstPageBtn').addEventListener('click', () => goToPage(1));
+                document.getElementById('prevPageBtn').addEventListener('click', previousPage);
+                document.getElementById('nextPageBtn').addEventListener('click', nextPage);
+                document.getElementById('lastPageBtn').addEventListener('click', () => goToPage(totalPages));
+            }
+            
+            // Render book pages
+            async function renderBookPages() {
+                const spread = document.getElementById('bookSpread');
+                const pageInfo = document.getElementById('pageInfo');
+                
+                if (!spread) return;
+                
+                // Clear previous pages
+                spread.innerHTML = '<div class="pdf-loading"><div class="pdf-loading-spinner"></div></div>';
+                
+                try {
+                    // Calculate which pages to show (two-page spread)
+                    const leftPage = currentPage;
+                    const rightPage = currentPage + 1;
+                    
+                    const pages = [];
+                    
+                    // Load left page
+                    if (leftPage <= totalPages) {
+                        pages.push(renderPage(leftPage, 'left'));
+                    }
+                    
+                    // Load right page
+                    if (rightPage <= totalPages) {
+                        pages.push(renderPage(rightPage, 'right'));
+                    }
+                    
+                    const renderedPages = await Promise.all(pages);
+                    
+                    // Clear loading and add pages
+                    spread.innerHTML = '';
+                    renderedPages.forEach(pageElement => {
+                        if (pageElement) spread.appendChild(pageElement);
+                    });
+                    
+                    // Update page info
+                    const displayPage = Math.min(currentPage, totalPages);
+                    pageInfo.textContent = `Page ${displayPage} of ${totalPages}`;
+                    
+                    // Update button states
+                    document.getElementById('firstPageBtn').disabled = currentPage === 1;
+                    document.getElementById('prevPageBtn').disabled = currentPage === 1;
+                    document.getElementById('nextPageBtn').disabled = currentPage >= totalPages;
+                    document.getElementById('lastPageBtn').disabled = currentPage >= totalPages;
+                    
+                } catch (error) {
+                    console.error('[Book Mode] Error rendering pages:', error);
+                    spread.innerHTML = '<div class="pdf-loading" style="color: #ff6b6b;"><div>Error rendering pages</div></div>';
+                }
+            }
+            
+            // Render a single page
+            async function renderPage(pageNumber, side) {
+                if (pageNumber > totalPages) return null;
+                
+                try {
+                    const page = await pdfDocument.getPage(pageNumber);
+                    
+                    // Calculate viewport scale
+                    const viewport = page.getViewport({ scale: 1.0 });
+                    const container = document.getElementById('bookViewer');
+                    const containerHeight = container ? container.offsetHeight - 100 : 600;
+                    const scale = (containerHeight / viewport.height) * 0.9;
+                    const scaledViewport = page.getViewport({ scale });
+                    
+                    // Create canvas
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = scaledViewport.height;
+                    canvas.width = scaledViewport.width;
+                    
+                    // Render page
+                    await page.render({
+                        canvasContext: context,
+                        viewport: scaledViewport
+                    }).promise;
+                    
+                    // Create page container
+                    const pageDiv = document.createElement('div');
+                    pageDiv.className = `pdf-book-page pdf-book-page-${side}`;
+                    pageDiv.appendChild(canvas);
+                    
+                    return pageDiv;
+                    
+                } catch (error) {
+                    console.error(`[Book Mode] Error rendering page ${pageNumber}:`, error);
+                    return null;
+                }
+            }
+            
+            // Navigation functions
+            function nextPage() {
+                if (currentPage < totalPages) {
+                    // Add animation class
+                    const pages = document.querySelectorAll('.pdf-book-page');
+                    pages.forEach(page => page.classList.add('turning-next'));
+                    
+                    setTimeout(() => {
+                        currentPage += 2; // Two pages at a time in book mode
+                        if (currentPage > totalPages) currentPage = totalPages;
+                        renderBookPages();
+                    }, 300);
+                }
+            }
+            
+            function previousPage() {
+                if (currentPage > 1) {
+                    // Add animation class
+                    const pages = document.querySelectorAll('.pdf-book-page');
+                    pages.forEach(page => page.classList.add('turning-prev'));
+                    
+                    setTimeout(() => {
+                        currentPage -= 2; // Two pages at a time in book mode
+                        if (currentPage < 1) currentPage = 1;
+                        renderBookPages();
+                    }, 300);
+                }
+            }
+            
+            function goToPage(page) {
+                if (page >= 1 && page <= totalPages && page !== currentPage) {
+                    currentPage = page;
+                    // Make sure we're on an odd page for proper spread
+                    if (currentPage % 2 === 0) currentPage -= 1;
+                    renderBookPages();
+                }
+            }
+            
+            // View mode toggle handlers
+            normalViewBtn.addEventListener('click', loadNormalView);
+            bookViewBtn.addEventListener('click', loadBookMode);
+            
+            // Close handlers
             closeBtn.addEventListener('click', window.closePDFViewer);
             
             modal.addEventListener('click', function(e) {
@@ -873,8 +1314,24 @@
             });
             
             document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && modal.classList.contains('active')) {
+                if (!modal.classList.contains('active')) return;
+                
+                if (e.key === 'Escape') {
                     window.closePDFViewer();
+                } else if (currentViewMode === 'book') {
+                    if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+                        e.preventDefault();
+                        nextPage();
+                    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                        e.preventDefault();
+                        previousPage();
+                    } else if (e.key === 'Home') {
+                        e.preventDefault();
+                        goToPage(1);
+                    } else if (e.key === 'End') {
+                        e.preventDefault();
+                        goToPage(totalPages);
+                    }
                 }
             });
         }

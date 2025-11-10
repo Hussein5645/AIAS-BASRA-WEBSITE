@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Mode Demo - AIAS Basra</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1d1f;
+            color: white;
+            padding: 2rem;
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+        
+        .description {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #a0aec0;
+        }
+        
+        .demo-button {
+            display: block;
+            margin: 2rem auto;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .demo-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+        
+        .feature-card {
+            background: #2d3436;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 2px solid #404448;
+        }
+        
+        .feature-card h3 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+        
+        .feature-card p {
+            color: #a0aec0;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        
+        .keyboard-shortcuts {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #2d3436;
+            border-radius: 12px;
+            border: 2px solid #404448;
+        }
+        
+        .keyboard-shortcuts h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+        
+        .shortcut-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .shortcut {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .key {
+            background: #1a1d1f;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: 600;
+            border: 1px solid #404448;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1>📖 PDF Book Mode Feature Demo</h1>
+        <p class="description">
+            Experience a realistic book-reading interface with page-turning animations and two-page spreads
+        </p>
+        
+        <button class="demo-button" onclick="alert('Open a PDF file from the Magazine page to see the Book Mode in action!\n\nFeatures:\n✓ Two-page spread view\n✓ Realistic page-turning animations\n✓ Keyboard navigation\n✓ Toggle between Normal and Book modes')">
+            ℹ️ How to Use Book Mode
+        </button>
+        
+        <div class="features">
+            <div class="feature-card">
+                <h3>📄 Two-Page Spread</h3>
+                <p>View PDFs like a real book with side-by-side pages, creating an authentic reading experience.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3>🔄 Page-Turn Animation</h3>
+                <p>Smooth, realistic page-turning animations when navigating through the document.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3>⌨️ Keyboard Controls</h3>
+                <p>Navigate efficiently using arrow keys, Page Up/Down, Home, and End keys.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3>🎨 Beautiful UI</h3>
+                <p>Dark-themed interface with professional controls and smooth transitions.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3>📱 Responsive Design</h3>
+                <p>Adapts to different screen sizes while maintaining optimal viewing experience.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3>🔀 View Switching</h3>
+                <p>Easily toggle between traditional scrolling view and immersive book mode.</p>
+            </div>
+        </div>
+        
+        <div class="keyboard-shortcuts">
+            <h3>⌨️ Keyboard Shortcuts (In Book Mode)</h3>
+            <div class="shortcut-list">
+                <div class="shortcut">
+                    <span class="key">→</span>
+                    <span>Next Page</span>
+                </div>
+                <div class="shortcut">
+                    <span class="key">←</span>
+                    <span>Previous Page</span>
+                </div>
+                <div class="shortcut">
+                    <span class="key">Page Down</span>
+                    <span>Next Page</span>
+                </div>
+                <div class="shortcut">
+                    <span class="key">Page Up</span>
+                    <span>Previous Page</span>
+                </div>
+                <div class="shortcut">
+                    <span class="key">Home</span>
+                    <span>First Page</span>
+                </div>
+                <div class="shortcut">
+                    <span class="key">End</span>
+                    <span>Last Page</span>
+                </div>
+                <div class="shortcut">
+                    <span class="key">Esc</span>
+                    <span>Close Viewer</span>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 2rem; text-align: center; color: #a0aec0;">
+            <p>Visit the <a href="magazine.html" style="color: #667eea; text-decoration: none;">Magazine page</a> to try the Book Mode feature with real PDFs!</p>
+        </div>
+    </div>
+</body>
+</html>
