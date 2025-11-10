@@ -54,7 +54,7 @@ class CategoriesLoader {
                     { value: 'file', label: 'File' },
                     { value: 'lecture', label: 'Lecture' }
                 ],
-                enhanced: ['Books', 'Guides', 'Templates', 'Research']
+                enhanced: ['File', 'Lecture']
             },
             events: ['Workshop', 'Lecture', 'Social']
         };
