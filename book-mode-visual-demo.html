@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Book Mode Visual Demo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #2d3436;
+            font-family: Arial, sans-serif;
+        }
+        .demo-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .demo-header h1 {
+            color: #667eea;
+        }
+        
+        /* Simulate the book mode interface */
+        .pdf-modal {
+            background: rgba(0, 0, 0, 0.95);
+            border-radius: 12px;
+            overflow: hidden;
+            max-width: 1400px;
+            margin: 0 auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        
+        .pdf-modal-header {
+            background: #667eea;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .pdf-modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .pdf-view-toggle {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .pdf-book-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 0.6rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .pdf-book-btn.active {
+            background: rgba(255,255,255,0.3);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        .pdf-book-container {
+            background: #2d3436;
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .pdf-book-controls {
+            background: #1a1d1f;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid #404448;
+        }
+        
+        .pdf-book-nav {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .pdf-book-nav .pdf-book-btn {
+            background: #f39c12;
+            padding: 0.6rem 1.2rem;
+        }
+        
+        .pdf-page-info {
+            color: white;
+            background: rgba(255,255,255,0.1);
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+        }
+        
+        .pdf-book-viewer {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+        
+        .pdf-book-spread {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .pdf-book-page {
+            background: white;
+            width: 400px;
+            height: 550px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: #333;
+            position: relative;
+        }
+        
+        .pdf-book-page::before {
+            content: 'Page';
+            position: absolute;
+            top: 20px;
+            font-size: 1rem;
+            color: #999;
+        }
+        
+        .page-number {
+            position: absolute;
+            bottom: 20px;
+            font-size: 1rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-header">
+        <h1>📖 PDF Book Mode - Visual Demo</h1>
+        <p style="color: #a0aec0;">Interactive two-page spread view with navigation controls</p>
+    </div>
+    
+    <div class="pdf-modal">
+        <div class="pdf-modal-header">
+            <div class="pdf-modal-title">AIAS Basra Magazine - Issue 01</div>
+            <div class="pdf-view-toggle">
+                <button class="pdf-book-btn">📄 Normal</button>
+                <button class="pdf-book-btn active">📖 Book Mode</button>
+            </div>
+            <div style="color: white; cursor: pointer; font-size: 2rem;">&times;</div>
+        </div>
+        
+        <div class="pdf-book-container">
+            <div class="pdf-book-controls">
+                <div class="pdf-book-nav">
+                    <button class="pdf-book-btn" disabled style="opacity: 0.5;">⏮️ First</button>
+                    <button class="pdf-book-btn" disabled style="opacity: 0.5;">◀️ Previous</button>
+                    <span class="pdf-page-info">Page 1 of 24</span>
+                    <button class="pdf-book-btn">Next ▶️</button>
+                    <button class="pdf-book-btn">Last ⏭️</button>
+                </div>
+                <div class="pdf-book-nav">
+                    <button class="pdf-book-btn">⬇️ Download</button>
+                </div>
+            </div>
+            
+            <div class="pdf-book-viewer">
+                <div class="pdf-book-spread">
+                    <div class="pdf-book-page">
+                        📄
+                        <span class="page-number">1</span>
+                    </div>
+                    <div class="pdf-book-page">
+                        📄
+                        <span class="page-number">2</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 2rem; text-align: center; color: white;">
+        <h3 style="color: #667eea;">Key Features</h3>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; max-width: 900px; margin: 1rem auto;">
+            <div style="background: #1a1d1f; padding: 1rem; border-radius: 8px;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📖</div>
+                <div style="font-weight: bold; margin-bottom: 0.25rem;">Two-Page Spread</div>
+                <div style="font-size: 0.9rem; color: #a0aec0;">View like a real book</div>
+            </div>
+            <div style="background: #1a1d1f; padding: 1rem; border-radius: 8px;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔄</div>
+                <div style="font-weight: bold; margin-bottom: 0.25rem;">Page Animations</div>
+                <div style="font-size: 0.9rem; color: #a0aec0;">Smooth page turns</div>
+            </div>
+            <div style="background: #1a1d1f; padding: 1rem; border-radius: 8px;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">⌨️</div>
+                <div style="font-weight: bold; margin-bottom: 0.25rem;">Keyboard Nav</div>
+                <div style="font-size: 0.9rem; color: #a0aec0;">Arrow keys & more</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
