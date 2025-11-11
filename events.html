@@ -13,7 +13,7 @@
 <!-- Authentication Check -->
 <script type="module" src="js/auth.js">
 </script>
-<style> .events-hero { background: var(--gradient-1); color: var(--white); padding: 8rem 0 4rem; text-align: center; } .events-hero h1 { font-size: 3rem; margin-bottom: 1rem; } .view-toggle { display: flex; justify-content: center; gap: 1rem; padding: 2rem 0; background: var(--light-bg); } .view-btn { padding: 0.75rem 2rem; border: 2px solid var(--accent-light); background: var(--white); color: var(--primary-color); border-radius: 50px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; } .view-btn.active { background: var(--gradient-1); color: var(--white); border-color: var(--primary-color); } .events-container { padding: 4rem 0; } .events-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; } .event-card { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); transition: all 0.3s ease; cursor: pointer; position: relative; } .event-card:hover { transform: translateY(-10px) scale(1.02); box-shadow: var(--shadow-xl); } .event-date-badge { position: absolute; top: 1rem; right: 1rem; background: var(--white); padding: 1rem; border-radius: 8px; text-align: center; box-shadow: var(--shadow-md); z-index: 1; } .event-day { font-size: 2rem; font-weight: 800; color: var(--primary-color); line-height: 1; } .event-month { font-size: 0.9rem; color: var(--accent-color); font-weight: 600; } .event-image { height: 200px; background: var(--gradient-2); display: flex; align-items: center; justify-content: center; font-size: 4rem; position: relative; } .event-status { position: absolute; bottom: 1rem; left: 1rem; background: rgba(255, 255, 255, 0.95); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; } .status-upcoming { color: #10b981; } .status-past { color: #6b7280; } .event-content { padding: 2rem; } .event-title { font-size: 1.5rem; color: var(--primary-color); margin-bottom: 1rem; font-weight: 600; } .event-meta { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; } .meta-item { display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.95rem; } .event-description { color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem; } .event-actions { display: flex; gap: 1rem; } .action-btn { flex: 1; padding: 0.75rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-align: center; text-decoration: none; display: block; } .btn-register { background: var(--gradient-1); color: var(--white); } .btn-register:hover { transform: scale(1.05); box-shadow: var(--shadow-md); } .btn-details { background: var(--light-bg); color: var(--primary-color); } .btn-details:hover { background: var(--accent-light); color: var(--white); } .timeline-section { padding: 4rem 0; background: var(--light-bg); } .timeline { max-width: 900px; margin: 0 auto; position: relative; } .timeline::before { content: ''; position: absolute; left: 50%; transform: translateX(-50%); width: 4px; height: 100%; background: var(--gradient-1); } .timeline-item { display: flex; margin-bottom: 3rem; position: relative; } .timeline-item:nth-child(odd) { flex-direction: row-reverse; } .timeline-item.completed .timeline-content { opacity: 0.8; background: var(--light-bg); } .timeline-item.completed .timeline-dot { background: var(--accent-light); } .timeline-content { width: calc(50% - 2rem); background: var(--white); padding: 2rem; border-radius: 12px; box-shadow: var(--shadow-sm); transition: all 0.3s ease; position: relative; } .timeline-content:hover { transform: scale(1.05); box-shadow: var(--shadow-lg); } .timeline-status { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem; } .timeline-status.upcoming { background: #d1fae5; color: #10b981; } .timeline-status.completed { background: #e5e7eb; color: #6b7280; } .timeline-dot { position: absolute; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; background: var(--accent-color); border: 4px solid var(--white); border-radius: 50%; box-shadow: var(--shadow-md); } .timeline-dot::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 8px; height: 8px; background: var(--white); border-radius: 50%; } .timeline-item.completed .timeline-dot::after { content: '✓'; font-size: 10px; color: var(--white); background: transparent; width: auto; height: auto; line-height: 1; font-weight: bold; } @media (max-width: 768px) { .events-hero h1 { font-size: 2rem; } .events-grid { grid-template-columns: 1fr; } .timeline::before { left: 20px; } .timeline-item, .timeline-item:nth-child(odd) { flex-direction: row; } .timeline-content { width: calc(100% - 4rem); margin-left: 4rem; } .timeline-dot { left: 20px; } } </style>
+<style> .events-hero { background: var(--gradient-1); color: var(--white); padding: 8rem 0 4rem; text-align: center; } .events-hero h1 { font-size: 3rem; margin-bottom: 1rem; } .view-toggle { display: flex; justify-content: center; align-items: center; gap: 1rem; padding: 2rem 0; background: var(--light-bg); flex-wrap: wrap; } .view-toggle-group { display: flex; gap: 0.5rem; background: var(--white); padding: 0.5rem; border-radius: 8px; box-shadow: var(--shadow-sm); } .view-btn { padding: 0.75rem 1.5rem; border: none; background: transparent; color: var(--text-secondary); border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; } .view-btn span { font-size: 1.1rem; } .view-btn:hover { background: var(--light-bg); color: var(--primary-color); transform: translateY(-2px); } .view-btn.active { background: var(--gradient-1); color: var(--white); box-shadow: var(--shadow-sm); } .view-btn.active:hover { transform: scale(1.05); } .filter-btn { padding: 0.75rem 1.5rem; border: 2px solid var(--accent-light); background: var(--white); color: var(--primary-color); border-radius: 50px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; } .filter-btn:hover { background: var(--light-bg); transform: translateY(-2px); } .filter-btn.active { background: var(--accent-color); color: var(--white); border-color: var(--accent-color); } .events-container { padding: 4rem 0; } .events-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; transition: all 0.3s ease; } /* Grid View (Default) */ .events-grid.view-grid { grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); } /* List View */ .events-grid.view-list { grid-template-columns: 1fr; } .events-grid.view-list .event-card { display: grid; grid-template-columns: 300px 1fr; gap: 0; } .events-grid.view-list .event-image { height: 100%; min-height: 250px; } .events-grid.view-list .event-date-badge { position: relative; top: auto; right: auto; margin: 1rem; } /* Compact View */ .events-grid.view-compact { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; } .events-grid.view-compact .event-card { font-size: 0.9rem; } .events-grid.view-compact .event-image { height: 160px; font-size: 3rem; } .events-grid.view-compact .event-content { padding: 1.5rem; } .events-grid.view-compact .event-title { font-size: 1.25rem; } .events-grid.view-compact .event-description { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-clamp: 2; } /* Hidden completed events */ .event-card.completed-hidden { display: none !important; } .timeline-item.completed-hidden { display: none !important; } .event-card { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); transition: all 0.3s ease; cursor: pointer; position: relative; } .event-card:hover { transform: translateY(-10px) scale(1.02); box-shadow: var(--shadow-xl); } .event-date-badge { position: absolute; top: 1rem; right: 1rem; background: var(--white); padding: 1rem; border-radius: 8px; text-align: center; box-shadow: var(--shadow-md); z-index: 1; } .event-day { font-size: 2rem; font-weight: 800; color: var(--primary-color); line-height: 1; } .event-month { font-size: 0.9rem; color: var(--accent-color); font-weight: 600; } .event-image { height: 200px; background: var(--gradient-2); display: flex; align-items: center; justify-content: center; font-size: 4rem; position: relative; } .event-status { position: absolute; bottom: 1rem; left: 1rem; background: rgba(255, 255, 255, 0.95); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; } .status-upcoming { color: #10b981; } .status-past { color: #6b7280; } .event-content { padding: 2rem; } .event-title { font-size: 1.5rem; color: var(--primary-color); margin-bottom: 1rem; font-weight: 600; } .event-meta { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; } .meta-item { display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.95rem; } .event-description { color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem; } .event-actions { display: flex; gap: 1rem; } .action-btn { flex: 1; padding: 0.75rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-align: center; text-decoration: none; display: block; } .btn-register { background: var(--gradient-1); color: var(--white); } .btn-register:hover { transform: scale(1.05); box-shadow: var(--shadow-md); } .btn-details { background: var(--light-bg); color: var(--primary-color); } .btn-details:hover { background: var(--accent-light); color: var(--white); } .timeline-section { padding: 4rem 0; background: var(--light-bg); } .timeline { max-width: 900px; margin: 0 auto; position: relative; } .timeline::before { content: ''; position: absolute; left: 50%; transform: translateX(-50%); width: 4px; height: 100%; background: var(--gradient-1); } .timeline-item { display: flex; margin-bottom: 3rem; position: relative; } .timeline-item:nth-child(odd) { flex-direction: row-reverse; } .timeline-item.completed .timeline-content { opacity: 0.8; background: var(--light-bg); } .timeline-item.completed .timeline-dot { background: var(--accent-light); } .timeline-content { width: calc(50% - 2rem); background: var(--white); padding: 2rem; border-radius: 12px; box-shadow: var(--shadow-sm); transition: all 0.3s ease; position: relative; } .timeline-content:hover { transform: scale(1.05); box-shadow: var(--shadow-lg); } .timeline-status { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem; } .timeline-status.upcoming { background: #d1fae5; color: #10b981; } .timeline-status.completed { background: #e5e7eb; color: #6b7280; } .timeline-dot { position: absolute; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; background: var(--accent-color); border: 4px solid var(--white); border-radius: 50%; box-shadow: var(--shadow-md); } .timeline-dot::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 8px; height: 8px; background: var(--white); border-radius: 50%; } .timeline-item.completed .timeline-dot::after { content: '✓'; font-size: 10px; color: var(--white); background: transparent; width: auto; height: auto; line-height: 1; font-weight: bold; } @media (max-width: 768px) { .events-hero h1 { font-size: 2rem; } .view-toggle { flex-direction: column; } .view-toggle-group { width: 100%; justify-content: center; } .events-grid { grid-template-columns: 1fr; } .events-grid.view-list .event-card { grid-template-columns: 1fr; } .events-grid.view-list .event-image { height: 200px; } .timeline::before { left: 20px; } .timeline-item, .timeline-item:nth-child(odd) { flex-direction: row; } .timeline-content { width: calc(100% - 4rem); margin-left: 4rem; } .timeline-dot { left: 20px; } } </style>
 </head>
 <body>
 <!-- Navigation -->
@@ -87,8 +87,23 @@
 </section>
 <!-- View Toggle -->
 <section class="view-toggle">
-<button class="view-btn active" data-view="grid" data-en="📅 Grid View" data-ar="📅 عرض الشبكة">📅 Grid View</button>
-<button class="view-btn" data-view="timeline" data-en="📊 Timeline View" data-ar="📊 عرض الجدول الزمني">📊 Timeline View</button>
+<div class="view-toggle-group">
+<button class="view-btn active" data-view="grid" data-en="📅 Grid" data-ar="📅 شبكة">
+<span>📅</span> Grid
+</button>
+<button class="view-btn" data-view="list" data-en="📋 List" data-ar="📋 قائمة">
+<span>📋</span> List
+</button>
+<button class="view-btn" data-view="compact" data-en="📦 Compact" data-ar="📦 مضغوط">
+<span>📦</span> Compact
+</button>
+<button class="view-btn" data-view="timeline" data-en="📊 Timeline" data-ar="📊 جدول زمني">
+<span>📊</span> Timeline
+</button>
+</div>
+<button class="filter-btn" id="hideCompletedBtn" data-en="🔽 Hide Completed" data-ar="🔽 إخفاء المكتملة">
+<span>🔽</span> Hide Completed
+</button>
 </section>
 <!-- Events Grid View -->
 <section class="events-container" id="gridView">
@@ -165,14 +180,41 @@
           (new URLSearchParams(window.location.search).has('debug') ||
            localStorage.getItem('debug') === 'true');
 
+        // Track filter state
+        let hideCompleted = false;
+        let currentView = 'grid';
+
         // Initialize view toggle with event delegation
         function initViewToggle() {
             const viewToggleSection = document.querySelector('.view-toggle');
             if (viewToggleSection) {
                 viewToggleSection.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('view-btn')) {
-                        const view = e.target.dataset.view || (e.target.textContent.includes('Grid') ? 'grid' : 'timeline');
+                    // Handle view toggle buttons
+                    if (e.target.classList.contains('view-btn') || e.target.closest('.view-btn')) {
+                        const btn = e.target.classList.contains('view-btn') ? e.target : e.target.closest('.view-btn');
+                        const view = btn.dataset.view;
+                        currentView = view;
                         showView(view);
+                    }
+                    
+                    // Handle hide completed button
+                    if (e.target.id === 'hideCompletedBtn' || e.target.closest('#hideCompletedBtn')) {
+                        const btn = e.target.id === 'hideCompletedBtn' ? e.target : e.target.closest('#hideCompletedBtn');
+                        hideCompleted = !hideCompleted;
+                        btn.classList.toggle('active');
+                        
+                        // Update button text
+                        if (hideCompleted) {
+                            btn.innerHTML = '<span>🔼</span> Show Completed';
+                            btn.setAttribute('data-en', '🔼 Show Completed');
+                            btn.setAttribute('data-ar', '🔼 إظهار المكتملة');
+                        } else {
+                            btn.innerHTML = '<span>🔽</span> Hide Completed';
+                            btn.setAttribute('data-en', '🔽 Hide Completed');
+                            btn.setAttribute('data-ar', '🔽 إخفاء المكتملة');
+                        }
+                        
+                        toggleCompletedEvents();
                     }
                 });
             }
@@ -182,18 +224,56 @@
             const gridView = document.getElementById('gridView');
             const timelineView = document.getElementById('timelineView');
             const buttons = document.querySelectorAll('.view-btn');
+            const eventsGrid = document.querySelector('.events-grid');
             
-            if (view === 'grid') {
-                gridView.style.display = 'block';
-                timelineView.style.display = 'none';
-                buttons[0].classList.add('active');
-                buttons[1].classList.remove('active');
-            } else {
+            // Remove active class from all buttons
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            const activeBtn = document.querySelector(`.view-btn[data-view="${view}"]`);
+            if (activeBtn) activeBtn.classList.add('active');
+            
+            if (view === 'timeline') {
                 gridView.style.display = 'none';
                 timelineView.style.display = 'block';
-                buttons[0].classList.remove('active');
-                buttons[1].classList.add('active');
+            } else {
+                gridView.style.display = 'block';
+                timelineView.style.display = 'none';
+                
+                // Update grid container class
+                eventsGrid.className = 'events-grid';
+                
+                if (view === 'list') {
+                    eventsGrid.classList.add('view-list');
+                } else if (view === 'compact') {
+                    eventsGrid.classList.add('view-compact');
+                } else {
+                    // Grid view (default)
+                    eventsGrid.classList.add('view-grid');
+                }
             }
+        }
+        
+        function toggleCompletedEvents() {
+            const allEventCards = document.querySelectorAll('.event-card');
+            const timelineItems = document.querySelectorAll('.timeline-item');
+            
+            allEventCards.forEach(card => {
+                const isPast = card.querySelector('.status-past');
+                if (hideCompleted && isPast) {
+                    card.classList.add('completed-hidden');
+                } else {
+                    card.classList.remove('completed-hidden');
+                }
+            });
+            
+            timelineItems.forEach(item => {
+                if (hideCompleted && item.classList.contains('completed')) {
+                    item.classList.add('completed-hidden');
+                } else {
+                    item.classList.remove('completed-hidden');
+                }
+            });
         }
 
         // Load events from Firebase using Data Loader
@@ -351,6 +431,14 @@
                         gridItemsCount: gridContainer.children.length,
                         timelineItemsCount: timelineContainer.children.length
                     });
+                    
+                    // Apply current view after loading
+                    showView(currentView);
+                    
+                    // Apply hide completed filter if active
+                    if (hideCompleted) {
+                        toggleCompletedEvents();
+                    }
                 } else {
                     console.log('[Events] No events found or events array is empty');
                     // Show empty state
