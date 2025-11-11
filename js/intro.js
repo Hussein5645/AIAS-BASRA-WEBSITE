@@ -58,13 +58,13 @@
     }
     
     // If intro was already shown this session, hide it immediately
-    if (introShown === 'true') {
-        introOverlay.style.display = 'none';
-        document.body.classList.remove('intro-active');
-    } else {
+    //if (introShown === 'true') {
+        //introOverlay.style.display = 'none';
+        //document.body.classList.remove('intro-active');
+    //} else {
         // Add intro-active class to hide page content
-        playIntroAnimation();
-    }
+    playIntroAnimation();
+    //}
     
     // Preload main page content
     window.addEventListener('load', () => {
