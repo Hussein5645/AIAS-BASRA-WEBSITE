@@ -363,6 +363,8 @@
             height: 100%;
             object-fit: cover;
             background: #f0f0f0;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
         }
         
         .release-preview .loading-indicator {
@@ -761,6 +763,8 @@
             max-width: 100%;
             max-height: 100%;
             border-radius: 2px;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
         }
         
         .pdf-book-page-left {
@@ -1534,18 +1538,32 @@
                         scale = Math.min(scaleHeight, scaleWidth) * 0.95; // 95% to add some padding
                     }
                     
-                    const scaledViewport = page.getViewport({ scale });
+                    // Use high DPI scaling for crisp rendering
+                    const outputScale = window.devicePixelRatio || 1;
+                    const renderScale = scale * 2; // 2x for high quality rendering
+                    const scaledViewport = page.getViewport({ scale: renderScale });
                     
-                    // Create canvas
+                    // Create canvas with high resolution
                     const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
+                    const context = canvas.getContext('2d', { alpha: false });
+                    
+                    // Set canvas size for high DPI
                     canvas.height = scaledViewport.height;
                     canvas.width = scaledViewport.width;
                     
-                    // Render page
+                    // Set display size (CSS size will be scaled down)
+                    canvas.style.width = `${scaledViewport.width / 2}px`;
+                    canvas.style.height = `${scaledViewport.height / 2}px`;
+                    
+                    // Enable image smoothing for better quality
+                    context.imageSmoothingEnabled = true;
+                    context.imageSmoothingQuality = 'high';
+                    
+                    // Render page at high resolution
                     await page.render({
                         canvasContext: context,
-                        viewport: scaledViewport
+                        viewport: scaledViewport,
+                        intent: 'print' // Use print quality rendering
                     }).promise;
                     
                     // Create page container
@@ -1728,23 +1746,38 @@
                 // Get first page
                 const page = await pdf.getPage(1);
                 
-                // Calculate scale to fit container
+                // Calculate scale to fit container with high quality
                 const viewport = page.getViewport({ scale: 1.0 });
                 const containerWidth = container.offsetWidth || 300;
-                const scale = containerWidth / viewport.width;
-                const scaledViewport = page.getViewport({ scale: scale * 2 }); // 2x for retina
+                const baseScale = containerWidth / viewport.width;
                 
-                // Create canvas
+                // Use 3x scale for crisp thumbnails
+                const renderScale = baseScale * 3;
+                const scaledViewport = page.getViewport({ scale: renderScale });
+                
+                // Create canvas with high resolution
                 const canvas = document.createElement('canvas');
                 canvas.className = 'pdf-thumbnail';
-                const context = canvas.getContext('2d');
+                const context = canvas.getContext('2d', { alpha: false });
+                
+                // Set canvas internal resolution
                 canvas.height = scaledViewport.height;
                 canvas.width = scaledViewport.width;
+                
+                // Set display size (CSS)
+                canvas.style.width = '100%';
+                canvas.style.height = '100%';
+                canvas.style.objectFit = 'cover';
+                
+                // Enable high quality rendering
+                context.imageSmoothingEnabled = true;
+                context.imageSmoothingQuality = 'high';
                 
                 // Render PDF page to canvas
                 const renderContext = {
                     canvasContext: context,
-                    viewport: scaledViewport
+                    viewport: scaledViewport,
+                    intent: 'print' // Use print quality
                 };
                 
                 await page.render(renderContext).promise;
@@ -1753,7 +1786,7 @@
                 container.innerHTML = '';
                 container.appendChild(canvas);
                 
-                console.log(`[PDF Thumbnail] ✓ Thumbnail generated successfully`);
+                console.log(`[PDF Thumbnail] ✓ Thumbnail generated successfully at ${renderScale}x scale`);
                 
             } catch (error) {
                 console.error('[PDF Thumbnail] Error generating thumbnail:', error);
