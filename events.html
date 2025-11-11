@@ -13,7 +13,7 @@
 <!-- Authentication Check -->
 <script type="module" src="js/auth.js">
 </script>
-<style> .events-hero { background: var(--gradient-1); color: var(--white); padding: 8rem 0 4rem; text-align: center; } .events-hero h1 { font-size: 3rem; margin-bottom: 1rem; } .view-toggle { display: flex; justify-content: center; align-items: center; gap: 1rem; padding: 2rem 0; background: var(--light-bg); flex-wrap: wrap; } .view-toggle-group { display: flex; gap: 0.5rem; background: var(--white); padding: 0.5rem; border-radius: 8px; box-shadow: var(--shadow-sm); } .view-btn { padding: 0.75rem 1.5rem; border: none; background: transparent; color: var(--text-secondary); border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; } .view-btn span { font-size: 1.1rem; } .view-btn:hover { background: var(--light-bg); color: var(--primary-color); transform: translateY(-2px); } .view-btn.active { background: var(--gradient-1); color: var(--white); box-shadow: var(--shadow-sm); } .view-btn.active:hover { transform: scale(1.05); } .filter-btn { padding: 0.75rem 1.5rem; border: 2px solid var(--accent-light); background: var(--white); color: var(--primary-color); border-radius: 50px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; } .filter-btn:hover { background: var(--light-bg); transform: translateY(-2px); } .filter-btn.active { background: var(--accent-color); color: var(--white); border-color: var(--accent-color); } .events-container { padding: 4rem 0; } .events-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; transition: all 0.3s ease; } /* Grid View (Default) */ .events-grid.view-grid { grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); } /* List View */ .events-grid.view-list { grid-template-columns: 1fr; } .events-grid.view-list .event-card { display: grid; grid-template-columns: 300px 1fr; gap: 0; } .events-grid.view-list .event-image { height: 100%; min-height: 250px; } .events-grid.view-list .event-date-badge { position: relative; top: auto; right: auto; margin: 1rem; } /* Compact View */ .events-grid.view-compact { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; } .events-grid.view-compact .event-card { font-size: 0.9rem; } .events-grid.view-compact .event-image { height: 160px; font-size: 3rem; } .events-grid.view-compact .event-content { padding: 1.5rem; } .events-grid.view-compact .event-title { font-size: 1.25rem; } .events-grid.view-compact .event-description { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-clamp: 2; } /* Hidden completed events */ .event-card.completed-hidden { display: none !important; } .timeline-item.completed-hidden { display: none !important; } .event-card { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); transition: all 0.3s ease; cursor: pointer; position: relative; } .event-card:hover { transform: translateY(-10px) scale(1.02); box-shadow: var(--shadow-xl); } .event-date-badge { position: absolute; top: 1rem; right: 1rem; background: var(--white); padding: 1rem; border-radius: 8px; text-align: center; box-shadow: var(--shadow-md); z-index: 1; } .event-day { font-size: 2rem; font-weight: 800; color: var(--primary-color); line-height: 1; } .event-month { font-size: 0.9rem; color: var(--accent-color); font-weight: 600; } .event-image { height: 200px; background: var(--gradient-2); display: flex; align-items: center; justify-content: center; font-size: 4rem; position: relative; } .event-status { position: absolute; bottom: 1rem; left: 1rem; background: rgba(255, 255, 255, 0.95); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; } .status-upcoming { color: #10b981; } .status-past { color: #6b7280; } .event-content { padding: 2rem; } .event-title { font-size: 1.5rem; color: var(--primary-color); margin-bottom: 1rem; font-weight: 600; } .event-meta { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; } .meta-item { display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.95rem; } .event-description { color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem; } .event-actions { display: flex; gap: 1rem; } .action-btn { flex: 1; padding: 0.75rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-align: center; text-decoration: none; display: block; } .btn-register { background: var(--gradient-1); color: var(--white); } .btn-register:hover { transform: scale(1.05); box-shadow: var(--shadow-md); } .btn-details { background: var(--light-bg); color: var(--primary-color); } .btn-details:hover { background: var(--accent-light); color: var(--white); } .timeline-section { padding: 4rem 0; background: var(--light-bg); } .timeline { max-width: 900px; margin: 0 auto; position: relative; } .timeline::before { content: ''; position: absolute; left: 50%; transform: translateX(-50%); width: 4px; height: 100%; background: var(--gradient-1); } .timeline-item { display: flex; margin-bottom: 3rem; position: relative; } .timeline-item:nth-child(odd) { flex-direction: row-reverse; } .timeline-item.completed .timeline-content { opacity: 0.8; background: var(--light-bg); } .timeline-item.completed .timeline-dot { background: var(--accent-light); } .timeline-content { width: calc(50% - 2rem); background: var(--white); padding: 2rem; border-radius: 12px; box-shadow: var(--shadow-sm); transition: all 0.3s ease; position: relative; } .timeline-content:hover { transform: scale(1.05); box-shadow: var(--shadow-lg); } .timeline-status { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem; } .timeline-status.upcoming { background: #d1fae5; color: #10b981; } .timeline-status.completed { background: #e5e7eb; color: #6b7280; } .timeline-dot { position: absolute; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; background: var(--accent-color); border: 4px solid var(--white); border-radius: 50%; box-shadow: var(--shadow-md); } .timeline-dot::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 8px; height: 8px; background: var(--white); border-radius: 50%; } .timeline-item.completed .timeline-dot::after { content: '✓'; font-size: 10px; color: var(--white); background: transparent; width: auto; height: auto; line-height: 1; font-weight: bold; } @media (max-width: 768px) { .events-hero h1 { font-size: 2rem; } .view-toggle { flex-direction: column; } .view-toggle-group { width: 100%; justify-content: center; } .events-grid { grid-template-columns: 1fr; } .events-grid.view-list .event-card { grid-template-columns: 1fr; } .events-grid.view-list .event-image { height: 200px; } .timeline::before { left: 20px; } .timeline-item, .timeline-item:nth-child(odd) { flex-direction: row; } .timeline-content { width: calc(100% - 4rem); margin-left: 4rem; } .timeline-dot { left: 20px; } } </style>
+<style> .events-hero { background: var(--gradient-1); color: var(--white); padding: 8rem 0 4rem; text-align: center; } .events-hero h1 { font-size: 3rem; margin-bottom: 1rem; } .view-toggle { display: flex; justify-content: center; align-items: center; gap: 1rem; padding: 2rem 0; background: var(--light-bg); flex-wrap: wrap; } .search-container { position: relative; width: 100%; max-width: 400px; } .search-input { width: 100%; padding: 0.75rem 1rem 0.75rem 3rem; border: 2px solid var(--accent-light); border-radius: 50px; font-size: 1rem; font-weight: 500; transition: all 0.3s ease; background: var(--white); } .search-input:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1); } .search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-size: 1.2rem; color: var(--text-secondary); pointer-events: none; } .clear-search { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 1.2rem; color: var(--text-secondary); cursor: pointer; padding: 0.25rem; display: none; transition: all 0.2s ease; } .clear-search:hover { color: var(--primary-color); transform: translateY(-50%) scale(1.2); } .clear-search.visible { display: block; } .view-toggle-group { display: flex; gap: 0.5rem; background: var(--white); padding: 0.5rem; border-radius: 8px; box-shadow: var(--shadow-sm); } .view-btn { padding: 0.75rem 1.5rem; border: none; background: transparent; color: var(--text-secondary); border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; } .view-btn span { font-size: 1.1rem; } .view-btn:hover { background: var(--light-bg); color: var(--primary-color); transform: translateY(-2px); } .view-btn.active { background: var(--gradient-1); color: var(--white); box-shadow: var(--shadow-sm); } .view-btn.active:hover { transform: scale(1.05); } .filter-btn { padding: 0.75rem 1.5rem; border: 2px solid var(--accent-light); background: var(--white); color: var(--primary-color); border-radius: 50px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; } .filter-btn:hover { background: var(--light-bg); transform: translateY(-2px); } .filter-btn.active { background: var(--accent-color); color: var(--white); border-color: var(--accent-color); } .events-container { padding: 4rem 0; } .events-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; transition: all 0.3s ease; } /* Grid View (Default) */ .events-grid.view-grid { grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); } /* List View */ .events-grid.view-list { grid-template-columns: 1fr; gap: 1.5rem; } .events-grid.view-list .event-card { display: grid; grid-template-columns: 280px 1fr auto; gap: 0; align-items: stretch; transition: all 0.3s ease; } .events-grid.view-list .event-card:hover { transform: translateX(10px); } .events-grid.view-list .event-image { height: 100%; min-height: 220px; border-radius: 12px 0 0 12px; } .events-grid.view-list .event-date-badge { position: relative; top: auto; right: auto; margin: 1.5rem; align-self: center; } .events-grid.view-list .event-content { padding: 2rem; display: flex; flex-direction: column; justify-content: space-between; } .events-grid.view-list .event-title { font-size: 1.75rem; margin-bottom: 0.75rem; } .events-grid.view-list .event-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; } .events-grid.view-list .meta-item { background: var(--light-bg); padding: 0.75rem; border-radius: 8px; font-weight: 500; } .events-grid.view-list .event-description { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; } .events-grid.view-list .event-actions { flex-direction: column; margin-top: 1rem; } .events-grid.view-list .action-btn { width: 100%; } .no-results { grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; } .no-results-icon { font-size: 4rem; margin-bottom: 1rem; } .no-results-title { font-size: 1.5rem; color: var(--primary-color); margin-bottom: 0.5rem; } .no-results-message { color: var(--text-secondary); font-size: 1.1rem; } /* Compact View */ .events-grid.view-compact { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; } .events-grid.view-compact .event-card { font-size: 0.9rem; } .events-grid.view-compact .event-image { height: 160px; font-size: 3rem; } .events-grid.view-compact .event-content { padding: 1.5rem; } .events-grid.view-compact .event-title { font-size: 1.25rem; } .events-grid.view-compact .event-description { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-clamp: 2; } /* Hidden completed events */ .event-card.completed-hidden { display: none !important; } .timeline-item.completed-hidden { display: none !important; } .event-card { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); transition: all 0.3s ease; cursor: pointer; position: relative; } .event-card:hover { transform: translateY(-10px) scale(1.02); box-shadow: var(--shadow-xl); } .event-date-badge { position: absolute; top: 1rem; right: 1rem; background: var(--white); padding: 1rem; border-radius: 8px; text-align: center; box-shadow: var(--shadow-md); z-index: 1; } .event-day { font-size: 2rem; font-weight: 800; color: var(--primary-color); line-height: 1; } .event-month { font-size: 0.9rem; color: var(--accent-color); font-weight: 600; } .event-image { height: 200px; background: var(--gradient-2); display: flex; align-items: center; justify-content: center; font-size: 4rem; position: relative; } .event-status { position: absolute; bottom: 1rem; left: 1rem; background: rgba(255, 255, 255, 0.95); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; } .status-upcoming { color: #10b981; } .status-past { color: #6b7280; } .event-content { padding: 2rem; } .event-title { font-size: 1.5rem; color: var(--primary-color); margin-bottom: 1rem; font-weight: 600; } .event-meta { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; } .meta-item { display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.95rem; } .event-description { color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem; } .event-actions { display: flex; gap: 1rem; } .action-btn { flex: 1; padding: 0.75rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-align: center; text-decoration: none; display: block; } .btn-register { background: var(--gradient-1); color: var(--white); } .btn-register:hover { transform: scale(1.05); box-shadow: var(--shadow-md); } .btn-details { background: var(--light-bg); color: var(--primary-color); } .btn-details:hover { background: var(--accent-light); color: var(--white); } .timeline-section { padding: 4rem 0; background: var(--light-bg); } .timeline { max-width: 900px; margin: 0 auto; position: relative; } .timeline::before { content: ''; position: absolute; left: 50%; transform: translateX(-50%); width: 4px; height: 100%; background: var(--gradient-1); } .timeline-item { display: flex; margin-bottom: 3rem; position: relative; } .timeline-item:nth-child(odd) { flex-direction: row-reverse; } .timeline-item.completed .timeline-content { opacity: 0.8; background: var(--light-bg); } .timeline-item.completed .timeline-dot { background: var(--accent-light); } .timeline-content { width: calc(50% - 2rem); background: var(--white); padding: 2rem; border-radius: 12px; box-shadow: var(--shadow-sm); transition: all 0.3s ease; position: relative; } .timeline-content:hover { transform: scale(1.05); box-shadow: var(--shadow-lg); } .timeline-status { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem; } .timeline-status.upcoming { background: #d1fae5; color: #10b981; } .timeline-status.completed { background: #e5e7eb; color: #6b7280; } .timeline-dot { position: absolute; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; background: var(--accent-color); border: 4px solid var(--white); border-radius: 50%; box-shadow: var(--shadow-md); } .timeline-dot::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 8px; height: 8px; background: var(--white); border-radius: 50%; } .timeline-item.completed .timeline-dot::after { content: '✓'; font-size: 10px; color: var(--white); background: transparent; width: auto; height: auto; line-height: 1; font-weight: bold; } @media (max-width: 768px) { .events-hero h1 { font-size: 2rem; } .view-toggle { flex-direction: column; } .view-toggle-group { width: 100%; justify-content: center; } .events-grid { grid-template-columns: 1fr; } .events-grid.view-list .event-card { grid-template-columns: 1fr; } .events-grid.view-list .event-image { height: 200px; } .timeline::before { left: 20px; } .timeline-item, .timeline-item:nth-child(odd) { flex-direction: row; } .timeline-content { width: calc(100% - 4rem); margin-left: 4rem; } .timeline-dot { left: 20px; } .search-container { max-width: 100%; } .events-grid.view-list .event-card { grid-template-columns: 1fr; } .events-grid.view-list .event-image { height: 200px; border-radius: 12px 12px 0 0; } .events-grid.view-list .event-date-badge { position: absolute; top: 1rem; right: 1rem; margin: 0; } .events-grid.view-list .event-content { padding: 1.5rem; } .events-grid.view-list .event-title { font-size: 1.5rem; } .events-grid.view-list .event-meta { grid-template-columns: 1fr; } } </style>
 </head>
 <body>
 <!-- Navigation -->
@@ -87,8 +87,21 @@
 </section>
 <!-- View Toggle -->
 <section class="view-toggle">
-<div class="view-toggle-group">
-<button class="view-btn active" data-view="grid" data-en="📅 Grid" data-ar="📅 شبكة">
+    <div class="search-container">
+        <span class="search-icon">🔍</span>
+        <input 
+            type="text" 
+            class="search-input" 
+            id="searchInput" 
+            placeholder="Search events by title, description, or location..."
+            data-en="Search events by title, description, or location..."
+            data-ar="ابحث عن الفعاليات بالعنوان أو الوصف أو الموقع..."
+        >
+        <button class="clear-search" id="clearSearch" aria-label="Clear search">✕</button>
+    </div>
+    
+    <div class="view-toggle-group">
+        <button class="view-btn active" data-view="grid" data-en="📅 Grid" data-ar="📅 شبكة">
 <span>📅</span> Grid
 </button>
 <button class="view-btn" data-view="list" data-en="📋 List" data-ar="📋 قائمة">
@@ -100,10 +113,10 @@
 <button class="view-btn" data-view="timeline" data-en="📊 Timeline" data-ar="📊 جدول زمني">
 <span>📊</span> Timeline
 </button>
-</div>
-<button class="filter-btn" id="hideCompletedBtn" data-en="🔽 Hide Completed" data-ar="🔽 إخفاء المكتملة">
-<span>🔽</span> Hide Completed
-</button>
+    </div>
+    <button class="filter-btn" id="hideCompletedBtn" data-en="🔽 Hide Completed" data-ar="🔽 إخفاء المكتملة">
+        <span>🔽</span> Hide Completed
+    </button>
 </section>
 <!-- Events Grid View -->
 <section class="events-container" id="gridView">
@@ -183,6 +196,7 @@
         // Track filter state
         let hideCompleted = false;
         let currentView = 'grid';
+        let searchQuery = '';
 
         // Initialize view toggle with event delegation
         function initViewToggle() {
@@ -255,25 +269,121 @@
         }
         
         function toggleCompletedEvents() {
+            filterEvents(); // Use the unified filter function
+        }
+
+        // Initialize search functionality
+        function initSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearSearch');
+            
+            if (searchInput) {
+                // Handle input changes
+                searchInput.addEventListener('input', (e) => {
+                    searchQuery = e.target.value.toLowerCase().trim();
+                    
+                    // Show/hide clear button
+                    if (searchQuery) {
+                        clearBtn.classList.add('visible');
+                    } else {
+                        clearBtn.classList.remove('visible');
+                    }
+                    
+                    filterEvents();
+                });
+                
+                // Handle clear button
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', () => {
+                        searchInput.value = '';
+                        searchQuery = '';
+                        clearBtn.classList.remove('visible');
+                        filterEvents();
+                        searchInput.focus();
+                    });
+                }
+            }
+        }
+        
+        // Filter events based on search query and completed status
+        function filterEvents() {
             const allEventCards = document.querySelectorAll('.event-card');
             const timelineItems = document.querySelectorAll('.timeline-item');
+            let visibleCount = 0;
             
             allEventCards.forEach(card => {
+                const title = card.querySelector('.event-title')?.textContent.toLowerCase() || '';
+                const description = card.querySelector('.event-description')?.textContent.toLowerCase() || '';
+                const location = card.querySelector('.meta-item span:last-child')?.textContent.toLowerCase() || '';
                 const isPast = card.querySelector('.status-past');
-                if (hideCompleted && isPast) {
-                    card.classList.add('completed-hidden');
-                } else {
+                
+                // Check if event matches search query
+                const matchesSearch = !searchQuery || 
+                    title.includes(searchQuery) || 
+                    description.includes(searchQuery) || 
+                    location.includes(searchQuery);
+                
+                // Check if event should be hidden due to completed filter
+                const shouldHideCompleted = hideCompleted && isPast;
+                
+                if (matchesSearch && !shouldHideCompleted) {
+                    card.style.display = '';
                     card.classList.remove('completed-hidden');
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                    if (shouldHideCompleted) {
+                        card.classList.add('completed-hidden');
+                    }
                 }
             });
             
+            // Filter timeline items
             timelineItems.forEach(item => {
-                if (hideCompleted && item.classList.contains('completed')) {
-                    item.classList.add('completed-hidden');
-                } else {
+                const title = item.querySelector('h3')?.textContent.toLowerCase() || '';
+                const isPast = item.classList.contains('completed');
+                
+                const matchesSearch = !searchQuery || title.includes(searchQuery);
+                const shouldHideCompleted = hideCompleted && isPast;
+                
+                if (matchesSearch && !shouldHideCompleted) {
+                    item.style.display = '';
                     item.classList.remove('completed-hidden');
+                } else {
+                    item.style.display = 'none';
+                    if (shouldHideCompleted) {
+                        item.classList.add('completed-hidden');
+                    }
                 }
             });
+            
+            // Show "no results" message if needed
+            showNoResultsMessage(visibleCount);
+        }
+        
+        // Show/hide no results message
+        function showNoResultsMessage(visibleCount) {
+            const gridContainer = document.querySelector('#gridView .events-grid');
+            const timelineContainer = document.getElementById('timelineContainer');
+            
+            // Remove existing no-results messages
+            document.querySelectorAll('.no-results').forEach(el => el.remove());
+            
+            if (visibleCount === 0 && searchQuery) {
+                const noResultsHTML = `
+                    <div class="no-results">
+                        <div class="no-results-icon">🔍</div>
+                        <h3 class="no-results-title">No Events Found</h3>
+                        <p class="no-results-message">No events match "${searchQuery}". Try a different search term.</p>
+                    </div>
+                `;
+                
+                if (currentView === 'timeline') {
+                    timelineContainer.insertAdjacentHTML('afterbegin', noResultsHTML);
+                } else {
+                    gridContainer.insertAdjacentHTML('afterbegin', noResultsHTML);
+                }
+            }
         }
 
         // Load events from Firebase using Data Loader
@@ -481,6 +591,7 @@
         // Load events when page loads
         document.addEventListener('DOMContentLoaded', () => {
             initViewToggle();
+            initSearch();
             loadEvents();
         });
     </script>
