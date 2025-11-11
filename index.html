@@ -7,11 +7,21 @@
     <link rel="icon" type="image/png" href="static/images/branding/LOGO.png">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/intro.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Intro Animation -->
+    <div class="intro-overlay" id="introOverlay">
+        <div class="intro-content">
+            <img src="static/images/branding/LOGO.png" alt="AIAS Basra Logo" class="intro-logo">
+            <h1 class="intro-title">AIAS Basra Chapter</h1>
+            <p class="intro-subtitle">Building the Future of Architecture</p>
+        </div>
+    </div>
+
     <!-- Authentication Check -->
     <script type="module" src="js/auth.js"></script>
     
@@ -226,6 +236,7 @@
     </footer>
 
     <!-- Home page content is static - no Firestore fetching needed -->
+    <script src="js/intro.js"></script>
     <script src="js/three-effects.js"></script>
     <script src="js/main.js"></script>
 </body>
