@@ -57,14 +57,17 @@
         }, INTRO_DURATION);
     }
     
+    // Expose replay function globally
+    window.replayIntroAnimation = playIntroAnimation;
+    
     // If intro was already shown this session, hide it immediately
-    //if (introShown === 'true') {
-        //introOverlay.style.display = 'none';
-        //document.body.classList.remove('intro-active');
-    //} else {
-        // Add intro-active class to hide page content
-    playIntroAnimation();
-    //}
+    if (introShown === 'true') {
+        introOverlay.style.display = 'none';
+        document.body.classList.remove('intro-active');
+    } else {
+        //Add intro-active class to hide page content
+        playIntroAnimation();
+    }
     
     // Preload main page content
     window.addEventListener('load', () => {
@@ -74,7 +77,30 @@
                 console.log('Fonts loaded for intro animation');
             });
         }
+        
+        // Add click listeners to all AIAS logos on the page
+        attachLogoClickListeners();
     });
+    
+    // Function to attach click listeners to AIAS logos
+    function attachLogoClickListeners() {
+        // Find all AIAS logos on the page (adjust selectors as needed)
+        const logos = document.querySelectorAll('.logo, .navbar-brand img, [alt*="AIAS"], [class*="logo"]');
+        
+        logos.forEach(logo => {
+            // Skip the intro overlay logo to avoid duplicate listeners
+            if (logo.closest('#introOverlay')) {
+                return;
+            }
+            
+            logo.style.cursor = 'pointer';
+            logo.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('AIAS logo clicked - replaying intro animation');
+                playIntroAnimation();
+            });
+        });
+    }
     
     // Allow skipping intro by clicking/tapping (single click)
     let clickTimeout;
