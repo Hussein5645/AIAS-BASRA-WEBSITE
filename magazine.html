@@ -585,12 +585,15 @@
             padding: 1rem 2rem;
             background: #1a1d1f;
             border-bottom: 2px solid #404448;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
         
         .pdf-book-nav {
             display: flex;
-            gap: 1rem;
+            gap: 0.75rem;
             align-items: center;
+            flex-wrap: wrap;
         }
         
         .pdf-book-btn {
@@ -606,6 +609,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            white-space: nowrap;
         }
         
         .pdf-book-btn:hover:not(:disabled) {
@@ -619,6 +623,12 @@
             cursor: not-allowed;
         }
         
+        .pdf-book-btn.btn-icon {
+            padding: 0.6rem;
+            min-width: 40px;
+            justify-content: center;
+        }
+        
         .pdf-page-info {
             color: white;
             font-weight: 600;
@@ -626,6 +636,30 @@
             padding: 0.6rem 1.2rem;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 6px;
+            white-space: nowrap;
+        }
+        
+        .pdf-page-jump {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .pdf-page-jump input {
+            width: 60px;
+            padding: 0.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .pdf-page-jump input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            background: rgba(255, 255, 255, 0.15);
         }
         
         .pdf-view-toggle {
@@ -641,6 +675,49 @@
             background: var(--primary-color);
         }
         
+        .pdf-layout-toggle {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.3rem;
+            border-radius: 6px;
+        }
+        
+        .pdf-layout-btn {
+            background: transparent;
+            color: white;
+            border: none;
+            padding: 0.5rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .pdf-layout-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .pdf-layout-btn.active {
+            background: var(--accent-color);
+        }
+        
+        .pdf-zoom-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .pdf-zoom-level {
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            min-width: 50px;
+            text-align: center;
+        }
+        
         .pdf-book-viewer {
             flex: 1;
             display: flex;
@@ -649,31 +726,41 @@
             padding: 2rem;
             overflow: auto;
             position: relative;
+            min-height: 0;
         }
         
         .pdf-book-spread {
             display: flex;
             gap: 2rem;
-            max-width: 100%;
-            height: 100%;
-            position: relative;
-            perspective: 2000px;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            transform-origin: center center;
+        }
+        
+        .pdf-book-spread.single-page {
+            gap: 0;
         }
         
         .pdf-book-page {
             background: white;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4),
-                        0 0 20px rgba(0, 0, 0, 0.2);
-            border-radius: 4px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5),
+                        0 0 20px rgba(0, 0, 0, 0.3),
+                        inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+            border-radius: 2px;
             position: relative;
-            transition: transform 0.6s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+            max-height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .pdf-book-page canvas {
             display: block;
-            width: 100%;
-            height: 100%;
-            border-radius: 4px;
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 2px;
         }
         
         .pdf-book-page-left {
@@ -685,7 +772,6 @@
         }
         
         .pdf-book-page-single {
-            max-width: 800px;
             margin: 0 auto;
         }
         
@@ -696,6 +782,7 @@
             flex-direction: column;
             align-items: center;
             gap: 1rem;
+            text-align: center;
         }
         
         .pdf-loading-spinner {
@@ -707,25 +794,55 @@
             animation: spin 1s linear infinite;
         }
         
-        /* Page turn animation */
-        .pdf-book-page.turning-next {
-            animation: turnPageNext 0.6s ease-in-out;
+        /* Page turn animations */
+        .pdf-book-page.turning-next-left {
+            animation: turnPageNextLeft 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
         }
         
-        .pdf-book-page.turning-prev {
-            animation: turnPagePrev 0.6s ease-in-out;
+        .pdf-book-page.turning-next-right {
+            animation: turnPageNextRight 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
         }
         
-        @keyframes turnPageNext {
-            0% { transform: rotateY(0deg); }
-            50% { transform: rotateY(-90deg); }
-            100% { transform: rotateY(0deg); }
+        .pdf-book-page.turning-prev-left {
+            animation: turnPagePrevLeft 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
         }
         
-        @keyframes turnPagePrev {
-            0% { transform: rotateY(0deg); }
-            50% { transform: rotateY(90deg); }
-            100% { transform: rotateY(0deg); }
+        .pdf-book-page.turning-prev-right {
+            animation: turnPagePrevRight 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+        
+        @keyframes turnPageNextLeft {
+            0% { transform: rotateY(0deg); opacity: 1; }
+            50% { transform: rotateY(-90deg); opacity: 0.7; }
+            100% { transform: rotateY(0deg); opacity: 1; }
+        }
+        
+        @keyframes turnPageNextRight {
+            0% { transform: rotateY(0deg); opacity: 1; }
+            50% { transform: rotateY(90deg); opacity: 0.7; }
+            100% { transform: rotateY(0deg); opacity: 1; }
+        }
+        
+        @keyframes turnPagePrevLeft {
+            0% { transform: rotateY(0deg); opacity: 1; }
+            50% { transform: rotateY(90deg); opacity: 0.7; }
+            100% { transform: rotateY(0deg); opacity: 1; }
+        }
+        
+        @keyframes turnPagePrevRight {
+            0% { transform: rotateY(0deg); opacity: 1; }
+            50% { transform: rotateY(-90deg); opacity: 0.7; }
+            100% { transform: rotateY(0deg); opacity: 1; }
+        }
+        
+        /* Fullscreen mode */
+        .pdf-book-container.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 10001;
         }
         
         @media (max-width: 768px) {
@@ -777,13 +894,45 @@
             
             .pdf-book-controls {
                 padding: 0.75rem 1rem;
-                flex-direction: column;
-                gap: 0.5rem;
+                gap: 0.75rem;
             }
             
             .pdf-book-nav {
-                flex-wrap: wrap;
+                width: 100%;
                 justify-content: center;
+                gap: 0.5rem;
+            }
+            
+            .pdf-book-btn {
+                padding: 0.5rem 0.8rem;
+                font-size: 0.85rem;
+            }
+            
+            .pdf-book-btn span {
+                display: none;
+            }
+            
+            .pdf-book-btn.btn-icon span {
+                display: inline;
+            }
+            
+            .pdf-page-info {
+                font-size: 0.85rem;
+                padding: 0.5rem 0.8rem;
+            }
+            
+            .pdf-layout-toggle {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .pdf-zoom-controls {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .pdf-book-viewer {
+                padding: 1rem;
             }
         }
     </style>
@@ -1120,6 +1269,7 @@
                                 <div class="pdf-loading" style="color: #ff6b6b;">
                                     <div style="font-size: 3rem;">⚠️</div>
                                     <div>Failed to load PDF in book mode</div>
+                                    <p style="max-width: 400px; margin: 1rem 0; opacity: 0.8;">${error.message}</p>
                                     <button class="pdf-book-btn" onclick="document.getElementById('normalViewBtn').click()">
                                         Try Normal View
                                     </button>
@@ -1131,6 +1281,9 @@
             }
             
             // Initialize book viewer UI
+            let currentLayout = 'spread'; // 'spread' or 'single'
+            let currentZoom = 1.0;
+            
             function initBookViewer() {
                 const sanitizedFilename = currentTitle.replace(/[^a-z0-9]/gi, '-').toLowerCase() + '.pdf';
                 
@@ -1138,23 +1291,59 @@
                     <div class="pdf-book-container">
                         <div class="pdf-book-controls">
                             <div class="pdf-book-nav">
-                                <button class="pdf-book-btn" id="firstPageBtn" title="First Page">
-                                    ⏮️ First
+                                <button class="pdf-book-btn btn-icon" id="firstPageBtn" title="First Page">
+                                    <span>⏮️</span>
                                 </button>
                                 <button class="pdf-book-btn" id="prevPageBtn" title="Previous Page">
-                                    ◀️ Previous
+                                    <span>◀️</span> Prev
                                 </button>
                                 <span class="pdf-page-info" id="pageInfo">Page 1 of ${totalPages}</span>
                                 <button class="pdf-book-btn" id="nextPageBtn" title="Next Page">
-                                    Next ▶️
+                                    Next <span>▶️</span>
                                 </button>
-                                <button class="pdf-book-btn" id="lastPageBtn" title="Last Page">
-                                    Last ⏭️
+                                <button class="pdf-book-btn btn-icon" id="lastPageBtn" title="Last Page">
+                                    <span>⏭️</span>
                                 </button>
                             </div>
+                            
+                            <div class="pdf-book-nav">
+                                <div class="pdf-page-jump">
+                                    <input type="number" id="pageJumpInput" min="1" max="${totalPages}" value="1" title="Jump to page">
+                                    <button class="pdf-book-btn btn-icon" id="pageJumpBtn" title="Go to page">
+                                        <span>↵</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="pdf-book-nav">
+                                <div class="pdf-layout-toggle">
+                                    <button class="pdf-layout-btn active" id="spreadLayoutBtn" title="Two-page spread">
+                                        📖 Spread
+                                    </button>
+                                    <button class="pdf-layout-btn" id="singleLayoutBtn" title="Single page">
+                                        📄 Single
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="pdf-book-nav">
+                                <div class="pdf-zoom-controls">
+                                    <button class="pdf-book-btn btn-icon" id="zoomOutBtn" title="Zoom out">
+                                        <span>−</span>
+                                    </button>
+                                    <span class="pdf-zoom-level" id="zoomLevel">100%</span>
+                                    <button class="pdf-book-btn btn-icon" id="zoomInBtn" title="Zoom in">
+                                        <span>+</span>
+                                    </button>
+                                    <button class="pdf-book-btn btn-icon" id="zoomResetBtn" title="Reset zoom">
+                                        <span>⊙</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
                             <div class="pdf-book-nav">
                                 <button class="pdf-book-btn" onclick="downloadPDF('${currentPdfUrl}', '${sanitizedFilename}')" title="Download PDF">
-                                    ⬇️ Download
+                                    ⬇️ <span>Download</span>
                                 </button>
                             </div>
                         </div>
@@ -1171,33 +1360,110 @@
                 document.getElementById('prevPageBtn').addEventListener('click', previousPage);
                 document.getElementById('nextPageBtn').addEventListener('click', nextPage);
                 document.getElementById('lastPageBtn').addEventListener('click', () => goToPage(totalPages));
+                
+                // Page jump functionality
+                const pageJumpInput = document.getElementById('pageJumpInput');
+                const pageJumpBtn = document.getElementById('pageJumpBtn');
+                
+                pageJumpBtn.addEventListener('click', () => {
+                    const targetPage = parseInt(pageJumpInput.value);
+                    if (targetPage >= 1 && targetPage <= totalPages) {
+                        goToPage(targetPage);
+                    }
+                });
+                
+                pageJumpInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        pageJumpBtn.click();
+                    }
+                });
+                
+                // Layout toggle
+                document.getElementById('spreadLayoutBtn').addEventListener('click', () => {
+                    currentLayout = 'spread';
+                    document.getElementById('spreadLayoutBtn').classList.add('active');
+                    document.getElementById('singleLayoutBtn').classList.remove('active');
+                    renderBookPages();
+                });
+                
+                document.getElementById('singleLayoutBtn').addEventListener('click', () => {
+                    currentLayout = 'single';
+                    document.getElementById('singleLayoutBtn').classList.add('active');
+                    document.getElementById('spreadLayoutBtn').classList.remove('active');
+                    renderBookPages();
+                });
+                
+                // Zoom controls
+                document.getElementById('zoomInBtn').addEventListener('click', () => {
+                    currentZoom = Math.min(currentZoom + 0.25, 3.0);
+                    updateZoom();
+                });
+                
+                document.getElementById('zoomOutBtn').addEventListener('click', () => {
+                    currentZoom = Math.max(currentZoom - 0.25, 0.5);
+                    updateZoom();
+                });
+                
+                document.getElementById('zoomResetBtn').addEventListener('click', () => {
+                    currentZoom = 1.0;
+                    updateZoom();
+                });
+            }
+            
+            // Update zoom level
+            function updateZoom() {
+                const spread = document.getElementById('bookSpread');
+                const zoomLevel = document.getElementById('zoomLevel');
+                
+                if (spread) {
+                    spread.style.transform = `scale(${currentZoom})`;
+                }
+                
+                if (zoomLevel) {
+                    zoomLevel.textContent = `${Math.round(currentZoom * 100)}%`;
+                }
             }
             
             // Render book pages
             async function renderBookPages() {
                 const spread = document.getElementById('bookSpread');
                 const pageInfo = document.getElementById('pageInfo');
+                const pageJumpInput = document.getElementById('pageJumpInput');
                 
                 if (!spread) return;
+                
+                // Update spread class
+                if (currentLayout === 'single') {
+                    spread.classList.add('single-page');
+                } else {
+                    spread.classList.remove('single-page');
+                }
                 
                 // Clear previous pages
                 spread.innerHTML = '<div class="pdf-loading"><div class="pdf-loading-spinner"></div></div>';
                 
                 try {
-                    // Calculate which pages to show (two-page spread)
-                    const leftPage = currentPage;
-                    const rightPage = currentPage + 1;
-                    
                     const pages = [];
                     
-                    // Load left page
-                    if (leftPage <= totalPages) {
-                        pages.push(renderPage(leftPage, 'left'));
-                    }
-                    
-                    // Load right page
-                    if (rightPage <= totalPages) {
-                        pages.push(renderPage(rightPage, 'right'));
+                    if (currentLayout === 'single') {
+                        // Single page mode
+                        if (currentPage <= totalPages) {
+                            pages.push(renderPage(currentPage, 'single'));
+                        }
+                    } else {
+                        // Spread mode (two pages)
+                        const leftPage = currentPage;
+                        const rightPage = currentPage + 1;
+                        
+                        // Load left page
+                        if (leftPage <= totalPages) {
+                            pages.push(renderPage(leftPage, 'left'));
+                        }
+                        
+                        // Load right page
+                        if (rightPage <= totalPages) {
+                            pages.push(renderPage(rightPage, 'right'));
+                        }
                     }
                     
                     const renderedPages = await Promise.all(pages);
@@ -1210,13 +1476,27 @@
                     
                     // Update page info
                     const displayPage = Math.min(currentPage, totalPages);
-                    pageInfo.textContent = `Page ${displayPage} of ${totalPages}`;
+                    const endPage = currentLayout === 'single' ? displayPage : Math.min(currentPage + 1, totalPages);
+                    const pageText = currentLayout === 'single' || currentPage >= totalPages 
+                        ? `Page ${displayPage} of ${totalPages}`
+                        : `Pages ${displayPage}-${endPage} of ${totalPages}`;
+                    
+                    pageInfo.textContent = pageText;
+                    
+                    if (pageJumpInput) {
+                        pageJumpInput.value = displayPage;
+                    }
                     
                     // Update button states
-                    document.getElementById('firstPageBtn').disabled = currentPage === 1;
-                    document.getElementById('prevPageBtn').disabled = currentPage === 1;
-                    document.getElementById('nextPageBtn').disabled = currentPage >= totalPages;
-                    document.getElementById('lastPageBtn').disabled = currentPage >= totalPages;
+                    const isFirstPage = currentPage === 1;
+                    const isLastPage = currentLayout === 'single' 
+                        ? currentPage >= totalPages 
+                        : currentPage >= totalPages - 1;
+                    
+                    document.getElementById('firstPageBtn').disabled = isFirstPage;
+                    document.getElementById('prevPageBtn').disabled = isFirstPage;
+                    document.getElementById('nextPageBtn').disabled = isLastPage;
+                    document.getElementById('lastPageBtn').disabled = isLastPage;
                     
                 } catch (error) {
                     console.error('[Book Mode] Error rendering pages:', error);
@@ -1234,8 +1514,26 @@
                     // Calculate viewport scale
                     const viewport = page.getViewport({ scale: 1.0 });
                     const container = document.getElementById('bookViewer');
-                    const containerHeight = container ? container.offsetHeight - 100 : 600;
-                    const scale = (containerHeight / viewport.height) * 0.9;
+                    
+                    // Calculate scale based on container size
+                    let scale = 1.5; // Default scale
+                    if (container) {
+                        const containerHeight = container.offsetHeight - 100;
+                        const containerWidth = container.offsetWidth - 100;
+                        
+                        // Calculate scale to fit height
+                        const scaleHeight = containerHeight / viewport.height;
+                        
+                        // Calculate scale to fit width (accounting for layout)
+                        const maxWidth = currentLayout === 'single' 
+                            ? containerWidth 
+                            : (containerWidth - 40) / 2; // Subtract gap
+                        const scaleWidth = maxWidth / viewport.width;
+                        
+                        // Use the smaller scale to ensure it fits
+                        scale = Math.min(scaleHeight, scaleWidth) * 0.95; // 95% to add some padding
+                    }
+                    
                     const scaledViewport = page.getViewport({ scale });
                     
                     // Create canvas
@@ -1255,6 +1553,22 @@
                     pageDiv.className = `pdf-book-page pdf-book-page-${side}`;
                     pageDiv.appendChild(canvas);
                     
+                    // Add page number indicator
+                    const pageLabel = document.createElement('div');
+                    pageLabel.style.cssText = `
+                        position: absolute;
+                        bottom: 10px;
+                        ${side === 'left' ? 'right: 10px;' : 'left: 10px;'}
+                        color: #666;
+                        font-size: 12px;
+                        font-weight: 600;
+                        background: rgba(255, 255, 255, 0.9);
+                        padding: 4px 8px;
+                        border-radius: 4px;
+                    `;
+                    pageLabel.textContent = pageNumber;
+                    pageDiv.appendChild(pageLabel);
+                    
                     return pageDiv;
                     
                 } catch (error) {
@@ -1265,28 +1579,44 @@
             
             // Navigation functions
             function nextPage() {
-                if (currentPage < totalPages) {
+                const increment = currentLayout === 'single' ? 1 : 2;
+                if (currentPage + increment <= totalPages) {
                     // Add animation class
                     const pages = document.querySelectorAll('.pdf-book-page');
-                    pages.forEach(page => page.classList.add('turning-next'));
+                    pages.forEach((page, index) => {
+                        if (currentLayout === 'single') {
+                            page.classList.add('turning-next-right');
+                        } else {
+                            page.classList.add(index === 0 ? 'turning-next-left' : 'turning-next-right');
+                        }
+                    });
                     
                     setTimeout(() => {
-                        currentPage += 2; // Two pages at a time in book mode
-                        if (currentPage > totalPages) currentPage = totalPages;
+                        currentPage += increment;
                         renderBookPages();
                     }, 300);
+                } else if (currentPage < totalPages) {
+                    // Handle last page in spread mode
+                    currentPage = totalPages;
+                    renderBookPages();
                 }
             }
             
             function previousPage() {
+                const decrement = currentLayout === 'single' ? 1 : 2;
                 if (currentPage > 1) {
                     // Add animation class
                     const pages = document.querySelectorAll('.pdf-book-page');
-                    pages.forEach(page => page.classList.add('turning-prev'));
+                    pages.forEach((page, index) => {
+                        if (currentLayout === 'single') {
+                            page.classList.add('turning-prev-left');
+                        } else {
+                            page.classList.add(index === 0 ? 'turning-prev-left' : 'turning-prev-right');
+                        }
+                    });
                     
                     setTimeout(() => {
-                        currentPage -= 2; // Two pages at a time in book mode
-                        if (currentPage < 1) currentPage = 1;
+                        currentPage = Math.max(1, currentPage - decrement);
                         renderBookPages();
                     }, 300);
                 }
@@ -1295,8 +1625,10 @@
             function goToPage(page) {
                 if (page >= 1 && page <= totalPages && page !== currentPage) {
                     currentPage = page;
-                    // Make sure we're on an odd page for proper spread
-                    if (currentPage % 2 === 0) currentPage -= 1;
+                    // In spread mode, ensure we're on an odd page for proper alignment
+                    if (currentLayout === 'spread' && currentPage % 2 === 0 && currentPage > 1) {
+                        currentPage -= 1;
+                    }
                     renderBookPages();
                 }
             }
@@ -1320,7 +1652,12 @@
                 if (e.key === 'Escape') {
                     window.closePDFViewer();
                 } else if (currentViewMode === 'book') {
-                    if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+                    // Prevent default for navigation keys
+                    if (['ArrowRight', 'ArrowLeft', 'PageDown', 'PageUp', 'Home', 'End'].includes(e.key)) {
+                        e.preventDefault();
+                    }
+                    
+                    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
                         e.preventDefault();
                         nextPage();
                     } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
@@ -1332,6 +1669,29 @@
                     } else if (e.key === 'End') {
                         e.preventDefault();
                         goToPage(totalPages);
+                    } else if (e.key === '+' || e.key === '=') {
+                        // Zoom in
+                        e.preventDefault();
+                        const zoomInBtn = document.getElementById('zoomInBtn');
+                        if (zoomInBtn) zoomInBtn.click();
+                    } else if (e.key === '-' || e.key === '_') {
+                        // Zoom out
+                        e.preventDefault();
+                        const zoomOutBtn = document.getElementById('zoomOutBtn');
+                        if (zoomOutBtn) zoomOutBtn.click();
+                    } else if (e.key === '0') {
+                        // Reset zoom
+                        e.preventDefault();
+                        const zoomResetBtn = document.getElementById('zoomResetBtn');
+                        if (zoomResetBtn) zoomResetBtn.click();
+                    } else if (e.key === 's' || e.key === 'S') {
+                        // Toggle single/spread
+                        e.preventDefault();
+                        if (currentLayout === 'spread') {
+                            document.getElementById('singleLayoutBtn')?.click();
+                        } else {
+                            document.getElementById('spreadLayoutBtn')?.click();
+                        }
                     }
                 }
             });
