@@ -299,27 +299,9 @@
         // Check if user is already logged in
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // User is signed in, ask if they want to continue or use different account
-                const continueWithCurrent = confirm(
-                    `You are already logged in as ${user.displayName || user.email}.\n\n` +
-                    `Do you want to continue with this account?\n\n` +
-                    `Click "OK" to continue with current account.\n` +
-                    `Click "Cancel" to sign out and login with a different account.`
-                );
-                
-                if (continueWithCurrent) {
-                    // Continue with current account
-                    checkUserRoleAndRedirect(user);
-                } else {
-                    // Sign out so user can login with different account
-                    try {
-                        await auth.signOut();
-                        showMessage('Signed out successfully. Please sign in with a different account.', 'success');
-                    } catch (error) {
-                        console.error('Sign out error:', error);
-                        showMessage('Error signing out. Please try again.', 'error');
-                    }
-                }
+                // User is already authenticated; redirect immediately
+                showMessage('You are already signed in. Redirecting...', 'success');
+                await checkUserRoleAndRedirect(user);
             }
         });
 
@@ -356,6 +338,7 @@
                 localStorage.setItem('aias_user_picture', user.photoURL || '');
                 localStorage.setItem('aias_is_admin', isAdmin.toString());
                 localStorage.setItem('aias_user_uid', user.uid);
+                localStorage.setItem('aias_visitor_mode', 'false');
 
                 // Redirect based on admin status
                 if (isAdmin) {
