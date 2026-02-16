@@ -697,7 +697,7 @@
                         <h3 class="model-name">${model.name || (currentLang === 'ar' ? 'نموذج بلا اسم' : 'Untitled Model')}</h3>
                         <p class="model-date"><strong>${dateLabel}:</strong> ${model.date || '—'}</p>
                         <div class="preview-actions">
-                            <a href="3DViewer.html?modelId=${encodeURIComponent(String(model.id || '').trim())}" class="download-btn">${viewText}</a>
+                            <a href="3DViewer.html?model=${encodeURIComponent(String(model.id || '').trim())}" class="download-btn">${viewText}</a>
                             <button type="button" class="preview-btn" onclick="openModelPreview('${String(model.id || '').replace(/'/g, "\\'")}')">${previewText}</button>
                         </div>
                     </article>
