@@ -465,7 +465,7 @@
     <script src="js/main.js"></script>
     <script type="module">
         // Import Data Loader and Categories Loader
-        import dataLoader from "./js/data-loader.js";
+        import dataLoader from "./js/data-loader.js?v=20260216";
         import categoriesLoader from "./js/categories-loader.js";
 
         // Debug toggle: enable via ?debug=true or localStorage.setItem('debug','true')
@@ -630,12 +630,17 @@
             if (!modelsGrid) return;
 
             try {
-                const result = await dataLoader.getModels3D();
+                const result = typeof dataLoader.getModels3D === 'function'
+                    ? await dataLoader.getModels3D()
+                    : await dataLoader.fetchData(true);
                 if (!result.success) {
                     throw new Error(result.error || 'Failed to load 3D models');
                 }
 
-                const models = (result.models3d || []).filter(model => model.code && String(model.code).trim().length === 10);
+                const modelsSource = Array.isArray(result.models3d)
+                    ? result.models3d
+                    : (result.data?.models3d || []);
+                const models = modelsSource.filter(model => model.code && String(model.code).trim().length === 10);
                 const currentLang = localStorage.getItem('language') || 'en';
 
                 if (models.length === 0) {
