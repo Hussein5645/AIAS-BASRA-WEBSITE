@@ -33,7 +33,7 @@ Models are stored at: `content/models3d/items/`
 Each model document contains:
 ```json
 {
-  "code": "ABCDEFGHIJ",  // 10-character unique code (used as S3 prefix)
+  "code": "Model12345",  // 10-character unique code (case-sensitive, can be upper/lower)
   "name": "Model Name",   // Display name
   "date": "2026-02-16"    // Date in YYYY-MM-DD format
 }
@@ -55,17 +55,18 @@ Available functions:
 
 ## Validation Rules
 
-1. **Code**: Must be exactly 10 characters, uppercase, unique
-2. **Name**: Required, minimum 2 characters
-3. **Date**: Required, valid date format
+1. **Code**: Must be exactly 10 characters, can contain upper and lowercase letters, numbers, etc.
+2. **Code uniqueness**: Case-insensitive ("Model12345" and "MODEL12345" are considered duplicates)
+3. **Name**: Required, minimum 2 characters
+4. **Date**: Required, valid date format
 
 ## Workflow Example
 
 ### Adding a 3D Model:
 ```
-1. Upload 3D file to S3 with prefix "MODELCODE1"
+1. Upload 3D file to S3 with prefix "Model12345"
 2. Go to Admin Dashboard
-3. Add model with code "MODELCODE1", name "Sample Model", date "2026-02-16"
+3. Add model with code "Model12345", name "Sample Model", date "2026-02-16"
 4. Model is saved to Firebase
 5. 3D Viewer can now load this model
 ```
@@ -73,7 +74,7 @@ Available functions:
 ### Viewing the Model:
 ```
 Access: 3DViewer.html?modelId=<firebase-document-id>
-Or: 3DViewer.html?model=MODELCODE1
+Or: 3DViewer.html?model=Model12345 (case-insensitive)
 ```
 
 ## Security
@@ -117,7 +118,7 @@ const firestoreAPI = new FirestoreAPI();
 
 // Add a new model
 const result = await firestoreAPI.addModel3D({
-  code: "NEWMODEL01",
+  code: "NewModel01",
   name: "My New Model",
   date: "2026-02-16"
 });

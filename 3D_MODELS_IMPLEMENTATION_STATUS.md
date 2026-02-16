@@ -58,7 +58,7 @@ Firestore Database
 Each 3D model document contains:
 ```javascript
 {
-  code: "ARCHITEC01",  // 10-character unique identifier
+  code: "Model12345",  // 10-character unique identifier (upper/lowercase allowed)
   name: "Architecture Model 1",  // Display name
   date: "2026-02-16"    // ISO date format
 }
@@ -66,8 +66,8 @@ Each 3D model document contains:
 
 ### Validation Rules
 1. ✅ Code must be exactly 10 characters
-2. ✅ Code must be unique (no duplicates)
-3. ✅ Code is automatically converted to uppercase
+2. ✅ Code must be unique (case-insensitive comparison)
+3. ✅ Code can contain uppercase, lowercase, numbers, and special characters
 4. ✅ Name is required (minimum 2 characters)
 5. ✅ Date is required and must be valid
 
@@ -86,8 +86,8 @@ Each 3D model document contains:
 Method 1: By Document ID
 https://your-site.com/3DViewer.html?modelId=abc123xyz
 
-Method 2: By Model Code (Legacy)
-https://your-site.com/3DViewer.html?model=ARCHITEC01
+Method 2: By Model Code (Legacy, case-insensitive)
+https://your-site.com/3DViewer.html?model=Model12345
 ```
 
 ---
@@ -99,14 +99,14 @@ https://your-site.com/3DViewer.html?model=ARCHITEC01
 ```javascript
 // Add a new 3D model
 await firestoreAPI.addModel3D({
-  code: "NEWMODEL01",
+  code: "NewModel01",
   name: "My Model",
   date: "2026-02-16"
 });
 
 // Update an existing model
 await firestoreAPI.updateModel3D("document-id", {
-  code: "UPDATED001",
+  code: "Update0001",
   name: "Updated Name",
   date: "2026-02-17"
 });
@@ -115,7 +115,7 @@ await firestoreAPI.updateModel3D("document-id", {
 await firestoreAPI.deleteModel3D("document-id");
 
 // Check if code is already taken
-await firestoreAPI.isModelCodeTaken("TESTCODE1");
+await firestoreAPI.isModelCodeTaken("TestCode1");
 
 // Get all content (includes models3d array)
 const result = await firestoreAPI.getAllContent();
@@ -158,15 +158,15 @@ console.log(result.content.models3d);
 
 ### Complete Example: Adding a Model
 
-1. **Upload 3D file to AWS S3** with prefix "BUILDING01"
+1. **Upload 3D file to AWS S3** with prefix "Building01"
 2. **Open Admin Dashboard** → 3D Models tab
 3. **Fill the form**:
-   - Code: `BUILDING01`
+   - Code: `Building01`
    - Name: `Main Building Model`
    - Date: `2026-02-16`
 4. **Click "Add 3D Model"**
 5. **Success!** Model is saved to Firebase
-6. **Open 3D Viewer**: `3DViewer.html?model=BUILDING01`
+6. **Open 3D Viewer**: `3DViewer.html?model=Building01`
 7. **Model loads** from S3 and displays
 
 ---
