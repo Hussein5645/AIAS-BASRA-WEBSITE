@@ -463,127 +463,17 @@
     <script src="js/main.js"></script>
     <script src="js/navigation.js"></script>
     <script src="js/control-panel.js"></script>
-    <script>
-        // Load categories from data.json and populate filter panel
-        async function loadCategoriesFromJSON() {
-            try {
-                const response = await fetch('data/data.json');
-                const data = await response.json();
-                const categories = data.categories?.library?.enhanced || ['Books', 'Guides', 'Templates', 'Research'];
-                
-                // Find the categories filter group
-                const filterGroups = document.querySelectorAll('.filter-group');
-                let categoryGroup = null;
-                filterGroups.forEach(group => {
-                    const title = group.querySelector('.filter-group-title');
-                    if (title && title.textContent === 'Categories') {
-                        categoryGroup = group;
-                    }
-                });
-                
-                if (categoryGroup) {
-                    // Keep the title, rebuild the options
-                    const titleEl = categoryGroup.querySelector('.filter-group-title');
-                    categoryGroup.innerHTML = '';
-                    categoryGroup.appendChild(titleEl);
-                    
-                    categories.forEach(cat => {
-                        const optionDiv = document.createElement('div');
-                        optionDiv.className = 'filter-option';
-                        optionDiv.innerHTML = `
-                            <label class="filter-checkbox">
-                                <input type="checkbox" data-filter-type="category" value="${cat}">
-                                <span class="checkmark"></span>
-                            </label>
-                            <span class="filter-label">${cat}</span>
-                            <span class="filter-count">(0)</span>
-                        `;
-                        categoryGroup.appendChild(optionDiv);
-                    });
-                    
-                    console.log('[Library Enhanced] ✓ Categories loaded from JSON');
-                }
-            } catch (error) {
-                console.error('[Library Enhanced] ✗ Error loading categories:', error);
-            }
-        }
-        
-        // Load categories when page loads
-        document.addEventListener('DOMContentLoaded', loadCategoriesFromJSON);
-    </script>
-    <script>
-        // Sample data for demonstration
-        const sampleResources = [
-            {
-                id: 1,
-                title: 'Architecture Design Fundamentals',
-                description: 'Complete guide to architectural design principles and best practices',
-                category: 'Books',
-                tags: ['Design', 'Theory'],
-                date: '2024-01-15',
-                views: 250,
-                icon: '📘'
-            },
-            {
-                id: 2,
-                title: 'Sustainable Building Guide',
-                description: 'Methods and techniques for sustainable architecture',
-                category: 'Guides',
-                tags: ['Sustainability', 'Design'],
-                date: '2024-02-10',
-                views: 180,
-                icon: '🌱'
-            },
-            {
-                id: 3,
-                title: 'CAD Template Collection',
-                description: 'Professional AutoCAD templates for architecture projects',
-                category: 'Templates',
-                tags: ['Technology', 'Design'],
-                date: '2024-01-20',
-                views: 320,
-                icon: '📐'
-            },
-            {
-                id: 4,
-                title: 'Urban Planning Research',
-                description: 'Contemporary urban planning theories and case studies',
-                category: 'Research',
-                tags: ['Theory', 'Design'],
-                date: '2024-03-05',
-                views: 95,
-                icon: '🏙️'
-            },
-            {
-                id: 5,
-                title: 'Modern Architecture History',
-                description: 'From Bauhaus to contemporary architecture movements',
-                category: 'Books',
-                tags: ['Theory'],
-                date: '2023-12-10',
-                views: 210,
-                icon: '🏛️'
-            },
-            {
-                id: 6,
-                title: 'BIM Implementation Guide',
-                description: 'Building Information Modeling for modern projects',
-                category: 'Guides',
-                tags: ['Technology'],
-                date: '2024-02-28',
-                views: 165,
-                icon: '💻'
-            }
-        ];
+    <script type="module">
+        import dataLoader from './js/data-loader.js';
 
-        // Initialize control panel
         const controlPanel = new ContentControlPanel({
             container: '#contentGrid',
             defaultView: localStorage.getItem('preferredView') || 'grid',
             defaultSort: 'newest'
         });
-        
-        // Override render method for custom styling
+
+        window.controlPanel = controlPanel;
+
         controlPanel.renderItem = function(item) {
             return `
                 <div class="content-card" data-id="${item.id}">
@@ -593,9 +483,9 @@
                     </div>
                     <div class="content-card-body">
                         <h3 class="content-card-title">${item.title}</h3>
-                        <p class="content-card-description">${item.description}</p>
+                        <p class="content-card-description">${item.description || ''}</p>
                         <div class="content-card-tags">
-                            ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                            ${(item.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}
                         </div>
                         <div class="content-card-meta">
                             <span class="content-card-category">${item.category}</span>
@@ -605,9 +495,107 @@
                 </div>
             `;
         };
-        
-        // Set items
-        controlPanel.setItems(sampleResources);
+
+        function normalizeLibraryItem(item, index) {
+            const title = item.name || item.title || 'Untitled Resource';
+            const description = item.description || '';
+            const category = item.category || item.type || 'Resource';
+            const tags = Array.isArray(item.tags) ? item.tags : [];
+            const date = item.date || item.createdAt || new Date().toISOString();
+            const views = Number(item.views || 0);
+            const icon = item.icon || (String(item.type || '').toLowerCase().includes('lecture') ? '🎓' : '📚');
+
+            return {
+                id: item.id || `library-${index + 1}`,
+                title,
+                description,
+                category,
+                tags,
+                date,
+                views,
+                icon,
+                link: item.link || ''
+            };
+        }
+
+        function getCounts(items, accessor) {
+            const counts = new Map();
+            items.forEach(item => {
+                const values = accessor(item);
+                values.forEach(value => {
+                    if (!value) return;
+                    counts.set(value, (counts.get(value) || 0) + 1);
+                });
+            });
+            return counts;
+        }
+
+        function populateFilterGroup(titleText, filterType, countsMap) {
+            const groups = document.querySelectorAll('.filter-group');
+            const targetGroup = Array.from(groups).find(group => {
+                const titleEl = group.querySelector('.filter-group-title');
+                return titleEl && titleEl.textContent.trim() === titleText;
+            });
+
+            if (!targetGroup) return;
+
+            const titleEl = targetGroup.querySelector('.filter-group-title');
+            targetGroup.innerHTML = '';
+            targetGroup.appendChild(titleEl);
+
+            Array.from(countsMap.entries())
+                .sort((a, b) => a[0].localeCompare(b[0]))
+                .forEach(([value, count]) => {
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = 'filter-option';
+                    optionDiv.innerHTML = `
+                        <label class="filter-checkbox">
+                            <input type="checkbox" data-filter-type="${filterType}" value="${value}">
+                            <span class="checkmark"></span>
+                        </label>
+                        <span class="filter-label">${value}</span>
+                        <span class="filter-count">(${count})</span>
+                    `;
+                    targetGroup.appendChild(optionDiv);
+                });
+
+            const checkboxes = targetGroup.querySelectorAll('.filter-checkbox input');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', event => {
+                    controlPanel.handleFilterChange(event.target);
+                });
+            });
+        }
+
+        async function loadLibraryFromFirebase() {
+            try {
+                const result = await dataLoader.getLibrary();
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to load library data');
+                }
+
+                const rawItems = Array.isArray(result.library) ? result.library : [];
+                const items = rawItems.map(normalizeLibraryItem);
+
+                const categoryCounts = getCounts(items, item => [item.category]);
+                const tagCounts = getCounts(items, item => item.tags || []);
+
+                populateFilterGroup('Categories', 'category', categoryCounts);
+                populateFilterGroup('Tags', 'tag', tagCounts);
+
+                controlPanel.setItems(items);
+                console.log(`[Library Enhanced] ✓ Loaded ${items.length} resources from Firebase`);
+            } catch (error) {
+                console.error('[Library Enhanced] ✗ Error loading library from Firebase:', error);
+                controlPanel.setItems([]);
+                const resultsInfo = document.getElementById('resultsInfo');
+                if (resultsInfo) {
+                    resultsInfo.textContent = 'Unable to load resources from Firebase.';
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadLibraryFromFirebase);
     </script>
 </body>
 </html>
