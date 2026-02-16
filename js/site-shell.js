@@ -24,6 +24,13 @@
             navStyles.href = 'css/navigation.css';
             document.head.appendChild(navStyles);
         }
+
+        if (!document.querySelector('link[href="css/mobile-optimized.css"]')) {
+            const mobileStyles = document.createElement('link');
+            mobileStyles.rel = 'stylesheet';
+            mobileStyles.href = 'css/mobile-optimized.css';
+            document.head.appendChild(mobileStyles);
+        }
     }
 
     function ensureFallbackBaseStyles() {

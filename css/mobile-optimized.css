@@ -1,0 +1,269 @@
+@media (max-width: 1024px) {
+    .container,
+    .site-shell-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .section-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        font-size: clamp(1.4rem, 4.5vw, 2rem);
+        line-height: 1.3;
+    }
+
+    .section-subtitle {
+        font-size: 0.95rem;
+    }
+
+    .footer-content {
+        gap: 1.25rem;
+    }
+
+    .control-panel-top,
+    .view-controls,
+    .models-controls {
+        gap: 0.75rem;
+    }
+
+    .content-grid,
+    .resources-grid,
+    .events-grid,
+    .articles-grid,
+    .models-grid,
+    .values-grid,
+    .team-grid,
+    .links-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .model-preview iframe {
+        transform: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    html,
+    body {
+        overflow-x: hidden;
+    }
+
+    .navbar {
+        height: 64px;
+    }
+
+    .nav-content {
+        height: 64px;
+    }
+
+    body.site-shell-offset {
+        padding-top: 66px;
+    }
+
+    .hero,
+    .about-hero,
+    .events-hero,
+    .library-hero,
+    .magazine-hero,
+    .models-hero,
+    .fbd-hero {
+        padding-top: 6.25rem;
+        padding-bottom: 2.5rem;
+    }
+
+    .hero-title,
+    .about-hero h1,
+    .events-hero h1,
+    .library-hero h1,
+    .magazine-hero h1,
+    .models-hero h1,
+    .fbd-hero h1 {
+        font-size: clamp(1.6rem, 7vw, 2.2rem);
+        line-height: 1.25;
+    }
+
+    .hero-subtitle,
+    .about-hero p,
+    .events-hero p,
+    .library-hero p,
+    .magazine-hero p,
+    .models-hero p,
+    .fbd-hero p {
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    .hero-buttons,
+    .event-actions,
+    .model-actions,
+    .top-actions,
+    .preview-actions {
+        width: 100%;
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+
+    .btn,
+    .btn-primary,
+    .btn-secondary,
+    .btn-cta,
+    .submit-btn,
+    .download-btn,
+    .model-action,
+    .action-btn,
+    .preview-btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 42px;
+    }
+
+    .control-panel,
+    .view-controls,
+    .models-controls,
+    .search-section,
+    .categories,
+    .models-section,
+    .articles-section,
+    .events-container,
+    .content-section {
+        padding-top: 1.25rem;
+        padding-bottom: 1.25rem;
+    }
+
+    .search-box input,
+    .search-input,
+    .sort-select,
+    input,
+    textarea,
+    select {
+        font-size: 16px;
+    }
+
+    .content-card,
+    .resource-card,
+    .event-card,
+    .article-card,
+    .model-card,
+    .team-card,
+    .value-card,
+    .link-card {
+        border-radius: 10px;
+    }
+
+    .content-card-body,
+    .resource-content,
+    .event-content,
+    .article-content,
+    .model-body,
+    .team-info,
+    .value-card,
+    .link-card {
+        padding: 1rem;
+    }
+
+    .model-preview,
+    .resource-thumbnail,
+    .event-image,
+    .article-image,
+    .content-card-image {
+        height: 190px;
+    }
+
+    .footer {
+        margin-top: 1rem;
+    }
+
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .footer-section h3,
+    .footer-section h4 {
+        margin-bottom: 0.5rem;
+    }
+
+    .filter-panel {
+        width: min(92vw, 380px);
+    }
+
+    .search-modal-content {
+        width: 94vw;
+        padding: 1rem;
+        border-radius: 12px;
+    }
+
+    .pdf-modal-content,
+    .modal-content {
+        max-height: 85vh;
+    }
+
+    .dashboard {
+        padding: 0.75rem;
+        gap: 0.75rem;
+    }
+
+    .panel,
+    .accordion-body {
+        padding: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .container,
+    .site-shell-container {
+        padding-left: 0.8rem;
+        padding-right: 0.8rem;
+    }
+
+    .hero,
+    .about-hero,
+    .events-hero,
+    .library-hero,
+    .magazine-hero,
+    .models-hero,
+    .fbd-hero {
+        padding-top: 5.8rem;
+        padding-bottom: 2rem;
+    }
+
+    .hero-title,
+    .about-hero h1,
+    .events-hero h1,
+    .library-hero h1,
+    .magazine-hero h1,
+    .models-hero h1,
+    .fbd-hero h1 {
+        font-size: clamp(1.4rem, 7.6vw, 1.85rem);
+    }
+
+    .content-card-title,
+    .resource-title,
+    .event-title,
+    .article-title,
+    .model-name {
+        font-size: 1.02rem;
+    }
+
+    .tag,
+    .model-tag,
+    .tag-filter-btn,
+    .view-btn,
+    .filter-btn {
+        font-size: 0.72rem;
+    }
+
+    .model-preview,
+    .resource-thumbnail,
+    .event-image,
+    .article-image,
+    .content-card-image {
+        height: 170px;
+    }
+
+    .results-info {
+        font-size: 0.82rem;
+    }
+}

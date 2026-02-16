@@ -1,5 +1,15 @@
 // Main JavaScript for AIAS Basra Website
 
+(() => {
+    const mobileStylesHref = 'css/mobile-optimized.css';
+    if (!document.querySelector(`link[href="${mobileStylesHref}"]`)) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = mobileStylesHref;
+        document.head.appendChild(link);
+    }
+})();
+
 // Navigation Scroll Effect
 const navbar = document.getElementById('navbar');
 let lastScroll = 0;
