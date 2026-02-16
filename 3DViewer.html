@@ -293,7 +293,7 @@
 
     <div id="controls">
         <button id="toggle-button" onclick="toggleControls()"></button>
-        <input type="text" id="model-prefix" placeholder="أدخل مفتاح النموذج" oninput="toggleButton()"> <!-- Placeholder in Arabic -->
+        <input type="text" id="model-prefix" maxlength="10" placeholder="أدخل مفتاح النموذج" oninput="toggleButton()"> <!-- Placeholder in Arabic -->
         <button id="load-button" style="display: none;" onclick="loadModel()">تحميل النموذج/الصورة</button>
 
         <div id="qr-placeholder">
@@ -378,8 +378,10 @@
         });
 
         function toggleButton() {
-            const input = document.getElementById('model-prefix').value;
-            loadButton.style.display = input ? 'inline-block' : 'none';
+            const inputField = document.getElementById('model-prefix');
+            inputField.value = inputField.value.toUpperCase().trim().slice(0, 10);
+            const input = inputField.value;
+            loadButton.style.display = input.length === 10 ? 'inline-block' : 'none';
             toggleQRAndARDisplay();
         }
 
@@ -429,7 +431,9 @@ function showLoadingScreen(show, totalBytes = 0) {
 
 // Modify loadModel function to get file size and show progress
 function loadModel() {
-    const prefix = document.getElementById('model-prefix').value;
+    const inputField = document.getElementById('model-prefix');
+    const prefix = inputField.value.toUpperCase().trim();
+    inputField.value = prefix;
     if (prefix.length !== 10) {
         alert('Please enter exactly 10 characters.');
         return;
@@ -526,9 +530,12 @@ QRCode.toCanvas(qrCodeContainer, newUrl, (error) => {
         window.addEventListener('DOMContentLoaded', () => {
             const modelKey = getQueryParam('model');
             if (modelKey) {
-                document.getElementById('model-prefix').value = modelKey;
+                const normalizedKey = String(modelKey).toUpperCase().trim();
+                document.getElementById('model-prefix').value = normalizedKey;
                 toggleButton();
-                loadModel();
+                if (normalizedKey.length === 10) {
+                    loadModel();
+                }
             }
         });
 

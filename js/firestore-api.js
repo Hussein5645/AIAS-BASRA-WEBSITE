@@ -82,6 +82,11 @@ const sanitizeWeekly = (w) => ({
   workshopUrl: toStr(w.workshopUrl)
 });
 const sanitizeFbdEvent = (e) => sanitizeEvent(e);
+const sanitizeModel3D = (m) => ({
+  code: toStr(m.code).trim().toUpperCase(),
+  name: toStr(m.name),
+  date: toStr(m.date)
+});
 
 const logPayload = (label, data) => {
   try { console.log(label, JSON.stringify(data, null, 2)); }
@@ -119,7 +124,9 @@ class FirestoreAPI {
       educationDoc: ['content', 'education'],
       educationCoursesCol: ['content', 'education', 'courses'],
       fbdDoc: ['content', 'fbd'],
-      fbdEventsCol: ['content', 'fbd', 'events']
+      fbdEventsCol: ['content', 'fbd', 'events'],
+      modelsDoc: ['content', 'models3d'],
+      modelsCol: ['content', 'models3d', 'items']
     };
   }
 
@@ -178,6 +185,8 @@ class FirestoreAPI {
       if (cur.about === undefined) patches.about = "";
       if (Object.keys(patches).length) await setDoc(fbdRef, patches, { merge: true });
     }
+
+    await ensure(this.paths.modelsDoc, { createdAt: Date.now() });
   }
 
   // Read all content (current structure only)
@@ -192,7 +201,8 @@ class FirestoreAPI {
         educationDocSnap,
         coursesSnap,
         fbdDocSnap,
-        fbdEventsSnap
+        fbdEventsSnap,
+        modelsSnap
       ] = await Promise.all([
         getDocs(this._colRef(this.paths.eventsCol)),
         getDocs(this._colRef(this.paths.libraryCol)),
@@ -201,7 +211,8 @@ class FirestoreAPI {
         getDoc(this._docRef(this.paths.educationDoc)),
         getDocs(this._colRef(this.paths.educationCoursesCol)),
         getDoc(this._docRef(this.paths.fbdDoc)),
-        getDocs(this._colRef(this.paths.fbdEventsCol))
+        getDocs(this._colRef(this.paths.fbdEventsCol)),
+        getDocs(this._colRef(this.paths.modelsCol))
       ]);
 
       // Events
@@ -240,7 +251,9 @@ class FirestoreAPI {
       }
       education.fbd.events = fbdEventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-      return { success: true, content: { events, magazine, library, education } };
+      const models3d = modelsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      return { success: true, content: { events, magazine, library, education, models3d } };
     } catch (error) {
       console.error('[Firestore API] getAllContent error:', error);
       return { success: false, error: error.message };
@@ -430,6 +443,67 @@ async addEvent(event) {
     }
   }
 
+  // 3D MODELS (stored at content/models3d/items)
+  async isModelCodeTaken(code, excludeId = null) {
+    try {
+      const normalizedCode = toStr(code).trim().toUpperCase();
+      if (!normalizedCode) return false;
+      const snap = await getDocs(this._colRef(this.paths.modelsCol));
+      return snap.docs.some(d => {
+        if (excludeId && d.id === excludeId) return false;
+        const data = d.data() || {};
+        return toStr(data.code).trim().toUpperCase() === normalizedCode;
+      });
+    } catch {
+      return false;
+    }
+  }
+
+  async addModel3D(model) {
+    const payload = sanitizeModel3D(model);
+    const v = this.validateRequiredFields(payload, ['code', 'name', 'date']);
+    if (!v.valid) return { success: false, error: v.message };
+    if (payload.code.length !== 10) {
+      return { success: false, error: 'Model code must be exactly 10 characters.' };
+    }
+    try {
+      await this.ensureBaseDocs();
+      const codeTaken = await this.isModelCodeTaken(payload.code);
+      if (codeTaken) return { success: false, error: 'This model code already exists.' };
+      const ref = await addDoc(this._colRef(this.paths.modelsCol), payload);
+      return { success: true, id: ref.id, message: '3D model added successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  async updateModel3D(id, model) {
+    try {
+      const payload = sanitizeModel3D(model);
+      const v = this.validateRequiredFields(payload, ['code', 'name', 'date']);
+      if (!v.valid) return { success: false, error: v.message };
+      if (payload.code.length !== 10) {
+        return { success: false, error: 'Model code must be exactly 10 characters.' };
+      }
+      const codeTaken = await this.isModelCodeTaken(payload.code, id);
+      if (codeTaken) return { success: false, error: 'This model code already exists.' };
+
+      await updateDoc(this._docRef([...this.paths.modelsCol, id]), payload);
+      return { success: true, message: '3D model updated successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  async deleteModel3D(id) {
+    try {
+      await deleteDoc(this._docRef([...this.paths.modelsCol, id]));
+      return { success: true, message: '3D model deleted successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
   // Settings helpers (so Settings tab can list admins)
   async getAdmins() {
     try {
@@ -481,14 +555,16 @@ async addEvent(event) {
         library:  { createdAt: 0 },
         magazine: { featuredArticleId: null, releases: [] },
         education:{ weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "", workshopUrl: "" } },
-        fbd:      { pageTitle: "", about: "" }
+        fbd:      { pageTitle: "", about: "" },
+        models3d: { createdAt: 0 }
       },
       subcollections: [
         { parent: ['content', 'events'], name: 'items' },
         { parent: ['content', 'library'], name: 'items' },
         { parent: ['content', 'magazine'], name: 'articles' },
         { parent: ['content', 'education'], name: 'courses' },
-        { parent: ['content', 'fbd'], name: 'events' }
+        { parent: ['content', 'fbd'], name: 'events' },
+        { parent: ['content', 'models3d'], name: 'items' }
       ],
       // Per-item required/default fields used for backfill
       itemDefaults: {
@@ -496,7 +572,8 @@ async addEvent(event) {
         library:  { name: "", type: "Book", tags: [], image: "", imageUrl: "", description: "", link: "" },
         articles: { title: "", author: "", date: "", summary: "", content: "", imageUrl: "", readMoreUrl: "" },
         courses:  { title: "", description: "", lecturer: "", link: "", imageUrl: "", enrollUrl: "" },
-        fbdEvents:{ title: "", time: "", location: "", type: "Workshop", seats: 0, image: "", imageUrl: "", description: "", registerUrl: "", detailsUrl: "", galleryUrl: "" }
+        fbdEvents:{ title: "", time: "", location: "", type: "Workshop", seats: 0, image: "", imageUrl: "", description: "", registerUrl: "", detailsUrl: "", galleryUrl: "" },
+        models3d: { code: "", name: "", date: "" }
       }
     };
   }
@@ -571,6 +648,7 @@ async addEvent(event) {
       await backfillItems(['content','magazine'],  'articles', expected.itemDefaults.articles);
       await backfillItems(['content','education'], 'courses',  expected.itemDefaults.courses);
       await backfillItems(['content','fbd'],       'events',   expected.itemDefaults.fbdEvents);
+      await backfillItems(['content','models3d'],  'items',    expected.itemDefaults.models3d);
 
       if (results.errors.length > 0) results.success = false;
       return results;

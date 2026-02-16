@@ -261,6 +261,49 @@
             width: 100%;
             height: 100%;
         }
+
+        .models-section {
+            padding: 3rem 0;
+            background: var(--light-bg);
+        }
+
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .model-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--accent-light);
+        }
+
+        .model-code {
+            display: inline-block;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 999px;
+            padding: 0.25rem 0.65rem;
+        }
+
+        .model-name {
+            margin: 0 0 0.5rem;
+            color: var(--primary-color);
+            font-size: 1.15rem;
+        }
+
+        .model-date {
+            margin: 0 0 1rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
         
         @media (max-width: 768px) {
             .library-hero h1 {
@@ -324,6 +367,22 @@
         <div class="container">
             <h1 class="fade-in-up" data-en="Resource Library" data-ar="مكتبة الموارد">Resource Library</h1>
             <p class="fade-in-up delay-1" data-en="Access educational materials, guides, and resources" data-ar="الوصول إلى المواد التعليمية والأدلة والموارد">Access educational materials, guides, and resources</p>
+        </div>
+    </section>
+
+    <!-- 3D Models Section -->
+    <section class="models-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title" data-en="3D Models" data-ar="نماذج ثلاثية الأبعاد">3D Models</h2>
+                <p class="section-subtitle" data-en="Open any model directly in the 3D Viewer" data-ar="افتح أي نموذج مباشرة في عارض ثلاثي الأبعاد">Open any model directly in the 3D Viewer</p>
+            </div>
+            <div id="models3dGrid" class="models-grid">
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p class="loading-text" data-en="Loading 3D models..." data-ar="جارٍ تحميل النماذج ثلاثية الأبعاد...">Loading 3D models...</p>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -565,6 +624,59 @@
                 `;
             }
         }
+
+        async function load3DModels() {
+            const modelsGrid = document.getElementById('models3dGrid');
+            if (!modelsGrid) return;
+
+            try {
+                const result = await dataLoader.getModels3D();
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to load 3D models');
+                }
+
+                const models = (result.models3d || []).filter(model => model.code && String(model.code).trim().length === 10);
+                const currentLang = localStorage.getItem('language') || 'en';
+
+                if (models.length === 0) {
+                    modelsGrid.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">🧊</div>
+                            <h3 class="empty-title">${currentLang === 'ar' ? 'لا توجد نماذج ثلاثية الأبعاد' : 'No 3D Models Available'}</h3>
+                            <p class="empty-message">${currentLang === 'ar' ? 'أضف النماذج من لوحة التحكم.' : 'Add models from the dashboard.'}</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const sortedModels = [...models].sort((a, b) => {
+                    const dateA = new Date(a.date).getTime();
+                    const dateB = new Date(b.date).getTime();
+                    return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
+                });
+
+                const viewText = currentLang === 'ar' ? 'عرض النموذج' : 'View Model';
+                const dateLabel = currentLang === 'ar' ? 'التاريخ' : 'Date';
+
+                modelsGrid.innerHTML = sortedModels.map(model => `
+                    <article class="model-card reveal">
+                        <span class="model-code">${String(model.code).trim().toUpperCase()}</span>
+                        <h3 class="model-name">${model.name || (currentLang === 'ar' ? 'نموذج بلا اسم' : 'Untitled Model')}</h3>
+                        <p class="model-date"><strong>${dateLabel}:</strong> ${model.date || '—'}</p>
+                        <a href="3DViewer.html?model=${encodeURIComponent(String(model.code).trim().toUpperCase())}" class="download-btn">${viewText}</a>
+                    </article>
+                `).join('');
+            } catch (error) {
+                console.error('[Library] Error loading 3D models:', error);
+                modelsGrid.innerHTML = `
+                    <div class="error-container">
+                        <div class="error-icon">⚠️</div>
+                        <h3 class="error-title">Unable to Load 3D Models</h3>
+                        <p class="error-message">Please try again later.</p>
+                    </div>
+                `;
+            }
+        }
         
         function initializeFilters() {
             // Filter functionality - this will be called after categories are loaded
@@ -715,6 +827,7 @@
         document.addEventListener('DOMContentLoaded', async () => {
             await populateCategoryFilters();
             await loadLibrary();
+            await load3DModels();
         });
     </script>
     <script src="js/three-effects.js"></script>

@@ -42,6 +42,7 @@ class DataLoader {
             library: null,
             magazine: null,
             education: null,
+            models3d: null,
             about: null,
             home: null,
             lastFetch: null
@@ -66,6 +67,7 @@ class DataLoader {
             library: null,
             magazine: null,
             education: null,
+            models3d: null,
             about: null,
             home: null,
             lastFetch: null
@@ -187,6 +189,12 @@ class DataLoader {
                 fbdEvents: this.cache.education.fbd.events.length
             });
 
+            // Fetch 3D models from content subcollection
+            dlog('Fetching 3D models from content/models3d/items...');
+            const modelsSnapshot = await getDocs(collection(this.db, 'content/models3d/items'));
+            this.cache.models3d = modelsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+            console.log(`[Data Loader] ✓ Loaded ${this.cache.models3d.length} 3D models from Firestore`);
+
             // Fetch about
             dlog('Fetching about doc...');
             const aboutDoc = await getDoc(doc(this.db, 'content', 'about'));
@@ -285,6 +293,22 @@ class DataLoader {
             return {
                 success: true,
                 education: result.data.education,
+                fromCache: result.fromCache
+            };
+        }
+        return result;
+    }
+
+    /**
+     * Get 3D models collection
+     */
+    async getModels3D(forceRefresh = false) {
+        dlog('getModels3D() called');
+        const result = await this.fetchData(forceRefresh);
+        if (result.success) {
+            return {
+                success: true,
+                models3d: result.data.models3d,
                 fromCache: result.fromCache
             };
         }
