@@ -45,6 +45,26 @@
         #ar-button:hover {
             background: #218838;
         }
+
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 600;
+            z-index: 30;
+            opacity: 1;
+            transition: opacity 0.25s ease;
+        }
+
+        #loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
     </style>
     
 </head>
@@ -64,6 +84,7 @@
     </model-viewer>
     <div id="pano-viewer"></div>
     <button id="ar-button" onclick="openAR()">View in AR</button>
+    <div id="loading-screen" class="hidden">Loading content...</div>
 
     <script>
         AWS.config.update({
@@ -77,8 +98,10 @@
         const modelViewer = document.getElementById('model-viewer');
         const panoViewer = document.getElementById('pano-viewer');
         const arButton = document.getElementById('ar-button');
+        const loadingScreen = document.getElementById('loading-screen');
         const isEmbedded = window.self !== window.top;
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        let currentObjectUrl = null;
 
         function getQueryParam(name) {
             const urlParams = new URLSearchParams(window.location.search);
@@ -93,6 +116,33 @@ function updateArButtonVisibility(fileType) {
 
     const isGlbOrGltf = fileType === 'gltf' || fileType === 'glb';
     arButton.style.display = (isMobile && isGlbOrGltf) ? 'block' : 'none';
+}
+
+function toMb(bytes) {
+    if (!bytes || !Number.isFinite(bytes)) return '0.00';
+    return (bytes / (1024 * 1024)).toFixed(2);
+}
+
+function showLoadingScreen(show, loadedBytes = 0, totalBytes = 0) {
+    if (!show) {
+        loadingScreen.classList.add('hidden');
+        return;
+    }
+
+    if (totalBytes > 0) {
+        loadingScreen.textContent = `Loading content... ${toMb(loadedBytes)} MB of ${toMb(totalBytes)} MB`;
+    } else {
+        loadingScreen.textContent = `Loading content... ${toMb(loadedBytes)} MB`;
+    }
+
+    loadingScreen.classList.remove('hidden');
+}
+
+function clearCurrentObjectUrl() {
+    if (currentObjectUrl) {
+        URL.revokeObjectURL(currentObjectUrl);
+        currentObjectUrl = null;
+    }
 }
 
 function loadModel(prefix) {
@@ -112,35 +162,64 @@ function loadModel(prefix) {
         if (data && data.Contents && data.Contents.length > 0) {
             const key = data.Contents[0].Key;
             const fileExtension = key.split('.').pop().toLowerCase();
-
-            const signedUrl = s3.getSignedUrl('getObject', {
+            const params = {
                 Bucket: bucketName,
                 Key: key,
-                Expires: 3600
-            });
+            };
 
-            if (fileExtension === 'gltf' || fileExtension === 'glb') {
-                modelViewer.src = signedUrl;
-                modelViewer.style.display = 'block';
-                panoViewer.style.display = 'none';
-                updateArButtonVisibility(fileExtension);
-            } else if (fileExtension === 'jpg' || fileExtension === 'jpeg' || fileExtension === 'png') {
-                modelViewer.style.display = 'none';
-                panoViewer.style.display = 'block';
-                pannellum.viewer('pano-viewer', {
-                    type: 'equirectangular',
-                    panorama: signedUrl,
-                    autoLoad: true
+            showLoadingScreen(true, 0, 0);
+
+            s3.headObject(params, (metaErr, metadata) => {
+                const totalBytes = (!metaErr && metadata && metadata.ContentLength) ? metadata.ContentLength : 0;
+
+                const request = s3.getObject(params);
+                request.on('httpDownloadProgress', progress => {
+                    const loaded = progress && Number.isFinite(progress.loaded) ? progress.loaded : 0;
+                    showLoadingScreen(true, loaded, totalBytes || progress.total || 0);
                 });
-                updateArButtonVisibility(fileExtension);
-            } else {
-                alert('Unsupported file format.');
-                updateArButtonVisibility('');
-            }
+
+                request.send((downloadErr, objectData) => {
+                    if (downloadErr) {
+                        console.error('Error loading object:', downloadErr);
+                        showLoadingScreen(false);
+                        alert('Error loading object.');
+                        return;
+                    }
+
+                    clearCurrentObjectUrl();
+                    const mimeType = (fileExtension === 'gltf' || fileExtension === 'glb')
+                        ? 'model/gltf-binary'
+                        : (fileExtension === 'png' ? 'image/png' : 'image/jpeg');
+                    const blob = new Blob([objectData.Body], { type: mimeType });
+                    currentObjectUrl = URL.createObjectURL(blob);
+
+                    if (fileExtension === 'gltf' || fileExtension === 'glb') {
+                        modelViewer.style.display = 'block';
+                        panoViewer.style.display = 'none';
+                        modelViewer.src = currentObjectUrl;
+                        updateArButtonVisibility(fileExtension);
+                    } else if (fileExtension === 'jpg' || fileExtension === 'jpeg' || fileExtension === 'png') {
+                        modelViewer.style.display = 'none';
+                        panoViewer.style.display = 'block';
+                        pannellum.viewer('pano-viewer', {
+                            type: 'equirectangular',
+                            panorama: currentObjectUrl,
+                            autoLoad: true
+                        });
+                        updateArButtonVisibility(fileExtension);
+                        showLoadingScreen(false);
+                    } else {
+                        alert('Unsupported file format.');
+                        updateArButtonVisibility('');
+                        showLoadingScreen(false);
+                    }
+                });
+            });
 
             const newUrl = `${window.location.origin}${window.location.pathname}?model=${prefix}`;
             window.history.replaceState(null, '', newUrl);
         } else {
+            showLoadingScreen(false);
             alert('No model/image found with the given prefix.');
         }
     });
@@ -165,6 +244,14 @@ function loadModel(prefix) {
             } else if (event.detail.status === 'not-presenting') {
                 console.log('AR session has ended.');
             }
+        });
+
+        modelViewer.addEventListener('load', () => {
+            showLoadingScreen(false);
+        });
+
+        modelViewer.addEventListener('error', () => {
+            showLoadingScreen(false);
         });
 
         function openAR() {
