@@ -83,7 +83,7 @@ const sanitizeWeekly = (w) => ({
 });
 const sanitizeFbdEvent = (e) => sanitizeEvent(e);
 const sanitizeModel3D = (m) => ({
-  code: toStr(m.code).trim().toUpperCase(),
+  code: toStr(m.code).trim(),
   name: toStr(m.name),
   date: toStr(m.date)
 });

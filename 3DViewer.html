@@ -417,9 +417,9 @@
                 if (byId) return byId;
             }
 
-            const legacyCode = String(getQueryParam('model') || '').trim().toUpperCase();
+            const legacyCode = String(getQueryParam('model') || '').trim();
             if (legacyCode) {
-                const byCode = allowedModels.find(model => model.code === legacyCode);
+                const byCode = allowedModels.find(model => model.code.toLowerCase() === legacyCode.toLowerCase());
                 if (byCode) return byCode;
             }
 
