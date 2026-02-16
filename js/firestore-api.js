@@ -85,7 +85,8 @@ const sanitizeFbdEvent = (e) => sanitizeEvent(e);
 const sanitizeModel3D = (m) => ({
   code: toStr(m.code).trim(),
   name: toStr(m.name),
-  date: toStr(m.date)
+  date: toStr(m.date),
+  tags: toArr(m.tags)
 });
 
 const logPayload = (label, data) => {
@@ -573,7 +574,7 @@ async addEvent(event) {
         articles: { title: "", author: "", date: "", summary: "", content: "", imageUrl: "", readMoreUrl: "" },
         courses:  { title: "", description: "", lecturer: "", link: "", imageUrl: "", enrollUrl: "" },
         fbdEvents:{ title: "", time: "", location: "", type: "Workshop", seats: 0, image: "", imageUrl: "", description: "", registerUrl: "", detailsUrl: "", galleryUrl: "" },
-        models3d: { code: "", name: "", date: "" }
+        models3d: { code: "", name: "", date: "", tags: [] }
       }
     };
   }

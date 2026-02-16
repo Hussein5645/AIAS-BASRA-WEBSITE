@@ -306,6 +306,10 @@
                 <label for="model3dDate" data-en="Model Date" data-ar="تاريخ النموذج">Model Date</label>
                 <input type="date" id="model3dDate" name="date" required/>
               </div>
+              <div class="form-group">
+                <label for="model3dTags" data-en="Tags (comma-separated)" data-ar="الوسوم (مفصولة بفواصل)">Tags (comma-separated)</label>
+                <input id="model3dTags" name="tags" placeholder="Interior, Residential, Concept"/>
+              </div>
               <div id="models3dErrors" class="error-box"></div>
               <button type="submit" id="model3dSubmitBtn" class="submit-btn" data-en="Add 3D Model" data-ar="إضافة نموذج ثلاثي الأبعاد">Add 3D Model</button>
             </form>
@@ -825,7 +829,7 @@
           <div class="content-item">
             <div>
               <strong>${model.name || '(no name)'}</strong><br>
-              <small>Code: ${model.code || '—'} - Date: ${model.date || '—'}</small>
+              <small>Code: ${model.code || '—'} - Date: ${model.date || '—'}${Array.isArray(model.tags) && model.tags.length ? ' - Tags: ' + model.tags.join(', ') : ''}</small>
             </div>
             <div class="user-actions">
               <button class="btn edit-btn" onclick="editModel3D('${model.id}')">Edit</button>
@@ -848,6 +852,7 @@
       model3dCode.value = model.code || '';
       model3dName.value = model.name || '';
       model3dDate.value = model.date || '';
+      model3dTags.value = Array.isArray(model.tags) ? model.tags.join(', ') : (model.tags || '');
       model3dSubmitBtn.textContent = 'Update 3D Model';
     };
 
@@ -1012,6 +1017,7 @@
     const model3dCode       = document.getElementById('model3dCode');
     const model3dName       = document.getElementById('model3dName');
     const model3dDate       = document.getElementById('model3dDate');
+    const model3dTags       = document.getElementById('model3dTags');
     const model3dSubmitBtn  = document.getElementById('model3dSubmitBtn');
     const models3dErrorsBox = document.getElementById('models3dErrors');
 
@@ -1315,7 +1321,8 @@
       const payload = {
         code: model3dCode.value.trim(),
         name: model3dName.value.trim(),
-        date: model3dDate.value
+        date: model3dDate.value,
+        tags: model3dTags.value ? model3dTags.value.split(',').map(t => t.trim()).filter(Boolean) : []
       };
 
       const errors = validateModel3DPayload(payload);

@@ -46,7 +46,8 @@ export function normalizeModel3D(model, index = 0) {
         id: model?.id || `model-${index + 1}`,
         name: model?.name || `Model ${index + 1}`,
         code: String(model?.code || '').trim(),
-        date: model?.date || model?.createdAt || ''
+        date: model?.date || model?.createdAt || '',
+        tags: Array.isArray(model?.tags) ? model.tags.filter(Boolean) : []
     };
 }
 

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Models - AIAS Basra Chapter</title>
+    <link rel="icon" type="image/png" href="static/images/branding/LOGO.png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/aws-sdk@2.1117.0/dist/aws-sdk.min.js"></script>
+    <script src="aws-config.js"></script>
+    <style>
+        .models-hero {
+            background: var(--gradient-1);
+            color: var(--white);
+            padding: 8rem 0 4rem;
+            text-align: center;
+        }
+
+        .models-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .models-section {
+            padding: 3rem 0;
+        }
+
+        .models-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 260px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.85rem 1rem 0.85rem 2.7rem;
+            border: 2px solid var(--accent-light);
+            border-radius: 10px;
+            font-size: 0.95rem;
+        }
+
+        .search-box .search-icon {
+            position: absolute;
+            left: 0.9rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+
+        .tag-filters {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tag-filter-btn {
+            border: 1px solid var(--accent-light);
+            background: var(--white);
+            color: var(--text-secondary);
+            border-radius: 999px;
+            padding: 0.45rem 0.9rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tag-filter-btn.active,
+        .tag-filter-btn:hover {
+            background: var(--gradient-1);
+            color: var(--white);
+            border-color: var(--primary-color);
+        }
+
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .model-card {
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            border: 1px solid var(--accent-light);
+        }
+
+        .model-preview {
+            height: 220px;
+            background: #f8fafc;
+            border-bottom: 1px solid var(--accent-light);
+            position: relative;
+        }
+
+        .model-preview iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            background: #fff;
+        }
+
+        .preview-overlay {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .preview-btn {
+            border: none;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            border-radius: 8px;
+            padding: 0.35rem 0.55rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        .model-body {
+            padding: 1rem 1.1rem 1.1rem;
+        }
+
+        .model-name {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .model-meta {
+            margin-top: 0.4rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .model-tags {
+            display: flex;
+            gap: 0.45rem;
+            flex-wrap: wrap;
+            margin-top: 0.65rem;
+        }
+
+        .model-tag {
+            background: var(--light-bg);
+            border-radius: 999px;
+            padding: 0.28rem 0.65rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .model-actions {
+            margin-top: 0.9rem;
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .model-action {
+            border: none;
+            border-radius: 8px;
+            padding: 0.55rem 0.8rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .model-action.primary {
+            background: var(--gradient-1);
+            color: var(--white);
+        }
+
+        .model-action.secondary {
+            background: var(--light-bg);
+            color: var(--primary-color);
+        }
+
+        .results-info {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .status-card {
+            background: var(--white);
+            border-radius: 12px;
+            border: 1px solid var(--accent-light);
+            padding: 1.5rem;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .models-hero h1 {
+                font-size: 2rem;
+            }
+
+            .models-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .model-preview {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar"></nav>
+
+    <section class="models-hero">
+        <div class="container">
+            <h1>3D Models Library</h1>
+            <p>Browse all uploaded 3D models with embedded preview and full-screen viewer.</p>
+        </div>
+    </section>
+
+    <section class="models-section">
+        <div class="container">
+            <div class="models-controls">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="modelsSearch" placeholder="Search models by name, code, or tag...">
+                </div>
+                <div class="tag-filters" id="tagFilters"></div>
+            </div>
+
+            <div class="results-info" id="resultsInfo">Loading models...</div>
+            <div class="models-grid" id="modelsGrid">
+                <div class="status-card">Loading 3D models from Firebase...</div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>AIAS Basra Chapter</h3>
+                    <p>American Institute of Architecture Students - Basra Chapter</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="events.html">Events</a></li>
+                        <li><a href="library.html">Library</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 AIAS Basra Chapter. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/site-shell.js"></script>
+    <script type="module">
+        import { fetchLibraryBundle } from './js/library-shared.js';
+
+        const hasAwsClient = typeof window.AWS !== 'undefined' && typeof window.AWS_CONFIG !== 'undefined';
+        const s3 = hasAwsClient ? new window.AWS.S3() : null;
+        const s3BucketName = hasAwsClient ? window.AWS_CONFIG.bucketName : '';
+
+        let allModels = [];
+        let currentTag = 'all';
+        let currentQuery = '';
+
+        const grid = document.getElementById('modelsGrid');
+        const resultsInfo = document.getElementById('resultsInfo');
+        const tagFilters = document.getElementById('tagFilters');
+        const searchInput = document.getElementById('modelsSearch');
+
+        async function isModelLoadable(modelCode) {
+            const normalizedCode = String(modelCode || '').trim();
+            if (!normalizedCode || normalizedCode.length !== 10) return false;
+            if (!s3 || !s3BucketName) return true;
+
+            try {
+                const data = await new Promise((resolve, reject) => {
+                    s3.listObjectsV2({ Bucket: s3BucketName, Prefix: normalizedCode }, (err, result) => {
+                        if (err) reject(err);
+                        else resolve(result);
+                    });
+                });
+                return !!(data && Array.isArray(data.Contents) && data.Contents.length > 0);
+            } catch (error) {
+                console.error('[3D Models] S3 load check failed:', error);
+                return false;
+            }
+        }
+
+        function getFilteredModels() {
+            return allModels.filter(model => {
+                const inTag = currentTag === 'all' || (Array.isArray(model.tags) && model.tags.includes(currentTag));
+                if (!inTag) return false;
+
+                if (!currentQuery) return true;
+
+                const q = currentQuery.toLowerCase();
+                const tagText = (model.tags || []).join(' ').toLowerCase();
+                return (model.name || '').toLowerCase().includes(q)
+                    || (model.code || '').toLowerCase().includes(q)
+                    || tagText.includes(q);
+            });
+        }
+
+        function renderTagFilters(models) {
+            const tags = Array.from(new Set(models.flatMap(model => Array.isArray(model.tags) ? model.tags : []))).sort((a, b) => a.localeCompare(b));
+            const buttons = ['all', ...tags];
+
+            tagFilters.innerHTML = buttons.map(tag => {
+                const active = tag === currentTag ? 'active' : '';
+                const label = tag === 'all' ? 'All Tags' : tag;
+                return `<button class="tag-filter-btn ${active}" data-tag="${tag}">${label}</button>`;
+            }).join('');
+
+            tagFilters.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentTag = btn.dataset.tag;
+                    renderTagFilters(allModels);
+                    renderModels();
+                });
+            });
+        }
+
+        function renderModels() {
+            const items = getFilteredModels();
+            resultsInfo.textContent = `Showing ${items.length} of ${allModels.length} models`;
+
+            if (!items.length) {
+                grid.innerHTML = '<div class="status-card">No models match your filters.</div>';
+                return;
+            }
+
+            grid.innerHTML = items.map(model => {
+                const iframeSrc = `3DViewer.html?model=${encodeURIComponent(model.code)}`;
+                const tags = (model.tags || []).map(tag => `<span class="model-tag">${tag}</span>`).join('');
+
+                return `
+                    <article class="model-card">
+                        <div class="model-preview" id="preview-${model.id}">
+                            <iframe src="${iframeSrc}" title="Preview ${model.name}" loading="lazy"></iframe>
+                            <div class="preview-overlay">
+                                <button class="preview-btn" data-action="fullscreen" data-id="${model.id}">⛶</button>
+                                <a class="preview-btn" href="${iframeSrc}" target="_blank" rel="noopener noreferrer">↗</a>
+                            </div>
+                        </div>
+                        <div class="model-body">
+                            <h3 class="model-name">${model.name || 'Untitled Model'}</h3>
+                            <div class="model-meta">Code: ${model.code || '—'} • Date: ${model.date || '—'}</div>
+                            <div class="model-tags">${tags || '<span class="model-tag">No Tags</span>'}</div>
+                            <div class="model-actions">
+                                <a class="model-action primary" href="${iframeSrc}" target="_blank" rel="noopener noreferrer">Open Full Viewer</a>
+                                <button class="model-action secondary" data-action="check" data-code="${model.code}">Check Load</button>
+                            </div>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+
+            grid.querySelectorAll('[data-action="fullscreen"]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const modelId = btn.dataset.id;
+                    const previewEl = document.getElementById(`preview-${modelId}`);
+                    if (!previewEl) return;
+
+                    if (previewEl.requestFullscreen) previewEl.requestFullscreen();
+                    else if (previewEl.webkitRequestFullscreen) previewEl.webkitRequestFullscreen();
+                });
+            });
+
+            grid.querySelectorAll('[data-action="check"]').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const code = btn.dataset.code;
+                    btn.disabled = true;
+                    const original = btn.textContent;
+                    btn.textContent = 'Checking...';
+                    const loadable = await isModelLoadable(code);
+                    btn.textContent = loadable ? 'Load OK' : 'Not Loadable';
+                    setTimeout(() => {
+                        btn.textContent = original;
+                        btn.disabled = false;
+                    }, 1500);
+                });
+            });
+        }
+
+        async function init() {
+            try {
+                const { models3d } = await fetchLibraryBundle();
+                allModels = [...models3d].sort((a, b) => {
+                    const aTime = new Date(a.date).getTime();
+                    const bTime = new Date(b.date).getTime();
+                    return (isNaN(bTime) ? 0 : bTime) - (isNaN(aTime) ? 0 : aTime);
+                });
+
+                if (!allModels.length) {
+                    resultsInfo.textContent = 'No 3D models found.';
+                    grid.innerHTML = '<div class="status-card">No 3D models are available yet.</div>';
+                    return;
+                }
+
+                renderTagFilters(allModels);
+                renderModels();
+            } catch (error) {
+                console.error('[3D Models] Failed to load:', error);
+                resultsInfo.textContent = 'Unable to load 3D models.';
+                grid.innerHTML = '<div class="status-card">Failed to load models from Firebase.</div>';
+            }
+        }
+
+        searchInput.addEventListener('input', e => {
+            currentQuery = e.target.value.trim();
+            renderModels();
+        });
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
