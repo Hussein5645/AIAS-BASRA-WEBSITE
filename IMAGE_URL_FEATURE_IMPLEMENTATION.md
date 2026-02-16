@@ -131,7 +131,6 @@ Added optional `imageUrl` input field to all content type forms:
 </div>
 ```
 
-#### File: `education.html`
 **Course Card Header:**
 ```html
 <div class="program-header" style="${course.imageUrl ? `background-image: url('${course.imageUrl}'); background-size: cover; background-position: center;` : ''}">
@@ -234,8 +233,7 @@ Added optional `imageUrl` input field to all content type forms:
 4. `library.html` - Library resource image display
 5. `fbd.html` - FBD event image display
 6. `magazine.html` - Magazine article image display (featured + grid)
-7. `education.html` - Education course image display
-8. `CONTENT_MANAGEMENT_GUIDE.md` - Documentation updates
+7. `CONTENT_MANAGEMENT_GUIDE.md` - Documentation updates
 
 ## Total Changes
 - 7 files modified

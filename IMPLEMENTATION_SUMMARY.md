@@ -179,8 +179,7 @@ Created `CONTENT_MANAGEMENT_GUIDE.md` with:
 1. Visit `events.html` - verify events load from Firestore
 2. Visit `magazine.html` - verify articles load from Firestore
 3. Visit `library.html` - verify resources load from Firestore
-4. Visit `education.html` - verify workshop details load from Firestore
-5. Check browser console for loading logs
+4. Check browser console for loading logs
 
 ### 4. Verify Logging
 1. Open browser developer console (F12)

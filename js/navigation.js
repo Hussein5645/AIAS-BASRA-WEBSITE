@@ -86,7 +86,6 @@ class SiteSearch {
         this.searchData = [
             { title: 'Home', url: 'index.html', type: 'page', description: 'Welcome to AIAS Basra Chapter' },
             { title: 'Events', url: 'events.html', type: 'page', description: 'Upcoming and past chapter events' },
-            { title: 'Education', url: 'education.html', type: 'page', description: 'Educational programs and workshops' },
             { title: 'Freedom By Design', url: 'fbd.html', type: 'page', description: 'Community service design projects' },
             { title: 'Library', url: 'library.html', type: 'page', description: 'Resource repository and downloads' },
             { title: 'Magazine', url: 'magazine.html', type: 'page', description: 'Articles and publications' },
@@ -176,7 +175,6 @@ class BreadcrumbNav {
         // Map of page names to their parent categories
         const pageMap = {
             'events.html': { label: 'Events', parent: 'Programs' },
-            'education.html': { label: 'Education', parent: 'Programs' },
             'fbd.html': { label: 'Freedom By Design', parent: 'Programs' },
             'library.html': { label: 'Library', parent: 'Resources' },
             'magazine.html': { label: 'Magazine', parent: 'Resources' },

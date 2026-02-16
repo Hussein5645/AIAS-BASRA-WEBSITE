@@ -50,12 +50,7 @@ All dynamic pages now use the centralized data loader:
    - Date validation for featured & articles
    - Null-safe defaults
 
-4. **education.html** (-40 lines, -20%)
-   - Null-safe course properties
-   - Better fallback content
-   - Improved error messages
-
-5. **fbd.html** (-50 lines, -25%)
+4. **fbd.html** (-50 lines, -25%)
    - Simplified retry logic
    - Date validation
    - Null-safe defaults
@@ -108,7 +103,6 @@ Improvements:
 - `events.html` - Refactored to use data loader
 - `library.html` - Refactored to use data loader
 - `magazine.html` - Refactored to use data loader
-- `education.html` - Refactored to use data loader
 - `fbd.html` - Refactored to use data loader
 
 ### Total Changes

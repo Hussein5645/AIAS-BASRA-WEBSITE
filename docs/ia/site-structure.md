@@ -25,11 +25,6 @@ AIAS Basra Website
 │   │   ├── Past Events
 │   │   └── Event Registration
 │   │
-│   ├── Education (education.html)
-│   │   ├── Workshops
-│   │   ├── Courses
-│   │   └── Learning Paths
-│   │
 │   └── Freedom By Design (fbd.html)
 │       ├── About FBD
 │       ├── Current Projects
@@ -169,7 +164,6 @@ Home > About > Gallery
 - Home: `/` or `/index.html`
 - Programs: `/programs/` (not implemented yet, but structure allows)
   - `/events.html`
-  - `/education.html`
   - `/fbd.html`
 - Resources:
   - `/library.html`

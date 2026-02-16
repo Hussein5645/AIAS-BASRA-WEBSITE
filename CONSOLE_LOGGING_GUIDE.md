@@ -59,13 +59,6 @@ Console logs include:
 - Featured article information
 - List of all articles with their details
 
-#### Education Page (`education.html`)
-Console logs include:
-- Number of courses loaded
-- Number of FBD events
-- Weekly workshop details
-- List of all courses
-
 #### FBD Page (`fbd.html`)
 Console logs include:
 - Number of FBD events loaded
@@ -85,7 +78,7 @@ Navigate to any page (e.g., events.html, library.html, etc.)
 ### Step 3: Check the Console Output
 Look for messages prefixed with:
 - `[Data Loader]` - Messages from the data fetching layer
-- `[Events]`, `[Library]`, `[Magazine]`, `[Education]`, `[FBD]` - Messages from specific pages
+- `[Events]`, `[Library]`, `[Magazine]`, `[FBD]` - Messages from specific pages
 
 ### Step 4: Identify Issues
 

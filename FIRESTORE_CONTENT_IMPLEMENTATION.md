@@ -152,12 +152,6 @@ aias-bsr (Firebase Project)
 - Firestore API: Updates `content/education` document
 - Path: `/content/education`
 
-**Viewing Education (on education.html):**
-- File: `education.html`
-- Method: Direct Firestore query
-- Code: `getDoc(doc(db, 'content', 'education'))`
-- Path: `/content/education`
-
 **Viewing Education (in dashboard):**
 - File: `admin-dashboard.html`
 - Method: `firestoreAPI.getAllContent()`
@@ -315,7 +309,6 @@ if (!result.success || !result.content || !result.content.events) { ... }
    - Visit events.html → Verify events display
    - Visit library.html → Verify library items display
    - Visit magazine.html → Verify articles display
-   - Visit education.html → Verify workshop details display
    - Visit fbd.html → Verify FBD content displays
 
 3. **Test Dashboard Viewing:**

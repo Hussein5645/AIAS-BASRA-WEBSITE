@@ -44,7 +44,6 @@ Test these pages to ensure they load correctly:
 - ✅ Events: `events.html`
 - ✅ Magazine: `magazine.html`
 - ✅ Library: `library.html`
-- ✅ Education: `education.html`
 - ✅ About: `about.html`
 - ✅ FBD: `fbd.html`
 
@@ -53,7 +52,6 @@ Test admin functionality:
 - ✅ Add a new event
 - ✅ Add a magazine article
 - ✅ Add a library resource
-- ✅ Update education content
 
 ## What Changed
 
@@ -98,7 +96,6 @@ Firestore Database
 ├── content/
 │   ├── home (home page content)
 │   ├── magazine (magazine articles)
-│   ├── education (education content)
 │   └── about (about page content)
 │
 ├── events/ (collection)

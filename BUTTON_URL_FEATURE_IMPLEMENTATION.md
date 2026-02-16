@@ -195,8 +195,6 @@ this.cache.education = {
 </div>
 ```
 
-#### File: `education.html`
-
 **Weekly Workshop Button:**
 ```javascript
 if (workshop.workshopUrl) {
@@ -372,10 +370,9 @@ All buttons open in a new tab to preserve the main website navigation.
 2. `js/data-loader.js` - Data loader with workshopUrl support
 3. `admin-dashboard.html` - Admin forms and JavaScript handlers
 4. `events.html` - Event button display with dynamic URLs
-5. `education.html` - Workshop and course button display
-6. `magazine.html` - Article read more link display
-7. `fbd.html` - FBD event button display
-8. `BUTTON_URL_FEATURE_IMPLEMENTATION.md` - This documentation
+5. `magazine.html` - Article read more link display
+6. `fbd.html` - FBD event button display
+7. `BUTTON_URL_FEATURE_IMPLEMENTATION.md` - This documentation
 
 ## Total Changes
 - 7 files modified

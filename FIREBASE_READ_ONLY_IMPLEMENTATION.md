@@ -12,9 +12,8 @@ All HTML pages now load content from Firebase Firestore with public read access.
 1. **events.html** - Displays events from Firestore
 2. **library.html** - Displays library resources from Firestore
 3. **magazine.html** - Displays magazine articles from Firestore
-4. **education.html** - Displays education content from Firestore
-5. **about.html** - Displays about/founder information from Firestore
-6. **index.html** - Displays home page content from Firestore
+4. **about.html** - Displays about/founder information from Firestore
+5. **index.html** - Displays home page content from Firestore
 
 ## Technical Details
 
@@ -165,7 +164,6 @@ async function loadEvents() {
 - [ ] Visit events.html - verify events load
 - [ ] Visit library.html - verify resources load
 - [ ] Visit magazine.html - verify articles load
-- [ ] Visit education.html - verify workshop details load
 - [ ] Visit about.html - verify founders/team load
 - [ ] Visit index.html - verify home content loads
 - [ ] Check browser console for Firebase logs

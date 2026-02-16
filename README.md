@@ -46,13 +46,6 @@ A modern, animated, and interactive website for the American Institute of Archit
 - Status indicators (Upcoming/Completed)
 - Detailed event information
 
-### 6. Education (`education.html`)
-- Program cards with difficulty levels
-- Course features and duration
-- Learning journey pathway
-- Statistics section with counters
-- Enrollment buttons
-
 ## 🛠️ Technologies Used
 
 - **HTML5**: Semantic markup
@@ -143,7 +136,6 @@ AIAS-BASRA-WEBSITE/
 ├── library.html        # Library page
 ├── magazine.html       # Magazine page
 ├── events.html         # Events page
-├── education.html      # Education page
 ├── css/
 │   ├── style.css       # Main stylesheet
 │   └── animations.css  # Animation definitions

@@ -38,7 +38,6 @@ const db = getFirestore(app);
 - ✅ `index.html` - Safe Firebase initialization
 - ✅ `library.html` - Safe Firebase initialization
 - ✅ `magazine.html` - Safe Firebase initialization
-- ✅ `education.html` - Safe Firebase initialization
 - ✅ `login.html` - Safe Firebase initialization
 - ✅ `signup.html` - Safe Firebase initialization
 - ✅ `admin-dashboard.html` - Safe Firebase initialization
@@ -72,7 +71,6 @@ const db = getFirestore(app);
    - ✓ Events collection read
    - ✓ Library collection read
    - ✓ Magazine content read
-   - ✓ Education content read
    - ✓ About content read
 
 ### Method 2: Test Individual Pages
@@ -92,11 +90,7 @@ const db = getFirestore(app);
    - Should display featured article and articles grid
    - Check console for magazine content loading messages
 
-5. **Education Page** (`education.html`)
-   - Should display weekly workshop info
-   - Check console for "[Education] ✓ Education content loaded"
-
-6. **FBD Page** (`fbd.html`)
+5. **FBD Page** (`fbd.html`)
    - Should display FBD about text and events
    - Now has error handling if content fails to load
 
@@ -107,7 +101,6 @@ const db = getFirestore(app);
    - Events
    - Magazine articles
    - Library resources
-   - Education content
 4. All operations should work with proper error messages if they fail
 
 ## Common Firestore Errors and Solutions

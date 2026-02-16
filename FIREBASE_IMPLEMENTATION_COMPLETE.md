@@ -80,16 +80,7 @@ dataLoader.isPastEvent(isoString)               // Check if event is past
 
 **Code Reduction:** ~45 lines (-22%)
 
-#### 4. education.html
-**Changes:**
-- Replaced inline Firebase code with data loader import
-- Added null-safe defaults for course properties
-- Improved error handling
-- Better fallback content
-
-**Code Reduction:** ~40 lines (-20%)
-
-#### 5. fbd.html
+#### 4. fbd.html
 **Changes:**
 - Replaced inline Firebase code with data loader import
 - Simplified retry button logic
@@ -233,15 +224,7 @@ Each page displays:
 - [ ] Test with no content (empty state)
 - [ ] Test error handling
 
-#### 4. Education Page
-- [ ] Navigate to education.html
-- [ ] Verify weekly workshop info loads
-- [ ] Verify courses display correctly
-- [ ] Check FBD intro text
-- [ ] Test with no data (fallback text)
-- [ ] Test error handling
-
-#### 5. FBD Page
+#### 4. FBD Page
 - [ ] Navigate to fbd.html
 - [ ] Verify about text loads
 - [ ] Verify FBD events display

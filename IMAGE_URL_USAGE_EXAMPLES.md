@@ -69,7 +69,7 @@ Link: https://courses.example.com/rhino-advanced
 Image URL: https://images.example.com/rhino-3d-modeling.jpg
 ```
 
-### Result on Website (education.html):
+### Result on Website:
 - Course card header displays with course image
 - Professional appearance for course catalog
 - Visual distinction between different courses

@@ -109,7 +109,6 @@ After migration, verify:
 - [ ] Events display correctly on events.html
 - [ ] Library items display correctly on library.html
 - [ ] Magazine articles display correctly on magazine.html
-- [ ] Education content displays correctly on education.html
 - [ ] Admin can add new events via dashboard
 - [ ] Admin can add new library items via dashboard
 - [ ] Admin can add new magazine articles via dashboard

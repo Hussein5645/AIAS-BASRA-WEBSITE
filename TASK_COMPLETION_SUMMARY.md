@@ -15,7 +15,6 @@ All 6 main HTML pages now load content from Firebase Firestore:
 - **events.html** - Events with date filtering and views
 - **library.html** - Library resources with categories
 - **magazine.html** - Magazine articles and featured content
-- **education.html** - Education programs and workshops
 - **about.html** - About content, founders, and team
 
 ### 2. ✅ Public Read Access
@@ -124,9 +123,8 @@ match /library/{itemId} {
 2. `events.html` - Enhanced with full UX states
 3. `library.html` - Enhanced with full UX states
 4. `magazine.html` - Enhanced with full UX states
-5. `education.html` - Added error handling
-6. `about.html` - Added error handling
-7. `index.html` - Added error handling
+5. `about.html` - Added error handling
+6. `index.html` - Added error handling
 
 ## Files Created
 1. `FIREBASE_READ_ONLY_IMPLEMENTATION.md` - 240+ lines documentation

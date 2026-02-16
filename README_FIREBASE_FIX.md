@@ -19,7 +19,6 @@ Navigate to any page like:
 - `events.html`
 - `library.html`
 - `magazine.html`
-- `education.html`
 - `fbd.html`
 
 #### Step 2: Open Browser Console

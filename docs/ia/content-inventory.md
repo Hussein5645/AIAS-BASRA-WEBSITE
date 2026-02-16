@@ -16,12 +16,7 @@ This document catalogs all existing pages, posts, and products on the AIAS Basra
    - Key Content: Event cards, registration links, dates
    - Priority: High (Core member engagement)
 
-3. **Education** (`education.html`)
-   - Purpose: Educational programs and learning resources
-   - Key Content: Program cards, course information
-   - Priority: High (Core value proposition)
-
-4. **Magazine** (`magazine.html`)
+3. **Magazine** (`magazine.html`)
    - Purpose: Articles and publications
    - Key Content: Article listings, featured content
    - Priority: Medium (Content distribution)
