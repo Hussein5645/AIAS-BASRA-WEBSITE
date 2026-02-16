@@ -213,7 +213,6 @@
                             <a href="#" class="shell-link-about">About</a>
                             <div class="dropdown-menu">
                                 <a href="about.html" class="shell-link-about-page">About Us</a>
-                                <a href="gallery.html" class="shell-link-gallery">Gallery</a>
                             </div>
                         </li>
 
@@ -465,7 +464,6 @@
 
         if (currentFile === 'gallery.html') {
             setActive('.shell-link-about');
-            setActive('.shell-link-gallery');
         }
     }
 

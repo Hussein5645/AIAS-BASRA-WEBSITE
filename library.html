@@ -487,9 +487,7 @@
     <script src="js/main.js"></script>
     <script src="js/site-shell.js"></script>
     <script type="module">
-        // Import Data Loader and Categories Loader
-        import dataLoader from "./js/data-loader.js?v=20260216";
-        import categoriesLoader from "./js/categories-loader.js";
+        import { fetchLibraryBundle } from "./js/library-shared.js";
 
         // Debug toggle: enable via ?debug=true or localStorage.setItem('debug','true')
         const DEBUG =
@@ -529,8 +527,7 @@
             return getYouTubeVideoId(url) !== null;
         }
         
-        // Load library items from Firebase using Data Loader
-        async function loadLibrary() {
+        function loadLibrary(libraryItems) {
             const gridContainer = document.querySelector('.resources-grid');
             
             console.log('[Library] Container element found:', !!gridContainer);
@@ -549,16 +546,6 @@
             `;
             
             try {
-                console.log('[Library] Loading library using Data Loader...');
-                
-                // Use Data Loader to fetch library
-                const result = await dataLoader.getLibrary();
-                
-                if (!result.success) {
-                    throw new Error(result.error || 'Failed to load library');
-                }
-                
-                const libraryItems = result.library;
                 console.log(`[Library] ✓ Loaded ${libraryItems.length} library items from Data Loader`);
                 
                 // Always log fetched library items for debugging
@@ -653,22 +640,11 @@
             }
         }
 
-        async function load3DModels() {
+        function load3DModels(models) {
             const modelsGrid = document.getElementById('models3dGrid');
             if (!modelsGrid) return;
 
             try {
-                const result = typeof dataLoader.getModels3D === 'function'
-                    ? await dataLoader.getModels3D()
-                    : await dataLoader.fetchData(true);
-                if (!result.success) {
-                    throw new Error(result.error || 'Failed to load 3D models');
-                }
-
-                const modelsSource = Array.isArray(result.models3d)
-                    ? result.models3d
-                    : (result.data?.models3d || []);
-                const models = modelsSource.filter(model => model.code && String(model.code).trim().length === 10);
                 const currentLang = localStorage.getItem('language') || 'en';
 
                 if (models.length === 0) {
@@ -868,10 +844,8 @@
         };
         
         // Function to populate category filter buttons from JSON
-        async function populateCategoryFilters() {
+        function populateCategoryFilters(items = allResources) {
             try {
-                console.log('[Library] Loading category filters from JSON...');
-                const categories = await categoriesLoader.getLibraryCategoriesBasic();
                 const filterContainer = document.querySelector('.category-filters');
                 
                 if (!filterContainer) {
@@ -881,25 +855,18 @@
                 
                 // Get current language
                 const currentLang = localStorage.getItem('language') || 'en';
+
+                const uniqueCategories = Array.from(new Set((items || [])
+                    .map(item => item.category)
+                    .filter(Boolean)))
+                    .sort((a, b) => a.localeCompare(b));
                 
                 // Build filter buttons HTML
                 let filtersHTML = '<button class="filter-btn active" data-category="all" data-en="All Resources" data-ar="جميع الموارد">All Resources</button>';
-                
-                categories.forEach(cat => {
-                    // Handle both old format and new format with translations
-                    let labelEn, labelAr;
-                    
-                    if (typeof cat.label === 'string') {
-                        // Old format - use hardcoded translations
-                        labelEn = cat.label;
-                        labelAr = cat.label === 'File' ? 'ملفات' : 'محاضرات';
-                    } else {
-                        // New format with en/ar properties
-                        labelEn = cat.label.en;
-                        labelAr = cat.label.ar;
-                    }
-                    
-                    filtersHTML += `<button class="filter-btn" data-category="${cat.value}" data-en="${labelEn}s" data-ar="${labelAr}">${currentLang === 'ar' ? labelAr : labelEn + 's'}</button>`;
+
+                uniqueCategories.forEach(category => {
+                    const label = String(category);
+                    filtersHTML += `<button class="filter-btn" data-category="${label}" data-en="${label}" data-ar="${label}">${label}</button>`;
                 });
                 
                 filterContainer.innerHTML = filtersHTML;
@@ -945,9 +912,19 @@
         
         // Load library and category filters when page loads
         document.addEventListener('DOMContentLoaded', async () => {
-            await populateCategoryFilters();
-            await loadLibrary();
-            await load3DModels();
+            try {
+                const { libraryItems, models3d } = await fetchLibraryBundle();
+                allResources = libraryItems;
+                all3DModels = models3d;
+
+                populateCategoryFilters(allResources);
+                loadLibrary(allResources);
+                load3DModels(all3DModels);
+            } catch (error) {
+                console.error('[Library] ✗ Error loading shared library bundle:', error);
+                loadLibrary([]);
+                load3DModels([]);
+            }
         });
     </script>
     <script src="js/three-effects.js"></script>
