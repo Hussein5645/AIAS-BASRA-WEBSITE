@@ -31,7 +31,7 @@ const auth = getAuth(app);
     const currentPage = window.location.pathname.split('/').pop();
     
     // Don't check authentication on these pages
-    const publicPages = [LOGIN_PAGE, SIGNUP_PAGE];
+    const publicPages = [LOGIN_PAGE, SIGNUP_PAGE, 'index.html', ''];
     if (publicPages.includes(currentPage)) {
         return;
     }
