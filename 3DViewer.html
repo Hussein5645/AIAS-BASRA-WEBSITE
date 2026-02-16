@@ -7,36 +7,9 @@
     <script src="https://cdn.jsdelivr.net/npm/aws-sdk@2.1117.0/dist/aws-sdk.min.js"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer/dist/model-viewer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pannellum/build/pannellum.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum/build/pannellum.css">
 
     <style>
-        body[lang="ar"] {
-            direction: rtl;
-        }
-    
-        body[lang="en"] {
-            direction: ltr;
-        }
-    
-        #lang-toggle {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            padding: 8px 12px;
-            border-radius: 5px;
-            background-color: #444;
-            color: #fff;
-            cursor: pointer;
-            font-weight: bold;
-            z-index: 20;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-    
-        #lang-toggle:hover {
-            background-color: #555;
-        }
-    
         body {
             margin: 0;
             overflow: hidden;
@@ -44,233 +17,39 @@
             background: #121212;
             color: #fff;
         }
-    
-        #model-viewer, #pano-viewer {
+
+        #model-viewer,
+        #pano-viewer {
             width: 100vw;
             height: 100vh;
             background: #121212;
             display: none;
         }
-    
-        #controls {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            border-radius: 8px;
-            z-index: 10;
-            text-align: center;
-            width: 90vw;
-            max-width: 500px;
-            height: 60vh;
-            max-height: 400px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-            transition: all 0.4s ease;
-        }
-    
-        #controls.shrink {
-            top: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100% - 40px);
-            max-width: 300px;
-            height: 70px;
-        }
-    
-        #controls-toggle-button {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #444 url('icon/show.png') center center no-repeat;
-            background-size: 20px 20px;
-            cursor: pointer;
-            z-index: 15;
-            transition: background-color 0.3s ease, transform 0.3s ease;
-        }
-    
-        #controls-toggle-button:hover {
-            background-color: #555;
-            transform: scale(1.1);
-        }
-    
-        #upload-Button {
-            position: fixed;
-            bottom: 10px;
-            right: 70px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #444 url('icon/upload.png') center center no-repeat;
-            background-size: 20px 20px;
-            cursor: pointer;
-            z-index: 15;
-            transition: background-color 0.3s ease, transform 0.3s ease;
-        }
-    
-        #upload-Button:hover {
-            background-color: #555;
-            transform: scale(1.1);
-        }
-    
-        #controls.hidden {
-            display: none;
-        }
-    
-        #controls-toggle-button.hide-icon {
-            background-image: url('icon/hide.png');
-        }
-    
-        #q-placeholder {
-            display: none;
-            width: 100px;
-            height: 100px;
-            background: #555;
-            border-radius: 10px;
-            margin: 20px auto;
-            position: relative;
-        }
-    
-        input[type="text"] {
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            background: #333;
-            color: #fff;
-            margin-bottom: 10px;
-            margin-right: 50px;
-            width: calc(80% - 20px);
-            transition: background 0.3s ease, box-shadow 0.3s ease;
-        }
-    
-        input[type="text"]:focus {
-            background: #444;
-            box-shadow: 0 0 5px #007bff;
-            outline: none;
-        }
-    
-        button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 5px;
-            background: #007bff;
-            color: #fff;
-            cursor: pointer;
-            margin: 10px 0;
-            font-size: 16px;
-            font-weight: bold;
-            transition: background-color 0.3s ease, transform 0.3s ease;
-        }
-    
-        button:hover {
-            background: #0056b3;
-            transform: scale(1.05);
-        }
-    
-        #toggle-button {
-            background: #444 url('icon/shrink.png') center center no-repeat;
-            background-size: 20px 20px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            margin-top: 10px;
-            position: fixed;
-            right: 10px;
-            top: 8px;
-            transition: transform 0.3s ease, background-color 0.3s ease;
-        }
-    
-        #toggle-button:hover {
-            transform: scale(1.1);
-            background-color: #555;
-        }
-    
-        #controls.shrink #toggle-button {
-            background-image: url('icon/expand.png');
-        }
-    
+
         #ar-button {
-            background: #28a745 url('icon/ar.png') 10px center no-repeat;
+            position: fixed;
+            right: 12px;
+            bottom: 12px;
+            z-index: 20;
+            background: #28a745;
             color: #fff;
-            font-size: 16px;
-            font-weight: bold;
-            padding: 12px 20px;
-            border-radius: 5px;
-            display: block;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 14px;
+            font-weight: 700;
             cursor: pointer;
-            background-size: 20px 20px;
-            padding-left: 40px;
-            transition: background-color 0.3s ease, transform 0.3s ease;
+            display: none;
         }
-    
+
         #ar-button:hover {
             background: #218838;
-            transform: scale(1.05);
-        }
-    
-        #save-qr-button {
-            display: none;
-            background: #ffc107 url('icon/save.png') 10px center no-repeat;
-            color: #000;
-            padding: 12px 20px;
-            border-radius: 5px;
-            font-weight: bold;
-            margin-top: 230px;
-            background-size: 20px 20px;
-            padding-left: 40px;
-            cursor: pointer;
-            text-align: center;
-            transition: background-color 0.3s ease, transform 0.3s ease;
-        }
-    
-        #save-qr-button:hover {
-            background: #e0a800;
-            transform: scale(1.05);
-        }
-    
-        #qrcode {
-            margin-top: 10px;
-        }
-    
-        #loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #fff;
-            font-size: 1.5em;
-            z-index: 20;
-            transition: opacity 0.5s ease;
-        }
-    
-        #loading-screen.hidden {
-            opacity: 0;
-            pointer-events: none;
         }
     </style>
     
 </head>
-<body lang="ar"> <!-- Default to Arabic -->
+<body>
 
-    <!-- Language toggle button -->
-    <button id="lang-toggle" onclick="toggleLanguage()">English</button>
-
-    <div id="loading-screen" class="hidden">جار التحميل...</div> <!-- Loading text in Arabic -->
-    
-    <!-- Main content: 3D Model Viewer, AR button, QR code placeholder, etc. -->
     <model-viewer id="model-viewer" 
         alt="3D model" 
         auto-rotate 
@@ -284,21 +63,7 @@
         src="">
     </model-viewer>
     <div id="pano-viewer"></div>
-
-    <button id="controls-toggle-button" onclick="toggleControlsVisibility()"></button>
-    <button id="upload-Button" onclick="window.location.href='upload.html'"></button>
-
-    <div id="controls">
-        <button id="toggle-button" onclick="toggleControls()"></button>
-        <input type="text" id="model-prefix" placeholder="أدخل مفتاح النموذج" oninput="toggleButton()"> <!-- Placeholder in Arabic -->
-        <button id="load-button" style="display: none;" onclick="loadModel()">تحميل النموذج/الصورة</button>
-
-        <div id="qr-placeholder">
-            <canvas id="qrcode" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);   margin-top: 30px;"></canvas>
-        </div>
-        <div id="save-qr-button">حفظ   QR CODE </div> <!-- Save QR text in Arabic -->
-        <button id="ar-button" style="display: none;" onclick="openAR()">عرض في الواقع المعزز</button> <!-- AR button text in Arabic -->
-    </div>
+    <button id="ar-button" onclick="openAR()">View in AR</button>
 
     <script>
         AWS.config.update({
@@ -311,127 +76,26 @@
         const bucketName = '3dmodle';
         const modelViewer = document.getElementById('model-viewer');
         const panoViewer = document.getElementById('pano-viewer');
-        const loadButton = document.getElementById('load-button');
-        const qrCodeContainer = document.getElementById('qrcode');
-        const loadingScreen = document.getElementById('loading-screen');
-        const qrPlaceholder = document.getElementById('qr-placeholder');
         const arButton = document.getElementById('ar-button');
-        const save = document.getElementById('save-qr-button');
-        
+        const isEmbedded = window.self !== window.top;
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-        let loadedBytes = 0;
-
-
-        // Define Arabic and English text content
-        const textContent = {
-            ar: {
-                loading: "جار التحميل...",
-                modelPlaceholder: "أدخل مفتاح النموذج",
-                loadModel: "تحميل النموذج/الصورة",
-                saveQr: "حفظ   QR CODE",
-                arButton: "عرض في الواقع المعزز",
-                toggleLang: "English"
-            },
-            en: {
-                loading: "Loading content...",
-                modelPlaceholder: "Enter model key",
-                loadModel: "Load Model/Image",
-                saveQr: "Save QR Code",
-                arButton: "View in AR",
-                toggleLang: "Arabic"
-            }
-        };
-
-        // Toggle language function
-        function toggleLanguage() {
-            const currentLang = document.documentElement.lang;
-            const newLang = currentLang === "ar" ? "en" : "ar";
-            
-            document.documentElement.lang = newLang;
-            document.body.setAttribute("lang", newLang);
-
-            // Update UI text content based on selected language
-            document.getElementById("loading-screen").textContent = textContent[newLang].loading;
-            document.getElementById("model-prefix").placeholder = textContent[newLang].modelPlaceholder;
-            document.getElementById("load-button").textContent = textContent[newLang].loadModel;
-            document.getElementById("save-qr-button").textContent = textContent[newLang].saveQr;
-            document.getElementById("ar-button").textContent = textContent[newLang].arButton;
-            document.getElementById("lang-toggle").textContent = textContent[newLang].toggleLang;
-        }
 
         function getQueryParam(name) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(name);
         }
 
-        // Save QR Code as an image
-        document.getElementById('save-qr-button').addEventListener('click', () => {
-            const qrCanvas = document.getElementById('qrcode');
-            if (qrCanvas) {
-                const qrImage = qrCanvas.toDataURL('image/png');
-                const link = document.createElement('a');
-                link.href = qrImage;
-                link.download = 'qr-code.png';
-                link.click();
-            } else {
-                alert('QR code not found.');
-            }
-        });
-
-        function toggleButton() {
-            const input = document.getElementById('model-prefix').value;
-            loadButton.style.display = input ? 'inline-block' : 'none';
-            toggleQRAndARDisplay();
-        }
-
-
-        function toggleQRAndARDisplay() {
-            const controls = document.getElementById('controls');
-            const isShrunk = controls.classList.contains('shrink');
-            const modelLoaded = modelViewer.src !== '' || panoViewer.style.display === 'block';
-
-
-    if (isShrunk) {
-        qrPlaceholder.style.display = 'none';
+function updateArButtonVisibility(fileType) {
+    if (isEmbedded) {
         arButton.style.display = 'none';
-        save.style.display = 'none';
-    } else {
-        qrPlaceholder.style.display = isMobile ? 'none' : 'block';
-        arButton.style.display = isMobile ? 'block' : 'none';
-        if (modelLoaded){
-            save.style.display = isMobile ? 'none' : 'inline-block';
-
-        }else{
-            save.style.display = 'none';
-        }
-        
-        
-        
+        return;
     }
-        }
-// Update showLoadingScreen to display progress
-function showLoadingScreen(show, totalBytes = 0) {
-    const loadingText = document.getElementById('loading-screen');
-    loadingText.classList.toggle('hidden', !show);
 
-    if (show && totalBytes > 0) {
-        const updateProgress = () => {
-            loadingText.innerText = `Loading content... ${(loadedBytes / (1024 * 1024)).toFixed(2)} MB of ${(totalBytes / (1024 * 1024)).toFixed(2)} MB`;
-
-            // Continue updating if not hidden
-            if (!loadingText.classList.contains('hidden')) {
-                requestAnimationFrame(updateProgress);
-            }
-        };
-
-        updateProgress();
-    }
+    const isGlbOrGltf = fileType === 'gltf' || fileType === 'glb';
+    arButton.style.display = (isMobile && isGlbOrGltf) ? 'block' : 'none';
 }
 
-// Modify loadModel function to get file size and show progress
-function loadModel() {
-    const prefix = document.getElementById('model-prefix').value;
+function loadModel(prefix) {
     if (prefix.length !== 10) {
         alert('Please enter exactly 10 characters.');
         return;
@@ -449,66 +113,33 @@ function loadModel() {
             const key = data.Contents[0].Key;
             const fileExtension = key.split('.').pop().toLowerCase();
 
-            const params = {
+            const signedUrl = s3.getSignedUrl('getObject', {
                 Bucket: bucketName,
                 Key: key,
-            };
-
-            s3.headObject(params, (err, metadata) => {
-                if (err) {
-                    console.error('Error getting file metadata:', err);
-                    alert('Error getting file metadata.');
-                    return;
-                }
-
-                const totalBytes = metadata.ContentLength;
-                showLoadingScreen(true, totalBytes);
-
-                s3.getObject(params)
-                    .on('httpDownloadProgress', (progress) => {
-                        loadedBytes = progress.loaded;
-                    })
-                    .send((err, data) => {
-                        if (err) {
-                            console.error('Error loading object:', err);
-                            alert('Error loading object.');
-                            showLoadingScreen(false);
-                            return;
-                        }
-
-                        // Process loaded file based on file type
-                        const fileUrl = `https://${bucketName}.s3.us-east-2.amazonaws.com/${key}`;
-                        if (fileExtension === 'gltf' || fileExtension === 'glb') {
-                            modelViewer.src = fileUrl;
-                            modelViewer.style.display = 'block';
-                            panoViewer.style.display = 'none';
-                        } else if (fileExtension === 'jpg' || fileExtension === 'jpeg' || fileExtension === 'png') {
-                            modelViewer.style.display = 'none';
-                            panoViewer.style.display = 'block';
-                            pannellum.viewer('pano-viewer', {
-                                type: 'equirectangular',
-                                panorama: fileUrl,
-                                autoLoad: true,
-                                onload: () => showLoadingScreen(false), // Add this onload callback here
-                            });
-                        } else {
-                            alert('Unsupported file format.');
-                            showLoadingScreen(false);
-                        }
-// Attach the model key to the URL
-const newUrl = `${window.location.origin}${window.location.pathname}?model=${prefix}`;
-window.history.replaceState(null, '', newUrl);
-
-// Generate and display QR code for the updated URL with the model key
-qrCodeContainer.innerHTML = ""; // Clear previous QR code
-QRCode.toCanvas(qrCodeContainer, newUrl, (error) => {
-    if (error) console.error(error);
-    console.log('QR code generated for model URL!');
-});
-
-                        showLoadingScreen(false);
-                    });
+                Expires: 3600
             });
+
+            if (fileExtension === 'gltf' || fileExtension === 'glb') {
+                modelViewer.src = signedUrl;
+                modelViewer.style.display = 'block';
+                panoViewer.style.display = 'none';
+                updateArButtonVisibility(fileExtension);
+            } else if (fileExtension === 'jpg' || fileExtension === 'jpeg' || fileExtension === 'png') {
+                modelViewer.style.display = 'none';
+                panoViewer.style.display = 'block';
+                pannellum.viewer('pano-viewer', {
+                    type: 'equirectangular',
+                    panorama: signedUrl,
+                    autoLoad: true
+                });
+                updateArButtonVisibility(fileExtension);
+            } else {
+                alert('Unsupported file format.');
+                updateArButtonVisibility('');
+            }
+
+            const newUrl = `${window.location.origin}${window.location.pathname}?model=${prefix}`;
+            window.history.replaceState(null, '', newUrl);
         } else {
             alert('No model/image found with the given prefix.');
         }
@@ -522,14 +153,11 @@ QRCode.toCanvas(qrCodeContainer, newUrl, (error) => {
         window.addEventListener('DOMContentLoaded', () => {
             const modelKey = getQueryParam('model');
             if (modelKey) {
-                document.getElementById('model-prefix').value = modelKey;
-                toggleButton();
-                loadModel();
+                loadModel(modelKey);
+            } else {
+                updateArButtonVisibility('');
             }
         });
-
-        modelViewer.addEventListener('load', () => showLoadingScreen(false));
-        panoViewer.addEventListener('load', () => showLoadingScreen(false));
 
         modelViewer.addEventListener('ar-status', (event) => {
             if (event.detail.status === 'session-started') {
@@ -538,32 +166,6 @@ QRCode.toCanvas(qrCodeContainer, newUrl, (error) => {
                 console.log('AR session has ended.');
             }
         });
-
-        function toggleControls() {
-    const controls = document.getElementById('controls');
-    if (isMobile && panoViewer.style.display === 'block') {
-        controls.classList.add('shrink');
-        
-        // Wait 300ms for the shrinking animation to complete, then hide
-        setTimeout(() => {
-            toggleControlsVisibility();
-        }, 1500); // Adjust time as per animation duration
-    } else {
-        controls.classList.toggle('shrink');
-
-    }
-    toggleQRAndARDisplay();
-}
-
-
-        function toggleControlsVisibility() {
-    const controls = document.getElementById('controls');
-    const toggleButton = document.getElementById('controls-toggle-button');
-
-    controls.classList.toggle('hidden');
-    toggleButton.classList.toggle('hide-icon'); // Update icon based on visibility
-}
-
 
         function openAR() {
             if (isMobile && modelViewer.ar) {
