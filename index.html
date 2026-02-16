@@ -177,6 +177,22 @@
         </div>
     </section>
 
+    <!-- Latest Events Section -->
+    <section class="latest-events">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title" data-en="Latest Events" data-ar="أحدث الفعاليات">Latest Events</h2>
+                <p class="section-subtitle" data-en="Discover our 3 newest events and activities" data-ar="اكتشف أحدث 3 فعاليات وأنشطة لدينا">Discover our 3 newest events and activities</p>
+            </div>
+            <div id="latestEventsGrid" class="latest-events-grid">
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p class="loading-text" data-en="Loading latest events..." data-ar="جارٍ تحميل أحدث الفعاليات...">Loading latest events...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
@@ -229,6 +245,82 @@
     </footer>
 
     <!-- Home page content is static - no Firestore fetching needed -->
+    <script type="module">
+        import dataLoader from './js/data-loader.js';
+
+        function getCurrentLanguage() {
+            return localStorage.getItem('language') || 'en';
+        }
+
+        function getLatestEvents(events, limit = 3) {
+            return [...events]
+                .sort((a, b) => {
+                    const timeA = new Date(a.time).getTime();
+                    const timeB = new Date(b.time).getTime();
+                    return (isNaN(timeB) ? 0 : timeB) - (isNaN(timeA) ? 0 : timeA);
+                })
+                .slice(0, limit);
+        }
+
+        async function loadLatestEvents() {
+            const latestEventsGrid = document.getElementById('latestEventsGrid');
+            if (!latestEventsGrid) return;
+
+            try {
+                const result = await dataLoader.getEvents();
+
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to load events');
+                }
+
+                const events = result.events || [];
+                if (events.length === 0) {
+                    latestEventsGrid.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📅</div>
+                            <h3 class="empty-title">No Events Available</h3>
+                            <p class="empty-message">Check back soon for the latest events.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const latestEvents = getLatestEvents(events, 3);
+                const currentLang = getCurrentLanguage();
+                const readMoreText = currentLang === 'ar' ? 'اقرأ المزيد' : 'Read More';
+                const locationLabel = currentLang === 'ar' ? 'الموقع' : 'Location';
+
+                latestEventsGrid.innerHTML = latestEvents.map((event) => {
+                    const dateInfo = dataLoader.formatDate(event.time);
+                    const eventDate = dateInfo ? dateInfo.fullDate : (currentLang === 'ar' ? 'تاريخ غير متوفر' : 'Date not available');
+                    const eventLocation = event.location || (currentLang === 'ar' ? 'غير محدد' : 'TBA');
+                    const eventDescription = event.description || (currentLang === 'ar' ? 'لا يوجد وصف متاح.' : 'No description available.');
+
+                    return `
+                        <article class="latest-event-card reveal">
+                            <div class="latest-event-date">${eventDate}</div>
+                            <h3 class="latest-event-title">${event.title || (currentLang === 'ar' ? 'فعالية' : 'Event')}</h3>
+                            <p class="latest-event-location"><strong>${locationLabel}:</strong> ${eventLocation}</p>
+                            <p class="latest-event-description">${eventDescription}</p>
+                            <a href="events.html" class="latest-event-readmore">${readMoreText}</a>
+                        </article>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('[Index] Error loading latest events:', error);
+                latestEventsGrid.innerHTML = `
+                    <div class="error-container">
+                        <div class="error-icon">⚠️</div>
+                        <h3 class="error-title">Unable to Load Latest Events</h3>
+                        <p class="error-message">Please try again later.</p>
+                    </div>
+                `;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadLatestEvents);
+    </script>
+
     <script src="js/intro.js"></script>
     <script src="js/three-effects.js"></script>
     <script src="js/main.js"></script>
