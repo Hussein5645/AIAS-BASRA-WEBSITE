@@ -45,6 +45,7 @@ const auth = getAuth(app);
             localStorage.setItem('aias_user_name', user.displayName || '');
             localStorage.setItem('aias_user_picture', user.photoURL || '');
             localStorage.setItem('aias_user_uid', user.uid);
+            localStorage.setItem('aias_visitor_mode', 'false');
             
             // Check admin status if on admin page
             if (currentPage === ADMIN_PAGE) {
@@ -57,12 +58,13 @@ const auth = getAuth(app);
                 }
             }
         } else {
-            // No Firebase user, check legacy authentication
+            // No Firebase user, check legacy authentication or visitor mode
             const legacyAuth = localStorage.getItem('aias_authenticated');
             const sessionAuth = sessionStorage.getItem('aias_authenticated');
+            const visitorMode = localStorage.getItem('aias_visitor_mode');
             
-            if (legacyAuth !== 'true' && sessionAuth !== 'true') {
-                // Not authenticated, redirect to login
+            if (legacyAuth !== 'true' && sessionAuth !== 'true' && visitorMode !== 'true') {
+                // Not authenticated and not in visitor mode, redirect to login
                 window.location.href = LOGIN_PAGE;
             }
         }

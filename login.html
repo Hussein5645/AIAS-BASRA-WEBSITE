@@ -340,8 +340,9 @@
         // Continue as visitor
         const visitorBtn = document.getElementById('visitorBtn');
         visitorBtn.addEventListener('click', () => {
-            localStorage.clear();
-            window.location.href = 'http://aiasbsr.com/index.html';
+            localStorage.setItem('aias_authenticated', 'false');
+            localStorage.setItem('aias_visitor_mode', 'true');
+            window.location.href = 'index.html';
         });
 
         async function checkUserRoleAndRedirect(user) {
