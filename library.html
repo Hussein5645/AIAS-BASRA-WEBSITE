@@ -10,6 +10,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/aws-sdk@2.1117.0/dist/aws-sdk.min.js"></script>
+    <script src="aws-config.js"></script>
     <!-- Authentication Check -->
     <script type="module" src="js/auth.js"></script>
     <style>
@@ -262,6 +264,37 @@
             height: 100%;
         }
 
+        .preview-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .preview-btn {
+            padding: 0.5rem 1rem;
+            background: var(--gradient-2);
+            color: var(--white);
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .preview-btn:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-md);
+        }
+
+        .preview-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
         .models-section {
             padding: 3rem 0;
             background: var(--light-bg);
@@ -463,6 +496,11 @@
            localStorage.getItem('debug') === 'true');
 
         let allResources = [];
+        let all3DModels = [];
+
+        const hasAwsClient = typeof window.AWS !== 'undefined' && typeof window.AWS_CONFIG !== 'undefined';
+        const s3 = hasAwsClient ? new window.AWS.S3() : null;
+        const s3BucketName = hasAwsClient ? window.AWS_CONFIG.bucketName : '';
         
         // Function to detect and extract YouTube video ID
         function getYouTubeVideoId(url) {
@@ -648,15 +686,20 @@
                     const dateB = new Date(b.date).getTime();
                     return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
                 });
+                all3DModels = sortedModels;
 
                 const viewText = currentLang === 'ar' ? 'عرض النموذج' : 'View Model';
                 const dateLabel = currentLang === 'ar' ? 'التاريخ' : 'Date';
+                const previewText = currentLang === 'ar' ? 'معاينة' : 'Preview';
 
                 modelsGrid.innerHTML = sortedModels.map(model => `
                     <article class="model-card reveal">
                         <h3 class="model-name">${model.name || (currentLang === 'ar' ? 'نموذج بلا اسم' : 'Untitled Model')}</h3>
                         <p class="model-date"><strong>${dateLabel}:</strong> ${model.date || '—'}</p>
-                        <a href="3DViewer.html?modelId=${encodeURIComponent(String(model.id || '').trim())}" class="download-btn">${viewText}</a>
+                        <div class="preview-actions">
+                            <a href="3DViewer.html?modelId=${encodeURIComponent(String(model.id || '').trim())}" class="download-btn">${viewText}</a>
+                            <button type="button" class="preview-btn" onclick="openModelPreview('${String(model.id || '').replace(/'/g, "\\'")}')">${previewText}</button>
+                        </div>
                     </article>
                 `).join('');
             } catch (error) {
@@ -670,6 +713,83 @@
                 `;
             }
         }
+
+        async function isModelLoadable(modelCode) {
+            const normalizedCode = String(modelCode || '').trim().toUpperCase();
+            if (!normalizedCode || normalizedCode.length !== 10) return false;
+
+            if (!s3 || !s3BucketName) {
+                console.warn('[Library] AWS S3 client is not available.');
+                return false;
+            }
+
+            try {
+                const data = await new Promise((resolve, reject) => {
+                    s3.listObjectsV2({ Bucket: s3BucketName, Prefix: normalizedCode }, (err, result) => {
+                        if (err) reject(err);
+                        else resolve(result);
+                    });
+                });
+
+                return !!(data && Array.isArray(data.Contents) && data.Contents.length > 0);
+            } catch (error) {
+                console.error('[Library] Error validating model loadability:', error);
+                return false;
+            }
+        }
+
+        function ensureModelPreviewModal() {
+            let modal = document.getElementById('modelPreviewModal');
+            if (modal) return modal;
+
+            modal = document.createElement('div');
+            modal.id = 'modelPreviewModal';
+            modal.innerHTML = `
+                <div class="modal-overlay" onclick="closeModelPreview()">
+                    <div class="modal-content" onclick="event.stopPropagation()">
+                        <div class="modal-header">
+                            <h3 id="modelPreviewTitle">3D Model Preview</h3>
+                            <button class="modal-close" onclick="closeModelPreview()">&times;</button>
+                        </div>
+                        <div class="modal-body" style="padding:0; height:70vh;">
+                            <iframe id="modelPreviewFrame" title="3D Model Preview" style="width:100%; height:100%; border:0;"></iframe>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            return modal;
+        }
+
+        window.openModelPreview = async function(modelId) {
+            const model = all3DModels.find(item => String(item.id) === String(modelId));
+            if (!model) {
+                alert('Model not found.');
+                return;
+            }
+
+            const currentLang = localStorage.getItem('language') || 'en';
+            const loadable = await isModelLoadable(model.code);
+            if (!loadable) {
+                alert(currentLang === 'ar' ? 'هذا النموذج غير متاح للتحميل حالياً.' : 'This model is not loadable right now.');
+                return;
+            }
+
+            const modal = ensureModelPreviewModal();
+            const titleEl = modal.querySelector('#modelPreviewTitle');
+            const frameEl = modal.querySelector('#modelPreviewFrame');
+            titleEl.textContent = model.name || (currentLang === 'ar' ? 'معاينة نموذج ثلاثي الأبعاد' : '3D Model Preview');
+            frameEl.src = `3DViewer.html?modelId=${encodeURIComponent(String(model.id || '').trim())}`;
+            modal.style.display = 'block';
+        };
+
+        window.closeModelPreview = function() {
+            const modal = document.getElementById('modelPreviewModal');
+            if (!modal) return;
+            const frameEl = modal.querySelector('#modelPreviewFrame');
+            if (frameEl) frameEl.src = '';
+            modal.style.display = 'none';
+        };
         
         function initializeFilters() {
             // Filter functionality - this will be called after categories are loaded
