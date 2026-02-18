@@ -313,8 +313,19 @@ if (languageToggle) {
 }
 
 // Check authentication status and update navigation
+function hasFirebaseSession() {
+    try {
+        return Object.keys(localStorage).some((key) => key.startsWith('firebase:authUser:'));
+    } catch (error) {
+        return false;
+    }
+}
+
 function updateNavigation() {
-    const isAuthenticated = localStorage.getItem('aias_authenticated') === 'true' || sessionStorage.getItem('aias_authenticated') === 'true';
+    const isAuthenticated =
+        localStorage.getItem('aias_authenticated') === 'true' ||
+        sessionStorage.getItem('aias_authenticated') === 'true' ||
+        hasFirebaseSession();
     const isAdmin = localStorage.getItem('aias_is_admin') === 'true';
     const userName = localStorage.getItem('aias_user_name');
     const userEmail = localStorage.getItem('aias_user_email');
@@ -353,8 +364,28 @@ function updateNavigation() {
 const logoutBtn = document.getElementById('logoutBtn');
 const logoutTrigger = document.querySelector('#logoutBtn a') || logoutBtn;
 if (logoutTrigger) {
-    logoutTrigger.addEventListener('click', (e) => {
+    logoutTrigger.addEventListener('click', async (e) => {
         e.preventDefault();
+
+        try {
+            const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+            const { getAuth, signOut } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+
+            const firebaseConfig = {
+                apiKey: 'AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ',
+                authDomain: 'aias-bsr.firebaseapp.com',
+                projectId: 'aias-bsr',
+                storageBucket: 'aias-bsr.firebasestorage.app',
+                messagingSenderId: '78055223814',
+                appId: '1:78055223814:web:99460402c2b1fcd5ae8987',
+                measurementId: 'G-6W50T4HXDV'
+            };
+
+            const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+            await signOut(getAuth(app));
+        } catch (error) {
+            console.error('Firebase sign-out failed, continuing with local cleanup:', error);
+        }
         
         // Clear authentication data
         localStorage.removeItem('aias_authenticated');
@@ -373,6 +404,11 @@ if (logoutTrigger) {
 
 // Update navigation on page load
 document.addEventListener('DOMContentLoaded', () => {
+    updateNavigation();
+});
+
+// Refresh navigation when auth module syncs Firebase state
+window.addEventListener('aias-auth-state-updated', () => {
     updateNavigation();
 });
 

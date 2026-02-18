@@ -30,10 +30,12 @@ const auth = getAuth(app);
     // Get current page filename
     const currentPage = window.location.pathname.split('/').pop();
     
-    // Don't check authentication on these pages
+    // Public pages should not redirect, but still sync auth state
     const publicPages = [LOGIN_PAGE, SIGNUP_PAGE, 'index.html', ''];
-    if (publicPages.includes(currentPage)) {
-        return;
+    const isPublicPage = publicPages.includes(currentPage);
+
+    function notifyAuthStateUpdated() {
+        window.dispatchEvent(new CustomEvent('aias-auth-state-updated'));
     }
     
     // Check Firebase authentication state
@@ -46,6 +48,7 @@ const auth = getAuth(app);
             localStorage.setItem('aias_user_picture', user.photoURL || '');
             localStorage.setItem('aias_user_uid', user.uid);
             localStorage.setItem('aias_visitor_mode', 'false');
+            notifyAuthStateUpdated();
             
             // Check admin status if on admin page
             if (currentPage === ADMIN_PAGE) {
@@ -58,12 +61,21 @@ const auth = getAuth(app);
                 }
             }
         } else {
+            // Keep local auth markers in sync when Firebase user is signed out
+            localStorage.removeItem('aias_authenticated');
+            localStorage.removeItem('aias_user_email');
+            localStorage.removeItem('aias_user_name');
+            localStorage.removeItem('aias_user_picture');
+            localStorage.removeItem('aias_is_admin');
+            localStorage.removeItem('aias_user_uid');
+            notifyAuthStateUpdated();
+
             // No Firebase user, check legacy authentication or visitor mode
             const legacyAuth = localStorage.getItem('aias_authenticated');
             const sessionAuth = sessionStorage.getItem('aias_authenticated');
             const visitorMode = localStorage.getItem('aias_visitor_mode');
             
-            if (legacyAuth !== 'true' && sessionAuth !== 'true' && visitorMode !== 'true') {
+            if (!isPublicPage && legacyAuth !== 'true' && sessionAuth !== 'true' && visitorMode !== 'true') {
                 // Not authenticated and not in visitor mode, redirect to login
                 window.location.href = LOGIN_PAGE;
             }
