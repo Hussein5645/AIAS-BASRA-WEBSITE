@@ -31,7 +31,7 @@ const auth = getAuth(app);
     const currentPage = window.location.pathname.split('/').pop();
     
     // Public pages should not redirect, but still sync auth state
-    const publicPages = [LOGIN_PAGE, SIGNUP_PAGE, 'index.html', '404.html', ''];
+    const publicPages = [LOGIN_PAGE, SIGNUP_PAGE];
     const isPublicPage = publicPages.includes(currentPage);
 
     function notifyAuthStateUpdated() {
