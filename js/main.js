@@ -314,9 +314,10 @@ if (languageToggle) {
 
 // Check authentication status and update navigation
 function updateNavigation() {
-    const isAuthenticated = localStorage.getItem('aias_authenticated') === 'true';
+    const isAuthenticated = localStorage.getItem('aias_authenticated') === 'true' || sessionStorage.getItem('aias_authenticated') === 'true';
     const isAdmin = localStorage.getItem('aias_is_admin') === 'true';
     const userName = localStorage.getItem('aias_user_name');
+    const userEmail = localStorage.getItem('aias_user_email');
     
     const loginBtn = document.getElementById('loginBtn');
     const signupBtn = document.getElementById('signupBtn');
@@ -324,12 +325,12 @@ function updateNavigation() {
     const userNameElement = document.getElementById('userName');
     const dashboardBtn = document.getElementById('dashboardBtn');
     
-    if (isAuthenticated && userName) {
+    if (isAuthenticated) {
         // User is logged in - hide login/signup, show user profile
         if (loginBtn) loginBtn.style.display = 'none';
         if (signupBtn) signupBtn.style.display = 'none';
         if (userProfile) userProfile.style.display = 'flex';
-        if (userNameElement) userNameElement.textContent = userName;
+        if (userNameElement) userNameElement.textContent = userName || userEmail || 'User';
         
         // Show dashboard button if user is admin
         if (dashboardBtn) {
