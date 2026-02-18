@@ -220,6 +220,29 @@
             cursor: not-allowed;
         }
 
+        .language-toggle-auth {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 999px;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+        }
+
+        .language-toggle-auth svg {
+            width: 16px;
+            height: 16px;
+        }
+
         @media (max-width: 480px) {
             .container {
                 padding: 2rem 1.5rem;
@@ -232,13 +255,21 @@
     </style>
 </head>
 <body>
+    <button class="language-toggle-auth" id="languageToggle" aria-label="Change language">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <span id="currentLang">EN</span>
+    </button>
+
     <div class="container">
         <div class="logo-container">
             <div class="logo-icon">🏛️</div>
         </div>
         
-        <h1>Create Account</h1>
-        <p class="subtitle">Join the AIAS Basra Chapter community</p>
+        <h1 data-en="Create Account" data-ar="إنشاء حساب">Create Account</h1>
+        <p class="subtitle" data-en="Join the AIAS Basra Chapter community" data-ar="انضم إلى مجتمع AIAS البصرة">Join the AIAS Basra Chapter community</p>
 
         <div id="message" class="message"></div>
 
@@ -249,13 +280,50 @@
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            Sign up with Google
+            <span data-en="Sign up with Google" data-ar="إنشاء حساب عبر Google">Sign up with Google</span>
         </button>
 
         <div class="login-link">
-            Already have an account? <a href="login.html">Login here</a>
+            <span data-en="Already have an account?" data-ar="لديك حساب بالفعل؟">Already have an account?</span>
+            <a href="login.html" data-en="Login here" data-ar="سجّل الدخول هنا">Login here</a>
         </div>
     </div>
+
+    <script>
+        let currentLanguage = localStorage.getItem('language') || 'en';
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('language', lang);
+
+            document.documentElement.lang = lang === 'ar' ? 'ar' : 'en';
+            document.body.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+            document.title = lang === 'ar' ? 'إنشاء حساب - AIAS البصرة' : 'Sign Up - AIAS Basra';
+
+            const currentLang = document.getElementById('currentLang');
+            if (currentLang) {
+                currentLang.textContent = lang === 'ar' ? 'AR' : 'EN';
+            }
+
+            const elements = document.querySelectorAll('[data-en][data-ar]');
+            elements.forEach((element) => {
+                const translation = lang === 'ar' ? element.getAttribute('data-ar') : element.getAttribute('data-en');
+                if (translation) {
+                    element.textContent = translation;
+                }
+            });
+        }
+
+        const languageToggle = document.getElementById('languageToggle');
+        if (languageToggle) {
+            languageToggle.addEventListener('click', () => {
+                const newLang = currentLanguage === 'en' ? 'ar' : 'en';
+                setLanguage(newLang);
+            });
+        }
+
+        setLanguage(currentLanguage);
+    </script>
 
     <!-- Firebase SDK -->
     <script type="module">

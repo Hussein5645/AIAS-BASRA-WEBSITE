@@ -225,7 +225,7 @@
                     </li>
                     
                     <!-- CTA Button -->
-                    <li class="nav-cta">
+                    <li class="nav-cta" id="signupBtn">
                         <a href="signup.html" class="btn-cta">Join Us</a>
                     </li>
                 </ul>
@@ -559,7 +559,19 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', loadLibraryFromFirebase);
+        function updateHeaderAuthButtons() {
+            const isAuthenticated = localStorage.getItem('aias_authenticated') === 'true' || sessionStorage.getItem('aias_authenticated') === 'true';
+            const signupBtn = document.getElementById('signupBtn');
+
+            if (signupBtn) {
+                signupBtn.style.display = isAuthenticated ? 'none' : 'block';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateHeaderAuthButtons();
+            loadLibraryFromFirebase();
+        });
     </script>
 </body>
 </html>
