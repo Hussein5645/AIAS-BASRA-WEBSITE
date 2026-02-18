@@ -324,12 +324,15 @@ function updateNavigation() {
     const userProfile = document.getElementById('userProfile');
     const userNameElement = document.getElementById('userName');
     const dashboardBtn = document.getElementById('dashboardBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const hasUserProfileNav = !!userProfile;
     
     if (isAuthenticated) {
         // User is logged in - hide login/signup, show user profile
         if (loginBtn) loginBtn.style.display = 'none';
         if (signupBtn) signupBtn.style.display = 'none';
         if (userProfile) userProfile.style.display = 'flex';
+        if (logoutBtn && !hasUserProfileNav) logoutBtn.style.display = 'block';
         if (userNameElement) userNameElement.textContent = userName || userEmail || 'User';
         
         // Show dashboard button if user is admin
@@ -341,14 +344,16 @@ function updateNavigation() {
         if (loginBtn) loginBtn.style.display = 'block';
         if (signupBtn) signupBtn.style.display = 'block';
         if (userProfile) userProfile.style.display = 'none';
+        if (logoutBtn && !hasUserProfileNav) logoutBtn.style.display = 'none';
         if (dashboardBtn) dashboardBtn.style.display = 'none';
     }
 }
 
 // Handle logout
 const logoutBtn = document.getElementById('logoutBtn');
-if (logoutBtn) {
-    logoutBtn.addEventListener('click', (e) => {
+const logoutTrigger = document.querySelector('#logoutBtn a') || logoutBtn;
+if (logoutTrigger) {
+    logoutTrigger.addEventListener('click', (e) => {
         e.preventDefault();
         
         // Clear authentication data
@@ -357,6 +362,9 @@ if (logoutBtn) {
         localStorage.removeItem('aias_user_name');
         localStorage.removeItem('aias_user_picture');
         localStorage.removeItem('aias_is_admin');
+        localStorage.removeItem('aias_user_uid');
+        localStorage.removeItem('aias_visitor_mode');
+        sessionStorage.removeItem('aias_authenticated');
         
         // Redirect to home page
         window.location.href = 'index.html';

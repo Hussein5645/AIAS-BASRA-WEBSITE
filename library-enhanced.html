@@ -562,46 +562,7 @@
             }
         }
 
-        function updateHeaderAuthButtons() {
-            const isAuthenticated = localStorage.getItem('aias_authenticated') === 'true' || sessionStorage.getItem('aias_authenticated') === 'true';
-            const signupBtn = document.getElementById('signupBtn');
-            const logoutBtn = document.getElementById('logoutBtn');
-
-            if (signupBtn) {
-                signupBtn.style.display = isAuthenticated ? 'none' : 'block';
-            }
-
-            if (logoutBtn) {
-                logoutBtn.style.display = isAuthenticated ? 'block' : 'none';
-            }
-        }
-
-        function setupLogoutButton() {
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (!logoutBtn) return;
-
-            const logoutLink = logoutBtn.querySelector('a');
-            if (!logoutLink) return;
-
-            logoutLink.addEventListener('click', (event) => {
-                event.preventDefault();
-
-                localStorage.removeItem('aias_authenticated');
-                localStorage.removeItem('aias_user_email');
-                localStorage.removeItem('aias_user_name');
-                localStorage.removeItem('aias_user_picture');
-                localStorage.removeItem('aias_is_admin');
-                localStorage.removeItem('aias_user_uid');
-                localStorage.removeItem('aias_visitor_mode');
-                sessionStorage.removeItem('aias_authenticated');
-
-                window.location.href = 'index.html';
-            });
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
-            updateHeaderAuthButtons();
-            setupLogoutButton();
             loadLibraryFromFirebase();
         });
     </script>
