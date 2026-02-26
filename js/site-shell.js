@@ -240,6 +240,16 @@
                             </button>
                         </li>
 
+                        <li>
+                            <button class="language-toggle" id="languageToggle" type="button" aria-label="Change language">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                </svg>
+                                <span id="currentLang">EN</span>
+                            </button>
+                        </li>
+
                         <li id="dashboardBtn" style="display: none;">
                             <a href="admin-dashboard.html" class="nav-btn nav-btn-signup" data-en="Dashboard" data-ar="لوحة التحكم">Dashboard</a>
                         </li>
@@ -514,6 +524,7 @@
         setupMegaMenu();
         setupSearch();
         markActiveLinks();
+        window.dispatchEvent(new CustomEvent('aias-site-shell-ready'));
     }
 
     if (document.readyState === 'loading') {

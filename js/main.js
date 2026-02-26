@@ -301,15 +301,25 @@ function setLanguage(lang) {
 // Initialize language on page load
 document.addEventListener('DOMContentLoaded', () => {
     setLanguage(currentLanguage);
+    bindLanguageToggle();
 });
 
-// Language toggle button event
-const languageToggle = document.getElementById('languageToggle');
-if (languageToggle) {
+function bindLanguageToggle() {
+    const languageToggle = document.getElementById('languageToggle');
+    if (!languageToggle || languageToggle.dataset.langBound === 'true') {
+        return;
+    }
+
+    languageToggle.dataset.langBound = 'true';
     languageToggle.addEventListener('click', () => {
         const newLang = currentLanguage === 'en' ? 'ar' : 'en';
         setLanguage(newLang);
     });
 }
+
+window.addEventListener('aias-site-shell-ready', () => {
+    setLanguage(currentLanguage);
+    bindLanguageToggle();
+});
 
 console.log('AIAS Basra Website Loaded Successfully');
