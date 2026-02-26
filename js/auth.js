@@ -143,6 +143,7 @@ if (document.readyState === 'loading') {
 window.addEventListener('aias-auth-state-updated', syncAuthUI);
 
 (function() {
+    const LOGIN_PAGE = 'login.html';
     const ADMIN_PAGE = 'admin-dashboard.html';
     
     // Get current page filename
@@ -155,26 +156,33 @@ window.addEventListener('aias-auth-state-updated', syncAuthUI);
     // Check Firebase authentication state
     onAuthStateChanged(auth, async (user) => {
         if (user) {
+            const isAdmin = await checkIfAdmin(user.email || '');
+
             // User is signed in with Firebase
             localStorage.setItem('aias_authenticated', 'true');
             localStorage.setItem('aias_user_email', user.email);
             localStorage.setItem('aias_user_name', user.displayName || '');
             localStorage.setItem('aias_user_picture', user.photoURL || '');
             localStorage.setItem('aias_user_uid', user.uid);
+            localStorage.setItem('aias_is_admin', isAdmin.toString());
             localStorage.setItem('aias_visitor_mode', 'false');
             notifyAuthStateUpdated();
             syncAuthUI();
             
-            // Check admin status if on admin page
-            if (currentPage === ADMIN_PAGE) {
-                const isAdmin = await checkIfAdmin(user.email);
-                localStorage.setItem('aias_is_admin', isAdmin.toString());
+            // Protect admin page for admin users only
+            if (currentPage === ADMIN_PAGE && !isAdmin) {
+                window.location.href = 'index.html';
             }
         } else {
             // Keep local auth markers in sync when Firebase user is signed out
             clearLocalAuthState();
             notifyAuthStateUpdated();
             syncAuthUI();
+
+            // Protect admin page for signed-out users
+            if (currentPage === ADMIN_PAGE) {
+                window.location.href = LOGIN_PAGE;
+            }
         }
     });
     
