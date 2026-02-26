@@ -240,6 +240,17 @@
                             </button>
                         </li>
 
+                        <li id="dashboardBtn" style="display: none;">
+                            <a href="admin-dashboard.html" class="nav-btn nav-btn-signup" data-en="Dashboard" data-ar="لوحة التحكم">Dashboard</a>
+                        </li>
+                        <li id="loginBtn">
+                            <a href="login.html" class="nav-btn nav-btn-login" data-en="Login" data-ar="تسجيل الدخول">Login</a>
+                        </li>
+                        <li id="userProfile" style="display: none; align-items: center; gap: 10px;">
+                            <span id="userName" style="color: #667eea; font-weight: 600;" data-en="User" data-ar="المستخدم">User</span>
+                            <a href="#" id="logoutBtn" class="nav-btn nav-btn-login" data-en="Logout" data-ar="تسجيل الخروج">Logout</a>
+                        </li>
+
                     </ul>
                 </div>
             </div>
