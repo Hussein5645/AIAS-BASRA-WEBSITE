@@ -144,17 +144,11 @@ window.addEventListener('aias-auth-state-updated', syncAuthUI);
 
 (function() {
     const LOGIN_PAGE = 'login.html';
-    const SIGNUP_PAGE = 'signup.html';
-    const main_PAGE = 'index.html';
     const ADMIN_PAGE = 'admin-dashboard.html';
     
     // Get current page filename
     const currentPage = window.location.pathname.split('/').pop();
     
-    // Public pages should not redirect, but still sync auth state
-    const publicPages = [LOGIN_PAGE, SIGNUP_PAGE,main_PAGE];
-    const isPublicPage = publicPages.includes(currentPage);
-
     function notifyAuthStateUpdated() {
         window.dispatchEvent(new CustomEvent('aias-auth-state-updated'));
     }
@@ -188,13 +182,11 @@ window.addEventListener('aias-auth-state-updated', syncAuthUI);
             notifyAuthStateUpdated();
             syncAuthUI();
 
-            // No Firebase user, check legacy authentication or visitor mode
+            // Only admin page requires authentication
             const legacyAuth = localStorage.getItem('aias_authenticated');
             const sessionAuth = sessionStorage.getItem('aias_authenticated');
-            const visitorMode = localStorage.getItem('aias_visitor_mode');
-            
-            if (!isPublicPage && legacyAuth !== 'true' && sessionAuth !== 'true' && visitorMode !== 'true') {
-                // Not authenticated and not in visitor mode, redirect to login
+
+            if (currentPage === ADMIN_PAGE && legacyAuth !== 'true' && sessionAuth !== 'true' && !hasFirebaseSession()) {
                 window.location.href = LOGIN_PAGE;
             }
         }

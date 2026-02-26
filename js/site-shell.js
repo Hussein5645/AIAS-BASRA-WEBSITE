@@ -7,8 +7,7 @@
         { title: '3D Models', url: '3d-models.html', type: 'page', description: 'Browse and preview uploaded 3D models' },
         { title: 'Magazine', url: 'magazine.html', type: 'page', description: 'Articles and publications' },
         { title: 'About Us', url: 'about.html', type: 'page', description: 'Learn about AIAS Basra Chapter' },
-        { title: 'Gallery', url: 'gallery.html', type: 'page', description: 'Photo gallery of chapter activities' },
-        { title: 'Join Us', url: 'signup.html', type: 'action', description: 'Create your account and join AIAS Basra' }
+        { title: 'Gallery', url: 'gallery.html', type: 'page', description: 'Photo gallery of chapter activities' }
     ];
 
     function getCurrentFile() {
@@ -241,9 +240,6 @@
                             </button>
                         </li>
 
-                        <li class="nav-cta">
-                            <a href="signup.html" class="btn-cta">Join Us</a>
-                        </li>
                     </ul>
                 </div>
             </div>
