@@ -553,15 +553,18 @@
 
     (function() {
       onAuthStateChanged(auth, async (user) => {
-        if (!user) { window.location.href = 'login.html'; return; }
-        const isAdmin = await checkIfAdmin(user.email);
-        if (!isAdmin) { alert('Access denied. Admin privileges required.'); window.location.href = 'login.html'; return; }
-        localStorage.setItem('aias_authenticated','true');
-        localStorage.setItem('aias_user_email', user.email);
-        localStorage.setItem('aias_user_name', user.displayName || 'Admin');
-        localStorage.setItem('aias_user_picture', user.photoURL || '');
-        localStorage.setItem('aias_is_admin','true');
-        localStorage.setItem('aias_user_uid', user.uid);
+        if (user) {
+          const isAdmin = await checkIfAdmin(user.email);
+          localStorage.setItem('aias_authenticated','true');
+          localStorage.setItem('aias_user_email', user.email);
+          localStorage.setItem('aias_user_name', user.displayName || 'Admin');
+          localStorage.setItem('aias_user_picture', user.photoURL || '');
+          localStorage.setItem('aias_is_admin', isAdmin ? 'true' : 'false');
+          localStorage.setItem('aias_user_uid', user.uid);
+        } else {
+          ['aias_authenticated','aias_user_email','aias_user_name','aias_user_picture','aias_is_admin','aias_user_uid']
+            .forEach(localStorage.removeItem.bind(localStorage));
+        }
         document.getElementById('currentLang').textContent = (localStorage.getItem('language') || 'EN').toUpperCase();
         
         // Populate category dropdowns from JSON

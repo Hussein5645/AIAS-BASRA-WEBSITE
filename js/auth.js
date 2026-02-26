@@ -143,7 +143,6 @@ if (document.readyState === 'loading') {
 window.addEventListener('aias-auth-state-updated', syncAuthUI);
 
 (function() {
-    const LOGIN_PAGE = 'login.html';
     const ADMIN_PAGE = 'admin-dashboard.html';
     
     // Get current page filename
@@ -170,25 +169,12 @@ window.addEventListener('aias-auth-state-updated', syncAuthUI);
             if (currentPage === ADMIN_PAGE) {
                 const isAdmin = await checkIfAdmin(user.email);
                 localStorage.setItem('aias_is_admin', isAdmin.toString());
-                
-                if (!isAdmin) {
-                    alert('Access denied. Admin privileges required.');
-                    window.location.href = 'index.html';
-                }
             }
         } else {
             // Keep local auth markers in sync when Firebase user is signed out
             clearLocalAuthState();
             notifyAuthStateUpdated();
             syncAuthUI();
-
-            // Only admin page requires authentication
-            const legacyAuth = localStorage.getItem('aias_authenticated');
-            const sessionAuth = sessionStorage.getItem('aias_authenticated');
-
-            if (currentPage === ADMIN_PAGE && legacyAuth !== 'true' && sessionAuth !== 'true' && !hasFirebaseSession()) {
-                window.location.href = LOGIN_PAGE;
-            }
         }
     });
     
