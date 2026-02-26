@@ -145,13 +145,14 @@ window.addEventListener('aias-auth-state-updated', syncAuthUI);
 (function() {
     const LOGIN_PAGE = 'login.html';
     const SIGNUP_PAGE = 'signup.html';
+    const main_PAGE = 'index.html';
     const ADMIN_PAGE = 'admin-dashboard.html';
     
     // Get current page filename
     const currentPage = window.location.pathname.split('/').pop();
     
     // Public pages should not redirect, but still sync auth state
-    const publicPages = [LOGIN_PAGE, SIGNUP_PAGE];
+    const publicPages = [LOGIN_PAGE, SIGNUP_PAGE,main_PAGE];
     const isPublicPage = publicPages.includes(currentPage);
 
     function notifyAuthStateUpdated() {
