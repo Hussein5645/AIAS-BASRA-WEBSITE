@@ -50,6 +50,11 @@
         overflow-x: hidden;
     }
 
+    body.menu-open {
+        overflow: hidden;
+        touch-action: none;
+    }
+
     .navbar {
         height: 64px;
     }
@@ -141,6 +146,20 @@
         font-size: 16px;
     }
 
+    .nav-links,
+    .filter-panel,
+    .search-suggestions {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .nav-links a,
+    .nav-links button,
+    .language-toggle,
+    .search-trigger,
+    .menu-toggle {
+        min-height: 44px;
+    }
+
     .content-card,
     .resource-card,
     .event-card,
@@ -216,6 +235,10 @@
     .site-shell-container {
         padding-left: 0.8rem;
         padding-right: 0.8rem;
+    }
+
+    .hero-content {
+        padding: 1rem 0.4rem;
     }
 
     .hero,

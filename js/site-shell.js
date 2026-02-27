@@ -311,6 +311,14 @@
             navLinks.classList.toggle('active');
             document.body.classList.toggle('menu-open');
         });
+
+        navLinks.querySelectorAll('a').forEach(function (link) {
+            link.addEventListener('click', function () {
+                menuToggle.classList.remove('active');
+                navLinks.classList.remove('active');
+                document.body.classList.remove('menu-open');
+            });
+        });
     }
 
     function setupMegaMenu() {
