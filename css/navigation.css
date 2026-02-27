@@ -353,10 +353,15 @@
         padding-bottom: calc(1rem + env(safe-area-inset-bottom));
     }
 
+    .nav-item {
+        width: 100%;
+    }
+
     .nav-item > a {
         min-height: 44px;
         display: flex;
         align-items: center;
+        justify-content: space-between;
     }
 
     .mega-menu {
@@ -368,6 +373,14 @@
         border-radius: 0;
         padding: 0.75rem 0.5rem;
         border-top: 1px solid #e2e8f0;
+        box-shadow: none;
+        opacity: 1;
+        visibility: visible;
+        display: none;
+    }
+
+    .nav-item.open .mega-menu {
+        display: block;
     }
     
     .mega-menu-content {
@@ -383,6 +396,13 @@
         border-radius: 0;
         box-shadow: none;
         background: var(--light-bg);
+        opacity: 1;
+        visibility: visible;
+        display: none;
+    }
+
+    .nav-item.open .dropdown-menu {
+        display: block;
     }
     
     .header-search {

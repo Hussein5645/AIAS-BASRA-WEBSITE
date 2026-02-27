@@ -319,6 +319,30 @@
                 document.body.classList.remove('menu-open');
             });
         });
+
+        document.addEventListener('click', function (event) {
+            if (window.innerWidth > 768) {
+                return;
+            }
+
+            const clickedInsideNav = event.target.closest('.nav-content');
+            if (navLinks.classList.contains('active') && !clickedInsideNav) {
+                menuToggle.classList.remove('active');
+                navLinks.classList.remove('active');
+                document.body.classList.remove('menu-open');
+            }
+        });
+
+        window.addEventListener('resize', function () {
+            if (window.innerWidth > 768) {
+                menuToggle.classList.remove('active');
+                navLinks.classList.remove('active');
+                document.body.classList.remove('menu-open');
+                document.querySelectorAll('.nav-item.open').forEach(function (item) {
+                    item.classList.remove('open');
+                });
+            }
+        });
     }
 
     function setupMegaMenu() {
@@ -355,16 +379,18 @@
             } else {
                 trigger.addEventListener('click', function (event) {
                     event.preventDefault();
-                    const isVisible = menu.style.visibility === 'visible';
+                    const parentItem = trigger.closest('.nav-item');
+                    if (!parentItem) {
+                        return;
+                    }
 
-                    document.querySelectorAll('.mega-menu').forEach(function (targetMenu) {
-                        targetMenu.style.opacity = '0';
-                        targetMenu.style.visibility = 'hidden';
+                    const isOpen = parentItem.classList.contains('open');
+                    document.querySelectorAll('.nav-item.open').forEach(function (item) {
+                        item.classList.remove('open');
                     });
 
-                    if (!isVisible) {
-                        menu.style.opacity = '1';
-                        menu.style.visibility = 'visible';
+                    if (!isOpen) {
+                        parentItem.classList.add('open');
                     }
                 });
             }
