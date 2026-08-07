@@ -24,6 +24,17 @@
     .article-body ul,.article-body ol { margin:0 0 1.25rem 1.5rem; }
     .article-body a { color:var(--accent-color); }
     .article-body blockquote { border-left:4px solid var(--accent-color); margin:1.5rem 0; padding:.5rem 1rem; background:var(--light-bg); }
+    .article-community { margin-top:3rem; padding-top:2rem; border-top:1px solid #e5e7eb; }
+    .vote-bar { display:flex; align-items:center; gap:.75rem; margin-bottom:2rem; }
+    .vote-button { border:1px solid #d1d5db; background:#fff; border-radius:8px; padding:.55rem .8rem; cursor:pointer; font-weight:700; }
+    .vote-button.active, .vote-button:hover { background:var(--gradient-1); color:#fff; }
+    .vote-score { min-width:2rem; text-align:center; font-weight:800; }
+    .comment-form { display:flex; gap:.75rem; margin:1rem 0 2rem; }
+    .comment-form textarea { flex:1; min-height:80px; padding:.75rem; border:1px solid #d1d5db; border-radius:8px; resize:vertical; }
+    .comment { padding:1rem 0; border-bottom:1px solid #e5e7eb; }
+    .comment-meta { color:var(--text-light); font-size:.85rem; margin-bottom:.35rem; }
+    .comment-text { white-space:pre-wrap; color:var(--text-secondary); }
+    .comment-delete { border:0; background:none; color:#b91c1c; cursor:pointer; padding:0; }
     #status { text-align:center; padding:5rem 1rem; color:var(--text-secondary); }
   </style>
 </head>
@@ -38,22 +49,96 @@
   <main class="article-page">
     <div id="status">Loading article...</div>
     <article id="articleBody" class="article-body" hidden></article>
+    <section id="articleCommunity" class="article-community" hidden>
+      <h2>Community</h2>
+      <div class="vote-bar">
+        <button id="upvoteButton" class="vote-button" type="button">▲ Upvote</button>
+        <span id="voteScore" class="vote-score">0</span>
+        <button id="downvoteButton" class="vote-button" type="button">▼ Downvote</button>
+      </div>
+      <h3>Comments</h3>
+      <p id="commentAuthMessage">Sign in to vote and comment.</p>
+      <form id="commentForm" class="comment-form" hidden>
+        <textarea id="commentInput" maxlength="2000" placeholder="Share your thoughts..."></textarea>
+        <button class="btn btn-primary" type="submit">Comment</button>
+      </form>
+      <div id="commentsList"></div>
+    </section>
   </main>
 
   <script type="module">
     import FirestoreAPI from './js/firestore-api.js';
+    import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getFirestore, doc, collection, getDoc, getDocs, setDoc, addDoc, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+    const firebaseConfig = { apiKey:'AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ', authDomain:'aias-bsr.firebaseapp.com', projectId:'aias-bsr', storageBucket:'aias-bsr.firebasestorage.app', messagingSenderId:'78055223814', appId:'1:78055223814:web:99460402c2b1fcd5ae8987' };
+    let app;
+    try { app = getApp(); } catch { app = initializeApp(firebaseConfig); }
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
     const id = new URLSearchParams(window.location.search).get('id');
     const title = document.getElementById('articleTitle');
     const meta = document.getElementById('articleMeta');
     const status = document.getElementById('status');
     const body = document.getElementById('articleBody');
+    const community = document.getElementById('articleCommunity');
+    const upvoteButton = document.getElementById('upvoteButton');
+    const downvoteButton = document.getElementById('downvoteButton');
+    const voteScore = document.getElementById('voteScore');
+    const commentForm = document.getElementById('commentForm');
+    const commentInput = document.getElementById('commentInput');
+    const commentsList = document.getElementById('commentsList');
+    const commentAuthMessage = document.getElementById('commentAuthMessage');
+    let currentUser = null;
+    let currentVote = 0;
 
     function escapeHtml(value) {
       return String(value || '').replace(/[&<>"']/g, character => ({
         '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;'
       }[character]));
     }
+
+    function votesRef() { return collection(db, 'content', 'magazine', 'articles', id, 'votes'); }
+    function commentsRef() { return collection(db, 'content', 'magazine', 'articles', id, 'comments'); }
+
+    async function loadCommunity() {
+      const votes = (await getDocs(votesRef())).docs.map(item => item.data());
+      voteScore.textContent = votes.reduce((total, vote) => total + (Number(vote.value) || 0), 0);
+      currentVote = currentUser ? Number((await getDoc(doc(votesRef(), currentUser.uid))).data()?.value || 0) : 0;
+      upvoteButton.classList.toggle('active', currentVote === 1);
+      downvoteButton.classList.toggle('active', currentVote === -1);
+
+      const comments = (await getDocs(commentsRef())).docs.map(item => ({ id:item.id, ...item.data() }))
+        .sort((a,b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+      commentsList.innerHTML = comments.length ? comments.map(comment => `
+        <div class="comment"><div class="comment-meta">${escapeHtml(comment.userName || 'Member')} · ${comment.createdAt?.toDate ? comment.createdAt.toDate().toLocaleString() : 'Just now'}</div>
+        <div class="comment-text">${escapeHtml(comment.text)}</div>
+        ${currentUser?.uid === comment.userId ? `<button class="comment-delete" data-comment-id="${comment.id}" type="button">Delete</button>` : ''}</div>`).join('') : '<p>No comments yet. Start the discussion.</p>';
+      commentsList.querySelectorAll('.comment-delete').forEach(button => button.addEventListener('click', async () => {
+        await deleteDoc(doc(commentsRef(), button.dataset.commentId));
+        loadCommunity();
+      }));
+    }
+
+    async function saveVote(value) {
+      if (!currentUser) { alert('Please sign in to vote.'); return; }
+      const voteRef = doc(votesRef(), currentUser.uid);
+      await setDoc(voteRef, { userId: currentUser.uid, value: currentVote === value ? 0 : value, updatedAt: serverTimestamp() });
+      await loadCommunity();
+    }
+
+    upvoteButton.addEventListener('click', () => saveVote(1));
+    downvoteButton.addEventListener('click', () => saveVote(-1));
+    commentForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      const text = commentInput.value.trim();
+      if (!currentUser || !text) return;
+      await addDoc(commentsRef(), { userId: currentUser.uid, userName: currentUser.displayName || currentUser.email || 'Member', text, createdAt: serverTimestamp() });
+      commentInput.value = '';
+      loadCommunity();
+    });
 
     async function loadArticle() {
       try {
@@ -66,7 +151,9 @@
         body.innerHTML = `${article.imageUrl ? `<img class="article-cover" src="${escapeHtml(article.imageUrl)}" alt="${escapeHtml(article.title)}">` : ''}${article.content || `<p>${escapeHtml(article.summary)}</p>`}`;
         status.hidden = true;
         body.hidden = false;
+        community.hidden = false;
         document.title = `${article.title || 'Article'} - AIAS Basra`;
+        await loadCommunity();
       } catch (error) {
         console.error('[Article] Failed to load:', error);
         title.textContent = 'Article unavailable';
@@ -75,6 +162,12 @@
     }
 
     loadArticle();
+    onAuthStateChanged(auth, user => {
+      currentUser = user;
+      commentForm.hidden = !user;
+      commentAuthMessage.hidden = !!user;
+      loadCommunity().catch(error => console.error('[ArticleCommunity] Failed to load:', error));
+    });
   </script>
   <script src="js/site-shell.js"></script>
 </body>
