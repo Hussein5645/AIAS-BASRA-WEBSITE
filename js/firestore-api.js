@@ -648,6 +648,23 @@ class FirestoreAPI {
     }
   }
 
+  async fetchModel3DFileByCode(code) {
+    const normalizedCode = toStr(code).trim().toUpperCase();
+    if (!normalizedCode) return '';
+    const snapshot = await getDocs(this._colRef(this.paths.modelsCol));
+    const model = snapshot.docs.find(item => toStr(item.data().code).trim().toUpperCase() === normalizedCode);
+    if (!model) return '';
+    return readFileChunks(this.paths.modelsCol, model.id, 'fileChunks');
+  }
+
+  async uploadModel3DFile(docId, base64Data, mimeType = 'model/gltf-binary') {
+    await storeFileChunks(this.paths.modelsCol, docId, 'fileChunks', base64Data);
+    await setDoc(this._docRef([...this.paths.modelsCol, docId]), {
+      hasFile: true,
+      fileMimeType: mimeType
+    }, { merge: true });
+  }
+
   // Settings helpers (so Settings tab can list admins)
   async getAdmins() {
     try {

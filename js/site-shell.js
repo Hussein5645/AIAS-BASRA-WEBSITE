@@ -4,7 +4,7 @@
         { title: 'Events', url: 'events.html', type: 'page', description: 'Upcoming and past chapter events' },
         { title: 'Freedom By Design', url: 'fbd.html', type: 'page', description: 'Community service design projects' },
         { title: 'Library', url: 'library.html', type: 'page', description: 'Resource repository and downloads' },
-        { title: '3D Models', url: '3d-models.html', type: 'page', description: 'Browse and preview uploaded 3D models' },
+        { title: '3D Models', url: '3DViewer.html', type: 'page', description: 'Browse and preview uploaded 3D models' },
         { title: 'Magazine', url: 'magazine.html', type: 'page', description: 'Articles and publications' },
         { title: 'About Us', url: 'about.html', type: 'page', description: 'Learn about AIAS Basra Chapter' },
         { title: 'Gallery', url: 'gallery.html', type: 'page', description: 'Photo gallery of chapter activities' }
@@ -204,7 +204,7 @@
                                                 <div class="mega-menu-link-desc">Books, guides, and templates</div>
                                             </div>
                                         </a>
-                                        <a href="3d-models.html" class="mega-menu-link shell-link-models3d">
+                                        <a href="3DViewer.html" class="mega-menu-link shell-link-models3d">
                                             <div class="mega-menu-icon">🧊</div>
                                             <div class="mega-menu-link-content">
                                                 <div class="mega-menu-link-title">3D Models</div>
@@ -516,7 +516,7 @@
             return;
         }
 
-        if (currentFile === '3d-models.html') {
+        if (currentFile === '3DViewer.html') {
             setActive('.shell-link-resources');
             setActive('.shell-link-models3d');
             return;
