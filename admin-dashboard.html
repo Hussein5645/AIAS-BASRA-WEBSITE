@@ -62,6 +62,7 @@
     .rich-editor-toolbar { display:flex; flex-wrap:wrap; gap:.35rem; padding:.5rem; border:1px solid #d9e1ef; border-bottom:0; border-radius:8px 8px 0 0; background:#f7f9fc; }
     .rich-editor-toolbar button { border:1px solid #cbd5e1; background:#fff; border-radius:5px; padding:.35rem .6rem; cursor:pointer; }
     .rich-editor { min-height:260px; padding:1rem; border:1px solid #d9e1ef; border-radius:0 0 8px 8px; background:#fff; line-height:1.7; }
+    .rich-editor:empty::before { content:'Write the complete article here...'; color:#9aa5b5; pointer-events:none; }
     .rich-editor:focus { outline:2px solid rgba(102,126,234,.3); }
     #articleContent { display:none !important; }
     .submit-btn { padding: .75rem 1.2rem; background: linear-gradient(135deg, var(--brand1) 0%, var(--brand2) 100%); color: white; border: none; border-radius: 10px; font-size: .95rem; font-weight: 700; cursor: pointer; transition:.25s; }
@@ -221,8 +222,6 @@
                 <small id="articleImageStatus" aria-live="polite"></small>
               </div>
               <div class="form-group">
-                <label for="articleReadMoreUrl" data-en="Read More Button URL (Optional)" data-ar="رابط زر اقرأ المزيد (اختياري)">Read More Button URL (Optional)</label>
-                <input type="url" id="articleReadMoreUrl" name="readMoreUrl" placeholder="https://example.com/article"/>
               </div>
               <div class="form-group"><label for="articleContent" data-en="Full Content" data-ar="المحتوى الكامل">Full Content</label><textarea id="articleContent" name="content" required></textarea></div>
               <div class="rich-editor-toolbar" role="toolbar" aria-label="Article formatting">
@@ -776,7 +775,6 @@
       articleContent.value = a.content || '';
       if (articleContentEditor) articleContentEditor.innerHTML = a.content || '';
       articleImageUrl.value = a.imageUrl || '';
-      articleReadMoreUrl.value = a.readMoreUrl || '';
       articleSubmitBtn.textContent = 'Update Article';
     };
 
@@ -1025,7 +1023,6 @@
     const articleImageUrl   = document.getElementById('articleImageUrl');
     const articleImageFile  = document.getElementById('articleImageFile');
     const articleImageStatus = document.getElementById('articleImageStatus');
-    const articleReadMoreUrl = document.getElementById('articleReadMoreUrl');
     const articleSubmitBtn  = document.getElementById('articleSubmitBtn');
     const articleErrorsBox  = document.getElementById('articleErrors');
 
@@ -1046,6 +1043,8 @@
         articleContent.value = articleContentEditor?.innerHTML || '';
       });
     });
+    const articleContentLabel = document.querySelector('label[for="articleContent"]');
+    if (articleContentLabel) articleContentLabel.textContent = 'Article Content (rich text)';
 
     const libraryForm       = document.getElementById('libraryForm');
     const libId             = document.getElementById('libId');
@@ -1409,7 +1408,6 @@
         summary: articleSummary.value.trim(),
         content: articleContent.value.trim(),
         imageUrl: articleImageUrl.value.trim(),
-        readMoreUrl: articleReadMoreUrl.value.trim()
       };
       articleContent.value = articleContentEditor?.innerHTML.trim() || '';
       payload.content = articleContent.value;

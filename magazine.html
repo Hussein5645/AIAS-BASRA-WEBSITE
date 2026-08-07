@@ -1959,10 +1959,7 @@
                         <p class="article-excerpt">
                             ${article.summary}
                         </p>
-                        ${article.readMoreUrl ? 
-                            `<a href="${article.readMoreUrl}" class="read-more" target="_blank" rel="noopener noreferrer">Read More →</a>` : 
-                            `<a href="articles.html?id=${article.id}" class="read-more">Read More →</a>`
-                        }
+                        <a href="articles.html?id=${article.id}" class="read-more">Read More →</a>
                     </div>
                 </div>
             `;
@@ -2049,10 +2046,7 @@
                                     <h2>${featured.title}</h2>
                                     <p>${featured.summary}</p>
                                     ${featured.content ? `<p>${featured.content.substring(0, 200)}...</p>` : ''}
-                                    ${featured.readMoreUrl ? 
-                                        `<a href="${featured.readMoreUrl}" class="btn btn-primary" target="_blank" rel="noopener noreferrer">Read Full Article</a>` : 
-                                        `<a href="articles.html?id=${featured.id}" class="btn btn-primary">Read Full Article</a>`
-                                    }
+                                    <a href="articles.html?id=${featured.id}" class="btn btn-primary">Read Full Article</a>
                                 </div>
                             `;
                         } else {
