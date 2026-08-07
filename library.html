@@ -10,8 +10,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/aws-sdk@2.1117.0/dist/aws-sdk.min.js"></script>
-    <script src="aws-config.js"></script>
     <!-- Authentication Check -->
     <script type="module" src="js/auth.js"></script>
     <style>
@@ -391,22 +389,6 @@
         </div>
     </section>
 
-    <!-- 3D Models Section -->
-    <section class="models-section">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title" data-en="3D Models" data-ar="نماذج ثلاثية الأبعاد">3D Models</h2>
-                <p class="section-subtitle" data-en="Open any model directly in the 3D Viewer" data-ar="افتح أي نموذج مباشرة في عارض ثلاثي الأبعاد">Open any model directly in the 3D Viewer</p>
-            </div>
-            <div id="models3dGrid" class="models-grid">
-                <div class="loading-container">
-                    <div class="loading-spinner"></div>
-                    <p class="loading-text" data-en="Loading 3D models..." data-ar="جارٍ تحميل النماذج ثلاثية الأبعاد...">Loading 3D models...</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <!-- Search Section -->
     <section class="search-section">
         <div class="container">
@@ -495,10 +477,6 @@
 
         let allResources = [];
         let all3DModels = [];
-
-        const hasAwsClient = typeof window.AWS !== 'undefined' && typeof window.AWS_CONFIG !== 'undefined';
-        const s3 = hasAwsClient ? new window.AWS.S3() : null;
-        const s3BucketName = hasAwsClient ? window.AWS_CONFIG.bucketName : '';
         
         // Function to detect and extract YouTube video ID
         function getYouTubeVideoId(url) {
@@ -694,20 +672,26 @@
             const normalizedCode = String(modelCode || '').trim();
             if (!normalizedCode || normalizedCode.length !== 10) return false;
 
-            if (!s3 || !s3BucketName) {
-                console.warn('[Library] AWS S3 client is not available.');
-                return false;
-            }
-
             try {
-                const data = await new Promise((resolve, reject) => {
-                    s3.listObjectsV2({ Bucket: s3BucketName, Prefix: normalizedCode }, (err, result) => {
-                        if (err) reject(err);
-                        else resolve(result);
-                    });
-                });
-
-                return !!(data && Array.isArray(data.Contents) && data.Contents.length > 0);
+                // Fetch the model metadata to check if it has a file
+                const models = all3DModels || [];
+                const model = models.find(m => m.code === normalizedCode);
+                
+                if (model && model.hasFile) {
+                    return true;
+                }
+                
+                // Fallback to fetch from Firestore if not in cache
+                const { getFirestore, collection, query, where, getDocs } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+                const { getApp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+                const db = getFirestore(getApp());
+                const q = query(collection(db, 'content/models3d/items'), where('code', '==', normalizedCode));
+                const snap = await getDocs(q);
+                
+                if (!snap.empty && snap.docs[0].data().hasFile) {
+                    return true;
+                }
+                return false;
             } catch (error) {
                 console.error('[Library] Error validating model loadability:', error);
                 return false;
@@ -912,17 +896,14 @@
         // Load library and category filters when page loads
         document.addEventListener('DOMContentLoaded', async () => {
             try {
-                const { libraryItems, models3d } = await fetchLibraryBundle();
+                const { libraryItems } = await fetchLibraryBundle();
                 allResources = libraryItems;
-                all3DModels = models3d;
 
                 populateCategoryFilters(allResources);
                 loadLibrary(allResources);
-                load3DModels(all3DModels);
             } catch (error) {
                 console.error('[Library] ✗ Error loading shared library bundle:', error);
                 loadLibrary([]);
-                load3DModels([]);
             }
         });
     </script>

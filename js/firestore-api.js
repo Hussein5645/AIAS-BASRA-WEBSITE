@@ -11,6 +11,7 @@ import {
   deleteDoc,
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { uploadFileChunks as storeFileChunks, fetchFileChunks as readFileChunks } from "./file-chunks.js";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -134,6 +135,131 @@ class FirestoreAPI {
   _docRef(pathArr) { return doc(this.db, ...pathArr); }
   _colRef(pathArr) { return collection(this.db, ...pathArr); }
   validateRequiredFields = validateRequiredFields;
+
+  // Shared Base64 chunk storage API used by background uploads and viewers.
+  generateId(pathArray) {
+    return doc(collection(this.db, ...pathArray)).id;
+  }
+
+  uploadFileChunks(pathArray, docId, subcollectionName, base64Data) {
+    return storeFileChunks(pathArray, docId, subcollectionName, base64Data);
+  }
+
+  fetchFileChunks(pathArray, docId, subcollectionName) {
+    return readFileChunks(pathArray, docId, subcollectionName);
+  }
+
+  async uploadGalleryImages(pathArray, docId, base64Images, onProgress = null) {
+    const galleryPath = [...pathArray, docId, 'galleryImages'];
+    const existing = await getDocs(this._colRef(galleryPath));
+    const nextIndex = existing.docs.reduce(
+      (max, item) => Math.max(max, Number(item.data().index) || -1), -1
+    ) + 1;
+
+    for (let index = 0; index < base64Images.length; index += 1) {
+      const galleryIndex = nextIndex + index;
+      await storeFileChunks(galleryPath, `image_${galleryIndex}`, 'chunks', base64Images[index]);
+      await setDoc(this._docRef([...galleryPath, `image_${galleryIndex}`]), { index: galleryIndex }, { merge: true });
+      if (onProgress) onProgress(index + 1, base64Images.length);
+    }
+    await setDoc(this._docRef([...pathArray, docId]), { hasGalleryImages: base64Images.length > 0 }, { merge: true });
+    return { count: base64Images.length };
+  }
+
+  async fetchGalleryImages(pathArray, docId) {
+    const images = [];
+    const parent = await getDoc(this._docRef([...pathArray, docId]));
+    if (!parent.exists()) return images;
+    const parentData = parent.data() || {};
+
+    if (parentData.hasImageChunks) {
+      const mainImage = await readFileChunks(pathArray, docId, 'imageChunks');
+      if (mainImage) images.push(mainImage);
+    } else if (parentData.imageUrl) {
+      images.push(parentData.imageUrl);
+    }
+
+    const gallerySnap = await getDocs(this._colRef([...pathArray, docId, 'galleryImages']));
+    const galleryDocs = gallerySnap.docs.sort((a, b) => Number(a.data().index) - Number(b.data().index));
+    for (const galleryDoc of galleryDocs) {
+      const image = await readFileChunks(
+        [...pathArray, docId, 'galleryImages'], galleryDoc.id, 'chunks'
+      );
+      if (image) images.push(image);
+    }
+    return images;
+  }
+
+  async listStoredImages(pathArray, docId) {
+    const entries = [];
+    const parent = await getDoc(this._docRef([...pathArray, docId]));
+    if (!parent.exists()) return entries;
+    const data = parent.data() || {};
+    if (data.hasImageChunks) {
+      const main = await readFileChunks(pathArray, docId, 'imageChunks');
+      if (main) entries.push({ type: 'main', id: 'main', data: main });
+    }
+    const gallery = await getDocs(this._colRef([...pathArray, docId, 'galleryImages']));
+    for (const item of gallery.docs.sort((a, b) => Number(a.data().index) - Number(b.data().index))) {
+      const image = await readFileChunks([...pathArray, docId, 'galleryImages'], item.id, 'chunks');
+      if (image) entries.push({ type: 'gallery', id: item.id, data: image, index: item.data().index });
+    }
+    return entries;
+  }
+
+  async deleteStoredImage(pathArray, docId, type, imageId = null) {
+    if (type === 'main') {
+      const chunks = await getDocs(this._colRef([...pathArray, docId, 'imageChunks']));
+      await Promise.all(chunks.docs.map(chunk => deleteDoc(chunk.ref)));
+      await setDoc(this._docRef([...pathArray, docId]), { hasImageChunks: false }, { merge: true });
+      return;
+    }
+    const imageRef = this._docRef([...pathArray, docId, 'galleryImages', imageId]);
+    const chunks = await getDocs(this._colRef([...pathArray, docId, 'galleryImages', imageId, 'chunks']));
+    await Promise.all(chunks.docs.map(chunk => deleteDoc(chunk.ref)));
+    await deleteDoc(imageRef);
+    const remaining = await getDocs(this._colRef([...pathArray, docId, 'galleryImages']));
+    await setDoc(this._docRef([...pathArray, docId]), { hasGalleryImages: !remaining.empty }, { merge: true });
+  }
+
+  async reorderGalleryImages(pathArray, docId, imageId, direction) {
+    const galleryPath = [...pathArray, docId, 'galleryImages'];
+    const snapshot = await getDocs(this._colRef(galleryPath));
+    const items = snapshot.docs
+      .map(item => ({ id: item.id, index: Number(item.data().index) || 0 }))
+      .sort((a, b) => a.index - b.index);
+    const current = items.findIndex(item => item.id === imageId);
+    const target = current + (direction === 'up' ? -1 : 1);
+    if (current < 0 || target < 0 || target >= items.length) return;
+    const currentItem = items[current];
+    const targetItem = items[target];
+    await Promise.all([
+      setDoc(this._docRef([...galleryPath, currentItem.id]), { index: targetItem.index }, { merge: true }),
+      setDoc(this._docRef([...galleryPath, targetItem.id]), { index: currentItem.index }, { merge: true })
+    ]);
+  }
+
+  async makeGalleryImageThumbnail(pathArray, docId, imageId) {
+    const galleryPath = [...pathArray, docId, 'galleryImages'];
+    const selected = await readFileChunks(galleryPath, imageId, 'chunks');
+    if (!selected) throw new Error('Gallery image was not found.');
+
+    const parent = await getDoc(this._docRef([...pathArray, docId]));
+    const parentData = parent.exists() ? parent.data() || {} : {};
+    const oldThumbnail = parentData.hasImageChunks
+      ? await readFileChunks(pathArray, docId, 'imageChunks')
+      : '';
+
+    await storeFileChunks(pathArray, docId, 'imageChunks', selected);
+    if (oldThumbnail) {
+      const selectedDoc = await getDoc(this._docRef([...galleryPath, imageId]));
+      const selectedIndex = selectedDoc.exists() ? Number(selectedDoc.data().index) || 0 : 0;
+      await storeFileChunks(galleryPath, imageId, 'chunks', oldThumbnail);
+      await setDoc(this._docRef([...galleryPath, imageId]), { index: selectedIndex }, { merge: true });
+    } else {
+      await this.deleteStoredImage(pathArray, docId, 'gallery', imageId);
+    }
+  }
 
   // Ensure base docs exist and backfill any missing fields (including nested weeklyWorkshop fields)
   async ensureBaseDocs() {
@@ -263,8 +389,7 @@ class FirestoreAPI {
 
   // EVENTS (stored at content/events/items)
 
-// Example: inside addEvent
-async addEvent(event) {
+  async addEvent(event, id = null) {
   logPayload('[FirestoreAPI] addEvent raw input', event);
   const payload = sanitizeEvent(event);
   logPayload('[FirestoreAPI] addEvent payload', payload);
@@ -272,8 +397,15 @@ async addEvent(event) {
   if (!v.valid) return { success: false, error: v.message };
   try {
     await this.ensureBaseDocs();
-    const ref = await addDoc(this._colRef(this.paths.eventsCol), payload);
-    return { success: true, id: ref.id, message: 'Event added successfully' };
+    let refId;
+    if (id) {
+        await setDoc(doc(this.db, ...this.paths.eventsCol, id), payload);
+        refId = id;
+    } else {
+        const ref = await addDoc(this._colRef(this.paths.eventsCol), payload);
+        refId = ref.id;
+    }
+    return { success: true, id: refId, message: 'Event added successfully' };
   } catch (error) {
     return { success: false, error: error.message };
   }
@@ -297,14 +429,15 @@ async addEvent(event) {
   }
 
   // LIBRARY (stored at content/library/items)
-  async addLibraryResource(resource) {
+  async addLibraryResource(resource, id = null) {
     const payload = sanitizeLibrary(resource);
     const v = this.validateRequiredFields(payload, ['name','type','description']);
     if (!v.valid) return { success: false, error: v.message };
     try {
       await this.ensureBaseDocs();
-      const ref = await addDoc(this._colRef(this.paths.libraryCol), payload);
-      return { success: true, id: ref.id, message: 'Library resource added successfully' };
+      const refId = id || (await addDoc(this._colRef(this.paths.libraryCol), payload)).id;
+      if (id) await setDoc(this._docRef([...this.paths.libraryCol, id]), payload, { merge: true });
+      return { success: true, id: refId, message: 'Library resource added successfully' };
     } catch (error) {
       return { success: false, error: error.message };
     }
@@ -328,14 +461,15 @@ async addEvent(event) {
   }
 
   // MAGAZINE (doc + subcollection)
-  async addArticle(article) {
+  async addArticle(article, id = null) {
     const payload = sanitizeArticle(article);
     const v = this.validateRequiredFields(payload, ['title','author','date','summary','content']);
     if (!v.valid) return { success: false, error: v.message };
     try {
       await this.ensureBaseDocs();
-      const ref = await addDoc(this._colRef(this.paths.magazineArticlesCol), payload);
-      return { success: true, id: ref.id, message: 'Article added successfully' };
+      const refId = id || (await addDoc(this._colRef(this.paths.magazineArticlesCol), payload)).id;
+      if (id) await setDoc(this._docRef([...this.paths.magazineArticlesCol, id]), payload, { merge: true });
+      return { success: true, id: refId, message: 'Article added successfully' };
     } catch (error) {
       return { success: false, error: error.message };
     }
@@ -374,14 +508,15 @@ async addEvent(event) {
   }
 
   // Courses CRUD (content/education/courses)
-  async addCourse(course) {
+  async addCourse(course, id = null) {
     const payload = sanitizeCourse(course);
     const v = this.validateRequiredFields(payload, ['title','description']);
     if (!v.valid) return { success: false, error: v.message };
     try {
       await this.ensureBaseDocs();
-      const ref = await addDoc(this._colRef(this.paths.educationCoursesCol), payload);
-      return { success: true, id: ref.id, message: 'Course added successfully' };
+      const refId = id || (await addDoc(this._colRef(this.paths.educationCoursesCol), payload)).id;
+      if (id) await setDoc(this._docRef([...this.paths.educationCoursesCol, id]), payload, { merge: true });
+      return { success: true, id: refId, message: 'Course added successfully' };
     } catch (error) {
       return { success: false, error: error.message };
     }
@@ -414,14 +549,21 @@ async addEvent(event) {
       return { success: false, error: error.message };
     }
   }
-  async addFbdEvent(event) {
+  async addFbdEvent(event, id = null) {
     const payload = sanitizeFbdEvent(event);
     const v = this.validateRequiredFields(payload, ['title','time','location','description']);
     if (!v.valid) return { success: false, error: v.message };
     try {
       await this.ensureBaseDocs();
-      const ref = await addDoc(this._colRef(this.paths.fbdEventsCol), payload);
-      return { success: true, id: ref.id, message: 'FBD event added successfully' };
+      let refId;
+      if (id) {
+          await setDoc(doc(this.db, ...this.paths.fbdEventsCol, id), payload);
+          refId = id;
+      } else {
+          const ref = await addDoc(this._colRef(this.paths.fbdEventsCol), payload);
+          refId = ref.id;
+      }
+      return { success: true, id: refId, message: 'FBD event added successfully' };
     } catch (error) {
       return { success: false, error: error.message };
     }
@@ -460,7 +602,7 @@ async addEvent(event) {
     }
   }
 
-  async addModel3D(model) {
+  async addModel3D(model, id = null) {
     const payload = sanitizeModel3D(model);
     const v = this.validateRequiredFields(payload, ['code', 'name', 'date']);
     if (!v.valid) return { success: false, error: v.message };
@@ -471,8 +613,9 @@ async addEvent(event) {
       await this.ensureBaseDocs();
       const codeTaken = await this.isModelCodeTaken(payload.code);
       if (codeTaken) return { success: false, error: 'This model code already exists.' };
-      const ref = await addDoc(this._colRef(this.paths.modelsCol), payload);
-      return { success: true, id: ref.id, message: '3D model added successfully' };
+      const refId = id || (await addDoc(this._colRef(this.paths.modelsCol), payload)).id;
+      if (id) await setDoc(this._docRef([...this.paths.modelsCol, id]), payload, { merge: true });
+      return { success: true, id: refId, message: '3D model added successfully' };
     } catch (error) {
       return { success: false, error: error.message };
     }

@@ -50,6 +50,23 @@ class DataLoader {
         this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
     }
 
+    async resolveImageChunks(item, pathArray) {
+        if (!item.hasImageChunks) return item;
+        try {
+            const pathStr = pathArray.join('/');
+            const chunksCol = collection(this.db, `${pathStr}/${item.id}/imageChunks`);
+            const chunksSnap = await getDocs(chunksCol);
+            if (!chunksSnap.empty) {
+                const chunks = chunksSnap.docs.map(d => d.data());
+                chunks.sort((a, b) => a.index - b.index);
+                item.imageUrl = chunks.map(c => c.data).join('');
+            }
+        } catch(e) {
+            console.error('Error resolving image chunks for', item.id, e);
+        }
+        return item;
+    }
+
     /**
      * Check if cache is still valid
      */
@@ -96,7 +113,8 @@ class DataLoader {
             // Fetch events from content subcollection
             dlog('Fetching events from content/events/items...');
             const eventsSnapshot = await getDocs(collection(this.db, 'content/events/items'));
-            this.cache.events = eventsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+            let eventsItems = eventsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+            this.cache.events = await Promise.all(eventsItems.map(item => this.resolveImageChunks(item, ['content', 'events', 'items'])));
             console.log(`[Data Loader] ✓ Loaded ${this.cache.events.length} events from Firestore`);
             if (this.cache.events.length > 0) {
                 console.log('[Data Loader] Sample event:', this.cache.events[0]);
@@ -106,7 +124,8 @@ class DataLoader {
             // Fetch library from content subcollection
             dlog('Fetching library from content/library/items...');
             const librarySnapshot = await getDocs(collection(this.db, 'content/library/items'));
-            this.cache.library = librarySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+            let libraryItems = librarySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+            this.cache.library = await Promise.all(libraryItems.map(item => this.resolveImageChunks(item, ['content', 'library', 'items'])));
             console.log(`[Data Loader] ✓ Loaded ${this.cache.library.length} library items from Firestore`);
             if (this.cache.library.length > 0) {
                 console.log('[Data Loader] Sample library item:', this.cache.library[0]);
@@ -119,7 +138,8 @@ class DataLoader {
 
             dlog('Fetching magazine articles from content/magazine/articles...');
             const magazineArticlesSnap = await getDocs(collection(this.db, 'content/magazine/articles'));
-            const magazineArticles = magazineArticlesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            let magazineArticles = magazineArticlesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            magazineArticles = await Promise.all(magazineArticles.map(item => this.resolveImageChunks(item, ['content', 'magazine', 'articles'])));
 
             let magazine = { featuredArticle: null, articles: [], releases: [] };
             if (magazineDocSnap.exists()) {
@@ -160,12 +180,24 @@ class DataLoader {
             dlog('Fetching FBD doc...');
             const fbdDocSnap = await getDoc(doc(this.db, 'content', 'fbd'));
             dlog('Fetching FBD events from content/fbd/events...');
-            const fbdEventsSnap = await getDocs(collection(this.db, 'content/fbd/events'));
-            const fbdEvents = fbdEventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            let fbdEventsSnap = await getDocs(collection(this.db, 'content/fbd/events'));
+            let fbdEventsPath = ['content', 'fbd', 'events'];
+            // Keep compatibility with older FBD records stored at the legacy path.
+            if (fbdEventsSnap.empty) {
+                fbdEventsSnap = await getDocs(collection(this.db, 'content/education/fbdEvents'));
+                fbdEventsPath = ['content', 'education', 'fbdEvents'];
+            }
+            let fbdEvents = fbdEventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            fbdEvents = await Promise.all(fbdEvents.map(item => this.resolveImageChunks(item, fbdEventsPath)));
+            
+            dlog('Fetching Courses from content/education/courses...');
+            const coursesSnap = await getDocs(collection(this.db, 'content/education/courses'));
+            let courses = coursesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            courses = await Promise.all(courses.map(item => this.resolveImageChunks(item, ['content', 'education', 'courses'])));
 
+            const fbdData = fbdDocSnap.exists() ? fbdDocSnap.data() : {};
             const fbd = {
-                pageTitle: fbdDocSnap.exists() ? (fbdDocSnap.data().pageTitle ?? '') : '',
-                about: fbdDocSnap.exists() ? (fbdDocSnap.data().about ?? '') : '',
+                stats: fbdData.stats || { projectsCompleted: '0', studentsInvolved: '0', communityServed: '0' },
                 events: fbdEvents
             };
 
@@ -176,7 +208,7 @@ class DataLoader {
                     description: educationBase.weeklyWorkshop?.description ?? '',
                     workshopUrl: educationBase.weeklyWorkshop?.workshopUrl ?? ''
                 },
-                courses: educationBase.courses ?? [],
+                courses: courses,
                 // Attach FBD under education to match page usage
                 fbd
             };

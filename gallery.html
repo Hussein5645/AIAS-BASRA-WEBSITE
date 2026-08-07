@@ -310,75 +310,110 @@
         </div>
     </div>
 
-    <script>
-        // Extract folder number from URL hash or pathname
-        // Priority: hash (#1, #2) > pathname (/gallery/1/, /gallery.html/1/)
-        let folder = window.location.hash.substring(1);
+    <script type="module">
+        import FirestoreAPI from './js/firestore-api.js';
+        const api = new FirestoreAPI();
         
-        if (!folder) {
-            // Fallback to pathname extraction
-            const path = window.location.pathname.split("/");
-            folder = path[path.length - 1] || path[path.length - 2];
-            // Remove .html extension if present
-            folder = folder.replace('.html', '');
-        }
-        
-        // If still no folder or folder is 'gallery', default to '1'
-        if (!folder || folder === 'gallery') {
-            folder = '1';
-        }
-        
-        // Gallery state
+        let eventId = window.location.hash.substring(1);
         let images = [];
         let currentImageIndex = 0;
+        let eventDetails = null;
 
-        // Update subtitle with folder number
-        document.getElementById('gallery-subtitle').textContent = `Gallery #${folder}`;
+        const subtitle = document.getElementById('gallery-subtitle');
+        const headerContainer = document.querySelector('.gallery-header');
 
-        // Load images from the gallery folder using the manifest
-        async function loadGallery() {
-            const galleryContent = document.getElementById('gallery-content');
-            
+        if (!eventId) {
+            subtitle.textContent = "Error";
+            showErrorMessage("No event ID specified.");
+        } else {
+            subtitle.textContent = `Loading Event Details...`;
+            loadEventDetailsAndGallery();
+        }
+
+        async function loadEventDetailsAndGallery() {
             try {
-                // Fetch the gallery manifest
-                const response = await fetch('/gallery-manifest.json');
-                if (!response.ok) {
-                    throw new Error('Failed to load gallery manifest');
+                // Fetch all content to find the event details
+                const r = await api.getAllContent();
+                if (r.success) {
+                    const allEvents = r.content.events || [];
+                    const allFbdEvents = (r.content.education && r.content.education.fbd && r.content.education.fbd.events) ? r.content.education.fbd.events : [];
+                    
+                    eventDetails = allEvents.find(e => e.id === eventId) || allFbdEvents.find(e => e.id === eventId);
+                }
+
+                if (eventDetails) {
+                    // Update header with event info
+                    const h1 = headerContainer.querySelector('h1');
+                    h1.textContent = eventDetails.title || 'Event Gallery';
+                    
+                    // Create an event details card
+                    const detailsDiv = document.createElement('div');
+                    detailsDiv.className = 'event-gallery-details';
+                    detailsDiv.style.maxWidth = '800px';
+                    detailsDiv.style.margin = '0 auto 2rem auto';
+                    detailsDiv.style.textAlign = 'left';
+                    detailsDiv.style.padding = '2rem';
+                    detailsDiv.style.background = 'var(--white)';
+                    detailsDiv.style.borderRadius = '12px';
+                    detailsDiv.style.boxShadow = 'var(--shadow-md)';
+                    
+                    let html = `<p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        <strong>Date:</strong> ${eventDetails.time ? new Date(eventDetails.time).toLocaleString() : 'TBA'}<br>
+                        <strong>Location:</strong> ${eventDetails.location || 'TBA'}<br>
+                        ${eventDetails.type ? `<strong>Type:</strong> ${eventDetails.type}<br>` : ''}
+                    </p>`;
+                    
+                    if (eventDetails.description) {
+                        html += `<p style="margin-bottom: 1.5rem; line-height: 1.6;">${eventDetails.description}</p>`;
+                    }
+                    
+                    if (eventDetails.registerUrl) {
+                        html += `<a href="${eventDetails.registerUrl}" target="_blank" class="action-btn btn-register" style="display: inline-block; padding: 0.75rem 1.5rem; background: var(--primary-color); color: white; border-radius: 8px; text-decoration: none; font-weight: 600;">Register Now</a>`;
+                    }
+                    
+                    detailsDiv.innerHTML = html;
+                    headerContainer.appendChild(detailsDiv);
+                    
+                    // If event has main image, display it big? No, just load gallery.
+                }
+
+                subtitle.textContent = `Loading Gallery Images...`;
+
+                // Try fetching from events first
+                let fetchedImages = await api.fetchGalleryImages(api.paths.eventsCol, eventId);
+                
+                // If empty, try FBD events
+                if (!fetchedImages || fetchedImages.length === 0) {
+                    fetchedImages = await api.fetchGalleryImages(api.paths.fbdEventsCol, eventId);
                 }
                 
-                const manifest = await response.json();
-                
-                // Get images for the current folder
-                const imageFiles = manifest[folder];
-                
-                if (!imageFiles || imageFiles.length === 0) {
+                if (!fetchedImages || fetchedImages.length === 0) {
+                    subtitle.textContent = "Empty Gallery";
                     showEmptyMessage();
                     return;
                 }
                 
-                // Build full URLs for the images
-                const baseUrl = `/gallery/${folder}/`;
-                images = imageFiles.map(filename => baseUrl + filename);
-                
+                subtitle.textContent = `Gallery (${fetchedImages.length} images)`;
+                images = fetchedImages;
                 displayGallery();
             } catch (error) {
                 console.error('Error loading gallery:', error);
-                showErrorMessage();
+                subtitle.textContent = "Error";
+                showErrorMessage("Failed to load gallery images.");
             }
         }
 
-        // Display gallery grid
         function displayGallery() {
             const galleryContent = document.getElementById('gallery-content');
             const grid = document.createElement('div');
             grid.className = 'gallery-grid';
 
-            images.forEach((imageUrl, index) => {
+            images.forEach((base64Data, index) => {
                 const item = document.createElement('div');
                 item.className = 'gallery-item';
                 
                 const img = document.createElement('img');
-                img.src = imageUrl;
+                img.src = base64Data;
                 img.alt = `Gallery image ${index + 1}`;
                 img.loading = 'lazy';
                 
@@ -392,16 +427,14 @@
             galleryContent.appendChild(grid);
         }
 
-        // Show empty message
         function showEmptyMessage() {
             const galleryContent = document.getElementById('gallery-content');
             galleryContent.innerHTML = '<div class="empty-message">No images found in this gallery.</div>';
         }
 
-        // Show error message
-        function showErrorMessage() {
+        function showErrorMessage(msg = "Error loading gallery. Please try again.") {
             const galleryContent = document.getElementById('gallery-content');
-            galleryContent.innerHTML = '<div class="error-message">Error loading gallery. Please try again.</div>';
+            galleryContent.innerHTML = `<div class="error-message">${msg}</div>`;
         }
 
         // Lightbox functions
@@ -440,14 +473,12 @@
         document.getElementById('lightbox-next').addEventListener('click', nextImage);
         document.getElementById('lightbox-prev').addEventListener('click', prevImage);
         
-        // Close lightbox when clicking outside the image
         document.getElementById('lightbox').addEventListener('click', (e) => {
             if (e.target.id === 'lightbox') {
                 closeLightbox();
             }
         });
 
-        // Keyboard navigation
         document.addEventListener('keydown', (e) => {
             const lightbox = document.getElementById('lightbox');
             if (lightbox.classList.contains('active')) {
@@ -456,9 +487,6 @@
                 if (e.key === 'ArrowLeft') prevImage();
             }
         });
-
-        // Initialize gallery
-        loadGallery();
     </script>
 
     <!-- Footer -->

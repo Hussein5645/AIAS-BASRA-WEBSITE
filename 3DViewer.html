@@ -88,15 +88,10 @@
     <button id="ar-button" onclick="openAR()">View in AR</button>
     <div id="loading-screen" class="hidden">Loading content...</div>
 
-    <script>
-        AWS.config.update({
-            accessKeyId: "AKIA276CMBVE77VJTOQC",
-            secretAccessKey: "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",
-            region: "eu-north-1",
-        });
-
-        const s3 = new AWS.S3();
-        const bucketName = '3dmodle';
+    <script type="module">
+        import FirestoreAPI from "./js/firestore-api.js";
+        
+        const firestoreAPI = new FirestoreAPI();
         const modelViewer = document.getElementById('model-viewer');
         const panoViewer = document.getElementById('pano-viewer');
         const arButton = document.getElementById('ar-button');
@@ -110,133 +105,81 @@
             return urlParams.get(name);
         }
 
-function updateArButtonVisibility(fileType) {
-    if (isEmbedded) {
-        arButton.style.display = 'none';
-        return;
-    }
-
-    const isGlbOrGltf = fileType === 'gltf' || fileType === 'glb';
-    arButton.style.display = (isMobile && isGlbOrGltf) ? 'block' : 'none';
-}
-
-function toMb(bytes) {
-    if (!bytes || !Number.isFinite(bytes)) return '0.00';
-    return (bytes / (1024 * 1024)).toFixed(2);
-}
-
-function showLoadingScreen(show, loadedBytes = 0, totalBytes = 0) {
-    if (!show) {
-        loadingScreen.classList.add('hidden');
-        return;
-    }
-
-    if (totalBytes > 0) {
-        loadingScreen.textContent = `Loading content... ${toMb(loadedBytes)} MB of ${toMb(totalBytes)} MB`;
-    } else {
-        loadingScreen.textContent = `Loading content... ${toMb(loadedBytes)} MB`;
-    }
-
-    loadingScreen.classList.remove('hidden');
-}
-
-function clearCurrentObjectUrl() {
-    if (currentObjectUrl) {
-        URL.revokeObjectURL(currentObjectUrl);
-        currentObjectUrl = null;
-    }
-}
-
-function loadModel(prefix) {
-    if (prefix.length !== 10) {
-        alert('Please enter exactly 10 characters.');
-        return;
-    }
-
-    s3.listObjectsV2({ Bucket: bucketName, Prefix: prefix }, (err, data) => {
-        if (err) {
-            console.error('Error fetching bucket contents:', err);
-            alert('Error fetching bucket contents.');
-            return;
+        function updateArButtonVisibility(isVisible) {
+            if (isEmbedded) {
+                arButton.style.display = 'none';
+                return;
+            }
+            arButton.style.display = (isMobile && isVisible) ? 'block' : 'none';
         }
 
-        // Ensure data.Contents is defined and has items
-        if (data && data.Contents && data.Contents.length > 0) {
-            const key = data.Contents[0].Key;
-            const fileExtension = key.split('.').pop().toLowerCase();
-            const params = {
-                Bucket: bucketName,
-                Key: key,
-            };
-
-            showLoadingScreen(true, 0, 0);
-
-            s3.headObject(params, (metaErr, metadata) => {
-                const totalBytes = (!metaErr && metadata && metadata.ContentLength) ? metadata.ContentLength : 0;
-
-                const request = s3.getObject(params);
-                request.on('httpDownloadProgress', progress => {
-                    const loaded = progress && Number.isFinite(progress.loaded) ? progress.loaded : 0;
-                    showLoadingScreen(true, loaded, totalBytes || progress.total || 0);
-                });
-
-                request.send((downloadErr, objectData) => {
-                    if (downloadErr) {
-                        console.error('Error loading object:', downloadErr);
-                        showLoadingScreen(false);
-                        alert('Error loading object.');
-                        return;
-                    }
-
-                    clearCurrentObjectUrl();
-                    const mimeType = (fileExtension === 'gltf' || fileExtension === 'glb')
-                        ? 'model/gltf-binary'
-                        : (fileExtension === 'png' ? 'image/png' : 'image/jpeg');
-                    const blob = new Blob([objectData.Body], { type: mimeType });
-                    currentObjectUrl = URL.createObjectURL(blob);
-
-                    if (fileExtension === 'gltf' || fileExtension === 'glb') {
-                        modelViewer.style.display = 'block';
-                        panoViewer.style.display = 'none';
-                        modelViewer.src = currentObjectUrl;
-                        updateArButtonVisibility(fileExtension);
-                    } else if (fileExtension === 'jpg' || fileExtension === 'jpeg' || fileExtension === 'png') {
-                        modelViewer.style.display = 'none';
-                        panoViewer.style.display = 'block';
-                        pannellum.viewer('pano-viewer', {
-                            type: 'equirectangular',
-                            panorama: currentObjectUrl,
-                            autoLoad: true
-                        });
-                        updateArButtonVisibility(fileExtension);
-                        showLoadingScreen(false);
-                    } else {
-                        alert('Unsupported file format.');
-                        updateArButtonVisibility('');
-                        showLoadingScreen(false);
-                    }
-                });
-            });
-
-            const newUrl = `${window.location.origin}${window.location.pathname}?model=${prefix}`;
-            window.history.replaceState(null, '', newUrl);
-        } else {
-            showLoadingScreen(false);
-            alert('No model/image found with the given prefix.');
+        function showLoadingScreen(show, text = 'Loading content...') {
+            if (!show) {
+                loadingScreen.classList.add('hidden');
+                return;
+            }
+            loadingScreen.textContent = text;
+            loadingScreen.classList.remove('hidden');
         }
-    });
-}
 
+        function clearCurrentObjectUrl() {
+            if (currentObjectUrl) {
+                URL.revokeObjectURL(currentObjectUrl);
+                currentObjectUrl = null;
+            }
+        }
 
+        async function dataUrlToBlob(dataUrl) {
+            const res = await fetch(dataUrl);
+            return await res.blob();
+        }
 
+        async function loadModel(prefix) {
+            if (prefix.length !== 10) {
+                alert('Please enter exactly 10 characters.');
+                return;
+            }
 
+            showLoadingScreen(true, 'Fetching from server...');
+
+            try {
+                // Fetch the base64 chunks from Firestore
+                const base64Data = await firestoreAPI.fetchModel3DFileByCode(prefix);
+                if (!base64Data) {
+                    showLoadingScreen(false);
+                    alert('No model file found for the given code.');
+                    return;
+                }
+
+                showLoadingScreen(true, 'Processing model data...');
+                
+                // Convert base64 data URL to Blob
+                const blob = await dataUrlToBlob(base64Data);
+                
+                clearCurrentObjectUrl();
+                currentObjectUrl = URL.createObjectURL(blob);
+                
+                modelViewer.style.display = 'block';
+                panoViewer.style.display = 'none';
+                modelViewer.src = currentObjectUrl;
+                updateArButtonVisibility(true);
+
+                const newUrl = `${window.location.origin}${window.location.pathname}?model=${prefix}`;
+                window.history.replaceState(null, '', newUrl);
+
+            } catch (err) {
+                console.error('Error loading model from Firestore:', err);
+                showLoadingScreen(false);
+                alert('Error loading model.');
+            }
+        }
 
         window.addEventListener('DOMContentLoaded', () => {
             const modelKey = getQueryParam('model');
             if (modelKey) {
                 loadModel(modelKey);
             } else {
-                updateArButtonVisibility('');
+                updateArButtonVisibility(false);
             }
         });
 
@@ -256,16 +199,13 @@ function loadModel(prefix) {
             showLoadingScreen(false);
         });
 
-        function openAR() {
+        window.openAR = function() {
             if (isMobile && modelViewer.ar) {
                 modelViewer.activateAR();
             } else {
                 alert('AR is only available on mobile devices.');
             }
         }
-
-
-
-</script>
+    </script>
 </body>
 </html>

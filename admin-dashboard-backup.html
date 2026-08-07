@@ -79,7 +79,7 @@
   <!-- Admin Header -->
   <div class="admin-header">
     <div class="container">
-      <h1 data-en="Admin Dashboard" data-ar="لوحة التحكم الإدارية">Admin Dashboard</h1>
+      <h1 data-en="Admin Dashboard" data-ar="ظ„ظˆط­ط© ط§ظ„طھط­ظƒظ… ط§ظ„ط¥ط¯ط§ط±ظٹط©">Admin Dashboard</h1>
       <div class="admin-info">
         <button class="language-toggle" id="languageToggle" style="display:inline-flex;align-items:center;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
@@ -88,8 +88,8 @@
           </svg>
           <span id="currentLang">EN</span>
         </button>
-        <a href="index.html" class="home-link" data-en="View Site" data-ar="عرض الموقع">View Site</a>
-        <button class="logout-btn" onclick="logout()" data-en="Logout" data-ar="تسجيل الخروج">Logout</button>
+        <a href="index.html" class="home-link" data-en="View Site" data-ar="ط¹ط±ط¶ ط§ظ„ظ…ظˆظ‚ط¹">View Site</a>
+        <button class="logout-btn" onclick="logout()" data-en="Logout" data-ar="طھط³ط¬ظٹظ„ ط§ظ„ط®ط±ظˆط¬">Logout</button>
       </div>
     </div>
   </div>
@@ -97,15 +97,15 @@
   <div class="dashboard">
     <!-- Sidebar -->
     <aside class="sidebar">
-      <h3 data-en="Navigate" data-ar="التنقل">Navigate</h3>
+      <h3 data-en="Navigate" data-ar="ط§ظ„طھظ†ظ‚ظ„">Navigate</h3>
       <ul class="nav" id="mainNav">
-        <li><button data-tab="events" class="active" data-en="Events" data-ar="الفعاليات">Events</button></li>
-        <li><button data-tab="articles" data-en="Magazine" data-ar="المجلة">Magazine</button></li>
-        <li><button data-tab="library" data-en="Library" data-ar="المكتبة">Library</button></li>
-        <li><button data-tab="models3d" data-en="3D Models" data-ar="نماذج ثلاثية الأبعاد">3D Models</button></li>
-        <li><button data-tab="education" data-en="Education" data-ar="التعليم">Education</button></li>
+        <li><button data-tab="events" class="active" data-en="Events" data-ar="ط§ظ„ظپط¹ط§ظ„ظٹط§طھ">Events</button></li>
+        <li><button data-tab="articles" data-en="Magazine" data-ar="ط§ظ„ظ…ط¬ظ„ط©">Magazine</button></li>
+        <li><button data-tab="library" data-en="Library" data-ar="ط§ظ„ظ…ظƒطھط¨ط©">Library</button></li>
+        <li><button data-tab="models3d" data-en="3D Models" data-ar="ظ†ظ…ط§ط°ط¬ ط«ظ„ط§ط«ظٹط© ط§ظ„ط£ط¨ط¹ط§ط¯">3D Models</button></li>
+        <li><button data-tab="education" data-en="Education" data-ar="ط§ظ„طھط¹ظ„ظٹظ…">Education</button></li>
         <li><button data-tab="fbd" data-en="FBD" data-ar="FBD">FBD</button></li>
-        <li><button data-tab="settings" data-en="Settings" data-ar="الإعدادات">Settings</button></li>
+        <li><button data-tab="settings" data-en="Settings" data-ar="ط§ظ„ط¥ط¹ط¯ط§ط¯ط§طھ">Settings</button></li>
       </ul>
     </aside>
 
@@ -115,41 +115,41 @@
 
       <!-- Top actions -->
       <div class="top-actions">
-        <button id="expandAll" class="mini-btn" data-en="Expand all" data-ar="توسيع الكل">Expand all</button>
-        <button id="collapseAll" class="mini-btn" data-en="Collapse all" data-ar="طي الكل">Collapse all</button>
+        <button id="expandAll" class="mini-btn" data-en="Expand all" data-ar="طھظˆط³ظٹط¹ ط§ظ„ظƒظ„">Expand all</button>
+        <button id="collapseAll" class="mini-btn" data-en="Collapse all" data-ar="ط·ظٹ ط§ظ„ظƒظ„">Collapse all</button>
       </div>
 
       <!-- Events -->
       <section id="events-tab" class="tab-content active">
         <details class="accordion" open>
-          <summary data-en="Existing Events" data-ar="الفعاليات الحالية">Existing Events</summary>
+          <summary data-en="Existing Events" data-ar="ط§ظ„ظپط¹ط§ظ„ظٹط§طھ ط§ظ„ط­ط§ظ„ظٹط©">Existing Events</summary>
           <div class="accordion-body panel">
             <div id="existingEventsList"><p>Loading events...</p></div>
           </div>
         </details>
 
         <details class="accordion" open>
-          <summary data-en="Add or Edit Event" data-ar="إضافة أو تعديل فعالية">Add or Edit Event</summary>
+          <summary data-en="Add or Edit Event" data-ar="ط¥ط¶ط§ظپط© ط£ظˆ طھط¹ط¯ظٹظ„ ظپط¹ط§ظ„ظٹط©">Add or Edit Event</summary>
           <div class="accordion-body panel">
             <form id="eventForm" data-mode="add" novalidate>
               <input type="hidden" id="eventId"/>
               <div class="two-col">
                 <div class="form-group">
-                  <label for="eventTitle" data-en="Event Title" data-ar="عنوان الفعالية">Event Title</label>
+                  <label for="eventTitle" data-en="Event Title" data-ar="ط¹ظ†ظˆط§ظ† ط§ظ„ظپط¹ط§ظ„ظٹط©">Event Title</label>
                   <input id="eventTitle" name="title" required autocomplete="off"/>
                 </div>
                 <div class="form-group">
-                  <label for="eventTime" data-en="Date and Time" data-ar="التاريخ والوقت">Date and Time</label>
+                  <label for="eventTime" data-en="Date and Time" data-ar="ط§ظ„طھط§ط±ظٹط® ظˆط§ظ„ظˆظ‚طھ">Date and Time</label>
                   <input type="datetime-local" id="eventTime" name="time" required/>
                 </div>
               </div>
               <div class="two-col">
                 <div class="form-group">
-                  <label for="eventLocation" data-en="Location" data-ar="الموقع">Location</label>
+                  <label for="eventLocation" data-en="Location" data-ar="ط§ظ„ظ…ظˆظ‚ط¹">Location</label>
                   <input id="eventLocation" name="location" required/>
                 </div>
                 <div class="form-group">
-                  <label for="eventType" data-en="Event Type" data-ar="نوع الفعالية">Event Type</label>
+                  <label for="eventType" data-en="Event Type" data-ar="ظ†ظˆط¹ ط§ظ„ظپط¹ط§ظ„ظٹط©">Event Type</label>
                   <select id="eventType" name="type" required>
                     <!-- Options loaded dynamically from categories-loader -->
                   </select>
@@ -157,31 +157,36 @@
               </div>
               <div class="two-col">
                 <div class="form-group">
-                  <label for="eventSeats" data-en="Available Seats" data-ar="المقاعد المتاحة">Available Seats</label>
+                  <label for="eventSeats" data-en="Available Seats" data-ar="ط§ظ„ظ…ظ‚ط§ط¹ط¯ ط§ظ„ظ…طھط§ط­ط©">Available Seats</label>
                   <input type="number" id="eventSeats" name="seats" min="1" value="10" required/>
                 </div>
-                
                 <div class="form-group">
-                  <label for="eventImageUrl" data-en="Image URL (Optional)" data-ar="رابط الصورة (اختياري)">Image URL (Optional)</label>
-                  <input id="eventImageUrl" name="imageUrl" type="url" placeholder="https://example.com/image.jpg"/>
-                  <label for="eventImageFiles">Upload Images (first image becomes thumbnail)</label>
-                  <input id="eventImageFiles" type="file" accept="image/*" multiple/>
-                  <small id="eventImageStatus" aria-live="polite"></small>
-                  <div id="eventStoredImages" class="stored-images" aria-live="polite"></div>
+                  <label for="eventImage" data-en="Emoji Icon" data-ar="ط£ظٹظ‚ظˆظ†ط© ط§ظ„ط¥ظٹظ…ظˆط¬ظٹ">Emoji Icon</label>
+                  <input id="eventImage" name="image" placeholder="ًںژ¨" required/>
                 </div>
                 <div class="form-group">
-                  <label for="eventRegisterUrl" data-en="Register Button URL (Optional)" data-ar="رابط زر التسجيل (اختياري)">Register Button URL (Optional)</label>
+                  <label for="eventImageUrl" data-en="Image URL (Optional)" data-ar="ط±ط§ط¨ط· ط§ظ„طµظˆط±ط© (ط§ط®طھظٹط§ط±ظٹ)">Image URL (Optional)</label>
+                  <input type="file" id="eventImageFile" accept="image/*"/><input type="hidden" id="eventImageUrl" name="imageUrl"/>
+                </div>
+                <div class="form-group">
+                  <label for="eventRegisterUrl" data-en="Register Button URL (Optional)" data-ar="ط±ط§ط¨ط· ط²ط± ط§ظ„طھط³ط¬ظٹظ„ (ط§ط®طھظٹط§ط±ظٹ)">Register Button URL (Optional)</label>
                   <input id="eventRegisterUrl" name="registerUrl" type="url" placeholder="https://example.com/register"/>
                 </div>
-                
-                
+                <div class="form-group">
+                  <label for="eventDetailsUrl" data-en="Details Button URL (Optional)" data-ar="ط±ط§ط¨ط· ط²ط± ط§ظ„طھظپط§طµظٹظ„ (ط§ط®طھظٹط§ط±ظٹ)">Details Button URL (Optional)</label>
+                  <input id="eventDetailsUrl" name="detailsUrl" type="url" placeholder="https://example.com/details"/>
+                </div>
+                <div class="form-group">
+                  <label for="eventGalleryUrl" data-en="Gallery Button URL (Optional)" data-ar="ط±ط§ط¨ط· ط²ط± ط§ظ„ظ…ط¹ط±ط¶ (ط§ط®طھظٹط§ط±ظٹ)">Gallery Button URL (Optional)</label>
+                  <input id="eventGalleryUrl" name="galleryUrl" type="url" placeholder="https://example.com/gallery"/>
+                </div>
               </div>
               <div class="form-group">
-                <label for="eventDescription" data-en="Description" data-ar="الوصف">Description</label>
+                <label for="eventDescription" data-en="Description" data-ar="ط§ظ„ظˆطµظپ">Description</label>
                 <textarea id="eventDescription" name="description" required></textarea>
               </div>
               <div id="eventErrors" class="error-box"></div>
-              <button type="submit" id="eventSubmitBtn" class="submit-btn" data-en="Add Event" data-ar="إضافة فعالية">Add Event</button>
+              <button type="submit" id="eventSubmitBtn" class="submit-btn" data-en="Add Event" data-ar="ط¥ط¶ط§ظپط© ظپط¹ط§ظ„ظٹط©">Add Event</button>
             </form>
           </div>
         </details>
@@ -190,38 +195,36 @@
       <!-- Articles -->
       <section id="articles-tab" class="tab-content">
         <details class="accordion" open>
-          <summary data-en="Existing Articles" data-ar="المقالات الحالية">Existing Articles</summary>
+          <summary data-en="Existing Articles" data-ar="ط§ظ„ظ…ظ‚ط§ظ„ط§طھ ط§ظ„ط­ط§ظ„ظٹط©">Existing Articles</summary>
           <div class="accordion-body panel">
             <div id="existingArticlesList"><p>Loading articles...</p></div>
           </div>
         </details>
 
         <details class="accordion" open>
-          <summary data-en="Add or Edit Article" data-ar="إضافة أو تعديل مقال">Add or Edit Article</summary>
+          <summary data-en="Add or Edit Article" data-ar="ط¥ط¶ط§ظپط© ط£ظˆ طھط¹ط¯ظٹظ„ ظ…ظ‚ط§ظ„">Add or Edit Article</summary>
           <div class="accordion-body panel">
             <form id="articleForm" data-mode="add" novalidate>
               <input type="hidden" id="articleId"/>
               <div class="two-col">
-                <div class="form-group"><label for="articleTitle" data-en="Article Title" data-ar="عنوان المقال">Article Title</label><input id="articleTitle" name="title" required/></div>
-                <div class="form-group"><label for="articleAuthor" data-en="Author Name" data-ar="اسم الكاتب">Author Name</label><input id="articleAuthor" name="author" required/></div>
+                <div class="form-group"><label for="articleTitle" data-en="Article Title" data-ar="ط¹ظ†ظˆط§ظ† ط§ظ„ظ…ظ‚ط§ظ„">Article Title</label><input id="articleTitle" name="title" required/></div>
+                <div class="form-group"><label for="articleAuthor" data-en="Author Name" data-ar="ط§ط³ظ… ط§ظ„ظƒط§طھط¨">Author Name</label><input id="articleAuthor" name="author" required/></div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="articleDate" data-en="Publication Date" data-ar="تاريخ النشر">Publication Date</label><input type="date" id="articleDate" name="date" required/></div>
-                <div class="form-group"><label for="articleSummary" data-en="Summary" data-ar="الملخص">Summary</label><input id="articleSummary" name="summary" required/></div>
+                <div class="form-group"><label for="articleDate" data-en="Publication Date" data-ar="طھط§ط±ظٹط® ط§ظ„ظ†ط´ط±">Publication Date</label><input type="date" id="articleDate" name="date" required/></div>
+                <div class="form-group"><label for="articleSummary" data-en="Summary" data-ar="ط§ظ„ظ…ظ„ط®طµ">Summary</label><input id="articleSummary" name="summary" required/></div>
               </div>
               <div class="form-group">
-                <label for="articleImageUrl" data-en="Image URL (Optional)" data-ar="رابط الصورة (اختياري)">Image URL (Optional)</label>
-                <input type="url" id="articleImageUrl" name="imageUrl" placeholder="https://example.com/image.jpg"/>
-                <input id="articleImageFile" type="file" accept="image/*"/>
-                <small id="articleImageStatus" aria-live="polite"></small>
+                <label for="articleImageUrl" data-en="Image URL (Optional)" data-ar="ط±ط§ط¨ط· ط§ظ„طµظˆط±ط© (ط§ط®طھظٹط§ط±ظٹ)">Image URL (Optional)</label>
+                <input type="file" id="articleImageFile" accept="image/*"/><input type="hidden" id="articleImageUrl" name="imageUrl"/>
               </div>
               <div class="form-group">
-                <label for="articleReadMoreUrl" data-en="Read More Button URL (Optional)" data-ar="رابط زر اقرأ المزيد (اختياري)">Read More Button URL (Optional)</label>
+                <label for="articleReadMoreUrl" data-en="Read More Button URL (Optional)" data-ar="ط±ط§ط¨ط· ط²ط± ط§ظ‚ط±ط£ ط§ظ„ظ…ط²ظٹط¯ (ط§ط®طھظٹط§ط±ظٹ)">Read More Button URL (Optional)</label>
                 <input type="url" id="articleReadMoreUrl" name="readMoreUrl" placeholder="https://example.com/article"/>
               </div>
-              <div class="form-group"><label for="articleContent" data-en="Full Content" data-ar="المحتوى الكامل">Full Content</label><textarea id="articleContent" name="content" required></textarea></div>
+              <div class="form-group"><label for="articleContent" data-en="Full Content" data-ar="ط§ظ„ظ…ط­طھظˆظ‰ ط§ظ„ظƒط§ظ…ظ„">Full Content</label><textarea id="articleContent" name="content" required></textarea></div>
               <div id="articleErrors" class="error-box"></div>
-              <button type="submit" id="articleSubmitBtn" class="submit-btn" data-en="Add Article" data-ar="إضافة مقال">Add Article</button>
+              <button type="submit" id="articleSubmitBtn" class="submit-btn" data-en="Add Article" data-ar="ط¥ط¶ط§ظپط© ظ…ظ‚ط§ظ„">Add Article</button>
             </form>
           </div>
         </details>
@@ -230,21 +233,21 @@
       <!-- Library -->
       <section id="library-tab" class="tab-content">
         <details class="accordion" open>
-          <summary data-en="Existing Resources" data-ar="الموارد الحالية">Existing Resources</summary>
+          <summary data-en="Existing Resources" data-ar="ط§ظ„ظ…ظˆط§ط±ط¯ ط§ظ„ط­ط§ظ„ظٹط©">Existing Resources</summary>
           <div class="accordion-body panel">
             <div id="existingLibraryList"><p>Loading resources...</p></div>
           </div>
         </details>
 
         <details class="accordion" open>
-          <summary data-en="Add or Edit Resource" data-ar="إضافة أو تعديل مصدر">Add or Edit Resource</summary>
+          <summary data-en="Add or Edit Resource" data-ar="ط¥ط¶ط§ظپط© ط£ظˆ طھط¹ط¯ظٹظ„ ظ…طµط¯ط±">Add or Edit Resource</summary>
           <div class="accordion-body panel">
             <form id="libraryForm" data-mode="add" novalidate>
               <input type="hidden" id="libId"/>
               <div class="two-col">
-                <div class="form-group"><label for="libName" data-en="Resource Name" data-ar="اسم المصدر">Resource Name</label><input id="libName" name="name" required/></div>
+                <div class="form-group"><label for="libName" data-en="Resource Name" data-ar="ط§ط³ظ… ط§ظ„ظ…طµط¯ط±">Resource Name</label><input id="libName" name="name" required/></div>
                 <div class="form-group">
-                  <label for="libType" data-en="Type" data-ar="النوع">Type</label>
+                  <label for="libType" data-en="Type" data-ar="ط§ظ„ظ†ظˆط¹">Type</label>
                   <select id="libType" name="type" required>
                     <option value="Book">Book</option>
                     <option value="Tutorial">Tutorial</option>
@@ -254,23 +257,23 @@
               </div>
               <div class="two-col">
                 <div class="form-group">
-                  <label for="libCategory" data-en="Category" data-ar="الفئة">Category</label>
+                  <label for="libCategory" data-en="Category" data-ar="ط§ظ„ظپط¦ط©">Category</label>
                   <select id="libCategory" name="category" required>
                     <!-- Options loaded dynamically from categories-loader -->
                   </select>
                 </div>
-                <div class="form-group"><label for="libImage" data-en="Emoji Icon" data-ar="أيقونة الإيموجي">Emoji Icon</label><input id="libImage" name="image" placeholder="📚" required/></div>
+                <div class="form-group"><label for="libImage" data-en="Emoji Icon" data-ar="ط£ظٹظ‚ظˆظ†ط© ط§ظ„ط¥ظٹظ…ظˆط¬ظٹ">Emoji Icon</label><input id="libImage" name="image" placeholder="ًں“ڑ" required/></div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="libTags" data-en="Tags (comma-separated)" data-ar="الوسوم (مفصولة بفواصل)">Tags (comma-separated)</label><input id="libTags" name="tags" placeholder="Design, Fundamentals, Theory" required/></div>
-                <div class="form-group"><label for="libImageUrl" data-en="Image URL (Optional)" data-ar="رابط الصورة (اختياري)">Image URL (Optional)</label><input type="url" id="libImageUrl" name="imageUrl" placeholder="https://example.com/image.jpg"/><input id="libImageFile" type="file" accept="image/*"/><small id="libImageStatus" aria-live="polite"></small></div>
+                <div class="form-group"><label for="libTags" data-en="Tags (comma-separated)" data-ar="ط§ظ„ظˆط³ظˆظ… (ظ…ظپطµظˆظ„ط© ط¨ظپظˆط§طµظ„)">Tags (comma-separated)</label><input id="libTags" name="tags" placeholder="Design, Fundamentals, Theory" required/></div>
+                <div class="form-group"><label for="libImageUrl" data-en="Image URL (Optional)" data-ar="ط±ط§ط¨ط· ط§ظ„طµظˆط±ط© (ط§ط®طھظٹط§ط±ظٹ)">Image URL (Optional)</label><input type="file" id="libImageFile" accept="image/*"/><input type="hidden" id="libImageUrl" name="imageUrl"/></div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="libDescription" data-en="Description" data-ar="الوصف">Description</label><input id="libDescription" name="description" required/></div>
-                <div class="form-group"><label for="libLink" data-en="Download Link" data-ar="رابط التنزيل">Download Link</label><input type="url" id="libLink" name="link" placeholder="https://" required/></div>
+                <div class="form-group"><label for="libDescription" data-en="Description" data-ar="ط§ظ„ظˆطµظپ">Description</label><input id="libDescription" name="description" required/></div>
+                <div class="form-group"><label for="libLink" data-en="Download Link" data-ar="ط±ط§ط¨ط· ط§ظ„طھظ†ط²ظٹظ„">Download Link</label><input type="url" id="libLink" name="link" placeholder="https://" required/></div>
               </div>
               <div id="libraryErrors" class="error-box"></div>
-              <button type="submit" id="libSubmitBtn" class="submit-btn" data-en="Add Resource" data-ar="إضافة مصدر">Add Resource</button>
+              <button type="submit" id="libSubmitBtn" class="submit-btn" data-en="Add Resource" data-ar="ط¥ط¶ط§ظپط© ظ…طµط¯ط±">Add Resource</button>
             </form>
           </div>
         </details>
@@ -279,42 +282,37 @@
       <!-- 3D Models -->
       <section id="models3d-tab" class="tab-content">
         <details class="accordion" open>
-          <summary data-en="Existing 3D Models" data-ar="النماذج الثلاثية الأبعاد الحالية">Existing 3D Models</summary>
+          <summary data-en="Existing 3D Models" data-ar="ط§ظ„ظ†ظ…ط§ط°ط¬ ط§ظ„ط«ظ„ط§ط«ظٹط© ط§ظ„ط£ط¨ط¹ط§ط¯ ط§ظ„ط­ط§ظ„ظٹط©">Existing 3D Models</summary>
           <div class="accordion-body panel">
             <div id="existingModels3dList"><p>Loading 3D models...</p></div>
           </div>
         </details>
 
         <details class="accordion" open>
-          <summary data-en="Add or Edit 3D Model" data-ar="إضافة أو تعديل نموذج ثلاثي الأبعاد">Add or Edit 3D Model</summary>
+          <summary data-en="Add or Edit 3D Model" data-ar="ط¥ط¶ط§ظپط© ط£ظˆ طھط¹ط¯ظٹظ„ ظ†ظ…ظˆط°ط¬ ط«ظ„ط§ط«ظٹ ط§ظ„ط£ط¨ط¹ط§ط¯">Add or Edit 3D Model</summary>
           <div class="accordion-body panel">
             <form id="models3dForm" data-mode="add" novalidate>
               <input type="hidden" id="model3dId"/>
               <div class="two-col">
                 <div class="form-group">
-                  <label for="model3dCode" data-en="Model Code (exactly 10 characters)" data-ar="رمز النموذج (10 أحرف بالضبط)">Model Code (exactly 10 characters)</label>
+                  <label for="model3dCode" data-en="Model Code (exactly 10 characters)" data-ar="ط±ظ…ط² ط§ظ„ظ†ظ…ظˆط°ط¬ (10 ط£ط­ط±ظپ ط¨ط§ظ„ط¶ط¨ط·)">Model Code (exactly 10 characters)</label>
                   <input id="model3dCode" name="code" maxlength="10" minlength="10" required placeholder="Model12345"/>
                 </div>
                 <div class="form-group">
-                  <label for="model3dName" data-en="Model Name" data-ar="اسم النموذج">Model Name</label>
+                  <label for="model3dName" data-en="Model Name" data-ar="ط§ط³ظ… ط§ظ„ظ†ظ…ظˆط°ط¬">Model Name</label>
                   <input id="model3dName" name="name" required/>
                 </div>
               </div>
               <div class="form-group">
-                <label for="model3dDate" data-en="Model Date" data-ar="تاريخ النموذج">Model Date</label>
+                <label for="model3dDate" data-en="Model Date" data-ar="طھط§ط±ظٹط® ط§ظ„ظ†ظ…ظˆط°ط¬">Model Date</label>
                 <input type="date" id="model3dDate" name="date" required/>
               </div>
               <div class="form-group">
-                <label for="model3dTags" data-en="Tags (comma-separated)" data-ar="الوسوم (مفصولة بفواصل)">Tags (comma-separated)</label>
-                <input id="model3dTags" name="tags" placeholder="Interior, Residential, Concept"/>
-              </div>
-              <div class="form-group">
-                <label for="model3dFile">3D Model File</label>
-                <input type="file" id="model3dFile" accept=".glb,.gltf,.obj,.fbx,.stl,model/gltf-binary,model/gltf+json,application/octet-stream"/>
-                <small id="model3dUploadStatus" aria-live="polite"></small>
+                <label for="model3dTags" data-en="Tags (comma-separated)" data-ar="ط§ظ„ظˆط³ظˆظ… (ظ…ظپطµظˆظ„ط© ط¨ظپظˆط§طµظ„)">Tags (comma-separated)</label>
+                <input id="model3dTags" name="tags" placeholder="Interior, Residential, Concept"/></div><div class="form-group"><label for="model3dFile">3D Model File (.glb) (Max 10MB)</label><input type="file" id="model3dFile" accept=".glb"/>
               </div>
               <div id="models3dErrors" class="error-box"></div>
-              <button type="submit" id="model3dSubmitBtn" class="submit-btn" data-en="Add 3D Model" data-ar="إضافة نموذج ثلاثي الأبعاد">Add 3D Model</button>
+              <button type="submit" id="model3dSubmitBtn" class="submit-btn" data-en="Add 3D Model" data-ar="ط¥ط¶ط§ظپط© ظ†ظ…ظˆط°ط¬ ط«ظ„ط§ط«ظٹ ط§ظ„ط£ط¨ط¹ط§ط¯">Add 3D Model</button>
             </form>
           </div>
         </details>
@@ -323,53 +321,246 @@
       <!-- Education -->
       <section id="education-tab" class="tab-content">
         <details class="accordion" open>
-          <summary data-en="Weekly Workshop" data-ar="الورشة الأسبوعية">Weekly Workshop</summary>
+          <summary data-en="Weekly Workshop" data-ar="ط§ظ„ظˆط±ط´ط© ط§ظ„ط£ط³ط¨ظˆط¹ظٹط©">Weekly Workshop</summary>
           <div class="accordion-body panel">
             <form id="educationForm" novalidate>
               <div class="two-col">
-                <div class="form-group"><label for="weekTitle" data-en="Weekly Workshop Title" data-ar="عنوان الورشة الأسبوعية">Weekly Workshop Title</label><input id="weekTitle" name="weekTitle" required/></div>
-                <div class="form-group"><label for="lecturerName" data-en="Lecturer Name" data-ar="اسم المحاضر">Lecturer Name</label><input id="lecturerName" name="lecturerName" required/></div>
+                <div class="form-group"><label for="weekTitle" data-en="Weekly Workshop Title" data-ar="ط¹ظ†ظˆط§ظ† ط§ظ„ظˆط±ط´ط© ط§ظ„ط£ط³ط¨ظˆط¹ظٹط©">Weekly Workshop Title</label><input id="weekTitle" name="weekTitle" required/></div>
+                <div class="form-group"><label for="lecturerName" data-en="Lecturer Name" data-ar="ط§ط³ظ… ط§ظ„ظ…ط­ط§ط¶ط±">Lecturer Name</label><input id="lecturerName" name="lecturerName" required/></div>
               </div>
-              <div class="form-group"><label for="weekDescription" data-en="Workshop Description" data-ar="وصف الورشة">Workshop Description</label><textarea id="weekDescription" name="description" required></textarea></div>
+              <div class="form-group"><label for="weekDescription" data-en="Workshop Description" data-ar="ظˆطµظپ ط§ظ„ظˆط±ط´ط©">Workshop Description</label><textarea id="weekDescription" name="description" required></textarea></div>
               <div class="form-group">
-                <label for="workshopUrl" data-en="Workshop Button URL (Optional)" data-ar="رابط زر الورشة (اختياري)">Workshop Button URL (Optional)</label>
+                <label for="workshopUrl" data-en="Workshop Button URL (Optional)" data-ar="ط±ط§ط¨ط· ط²ط± ط§ظ„ظˆط±ط´ط© (ط§ط®طھظٹط§ط±ظٹ)">Workshop Button URL (Optional)</label>
                 <input type="url" id="workshopUrl" name="workshopUrl" placeholder="https://example.com/join-workshop"/>
               </div>
               <div id="educationErrors" class="error-box"></div>
-              <button type="submit" class="submit-btn" data-en="Update Weekly Workshop" data-ar="تحديث الورشة الأسبوعية">Update Weekly Workshop</button>
+              <button type="submit" class="submit-btn" data-en="Update Weekly Workshop" data-ar="طھط­ط¯ظٹط« ط§ظ„ظˆط±ط´ط© ط§ظ„ط£ط³ط¨ظˆط¹ظٹط©">Update Weekly Workshop</button>
             </form>
           </div>
         </details>
 
         <details class="accordion" open>
-          <summary data-en="Courses" data-ar="الدورات">Courses</summary>
+          <summary data-en="Courses" data-ar="ط§ظ„ط¯ظˆط±ط§طھ">Courses</summary>
           <div class="accordion-body panel">
             <div class="panel" style="margin-bottom: .75rem">
-              <h4 style="margin-top:0" data-en="Existing Courses" data-ar="الدورات الحالية">Existing Courses</h4>
+              <h4 style="margin-top:0" data-en="Existing Courses" data-ar="ط§ظ„ط¯ظˆط±ط§طھ ط§ظ„ط­ط§ظ„ظٹط©">Existing Courses</h4>
+              <div id="existingCoursesList"><p>Loading courses...</p></div>
+                  <select id="eventType" name="type" required>
+                    <!-- Options loaded dynamically from categories-loader -->
+                  </select>
+                </div>
+              </div>
+              <div class="two-col">
+                <div class="form-group">
+                  <label for="eventSeats" data-en="Available Seats" data-ar="ط§ظ„ظ…ظ‚ط§ط¹ط¯ ط§ظ„ظ…طھط§ط­ط©">Available Seats</label>
+                  <input type="number" id="eventSeats" name="seats" min="1" value="10" required/>
+                </div>
+                <div class="form-group">
+                  <label for="eventImage" data-en="Emoji Icon" data-ar="ط£ظٹظ‚ظˆظ†ط© ط§ظ„ط¥ظٹظ…ظˆط¬ظٹ">Emoji Icon</label>
+                  <input id="eventImage" name="image" placeholder="ًںژ¨" required/>
+                </div>
+                <div class="form-group">
+                  <label for="eventImageUrl" data-en="Image URL (Optional)" data-ar="ط±ط§ط¨ط· ط§ظ„طµظˆط±ة (ط§ط®طھظٹط§ط±ظٹ)">Image URL (Optional)</label>
+                  <input type="file" id="eventImageFile" accept="image/*"/><input type="hidden" id="eventImageUrl" name="imageUrl"/>
+                </div>
+                <div class="form-group">
+                  <label for="eventRegisterUrl" data-en="Register Button URL (Optional)" data-ar="ط±ط§ط¨ط· ط²ط± ط§ظ„طھط³ط¬ظٹظ„ (ط§ط®طھظٹط§ط±ظٹ)">Register Button URL (Optional)</label>
+                  <input id="eventRegisterUrl" name="registerUrl" type="url" placeholder="https://example.com/register"/>
+                </div>
+                <div class="form-group">
+                  <label for="eventDetailsUrl" data-en="Details Button URL (Optional)" data-ar="ط±ط§ط¨ط· ط²ط± ط§ظ„طھظپط§طµظٹظ„ (ط§ط®طھظٹط§ط±ظٹ)">Details Button URL (Optional)</label>
+                  <input id="eventDetailsUrl" name="detailsUrl" type="url" placeholder="https://example.com/details"/>
+                </div>
+                <div class="form-group">
+                  <label for="eventGalleryUrl" data-en="Gallery Button URL (Optional)" data-ar="ط±ط§ط¨ط· ط²ط± ط§ظ„ظ…ط¹ط±ط¶ (ط§ط®طھظٹط§ط±ظٹ)">Gallery Button URL (Optional)</label>
+                  <input id="eventGalleryUrl" name="galleryUrl" type="url" placeholder="https://example.com/gallery"/>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="eventDescription" data-en="Description" data-ar="ط§ظ„ظˆطµظپ">Description</label>
+                <textarea id="eventDescription" name="description" required></textarea>
+              </div>
+              <div id="eventErrors" class="error-box"></div>
+              <button type="submit" id="eventSubmitBtn" class="submit-btn" data-en="Add Event" data-ar="ط¥ط¶ط§ظپط© ظپط¹ط§ظ„ظٹط©">Add Event</button>
+            </form>
+          </div>
+        </details>
+      </section>
+
+      <!-- Articles -->
+      <section id="articles-tab" class="tab-content">
+        <details class="accordion" open>
+          <summary data-en="Existing Articles" data-ar="ط§ظ„ظ…ظ‚ط§ظ„ط§طھ ط§ظ„ط­ط§ظ„ظٹط©">Existing Articles</summary>
+          <div class="accordion-body panel">
+            <div id="existingArticlesList"><p>Loading articles...</p></div>
+          </div>
+        </details>
+
+        <details class="accordion" open>
+          <summary data-en="Add or Edit Article" data-ar="ط¥ط¶ط§ظپط© ط£ظˆ طھط¹ط¯ظٹظ„ ظ…ظ‚ط§ظ„">Add or Edit Article</summary>
+          <div class="accordion-body panel">
+            <form id="articleForm" data-mode="add" novalidate>
+              <input type="hidden" id="articleId"/>
+              <div class="two-col">
+                <div class="form-group"><label for="articleTitle" data-en="Article Title" data-ar="ط¹ظ†ظˆط§ظ† ط§ظ„ظ…ظ‚ط§ظ„">Article Title</label><input id="articleTitle" name="title" required/></div>
+                <div class="form-group"><label for="articleAuthor" data-en="Author Name" data-ar="ط§ط³ظ… ط§ظ„ظƒط§طھط¨">Author Name</label><input id="articleAuthor" name="author" required/></div>
+              </div>
+              <div class="two-col">
+                <div class="form-group"><label for="articleDate" data-en="Publication Date" data-ar="طھط§ط±ظٹط® ط§ظ„ظ†ظ؟ط±">Publication Date</label><input type="date" id="articleDate" name="date" required/></div>
+                <div class="form-group"><label for="articleSummary" data-en="Summary" data-ar="ط§ظ„ظ…ظ„ط®طµ">Summary</label><input id="articleSummary" name="summary" required/></div>
+              </div>
+              <div class="form-group">
+                <label for="articleImageUrl" data-en="Image URL (Optional)" data-ar="ط±ط§ط¨ط· ط§ظ„طµظˆط±ة (ط§ط®طھظٹط§ط±ظٹ)">Image URL (Optional)</label>
+                <input type="file" id="articleImageFile" accept="image/*"/><input type="hidden" id="articleImageUrl" name="imageUrl"/>
+              </div>
+              <div class="form-group">
+                <label for="articleReadMoreUrl" data-en="Read More Button URL (Optional)" data-ar="ط±ط§ط¨ط· ط²ط± ط§ظ‚ط±ط£ ط§ظ„ظ…ط²ظٹط¯ (ط§ط®طھظٹط§ط±ظٹ)">Read More Button URL (Optional)</label>
+                <input type="url" id="articleReadMoreUrl" name="readMoreUrl" placeholder="https://example.com/article"/>
+              </div>
+              <div class="form-group"><label for="articleContent" data-en="Full Content" data-ar="ط§ظ„ظ…ط­طھظˆظ‰ ط§ظ„ظƒط§ظ…ظ„">Full Content</label><textarea id="articleContent" name="content" required></textarea></div>
+              <div id="articleErrors" class="error-box"></div>
+              <button type="submit" id="articleSubmitBtn" class="submit-btn" data-en="Add Article" data-ar="ط¥ط¶ط§ظپط© ظ…ظ‚ط§ظ„">Add Article</button>
+            </form>
+          </div>
+        </details>
+      </section>
+
+      <!-- Library -->
+      <section id="library-tab" class="tab-content">
+        <details class="accordion" open>
+          <summary data-en="Existing Resources" data-ar="ط§ظ„ظ…ظˆط§ط±ط¯ ط§ظ„ط­ط§ظ„ظٹط©">Existing Resources</summary>
+          <div class="accordion-body panel">
+            <div id="existingLibraryList"><p>Loading resources...</p></div>
+          </div>
+        </details>
+
+        <details class="accordion" open>
+          <summary data-en="Add or Edit Resource" data-ar="ط¥ط¶ط§ظپط© ط£ظˆ طھط¹ط¯ظٹظ„ ظ…طµط¯ط±">Add or Edit Resource</summary>
+          <div class="accordion-body panel">
+            <form id="libraryForm" data-mode="add" novalidate>
+              <input type="hidden" id="libId"/>
+              <div class="two-col">
+                <div class="form-group"><label for="libName" data-en="Resource Name" data-ar="ط§ط³ظ… ط§ظ„ظ…طµط¯ط±">Resource Name</label><input id="libName" name="name" required/></div>
+                <div class="form-group">
+                  <label for="libType" data-en="Type" data-ar="ط§ظ„ظ†ظˆط¹">Type</label>
+                  <select id="libType" name="type" required>
+                    <option value="Book">Book</option>
+                    <option value="Tutorial">Tutorial</option>
+                    <option value="Software">Software</option>
+                  </select>
+                </div>
+              </div>
+              <div class="two-col">
+                <div class="form-group">
+                  <label for="libCategory" data-en="Category" data-ar="ط§ظ„ظپط¦ط©">Category</label>
+                  <select id="libCategory" name="category" required>
+                    <!-- Options loaded dynamically from categories-loader -->
+                  </select>
+                </div>
+                <div class="form-group"><label for="libImage" data-en="Emoji Icon" data-ar="ط£ظٹظ‚ظˆظ†ط© ط§ظ„ط¥ظٹظ…ظˆط¬ظٹ">Emoji Icon</label><input id="libImage" name="image" placeholder="ًں“ڑ" required/></div>
+              </div>
+              <div class="two-col">
+                <div class="form-group"><label for="libTags" data-en="Tags (comma-separated)" data-ar="ط§ظ„ظˆط³ظˆظ… (ظ…ظپطµظˆظ„ط© ط¨ظپظˆط§طµظ„)">Tags (comma-separated)</label><input id="libTags" name="tags" placeholder="Design, Fundamentals, Theory" required/></div>
+                <div class="form-group"><label for="libImageUrl" data-en="Image URL (Optional)" data-ar="ط±ط§ط¨ط· ط§ظ„طµظˆط±ة (ط§ط®طھظٹط§ط±ظٹ)">Image URL (Optional)</label><input type="file" id="libImageFile" accept="image/*"/><input type="hidden" id="libImageUrl" name="imageUrl"/></div>
+              </div>
+              <div class="two-col">
+                <div class="form-group"><label for="libDescription" data-en="Description" data-ar="ط§ظ„ظˆطµظپ">Description</label><input id="libDescription" name="description" required/></div>
+                <div class="form-group"><label for="libLink" data-en="Download Link" data-ar="ط±ط§ط¨ط· ط§ظ„طھظ†ط²ظٹظ„">Download Link</label><input type="url" id="libLink" name="link" placeholder="https://" required/></div>
+              </div>
+              <div id="libraryErrors" class="error-box"></div>
+              <button type="submit" id="libSubmitBtn" class="submit-btn" data-en="Add Resource" data-ar="ط¥ط¶ط§ظپط© ظ…طµط¯ط±">Add Resource</button>
+            </form>
+          </div>
+        </details>
+      </section>
+
+      <!-- 3D Models -->
+      <section id="models3d-tab" class="tab-content">
+        <details class="accordion" open>
+          <summary data-en="Existing 3D Models" data-ar="ط§ظ„ظ†ظ…ط§ط°ط¬ ط§ظ„ط«ظ„ط§ط«ظٹط© ط§ظ„ط£ط¨ط¹ط§ط¯ ط§ظ„ط­ط§ظ„ظٹط©">Existing 3D Models</summary>
+          <div class="accordion-body panel">
+            <div id="existingModels3dList"><p>Loading 3D models...</p></div>
+          </div>
+        </details>
+
+        <details class="accordion" open>
+          <summary data-en="Add or Edit 3D Model" data-ar="ط¥ط¶ط§ظپط© ط£ظˆ طھط¹ط¯ظٹظ„ ظ†ظ…ظˆط°ط¬ ط«ظ„ط§ط«ظٹ ط§ظ„ط£ط¨ط¹ط§ط¯">Add or Edit 3D Model</summary>
+          <div class="accordion-body panel">
+            <form id="models3dForm" data-mode="add" novalidate>
+              <input type="hidden" id="model3dId"/>
+              <div class="two-col">
+                <div class="form-group">
+                  <label for="model3dCode" data-en="Model Code (exactly 10 characters)" data-ar="ط±ظ…ط² ط§ظ„ظ†ظ…ظˆط°ط¬ (10 ط£ط­ط±ظپ ط¨ط§ظ„ط¶ط¨ط·)">Model Code (exactly 10 characters)</label>
+                  <input id="model3dCode" name="code" maxlength="10" minlength="10" required placeholder="Model12345"/>
+                </div>
+                <div class="form-group">
+                  <label for="model3dName" data-en="Model Name" data-ar="ط§ط³ظ… ط§ظ„ظ†ظ…ظˆط°ط¬">Model Name</label>
+                  <input id="model3dName" name="name" required/>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="model3dDate" data-en="Model Date" data-ar="طھط§ط±ظٹط® ط§ظ„ظ†ظ…ظˆط°ط¬">Model Date</label>
+                <input type="date" id="model3dDate" name="date" required/>
+              </div>
+              <div class="form-group">
+                <label for="model3dTags" data-en="Tags (comma-separated)" data-ar="ط§ظ„ظˆط³ظˆظ… (ظ…ظپطµظˆظ„ط© ط¨ظپظˆط§طµظ„)">Tags (comma-separated)</label>
+                <input id="model3dTags" name="tags" placeholder="Interior, Residential, Concept"/></div><div class="form-group"><label for="model3dFile">3D Model File (.glb) (Max 10MB)</label><input type="file" id="model3dFile" accept=".glb"/>
+              </div>
+              <div id="models3dErrors" class="error-box"></div>
+              <button type="submit" id="model3dSubmitBtn" class="submit-btn" data-en="Add 3D Model" data-ar="ط¥ط¶ط§ظپط© ظ†ظ…ظˆط°ط¬ ط«ظ„ط§ط«ظٹ ط§ظ„ط£ط¨ط¹ط§ط¯">Add 3D Model</button>
+            </form>
+          </div>
+        </details>
+      </section>
+
+      <!-- Education -->
+      <section id="education-tab" class="tab-content">
+        <details class="accordion" open>
+          <summary data-en="Weekly Workshop" data-ar="ط§ظ„ظˆط±ط´ط© ط§ظ„ط£ط³ط¨ظˆط¹ظٹط©">Weekly Workshop</summary>
+          <div class="accordion-body panel">
+            <form id="educationForm" novalidate>
+              <div class="two-col">
+                <div class="form-group"><label for="weekTitle" data-en="Weekly Workshop Title" data-ar="ط¹ظ†ظˆط§ظ† ط§ظ„ظˆط±ط´ط© ط§ظ„ط£ط³ط¨ظˆط¹ظٹط©">Weekly Workshop Title</label><input id="weekTitle" name="weekTitle" required/></div>
+                <div class="form-group"><label for="lecturerName" data-en="Lecturer Name" data-ar="ط§ط³ظ… ط§ظ„ظ…ط­ط§ط¶ط±">Lecturer Name</label><input id="lecturerName" name="lecturerName" required/></div>
+              </div>
+              <div class="form-group"><label for="weekDescription" data-en="Workshop Description" data-ar="ظˆطµظپ ط§ظ„ظˆط±ط´ط©">Workshop Description</label><textarea id="weekDescription" name="description" required></textarea></div>
+              <div class="form-group">
+                <label for="workshopUrl" data-en="Workshop Button URL (Optional)" data-ar="ط±ط§ط¨ط· ط²ط± ط§ظ„ظˆط±ط´ط© (ط§ط®طھظٹط§ط±ظٹ)">Workshop Button URL (Optional)</label>
+                <input type="url" id="workshopUrl" name="workshopUrl" placeholder="https://example.com/join-workshop"/>
+              </div>
+              <div id="educationErrors" class="error-box"></div>
+              <button type="submit" class="submit-btn" data-en="Update Weekly Workshop" data-ar="طھط­ط¯ظٹط« ط§ظ„ظˆط±ط´ط© ط§ظ„ط£ط³ط¨ظˆط¹ظٹط©">Update Weekly Workshop</button>
+            </form>
+          </div>
+        </details>
+
+        <details class="accordion" open>
+          <summary data-en="Courses" data-ar="ط§ظ„ط¯ظˆط±ط§طھ">Courses</summary>
+          <div class="accordion-body panel">
+            <div class="panel" style="margin-bottom: .75rem">
+              <h4 style="margin-top:0" data-en="Existing Courses" data-ar="ط§ظ„ط¯ظˆط±ط§طھ ط§ظ„ط­ط§ظ„ظٹط©">Existing Courses</h4>
               <div id="existingCoursesList"><p>Loading courses...</p></div>
             </div>
             <form id="courseForm" data-mode="add" novalidate>
               <input type="hidden" id="courseId"/>
               <div class="two-col">
-                <div class="form-group"><label for="courseTitle" data-en="Course Title" data-ar="عنوان الدورة">Course Title</label><input id="courseTitle" name="title" required/></div>
-                <div class="form-group"><label for="courseLecturer" data-en="Lecturer (optional)" data-ar="المحاضر (اختياري)">Lecturer (optional)</label><input id="courseLecturer" name="lecturer"/></div>
+                <div class="form-group"><label for="courseTitle" data-en="Course Title" data-ar="ط¹ظ†ظˆط§ظ† ط§ظ„ط¯ظˆط±ط©">Course Title</label><input id="courseTitle" name="title" required/></div>
+                <div class="form-group"><label for="courseLecturer" data-en="Lecturer (optional)" data-ar="ط§ظ„ظ…ط­ط§ط¶ط± (ط§ط®طھظٹط§ط±ظٹ)">Lecturer (optional)</label><input id="courseLecturer" name="lecturer"/></div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="courseDescription" data-en="Course Description" data-ar="وصف الدورة">Course Description</label><input id="courseDescription" name="description" required/></div>
-                <div class="form-group"><label for="courseLink" data-en="Link (optional)" data-ar="الرابط (اختياري)">Link (optional)</label><input id="courseLink" name="link" type="url" placeholder="https://"/></div>
+                <div class="form-group"><label for="courseDescription" data-en="Course Description" data-ar="ظˆطµظپ ط§ظ„ط¯ظˆط±ط©">Course Description</label><input id="courseDescription" name="description" required/></div>
+                <div class="form-group"><label for="courseLink" data-en="Link (optional)" data-ar="ط§ظ„ط±ط§ط¨ط· (ط§ط®طھظٹط§ط±ظٹ)">Link (optional)</label><input id="courseLink" name="link" type="url" placeholder="https://"/></div>
               </div>
               <div class="form-group">
-                <label for="courseImageUrl" data-en="Image URL (Optional)" data-ar="رابط الصورة (اختياري)">Image URL (Optional)</label>
-                <input type="url" id="courseImageUrl" name="imageUrl" placeholder="https://example.com/image.jpg"/>
-                <input id="courseImageFile" type="file" accept="image/*"/>
-                <small id="courseImageStatus" aria-live="polite"></small>
+                <label for="courseImageUrl" data-en="Image URL (Optional)" data-ar="ط±ط§ط¨ط· ط§ظ„طµظˆط±ة (ط§ط®طھظٹط§ط±ظٹ)">Image URL (Optional)</label>
+                <input type="file" id="courseImageFile" accept="image/*"/><input type="hidden" id="courseImageUrl" name="imageUrl"/>
               </div>
               <div class="form-group">
-                <label for="courseEnrollUrl" data-en="Enroll Button URL (Optional)" data-ar="رابط زر التسجيل (اختياري)">Enroll Button URL (Optional)</label>
+                <label for="courseEnrollUrl" data-en="Enroll Button URL (Optional)" data-ar="ط±ط§ط¨ط· ط²ط± ط§ظ„طھط³ط¬ظٹظ„ (ط§ط®طھظٹط§ط±ظٹ)">Enroll Button URL (Optional)</label>
                 <input type="url" id="courseEnrollUrl" name="enrollUrl" placeholder="https://example.com/enroll"/>
               </div>
               <div id="courseErrors" class="error-box"></div>
-              <button type="submit" id="courseSubmitBtn" class="submit-btn" data-en="Add Course" data-ar="إضافة دورة">Add Course</button>
+              <button type="submit" id="courseSubmitBtn" class="submit-btn" data-en="Add Course" data-ar="ط¥ط¶ط§ظپط© ط¯ظˆط±ط©">Add Course</button>
             </form>
           </div>
         </details>
@@ -378,61 +569,64 @@
       <!-- FBD -->
       <section id="fbd-tab" class="tab-content">
         <details class="accordion" open>
-          <summary data-en="FBD Page" data-ar="صفحة FBD">FBD Page</summary>
+          <summary data-en="FBD Page" data-ar="طµظپط­ط© FBD">FBD Page</summary>
           <div class="accordion-body panel">
             <form id="fbdPageForm">
               <div class="two-col">
-                <div class="form-group"><label for="fbdTitle" data-en="Page Title" data-ar="عنوان الصفحة">Page Title</label><input id="fbdTitle" name="pageTitle" placeholder="FBD"/></div>
-                <div class="form-group"><label for="fbdAbout" data-en="About" data-ar="نبذة">About</label><input id="fbdAbout" name="about" placeholder="About FBD..."/></div>
+                <div class="form-group"><label for="fbdProjectsCompleted">Projects Completed</label><input type="number" id="fbdProjectsCompleted" name="projectsCompleted" placeholder="12"/></div>
+                <div class="form-group"><label for="fbdStudentsInvolved">Students Involved</label><input type="number" id="fbdStudentsInvolved" name="studentsInvolved" placeholder="45"/></div>
               </div>
-              <button type="submit" class="submit-btn" data-en="Update FBD Page" data-ar="تحديث صفحة FBD">Update FBD Page</button>
+              <div class="form-group"><label for="fbdCommunityServed">Community Members Served</label><input type="text" id="fbdCommunityServed" name="communityServed" placeholder="200+"/></div>
+              <button type="submit" class="submit-btn" data-en="Update FBD Stats" data-ar="تحديث إحصائيات FBD">Update FBD Stats</button>
             </form>
           </div>
         </details>
 
         <details class="accordion" open>
-          <summary data-en="FBD Events" data-ar="فعاليات FBD">FBD Events</summary>
+          <summary data-en="FBD Events" data-ar="ظپط¹ط§ظ„ظٹط§طھ FBD">FBD Events</summary>
           <div class="accordion-body panel">
             <div class="panel" style="margin-bottom:.75rem">
-              <h4 style="margin-top:0" data-en="Existing FBD Events" data-ar="فعاليات FBD الحالية">Existing FBD Events</h4>
+              <h4 style="margin-top:0" data-en="Existing FBD Events" data-ar="ظپط¹ط§ظ„ظٹط§طھ FBD ط§ظ„ط­ط§ظ„ظٹط©">Existing FBD Events</h4>
               <div id="existingFbdEventsList"><p>Loading FBD events...</p></div>
             </div>
             <form id="fbdEventForm" data-mode="add" novalidate>
               <input type="hidden" id="fbdEventId"/>
               <div class="two-col">
-                <div class="form-group"><label for="fbdEventTitle" data-en="Event Title" data-ar="عنوان الفعالية">Event Title</label><input id="fbdEventTitle" name="title" required/></div>
-                <div class="form-group"><label for="fbdEventTime" data-en="Date and Time" data-ar="التاريخ والوقت">Date and Time</label><input id="fbdEventTime" name="time" type="datetime-local" required/></div>
+                <div class="form-group"><label for="fbdEventTitle" data-en="Event Title" data-ar="ط¹ظ†ظˆط§ظ† ط§ظ„ظپط¹ط§ظ„ظٹط©">Event Title</label><input id="fbdEventTitle" name="title" required/></div>
+                <div class="form-group"><label for="fbdEventTime" data-en="Date and Time" data-ar="ط§ظ„طھط§ط±ظٹط® ظˆط§ظ„ظˆظ‚طھ">Date and Time</label><input id="fbdEventTime" name="time" type="datetime-local" required/></div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="fbdEventLocation" data-en="Location" data-ar="الموقع">Location</label><input id="fbdEventLocation" name="location" required/></div>
+                <div class="form-group"><label for="fbdEventLocation" data-en="Location" data-ar="ط§ظ„ظ…ظˆظ‚ط¹">Location</label><input id="fbdEventLocation" name="location" required/></div>
                 <div class="form-group">
-                  <label for="fbdEventType" data-en="Event Type" data-ar="نوع الفعالية">Event Type</label>
+                  <label for="fbdEventType" data-en="Event Type" data-ar="ظ†ظˆط¹ ط§ظ„ظپط¹ط§ظ„ظٹط©">Event Type</label>
                   <select id="fbdEventType" name="type">
                     <!-- Options loaded dynamically from categories-loader -->
                   </select>
                 </div>
               </div>
               <div class="two-col">
-                <div class="form-group"><label for="fbdEventSeats" data-en="Available Seats" data-ar="المقاعد المتاحة">Available Seats</label><input id="fbdEventSeats" name="seats" type="number" min="1" value="10" required/></div>
-                
+                <div class="form-group"><label for="fbdEventSeats" data-en="Available Seats" data-ar="ط§ظ„ظ…ظ‚ط§ط¹ط¯ ط§ظ„ظ…طھط§ط­ط©">Available Seats</label><input id="fbdEventSeats" name="seats" type="number" min="1" value="10" required/></div>
+                <div class="form-group"><label for="fbdEventImage" data-en="Emoji Icon" data-ar="ط£ظٹظ‚ظˆظ†ط© ط§ظ„ط¥ظٹظ…ظˆط¬ظٹ">Emoji Icon</label><input id="fbdEventImage" name="image" placeholder="ًںژ¨" required/></div>
               </div>
               <div class="form-group">
-                <label for="fbdEventImageUrl" data-en="Image URL (Optional)" data-ar="رابط الصورة (اختياري)">Image URL (Optional)</label>
-                <input type="url" id="fbdEventImageUrl" name="imageUrl" placeholder="https://example.com/image.jpg"/>
-                <label for="fbdEventImageFiles">Upload Images (first image becomes thumbnail)</label>
-                <input id="fbdEventImageFiles" type="file" accept="image/*" multiple/>
-                <small id="fbdEventImageStatus" aria-live="polite"></small>
-                <div id="fbdEventStoredImages" class="stored-images" aria-live="polite"></div>
+                <label for="fbdEventImageUrl" data-en="Image URL (Optional)" data-ar="ط±ط§ط¨ط· ط§ظ„طµظˆط±ة (ط§ط®طھظٹط§ط±ظٹ)">Image URL (Optional)</label>
+                <input type="file" id="fbdEventImageFile" accept="image/*"/><input type="hidden" id="fbdEventImageUrl" name="imageUrl"/>
               </div>
               <div class="form-group">
-                <label for="fbdEventRegisterUrl" data-en="Register Button URL (Optional)" data-ar="رابط زر التسجيل (اختياري)">Register Button URL (Optional)</label>
+                <label for="fbdEventRegisterUrl" data-en="Register Button URL (Optional)" data-ar="ط±ط§ط¨ط· ط²ط± ط§ظ„طھط³ط¬ظٹظ„ (ط§ط®طھظٹط§ط±ظٹ)">Register Button URL (Optional)</label>
                 <input type="url" id="fbdEventRegisterUrl" name="registerUrl" placeholder="https://example.com/register"/>
               </div>
-              
-              
-              <div class="form-group"><label for="fbdEventDescription" data-en="Description" data-ar="الوصف">Description</label><textarea id="fbdEventDescription" name="description" required></textarea></div>
+              <div class="form-group">
+                <label for="fbdEventDetailsUrl" data-en="Details Button URL (Optional)" data-ar="ط±ط§ط¨ط· ط²ط± ط§ظ„طھظپط§طµظٹظ„ (ط§ط®طھظٹط§ط±ظٹ)">Details Button URL (Optional)</label>
+                <input type="url" id="fbdEventDetailsUrl" name="detailsUrl" placeholder="https://example.com/details"/>
+              </div>
+              <div class="form-group">
+                <label for="fbdEventGalleryUrl" data-en="Gallery Button URL (Optional)" data-ar="ط±ط§ط¨ط· ط²ط± ط§ظ„ظ…ط¹ط±ط¶ (ط§ط®طھظٹط§ط±ظٹ)">Gallery Button URL (Optional)</label>
+                <input type="url" id="fbdEventGalleryUrl" name="galleryUrl" placeholder="https://example.com/gallery"/>
+              </div>
+              <div class="form-group"><label for="fbdEventDescription" data-en="Description" data-ar="ط§ظ„ظˆطµظپ">Description</label><textarea id="fbdEventDescription" name="description" required></textarea></div>
               <div id="fbdEventErrors" class="error-box"></div>
-              <button type="submit" id="fbdEventSubmitBtn" class="submit-btn" data-en="Add FBD Event" data-ar="إضافة فعالية FBD">Add FBD Event</button>
+              <button type="submit" id="fbdEventSubmitBtn" class="submit-btn" data-en="Add FBD Event" data-ar="ط¥ط¶ط§ظپط© ظپط¹ط§ظ„ظٹط© FBD">Add FBD Event</button>
             </form>
           </div>
         </details>
@@ -441,29 +635,29 @@
       <!-- Settings -->
       <section id="settings-tab" class="tab-content">
         <details class="accordion" open>
-          <summary data-en="Connection" data-ar="الاتصال">Connection</summary>
+          <summary data-en="Connection" data-ar="ط§ظ„ط§طھطµط§ظ„">Connection</summary>
           <div class="accordion-body panel">
             <div id="tokenStatus" style="padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem; background:#f8fafc;">
-              <p><strong data-en="Status:" data-ar="الحالة:">Status:</strong> <span id="tokenStatusText">Checking...</span></p>
+              <p><strong data-en="Status:" data-ar="ط§ظ„ط­ط§ظ„ط©:">Status:</strong> <span id="tokenStatusText">Checking...</span></p>
             </div>
-            <p style="color:#4a5568;margin-bottom:1rem" data-en="Content is now stored in Firebase Firestore. No additional configuration needed." data-ar="يتم تخزين المحتوى الآن في Firebase Firestore. لا حاجة لتكوين إضافي.">Content is now stored in Firebase Firestore. No additional configuration needed.</p>
-            <button type="button" class="submit-btn" onclick="testFirestoreConnection()" style="background:#38a169;" data-en="Test Connection" data-ar="اختبار الاتصال">Test Connection</button>
+            <p style="color:#4a5568;margin-bottom:1rem" data-en="Content is now stored in Firebase Firestore. No additional configuration needed." data-ar="ظٹطھظ… طھط®ط²ظٹظ† ط§ظ„ظ…ط­طھظˆظ‰ ط§ظ„ط¢ظ† ظپظٹ Firebase Firestore. ظ„ط§ ط­ط§ط¬ط© ظ„طھظƒظˆظٹظ† ط¥ط¶ط§ظپظٹ.">Content is now stored in Firebase Firestore. No additional configuration needed.</p>
+            <button type="button" class="submit-btn" onclick="testFirestoreConnection()" style="background:#38a169;" data-en="Test Connection" data-ar="ط§ط®طھط¨ط§ط± ط§ظ„ط§طھطµط§ظ„">Test Connection</button>
           </div>
         </details>
 
         <details class="accordion" open>
-          <summary data-en="Firestore Structure" data-ar="بنية Firestore">Firestore Structure</summary>
+          <summary data-en="Firestore Structure" data-ar="ط¨ظ†ظٹط© Firestore">Firestore Structure</summary>
           <div class="accordion-body panel">
             <div id="structureResults" style="display:none;padding:1rem;border-radius:8px;margin-bottom:1rem;max-height:300px;overflow-y:auto;background:#f8fafc;">
-              <h4 data-en="Structure Validation Results:" data-ar="نتائج التحقق من البنية:">Structure Validation Results:</h4>
+              <h4 data-en="Structure Validation Results:" data-ar="ظ†طھط§ط¦ط¬ ط§ظ„طھط­ظ‚ظ‚ ظ…ظ† ط§ظ„ط¨ظ†ظٹط©:">Structure Validation Results:</h4>
               <div id="structureResultsContent"></div>
             </div>
-            <button type="button" class="submit-btn" onclick="fixFirestoreStructure()" style="background:#667eea;" data-en="Fix Firestore Structure" data-ar="إصلاح بنية Firestore">Fix Firestore Structure</button>
+            <button type="button" class="submit-btn" onclick="fixFirestoreStructure()" style="background:#667eea;" data-en="Fix Firestore Structure" data-ar="ط¥طµظ„ط§ط­ ط¨ظ†ظٹط© Firestore">Fix Firestore Structure</button>
           </div>
         </details>
 
         <details class="accordion" open>
-          <summary data-en="Admin Management" data-ar="إدارة المسؤولين">Admin Management</summary>
+          <summary data-en="Admin Management" data-ar="ط¥ط¯ط§ط±ط© ط§ظ„ظ…ط³ط¤ظˆظ„ظٹظ†">Admin Management</summary>
           <div class="accordion-body panel">
             <div style="margin-bottom:1rem">
               <h4>Current Admins:</h4>
@@ -481,14 +675,13 @@
 
   <script type="module">
     /*************************************************
-     * تهيئة Firebase و FirestoreAPI
+     * طھظ‡ظٹط¦ط© Firebase ظˆ FirestoreAPI
      *************************************************/
     import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import FirestoreAPI from "./js/firestore-api.js";
     import categoriesLoader from "./js/categories-loader.js";
-    import { toBase64, uploadFileChunks, createDocumentId } from "./js/file-chunks.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
@@ -509,7 +702,7 @@
     let CACHE = { events: [], articles: [], library: [], models3d: [], courses: [], fbdEvents: [] };
 
     /*************************************************
-     * تنقل التبويبات
+     * طھظ†ظ‚ظ„ ط§ظ„طھط¨ظˆظٹط¨ط§طھ
      *************************************************/
     const mainNav = document.getElementById('mainNav');
     mainNav.addEventListener('click', (e) => {
@@ -529,7 +722,7 @@
     });
 
     /*************************************************
-     * تسجيل خروج
+     * طھط³ط¬ظٹظ„ ط®ط±ظˆط¬
      *************************************************/
     window.logout = async function() {
       try {
@@ -589,7 +782,7 @@
     })();
 
     /*************************************************
-     * تحميل الفئات من JSON
+     * طھط­ظ…ظٹظ„ ط§ظ„ظپط¦ط§طھ ظ…ظ† JSON
      *************************************************/
     async function populateCategoryDropdowns() {
       try {
@@ -641,14 +834,14 @@
           if (currentValue) libCategorySelect.value = currentValue;
         }
         
-        console.log('[Admin Dashboard] ✓ Categories loaded successfully');
+        console.log('[Admin Dashboard] âœ“ Categories loaded successfully');
       } catch (error) {
-        console.error('[Admin Dashboard] ✗ Error loading categories:', error);
+        console.error('[Admin Dashboard] âœ— Error loading categories:', error);
       }
     }
 
     /*************************************************
-     * رسائل واجهة
+     * ط±ط³ط§ط¦ظ„ ظˆط§ط¬ظ‡ط©
      *************************************************/
     function showMessage(text, type) {
       const el = document.getElementById('message');
@@ -680,7 +873,7 @@
     };
 
     /*************************************************
-     * تحميل القوائم
+     * طھط­ظ…ظٹظ„ ط§ظ„ظ‚ظˆط§ط¦ظ…
      *************************************************/
     window.loadExistingEvents = async function() {
       const box = document.getElementById('existingEventsList');
@@ -692,7 +885,7 @@
         if (CACHE.events.length===0) { box.innerHTML = '<p>No events found.</p>'; return; }
         box.innerHTML = CACHE.events.map(ev => `
           <div class="content-item">
-            <div><strong>${ev.title || '(no title)'}</strong><br><small>${ev.time ? new Date(ev.time).toLocaleString() : '—'} ${ev.location ? ' - ' + ev.location : ''}</small></div>
+            <div><strong>${ev.title || '(no title)'}</strong><br><small>${ev.time ? new Date(ev.time).toLocaleString() : 'â€”'} ${ev.location ? ' - ' + ev.location : ''}</small></div>
             <div class="user-actions">
               <button class="btn edit-btn" onclick="editEvent('${ev.id}')">Edit</button>
               <button class="btn delete-btn" onclick="deleteEvent('${ev.id}')">Delete</button>
@@ -719,7 +912,6 @@
       eventGalleryUrl.value = ev.galleryUrl || '';
       eventDescription.value = ev.description || '';
       eventSubmitBtn.textContent = 'Update Event';
-      refreshStoredImages(firestoreAPI.paths.eventsCol, ev.id, eventStoredImages);
     };
 
     window.deleteEvent = async function(id) {
@@ -837,7 +1029,7 @@
           <div class="content-item">
             <div>
               <strong>${model.name || '(no name)'}</strong><br>
-              <small>Code: ${model.code || '—'} - Date: ${model.date || '—'}${Array.isArray(model.tags) && model.tags.length ? ' - Tags: ' + model.tags.join(', ') : ''}</small>
+              <small>Code: ${model.code || 'â€”'} - Date: ${model.date || 'â€”'}${Array.isArray(model.tags) && model.tags.length ? ' - Tags: ' + model.tags.join(', ') : ''}</small>
             </div>
             <div class="user-actions">
               <button class="btn edit-btn" onclick="editModel3D('${model.id}')">Edit</button>
@@ -898,7 +1090,7 @@
         if (CACHE.courses.length===0) { box.innerHTML = '<p>No courses found.</p>'; return; }
         box.innerHTML = CACHE.courses.map(c => `
           <div class="content-item">
-            <div><strong>${c.title || '(no title)'}</strong><br><small>${c.lecturer ? c.lecturer+' — ' : ''}${c.link ? `<a href="${c.link}" target="_blank" rel="noopener noreferrer">Link</a>` : ''}</small></div>
+            <div><strong>${c.title || '(no title)'}</strong><br><small>${c.lecturer ? c.lecturer+' â€” ' : ''}${c.link ? `<a href="${c.link}" target="_blank" rel="noopener noreferrer">Link</a>` : ''}</small></div>
             <div class="user-actions">
               <button class="btn edit-btn" onclick="editCourse('${c.id}')">Edit</button>
               <button class="btn delete-btn" onclick="deleteCourse('${c.id}')">Delete</button>
@@ -934,14 +1126,16 @@
       try {
         const r = await firestoreAPI.getAllContent();
         if (!r.success) throw new Error(r.error);
-        const fbd = r.content.education?.fbd || { pageTitle:'', about:'', events:[] };
-        fbdTitle.value = fbd.pageTitle || '';
-        fbdAbout.value = fbd.about || '';
+        const fbd = r.content.education?.fbd || { stats: { projectsCompleted: '12', studentsInvolved: '45', communityServed: '200+' }, events:[] };
+        const stats = fbd.stats || {};
+        fbdProjectsCompleted.value = stats.projectsCompleted || '12';
+        fbdStudentsInvolved.value = stats.studentsInvolved || '45';
+        fbdCommunityServed.value = stats.communityServed || '200+';
         CACHE.fbdEvents = fbd.events || [];
         if (CACHE.fbdEvents.length===0) { box.innerHTML = '<p>No FBD events found.</p>'; return; }
         box.innerHTML = CACHE.fbdEvents.map(ev => `
           <div class="content-item">
-            <div><strong>${ev.title || '(no title)'}</strong><br><small>${ev.time ? new Date(ev.time).toLocaleString() : '—'} ${ev.location ? ' - ' + ev.location : ''}</small></div>
+            <div><strong>${ev.title || '(no title)'}</strong><br><small>${ev.time ? new Date(ev.time).toLocaleString() : 'â€”'} ${ev.location ? ' - ' + ev.location : ''}</small></div>
             <div class="user-actions">
               <button class="btn edit-btn" onclick="editFbdEvent('${ev.id}')">Edit</button>
               <button class="btn delete-btn" onclick="deleteFbdEvent('${ev.id}')">Delete</button>
@@ -965,7 +1159,6 @@
       fbdEventRegisterUrl.value = ev.registerUrl || '';
       fbdEventDetailsUrl.value = ev.detailsUrl || '';
       fbdEventGalleryUrl.value = ev.galleryUrl || '';
-      refreshStoredImages(firestoreAPI.paths.fbdEventsCol, ev.id, fbdEventStoredImages);
       fbdEventDescription.value = ev.description || '';
       fbdEventSubmitBtn.textContent = 'Update FBD Event';
     };
@@ -978,7 +1171,7 @@
     };
 
     /*************************************************
-     * عناصر النماذج
+     * ط¹ظ†ط§طµط± ط§ظ„ظ†ظ…ط§ط°ط¬
      *************************************************/
     const eventForm         = document.getElementById('eventForm');
     const eventId           = document.getElementById('eventId');
@@ -987,13 +1180,11 @@
     const eventLocation     = document.getElementById('eventLocation');
     const eventType         = document.getElementById('eventType');
     const eventSeats        = document.getElementById('eventSeats');
-    // Legacy emoji-image fields may not be rendered; keep the payload compatible.
-    const eventImage        = document.getElementById('eventImage') || { value: '' };
+    const eventImage        = document.getElementById('eventImage');
     const eventImageUrl     = document.getElementById('eventImageUrl');
     const eventRegisterUrl  = document.getElementById('eventRegisterUrl');
-    const eventDetailsUrl   = document.getElementById('eventDetailsUrl') || { value: '' };
-    const eventGalleryUrl   = document.getElementById('eventGalleryUrl') || { value: '' };
-    const eventStoredImages = document.getElementById('eventStoredImages');
+    const eventDetailsUrl   = document.getElementById('eventDetailsUrl');
+    const eventGalleryUrl   = document.getElementById('eventGalleryUrl');
     const eventDescription  = document.getElementById('eventDescription');
     const eventSubmitBtn    = document.getElementById('eventSubmitBtn');
     const eventErrorsBox    = document.getElementById('eventErrors');
@@ -1006,8 +1197,6 @@
     const articleSummary    = document.getElementById('articleSummary');
     const articleContent    = document.getElementById('articleContent');
     const articleImageUrl   = document.getElementById('articleImageUrl');
-    const articleImageFile  = document.getElementById('articleImageFile');
-    const articleImageStatus = document.getElementById('articleImageStatus');
     const articleReadMoreUrl = document.getElementById('articleReadMoreUrl');
     const articleSubmitBtn  = document.getElementById('articleSubmitBtn');
     const articleErrorsBox  = document.getElementById('articleErrors');
@@ -1020,8 +1209,6 @@
     const libTags           = document.getElementById('libTags');
     const libImage          = document.getElementById('libImage');
     const libImageUrl       = document.getElementById('libImageUrl');
-    const libImageFile      = document.getElementById('libImageFile');
-    const libImageStatus    = document.getElementById('libImageStatus');
     const libDescription    = document.getElementById('libDescription');
     const libLink           = document.getElementById('libLink');
     const libSubmitBtn      = document.getElementById('libSubmitBtn');
@@ -1033,29 +1220,8 @@
     const model3dName       = document.getElementById('model3dName');
     const model3dDate       = document.getElementById('model3dDate');
     const model3dTags       = document.getElementById('model3dTags');
-    const model3dFile       = document.getElementById('model3dFile');
-    const model3dUploadStatus = document.getElementById('model3dUploadStatus');
     const model3dSubmitBtn  = document.getElementById('model3dSubmitBtn');
     const models3dErrorsBox = document.getElementById('models3dErrors');
-
-    model3dFile.addEventListener('change', async () => {
-      const file = model3dFile.files?.[0];
-      if (!file) return;
-      const path = ['content', 'models3d', 'items'];
-      model3dId.value = model3dId.value || createDocumentId(path);
-      model3dSubmitBtn.disabled = true;
-      model3dUploadStatus.textContent = 'Uploading...';
-      try {
-        const base64Data = await toBase64(file);
-        await uploadFileChunks(path, model3dId.value, 'fileChunks', base64Data);
-        model3dUploadStatus.textContent = 'Upload complete.';
-      } catch (error) {
-        console.error('[FileChunks] Upload failed:', error);
-        model3dUploadStatus.textContent = 'Upload failed. Please choose the file again.';
-      } finally {
-        model3dSubmitBtn.disabled = false;
-      }
-    });
 
     const educationForm     = document.getElementById('educationForm');
     const weekTitle         = document.getElementById('weekTitle');
@@ -1071,15 +1237,15 @@
     const courseLecturer    = document.getElementById('courseLecturer');
     const courseLink        = document.getElementById('courseLink');
     const courseImageUrl    = document.getElementById('courseImageUrl');
-    const courseImageFile   = document.getElementById('courseImageFile');
-    const courseImageStatus = document.getElementById('courseImageStatus');
     const courseEnrollUrl   = document.getElementById('courseEnrollUrl');
     const courseSubmitBtn   = document.getElementById('courseSubmitBtn');
     const courseErrorsBox   = document.getElementById('courseErrors');
 
     const fbdPageForm       = document.getElementById('fbdPageForm');
-    const fbdTitle          = document.getElementById('fbdTitle');
-    const fbdAbout          = document.getElementById('fbdAbout');
+    const fbdProjectsCompleted = document.getElementById('fbdProjectsCompleted');
+    const fbdStudentsInvolved  = document.getElementById('fbdStudentsInvolved');
+    const fbdCommunityServed   = document.getElementById('fbdCommunityServed');
+
 
     const fbdEventForm          = document.getElementById('fbdEventForm');
     const fbdEventId            = document.getElementById('fbdEventId');
@@ -1088,121 +1254,17 @@
     const fbdEventLocation      = document.getElementById('fbdEventLocation');
     const fbdEventType          = document.getElementById('fbdEventType');
     const fbdEventSeats         = document.getElementById('fbdEventSeats');
-    const fbdEventImage         = document.getElementById('fbdEventImage') || { value: '' };
+    const fbdEventImage         = document.getElementById('fbdEventImage');
     const fbdEventImageUrl      = document.getElementById('fbdEventImageUrl');
-    const fbdEventImageFile     = document.getElementById('fbdEventImageFile');
-    const fbdEventImageStatus   = document.getElementById('fbdEventImageStatus');
     const fbdEventRegisterUrl   = document.getElementById('fbdEventRegisterUrl');
-    const fbdEventDetailsUrl    = document.getElementById('fbdEventDetailsUrl') || { value: '' };
-    const fbdEventGalleryUrl    = document.getElementById('fbdEventGalleryUrl') || { value: '' };
-    const fbdEventStoredImages  = document.getElementById('fbdEventStoredImages');
+    const fbdEventDetailsUrl    = document.getElementById('fbdEventDetailsUrl');
+    const fbdEventGalleryUrl    = document.getElementById('fbdEventGalleryUrl');
     const fbdEventDescription   = document.getElementById('fbdEventDescription');
     const fbdEventSubmitBtn     = document.getElementById('fbdEventSubmitBtn');
     const fbdEventErrorsBox     = document.getElementById('fbdEventErrors');
 
-    async function refreshStoredImages(path, docId, container) {
-      if (!container || !docId) return;
-      container.innerHTML = '<small>Loading uploaded images...</small>';
-      try {
-        const images = await firestoreAPI.listStoredImages(path, docId);
-        if (!images.length) {
-          container.innerHTML = '<small>No uploaded images yet.</small>';
-          return;
-        }
-        container.innerHTML = images.map((image, index) => `
-          <span style="display:inline-flex;align-items:center;gap:.35rem;margin:.35rem .5rem .35rem 0;padding:.25rem;border:1px solid #ddd;border-radius:6px;">
-            <img src="${image.data}" alt="${image.type === 'main' ? 'Event thumbnail' : `Gallery image ${index}`}" style="width:64px;height:48px;object-fit:cover;border-radius:4px;">
-            <small>${image.type === 'main' ? 'Thumbnail' : 'Gallery'}</small>
-            ${image.type === 'gallery' ? `<button type="button" class="btn" data-image-action="thumbnail" data-image-id="${image.id}">Make thumbnail</button><button type="button" class="btn" data-image-action="up" data-image-id="${image.id}">↑</button><button type="button" class="btn" data-image-action="down" data-image-id="${image.id}">↓</button>` : ''}
-            <button type="button" class="btn delete-btn" data-image-action="delete" data-image-type="${image.type}" data-image-id="${image.id}">Delete</button>
-          </span>`).join('');
-        container.querySelectorAll('button[data-image-action]').forEach(button => {
-          button.addEventListener('click', async () => {
-            button.disabled = true;
-            if (button.dataset.imageAction === 'delete') {
-              await firestoreAPI.deleteStoredImage(path, docId, button.dataset.imageType, button.dataset.imageId);
-            } else if (button.dataset.imageAction === 'thumbnail') {
-              await firestoreAPI.makeGalleryImageThumbnail(path, docId, button.dataset.imageId);
-            } else {
-              await firestoreAPI.reorderGalleryImages(path, docId, button.dataset.imageId, button.dataset.imageAction);
-            }
-            await refreshStoredImages(path, docId, container);
-          });
-        });
-      } catch (error) {
-        console.error('[StoredImages] Failed to load images:', error);
-        container.innerHTML = '<small>Could not load uploaded images.</small>';
-      }
-    }
-
-    function addManualImageUploadListener(fileInput, statusEl, idInput, submitBtn, path, storedImagesContainer = null) {
-      fileInput?.addEventListener('change', async () => {
-        const file = fileInput.files?.[0];
-        if (!file) return;
-        const id = idInput.value || firestoreAPI.generateId(path);
-        idInput.value = id;
-        submitBtn.disabled = true;
-        statusEl.textContent = 'Uploading...';
-        try {
-          await firestoreAPI.uploadFileChunks(path, id, 'imageChunks', await toBase64(file));
-          statusEl.textContent = 'Image uploaded.';
-          await refreshStoredImages(path, id, storedImagesContainer);
-        } catch (error) {
-          console.error('[ImageUpload] Upload failed:', error);
-          statusEl.textContent = 'Upload failed. Please try again.';
-        } finally {
-          submitBtn.disabled = false;
-        }
-      });
-    }
-
-    function addEventImageFilesListener(fileInput, statusEl, idInput, submitBtn, path, storedImagesContainer) {
-      fileInput?.addEventListener('change', async () => {
-        const files = Array.from(fileInput.files || []);
-        if (!files.length) return;
-        const id = idInput.value || firestoreAPI.generateId(path);
-        idInput.value = id;
-        submitBtn.disabled = true;
-        statusEl.textContent = 'Uploading...';
-        try {
-          const existing = await firestoreAPI.listStoredImages(path, id);
-          let start = 0;
-          if (!existing.some(image => image.type === 'main')) {
-            statusEl.textContent = 'Uploading thumbnail...';
-            await firestoreAPI.uploadFileChunks(path, id, 'imageChunks', await toBase64(files[0]));
-            start = 1;
-          }
-          const galleryData = [];
-          for (let index = start; index < files.length; index += 1) {
-            statusEl.textContent = `Reading image ${index + 1} of ${files.length}...`;
-            galleryData.push(await toBase64(files[index]));
-          }
-          if (galleryData.length) {
-            statusEl.textContent = `Uploading ${galleryData.length} gallery image(s)...`;
-            await firestoreAPI.uploadGalleryImages(path, id, galleryData);
-          }
-          statusEl.textContent = 'Images uploaded.';
-          await refreshStoredImages(path, id, storedImagesContainer);
-        } catch (error) {
-          console.error('[EventImages] Upload failed:', error);
-          statusEl.textContent = 'Upload failed. Please try again.';
-        } finally {
-          submitBtn.disabled = false;
-          fileInput.value = '';
-        }
-      });
-    }
-
-    addEventImageFilesListener(document.getElementById('eventImageFiles'), document.getElementById('eventImageStatus'), eventId, eventSubmitBtn, firestoreAPI.paths.eventsCol, eventStoredImages);
-    addEventImageFilesListener(document.getElementById('fbdEventImageFiles'), fbdEventImageStatus, fbdEventId, fbdEventSubmitBtn, firestoreAPI.paths.fbdEventsCol, fbdEventStoredImages);
-    addManualImageUploadListener(articleImageFile, articleImageStatus, articleId, articleSubmitBtn, firestoreAPI.paths.magazineArticlesCol);
-    addManualImageUploadListener(libImageFile, libImageStatus, libId, libSubmitBtn, firestoreAPI.paths.libraryCol);
-    addManualImageUploadListener(courseImageFile, courseImageStatus, courseId, courseSubmitBtn, firestoreAPI.paths.educationCoursesCol);
-    addManualImageUploadListener(document.getElementById('eventImageFile'), document.getElementById('eventImageStatus'), eventId, eventSubmitBtn, firestoreAPI.paths.eventsCol, eventStoredImages);
-    addManualImageUploadListener(fbdEventImageFile, fbdEventImageStatus, fbdEventId, fbdEventSubmitBtn, firestoreAPI.paths.fbdEventsCol, fbdEventStoredImages);
-
     /*************************************************
-     * أدوات مساعدة للتحقق
+     * ط£ط¯ظˆط§طھ ظ…ط³ط§ط¹ط¯ط© ظ„ظ„طھط­ظ‚ظ‚
      *************************************************/
     function showErrors(box, errors) {
       if (!box) return;
@@ -1224,70 +1286,69 @@
     function validateEventPayload(p) {
       const errors = [];
       // p already contains trimmed values from submit handler
-      if (!p.title || p.title.length < 3) errors.push('العنوان مطلوب (3 أحرف على الأقل).');
-      if (!p.time) errors.push('التاريخ والوقت مطلوبان.');
-      if (!p.location || p.location.length < 2) errors.push('الموقع مطلوب.');
-      if (!p.description || p.description.length < 10) errors.push('الوصف مطلوب (10 أحرف على الأقل).');
-      if (!Number.isFinite(p.seats) || p.seats <= 0) errors.push('عدد المقاعد يجب أن يكون رقمًا أكبر من صفر.');
-      // The legacy emoji image field was removed. Images are now optional and
-      // can be supplied through Image URL or the manual upload control.
+      if (!p.title || p.title.length < 3) errors.push('ط§ظ„ط¹ظ†ظˆط§ظ† ظ…ط·ظ„ظˆط¨ (3 ط£ط­ط±ظپ ط¹ظ„ظ‰ ط§ظ„ط£ظ‚ظ„).');
+      if (!p.time) errors.push('ط§ظ„طھط§ط±ظٹط® ظˆط§ظ„ظˆظ‚طھ ظ…ط·ظ„ظˆط¨ط§ظ†.');
+      if (!p.location || p.location.length < 2) errors.push('ط§ظ„ظ…ظˆظ‚ط¹ ظ…ط·ظ„ظˆط¨.');
+      if (!p.description || p.description.length < 10) errors.push('ط§ظ„ظˆطµظپ ظ…ط·ظ„ظˆط¨ (10 ط£ط­ط±ظپ ط¹ظ„ظ‰ ط§ظ„ط£ظ‚ظ„).');
+      if (!Number.isFinite(p.seats) || p.seats <= 0) errors.push('ط¹ط¯ط¯ ط§ظ„ظ…ظ‚ط§ط¹ط¯ ظٹط¬ط¨ ط£ظ† ظٹظƒظˆظ† رظ‚ظ…ظ‹ط§ ط£ظƒط¨ط± ظ…ظ† طµظپط±.');
+      if (!p.image || p.image.length === 0) errors.push('ط§ظ„ط¥ظٹظ…ظˆط¬ظٹ ظ…ط·ظ„ظˆط¨ (ط§ظƒطھط¨ظ‡ ط¯ط§ط®ظ„ ط§ظ„ط­ط­ظ‚ظ„).');
       return errors;
     }
 
     function validateFbdEventPayload(p) {
-      // نفس منطق الفعاليات العادية
+      // ظ†ظپط³ ظ…ظ†ط·ظ‚ ط§ظ„ظپط¹ط§ظ„ظٹط§طھ ط§ظ„ط¹ط§ط¯ظٹط©
       return validateEventPayload(p);
     }
 
     function validateArticlePayload(p) {
       const errors = [];
       // p already contains trimmed values from submit handler
-      if (!p.title || p.title.length === 0) errors.push('عنوان المقال مطلوب.');
-      if (!p.author || p.author.length === 0) errors.push('اسم الكاتب مطلوب.');
-      if (!p.date || p.date.length === 0) errors.push('التاريخ مطلوب.');
-      if (!p.summary || p.summary.length < 5) errors.push('الملخص قصير جداً.');
-      if (!p.content || p.content.length < 20) errors.push('المحتوى يجب أن يكون 20 حرفاً فأكثر.');
+      if (!p.title || p.title.length === 0) errors.push('ط¹ظ†ظˆط§ظ† ط§ظ„ظ…ظ‚ط§ظ„ ظ…ط·ظ„ظˆط¨.');
+      if (!p.author || p.author.length === 0) errors.push('ط§ط³ظ… ط§ظ„ظƒط§طھط¨ ظ…ط·ظ„ظˆط¨.');
+      if (!p.date || p.date.length === 0) errors.push('ط§ظ„طھط§ط±ظٹط® ظ…ط·ظ„ظˆط¨.');
+      if (!p.summary || p.summary.length < 5) errors.push('ط§ظ„ظ…ظ„ط®طµ ظ‚طµظٹط± ط¬ط¯ط§ظ‹.');
+      if (!p.content || p.content.length < 20) errors.push('ط§ظ„ظ…ط­طھظˆظ‰ ظٹط¬ط¨ ط£ظ† ظٹظƒظˆظ† 20 ط­ط±ظپط§ظ‹ ظپط£ظƒط±ط«ط±.');
       return errors;
     }
 
     function validateLibraryPayload(p) {
       const errors = [];
       // p already contains trimmed values from submit handler
-      if (!p.name || p.name.length === 0) errors.push('اسم المصدر مطلوب.');
-      if (!p.type || p.type.length === 0) errors.push('نوع المصدر مطلوب.');
-      if (!p.description || p.description.length < 5) errors.push('الوصف قصير جداً.');
-      if (!p.image || p.image.length === 0) errors.push('الإيموجي مطلوب.');
-      if (!p.link || p.link.length === 0) errors.push('الرابط مطلوب.');
+      if (!p.name || p.name.length === 0) errors.push('ط§ط³ظ… ط§ظ„ظ…طµط¯ط± ظ…ط·ظ„ظˆط¨.');
+      if (!p.type || p.type.length === 0) errors.push('ظ†ظˆط¹ ط§ظ„ظ…طµط¯ط± ظ…ط·ظ„ظˆط¨.');
+      if (!p.description || p.description.length < 5) errors.push('ط§ظ„ظˆطµظپ ظ‚طµظٹط± ط¬ط¯ط§ظ‹.');
+      if (!p.image || p.image.length === 0) errors.push('ط§ظ„ط¥ظٹظ…ظˆط¬ظٹ ظ…ط·ظ„ظˆط¨.');
+      if (!p.link || p.link.length === 0) errors.push('ط§ظ„ط±ط§ط¨ط· ظ…ط·ظ„ظˆط¨.');
       return errors;
     }
 
     function validateCoursePayload(p) {
       const errors = [];
       // p already contains trimmed values from submit handler
-      if (!p.title || p.title.length === 0) errors.push('عنوان الدورة مطلوب.');
-      if (!p.description || p.description.length < 5) errors.push('وصف الدورة قصير جداً.');
+      if (!p.title || p.title.length === 0) errors.push('ط¹ظ†ظˆط§ظ† ط§ظ„ط¯ظˆط±ط© ظ…ط·ظ„ظˆط¨.');
+      if (!p.description || p.description.length < 5) errors.push('ظˆطµظپ ط§ظ„ط¯ظˆط±ط© ظ‚طµظٹط± ط¬ط¯ط§ظ‹.');
       return errors;
     }
 
     function validateModel3DPayload(p) {
       const errors = [];
-      if (!p.code || p.code.length !== 10) errors.push('رمز النموذج يجب أن يكون 10 أحرف بالضبط.');
-      if (!p.name || p.name.length < 2) errors.push('اسم النموذج مطلوب.');
-      if (!p.date) errors.push('تاريخ النموذج مطلوب.');
+      if (!p.code || p.code.length !== 10) errors.push('ط±ظ…ط² ط§ظ„ظ†ظ…ظˆط°ط¬ ظٹط¬ط¨ ط£ظ† ظٹظƒظˆظ† 10 ط£ط­ط±ظپ ط¨ط§ظ„ط¶ط¨ط·.');
+      if (!p.name || p.name.length < 2) errors.push('ط§ط³ظ… ط§ظ„ظ†ظ…ظˆط°ط¬ ظ…ط·ظ„ظˆط¨.');
+      if (!p.date) errors.push('طھط§ط±ظٹط® ط§ظ„ظ†ظ…ظˆط°ط¬ ظ…ط·ظ„ظˆط¨.');
       return errors;
     }
 
     function validateWorkshopPayload(p) {
       const errors = [];
       // p already contains trimmed values from submit handler
-      if (!p.weekTitle || p.weekTitle.length === 0) errors.push('عنوان الورشة مطلوب.');
-      if (!p.lecturerName || p.lecturerName.length === 0) errors.push('اسم المحاضر مطلوب.');
-      if (!p.description || p.description.length < 10) errors.push('الوصف قصير جداً.');
+      if (!p.weekTitle || p.weekTitle.length === 0) errors.push('ط¹ظ†ظˆط§ظ† ط§ظ„ظˆط±ط´ط© ظ…ط·ظ„ظˆط¨.');
+      if (!p.lecturerName || p.lecturerName.length === 0) errors.push('ط§ط³ظ… ط§ظ„ظ…ط­ط§ط¶ط± ظ…ط·ظ„ظˆط¨.');
+      if (!p.description || p.description.length < 10) errors.push('ط§ظ„ظˆطµظپ ظ‚طµظٹط± ط¬ط¯ط§ظ‹.');
       return errors;
     }
 
     /*************************************************
-     * إرسال نموذج الفعالية (Events)
+     * ط¥ط±ط³ط§ظ„ ظ†ظ…ظˆط°ط¬ ط§ظ„ظپط¹ط§ظ„ظٹط© (Events)
      *************************************************/
     eventForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1304,7 +1365,7 @@
         type: eventType.value,
         seats: eventSeats.value,
         image: eventImage.value,
-        imageUrl: eventImageUrl.value,
+        imageUrl: '',
         registerUrl: eventRegisterUrl.value,
         detailsUrl: eventDetailsUrl.value,
         galleryUrl: eventGalleryUrl.value,
@@ -1318,7 +1379,7 @@
         type: eventType.value,
         seats: Number(eventSeats.value),
         image: eventImage.value.trim(),
-        imageUrl: eventImageUrl.value.trim(),
+        imageUrl: '',
         registerUrl: eventRegisterUrl.value.trim(),
         detailsUrl: eventDetailsUrl.value.trim(),
         galleryUrl: eventGalleryUrl.value.trim(),
@@ -1336,270 +1397,16 @@
       try {
         const r = mode==='edit'
           ? await firestoreAPI.updateEvent(eventId.value, payload)
-          : await firestoreAPI.addEvent(payload, eventId.value);
+          : await firestoreAPI.addEvent(payload);
         if (r.success) {
-          showMessage('Event saved successfully!', 'success');
-          eventForm.reset();
-            eventForm.dataset.mainUploaded = 'false';
-            eventForm.dataset.galleryUploaded = 'false';
-          eventForm.dataset.mode = 'add';
-            eventId.value = '';
-          eventSubmitBtn.textContent = 'Add Event';
-          loadExistingEvents();
-        } else {
-          showMessage(r.error || 'Failed to save event', 'error');
-        }
-      } catch (err) {
-        console.error('[EventForm] Exception:', err);
-        showMessage('Unexpected error saving event', 'error');
-      } finally {
-        eventSubmitBtn.disabled = false;
-        if (mode !== 'edit') eventSubmitBtn.textContent = originalText;
-      }
-    }, true);
-
-    /*************************************************
-     * إرسال نموذج المقال (Articles)
-     *************************************************/
-    articleForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      
-      const mode = articleForm.dataset.mode || 'add';
-      const payload = {
-        title: articleTitle.value.trim(),
-        author: articleAuthor.value.trim(),
-        date: articleDate.value,
-        summary: articleSummary.value.trim(),
-        content: articleContent.value.trim(),
-        imageUrl: articleImageUrl.value.trim(),
-        readMoreUrl: articleReadMoreUrl.value.trim()
-      };
-      const errors = validateArticlePayload(payload);
-      showErrors(articleErrorsBox, errors);
-      if (errors.length) { console.warn('[ArticleForm] Validation failed:', errors); return; }
-
-      articleSubmitBtn.disabled = true;
-      const originalText = articleSubmitBtn.textContent;
-      articleSubmitBtn.textContent = mode === 'edit' ? 'Updating...' : 'Saving...';
-
-      try {
-        const r = mode==='edit'
-          ? await firestoreAPI.updateArticle(articleId.value, payload)
-          : await firestoreAPI.addArticle(payload, articleId.value || null);
-        if (r.success) {
-          showMessage('Article saved successfully!', 'success');
-          articleForm.reset();
-          articleForm.dataset.mode = 'add';
-          articleSubmitBtn.textContent = 'Add Article';
-          loadExistingArticles();
-        } else {
-          showMessage(r.error || 'Failed to save article', 'error');
-        }
-      } catch (err) {
-        console.error('[ArticleForm] Exception:', err);
-        showMessage('Unexpected error saving article', 'error');
-      } finally {
-        articleSubmitBtn.disabled = false;
-        if (mode !== 'edit') articleSubmitBtn.textContent = originalText;
-      }
-    }, true);
-
-    /*************************************************
-     * إرسال نموذج المكتبة (Library)
-     *************************************************/
-    libraryForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      
-      const mode = libraryForm.dataset.mode || 'add';
-      const payload = {
-        name: libName.value.trim(),
-        type: libType.value,
-        category: libCategory.value,
-        tags: libTags.value ? libTags.value.split(',').map(t=>t.trim()).filter(Boolean) : [],
-        image: libImage.value.trim(),
-        imageUrl: libImageUrl.value.trim(),
-        description: libDescription.value.trim(),
-        link: libLink.value.trim()
-      };
-      const errors = validateLibraryPayload(payload);
-      showErrors(libraryErrorsBox, errors);
-      if (errors.length) { console.warn('[LibraryForm] Validation failed:', errors); return; }
-
-      libSubmitBtn.disabled = true;
-      const originalText = libSubmitBtn.textContent;
-      libSubmitBtn.textContent = mode === 'edit' ? 'Updating...' : 'Saving...';
-
-      try {
-        const r = mode==='edit'
-          ? await firestoreAPI.updateLibraryResource(libId.value, payload)
-          : await firestoreAPI.addLibraryResource(payload, libId.value || null);
-        if (r.success) {
-          showMessage('Resource saved successfully!', 'success');
-          libraryForm.reset();
-          libraryForm.dataset.mode = 'add';
-          libSubmitBtn.textContent = 'Add Resource';
-          loadExistingLibraryResources();
-        } else {
-          showMessage(r.error || 'Failed to save resource', 'error');
-        }
-      } catch (err) {
-        console.error('[LibraryForm] Exception:', err);
-        showMessage('Unexpected error saving resource', 'error');
-      } finally {
-        libSubmitBtn.disabled = false;
-        if (mode !== 'edit') libSubmitBtn.textContent = originalText;
-      }
-    }, true);
-
-    /*************************************************
-     * إرسال نموذج النماذج ثلاثية الأبعاد (3D Models)
-     *************************************************/
-    models3dForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-
-      const mode = models3dForm.dataset.mode || 'add';
-      const payload = {
-        code: model3dCode.value.trim(),
-        name: model3dName.value.trim(),
-        date: model3dDate.value,
-        tags: model3dTags.value ? model3dTags.value.split(',').map(t => t.trim()).filter(Boolean) : []
-      };
-
-      const errors = validateModel3DPayload(payload);
-      showErrors(models3dErrorsBox, errors);
-      if (errors.length) {
-        console.warn('[Models3DForm] Validation failed:', errors);
-        return;
-      }
-
-      model3dSubmitBtn.disabled = true;
-      const originalText = model3dSubmitBtn.textContent;
-      model3dSubmitBtn.textContent = mode === 'edit' ? 'Updating...' : 'Saving...';
-
-      try {
-        const r = mode === 'edit'
-          ? await firestoreAPI.updateModel3D(model3dId.value, payload)
-          : await firestoreAPI.addModel3D(payload, model3dId.value || null);
-
-        if (r.success) {
-          showMessage('3D model saved successfully!', 'success');
-          models3dForm.reset();
-          models3dForm.dataset.mode = 'add';
-          model3dSubmitBtn.textContent = 'Add 3D Model';
-          loadExistingModels3D();
-        } else {
-          showMessage(r.error || 'Failed to save 3D model', 'error');
-        }
-      } catch (err) {
-        console.error('[Models3DForm] Exception:', err);
-        showMessage('Unexpected error saving 3D model', 'error');
-      } finally {
-        model3dSubmitBtn.disabled = false;
-        if (mode !== 'edit') model3dSubmitBtn.textContent = originalText;
-      }
-    }, true);
-
-    /*************************************************
-     * إرسال نموذج الورشة الأسبوعية (Education)
-     *************************************************/
-    educationForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      
-      const payload = {
-        weekTitle: weekTitle.value.trim(),
-        lecturerName: lecturerName.value.trim(),
-        description: weekDescription.value.trim(),
-        workshopUrl: workshopUrl.value.trim()
-      };
-      const errors = validateWorkshopPayload(payload);
-      showErrors(educationErrorsBox, errors);
-      if (errors.length) { console.warn('[EducationForm] Validation failed:', errors); return; }
-
-      try {
-        const r = await firestoreAPI.updateEducation(payload);
-        if (r.success) showMessage('Education content updated!', 'success');
-        else showMessage(r.error || 'Failed to update education content', 'error');
-      } catch (err) {
-        console.error('[EducationForm] Exception:', err);
-        showMessage('Unexpected error updating education content', 'error');
-      }
-    }, true);
-
-    /*************************************************
-     * إرسال نموذج الدورات (Courses)
-     *************************************************/
-    courseForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      
-      const mode = courseForm.dataset.mode || 'add';
-      const payload = {
-        title: courseTitle.value.trim(),
-        description: courseDescription.value.trim(),
-        lecturer: courseLecturer.value.trim(),
-        link: courseLink.value.trim(),
-        imageUrl: courseImageUrl.value.trim(),
-        enrollUrl: courseEnrollUrl.value.trim()
-      };
-      const errors = validateCoursePayload(payload);
-      showErrors(courseErrorsBox, errors);
-      if (errors.length) { console.warn('[CourseForm] Validation failed:', errors); return; }
-
-      courseSubmitBtn.disabled = true;
-      const originalText = courseSubmitBtn.textContent;
-      courseSubmitBtn.textContent = mode === 'edit' ? 'Updating...' : 'Saving...';
-
-      try {
-        const r = mode==='edit'
-          ? await firestoreAPI.updateCourse(courseId.value, payload)
-          : await firestoreAPI.addCourse(payload, courseId.value || null);
-        if (r.success) {
-          showMessage('Course saved', 'success');
-          courseForm.reset();
-          courseForm.dataset.mode = 'add';
-          courseSubmitBtn.textContent = 'Add Course';
-          loadCourses();
-        } else {
-          showMessage(r.error || 'Failed to save course', 'error');
-        }
-      } catch (err) {
-        console.error('[CourseForm] Exception:', err);
-        showMessage('Unexpected error saving course', 'error');
-      } finally {
-        courseSubmitBtn.disabled = false;
-        if (mode !== 'edit') courseSubmitBtn.textContent = originalText;
-      }
-    }, true);
-
-    /*************************************************
-     * إرسال نموذج صفحة FBD
-     *************************************************/
-    fbdPageForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      try {
-        const r = await firestoreAPI.updateFbdPage({
-          pageTitle: fbdTitle.value,
-          about: fbdAbout.value
-        });
-        if (r.success) showMessage('FBD page updated', 'success');
-        else showMessage(r.error || 'Failed to update FBD page', 'error');
-      } catch (err) {
-        console.error('[FbdPageForm] Exception:', err);
-        showMessage('Unexpected error updating FBD page', 'error');
+          const docId = mode === 'edit' ? eventId.value : r.id;
+          const uploadOk = await window.handleImageChunkUpload('event', docId, firestoreAPI.paths.eventsCol);
+          if (!uploadOk) return;
       }
     });
 
     /*************************************************
-     * إرسال نموذج فعالية FBD (FBD Events)
+     * ط¥ط±ط³ط§ظ„ ظ†ظ…ظˆط°ط¬ ظپط¹ط§ظ„ظٹط© FBD (FBD Events)
      *************************************************/
     fbdEventForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1616,7 +1423,7 @@
         type: fbdEventType.value,
         seats: fbdEventSeats.value,
         image: fbdEventImage.value,
-        imageUrl: fbdEventImageUrl.value,
+        imageUrl: '',
         registerUrl: fbdEventRegisterUrl.value,
         detailsUrl: fbdEventDetailsUrl.value,
         galleryUrl: fbdEventGalleryUrl.value,
@@ -1630,7 +1437,7 @@
         type: fbdEventType.value,
         seats: Number(fbdEventSeats.value),
         image: fbdEventImage.value.trim(),
-        imageUrl: fbdEventImageUrl.value.trim(),
+        imageUrl: '',
         registerUrl: fbdEventRegisterUrl.value.trim(),
         detailsUrl: fbdEventDetailsUrl.value.trim(),
         galleryUrl: fbdEventGalleryUrl.value.trim(),
@@ -1647,14 +1454,11 @@
       try {
         const r = mode==='edit'
           ? await firestoreAPI.updateFbdEvent(fbdEventId.value, payload)
-          : await firestoreAPI.addFbdEvent(payload, fbdEventId.value);
+          : await firestoreAPI.addFbdEvent(payload);
         if (r.success) {
           showMessage('FBD event saved', 'success');
           fbdEventForm.reset();
-            fbdEventForm.dataset.mainUploaded = 'false';
-            fbdEventForm.dataset.galleryUploaded = 'false';
           fbdEventForm.dataset.mode = 'add';
-            fbdEventId.value = '';
           fbdEventSubmitBtn.textContent = 'Add FBD Event';
           loadFbd();
         } else {
@@ -1670,7 +1474,7 @@
     }, true);
 
     /*************************************************
-     * إعدادات / أدوات الصيانة
+     * ط¥ط¹ط¯ط§ط¯ط§طھ / ط£ط¯ظˆط§طھ ط§ظ„طµظٹط§ظ†ط©
      *************************************************/
     window.testFirestoreConnection = async function() {
       const el = document.getElementById('tokenStatusText');
@@ -1686,73 +1490,12 @@
       box.style.display = 'block';
       content.innerHTML = '<p>Validating and fixing structure...</p>';
       const r = await firestoreAPI.validateAndFixStructure();
-      const actions = (r.actions||[]).map(a=>`<li style="color:#2f855a">✓ ${a}</li>`).join('');
-      const errors  = (r.errors ||[]).map(e=>`<li style="color:#c53030">✗ ${e}</li>`).join('');
+      const actions = (r.actions||[]).map(a=>`<li style="color:#2f855a">âœ“ ${a}</li>`).join('');
+      const errors  = (r.errors ||[]).map(e=>`<li style="color:#c53030">âœ— ${e}</li>`).join('');
       content.innerHTML = `<ul>${actions}${errors}</ul>`;
     };
 
-    
-      // --- Background Upload Handlers ---
-      const addUploadListener = (inputId, statusId, isGallery, pathsGetter, docIdInputId) => {
-        const el = document.getElementById(inputId);
-        if (!el) return;
-        el.addEventListener('change', async (e) => {
-            const files = e.target.files;
-            if (!files || files.length === 0) return;
-            
-            let docId = document.getElementById(docIdInputId).value;
-            if (!docId) {
-                docId = firestoreAPI.generateId(pathsGetter());
-                document.getElementById(docIdInputId).value = docId;
-            }
-            
-            const statusEl = document.getElementById(statusId);
-            const form = document.getElementById(docIdInputId === 'eventId' ? 'eventForm' : 'fbdEventForm');
-            const submitBtn = form.querySelector('button[type="submit"]');
-            
-            submitBtn.disabled = true;
-            statusEl.textContent = 'Preparing upload...';
-            
-            try {
-                if (isGallery) {
-                    const b64s = [];
-                    for(let i=0; i<files.length; i++){
-                        statusEl.textContent = `Reading image ${i+1} of ${files.length}...`;
-                        b64s.push(await window.toBase64(files[i]));
-                    }
-                    await firestoreAPI.uploadGalleryImages(pathsGetter(), docId, b64s, (c, t) => {
-                        statusEl.textContent = `Uploading gallery image ${c} of ${t}...`;
-                    });
-                    statusEl.textContent = `Uploaded ${files.length} gallery images.`;
-                    form.dataset.galleryUploaded = 'true';
-                    await refreshStoredImages(pathsGetter(), docId, docIdInputId === 'eventId' ? eventStoredImages : fbdEventStoredImages);
-                } else {
-                    statusEl.textContent = 'Reading main image...';
-                    const b64 = await window.toBase64(files[0]);
-                    statusEl.textContent = 'Uploading main image...';
-                    await firestoreAPI.uploadFileChunks(pathsGetter(), docId, 'imageChunks', b64);
-                    statusEl.textContent = 'Main image uploaded.';
-                    form.dataset.mainUploaded = 'true';
-                    
-                    // If event already exists, update it to reflect the new image immediately
-                    if (form.dataset.mode === 'edit') {
-                        if (docIdInputId === 'eventId') await firestoreAPI.updateEvent(docId, { hasImageChunks: true });
-                        else await firestoreAPI.updateFbdEvent(docId, { hasImageChunks: true });
-                    }
-                }
-            } catch(err) {
-                console.error('Upload Error:', err);
-                statusEl.textContent = 'Error uploading images.';
-            } finally {
-                submitBtn.disabled = false;
-            }
-        });
-      };
-
-      addUploadListener('eventGalleryFiles', 'eventGalleryStatus', true, () => firestoreAPI.paths.eventsCol, 'eventId');
-      addUploadListener('fbdEventGalleryFiles', 'fbdEventGalleryStatus', true, () => firestoreAPI.paths.fbdEventsCol, 'fbdEventId');
-
-      window.loadAdminsList = async function() {
+    window.loadAdminsList = async function() {
       const box = document.getElementById('adminsList'); box.innerHTML = '<p>Loading...</p>';
       const r = await firestoreAPI.getAdmins();
       if (!r.success) { box.innerHTML = `<p style="color:red">${r.error}</p>`; return; }
@@ -1763,16 +1506,35 @@
     /*************************************************
      * END
      *************************************************/
-
-    window.toBase64 = function(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
+    // Image Upload Chunk Handlers
+    window.handleImageChunkUpload = async function(prefix, docId, collectionPath) {
+      const fileInput = document.getElementById(prefix + 'ImageFile');
+      const file = fileInput ? fileInput.files[0] : null;
+      if (!file) return true;
+      
+      if (file.size > 10 * 1024 * 1024) {
+        showMessage('Image size exceeds 10MB limit.', 'error');
+        return false;
+      }
+      
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      const base64Url = await new Promise((resolve, reject) => {
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = e => reject(e);
       });
+      
+      const uploadRes = await firestoreAPI.uploadFileChunks(collectionPath, docId, 'imageChunks', base64Url);
+      if (!uploadRes.success) {
+        showMessage('Image upload failed: ' + uploadRes.error, 'error');
+        return false;
+      }
+      
+      fileInput.value = '';
+      return true;
     };
-
   </script>
 </body>
 </html>
+
+

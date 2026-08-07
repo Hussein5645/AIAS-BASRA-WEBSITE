@@ -197,7 +197,7 @@
                                 <div class="mega-menu-content">
                                     <div class="mega-menu-section">
                                         <h3>Learn & Explore</h3>
-                                        <a href="library-enhanced.html" class="mega-menu-link shell-link-library">
+                                        <a href="library.html" class="mega-menu-link shell-link-library">
                                             <div class="mega-menu-icon">📚</div>
                                             <div class="mega-menu-link-content">
                                                 <div class="mega-menu-link-title">Library</div>
@@ -510,7 +510,7 @@
             return;
         }
 
-        if (currentFile === 'library.html' || currentFile === 'library-enhanced.html') {
+        if (currentFile === 'library.html') {
             setActive('.shell-link-resources');
             setActive('.shell-link-library');
             return;

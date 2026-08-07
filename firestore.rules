@@ -27,20 +27,9 @@ service cloud.firestore {
     }
     
     // Content documents - admins can write, all can read
-    match /content/{document} {
+    match /content/{document=**} {
       allow read: if true;
       allow write: if isAdmin();
-      
-      // Subcollections for events and library under content
-      match /events/items/{eventId} {
-        allow read: if true;
-        allow write: if isAdmin();
-      }
-      
-      match /library/items/{libraryId} {
-        allow read: if true;
-        allow write: if isAdmin();
-      }
     }
   }
 }

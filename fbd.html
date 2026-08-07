@@ -161,6 +161,53 @@
             transform: scale(1.05);
             box-shadow: var(--shadow-md);
         }
+
+        .event-card {
+            position: relative;
+        }
+
+        .event-date-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--white);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: var(--shadow-md);
+            z-index: 1;
+        }
+
+        .event-day {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            line-height: 1;
+        }
+
+        .event-month {
+            font-size: 0.9rem;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .event-image {
+            position: relative;
+        }
+
+        .event-status {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .status-upcoming { color: #10b981; }
+        .status-past { color: #6b7280; }
         
         @media (max-width: 768px) {
             .fbd-hero h1 {
@@ -219,7 +266,7 @@
     <!-- FBD Hero -->
     <section class="fbd-hero">
         <div class="container">
-            <h1 class="fade-in-up" id="fbdTitle" data-en="Freedom By Design" data-ar="الحرية بالتصميم">Freedom By Design</h1>
+            <h1 class="fade-in-up" id="fbdTitle" data-en="Freedom By Design (FBD)" data-ar="الحرية بالتصميم (FBD)">Freedom By Design (FBD)</h1>
             <p class="fade-in-up delay-1" data-en="Design for social impact and community service" data-ar="التصميم من أجل التأثير الاجتماعي وخدمة المجتمع">Design for social impact and community service</p>
         </div>
     </section>
@@ -231,19 +278,19 @@
                 <h2 class="section-title" data-en="About the Program" data-ar="عن البرنامج">About the Program</h2>
             </div>
             <div class="about-content">
-                <p id="fbdAbout"></p>
+                <p id="fbdAbout" data-en="Freedom By Design (FBD) is AIAS’s community-driven program that turns design into real impact. Led by architecture students, FBD creates small-scale build projects that improve public spaces, support communities, and enhance accessibility for people in need. Through hands-on design and construction, students learn real-world skills while delivering meaningful solutions — proving that architecture can serve people, create opportunity, and inspire change." data-ar="الحرية بالتصميم (FBD) هو برنامج يقوده المجتمع في AIAS والذي يحول التصميم إلى تأثير حقيقي. بقيادة طلاب الهندسة المعمارية، تقوم FBD بإنشاء مشاريع بناء صغيرة الحجم تعمل على تحسين الأماكن العامة، ودعم المجتمعات، وتعزيز إمكانية الوصول للأشخاص المحتاجين. من خلال التصميم والبناء العملي، يتعلم الطلاب مهارات العالم الحقيقي بينما يقدمون حلولاً هادفة - مما يثبت أن الهندسة المعمارية يمكن أن تخدم الناس، وتخلق الفرص، وتلهم التغيير.">Freedom By Design (FBD) is AIAS’s community-driven program that turns design into real impact. Led by architecture students, FBD creates small-scale build projects that improve public spaces, support communities, and enhance accessibility for people in need. Through hands-on design and construction, students learn real-world skills while delivering meaningful solutions — proving that architecture can serve people, create opportunity, and inspire change.</p>
                 
                 <div class="impact-stats">
                     <div class="stat-box reveal">
-                        <div class="stat-number">12</div>
+                        <div class="stat-number" id="statCompleted">12</div>
                         <div class="stat-label" data-en="Projects Completed" data-ar="مشاريع مكتملة">Projects Completed</div>
                     </div>
                     <div class="stat-box reveal">
-                        <div class="stat-number">45</div>
+                        <div class="stat-number" id="statStudents">45</div>
                         <div class="stat-label" data-en="Students Involved" data-ar="طلاب مشاركين">Students Involved</div>
                     </div>
                     <div class="stat-box reveal">
-                        <div class="stat-number">200+</div>
+                        <div class="stat-number" id="statCommunity">200+</div>
                         <div class="stat-label" data-en="Community Members Served" data-ar="أفراد المجتمع المخدومين">Community Members Served</div>
                     </div>
                 </div>
@@ -328,17 +375,13 @@
                 console.log('[FBD] ✓ Education content loaded');
                 
                 if (educationData && educationData.fbd) {
-                    // Set page title if available
-                    const fbdTitle = document.getElementById('fbdTitle');
-                    if (fbdTitle && educationData.fbd.pageTitle) {
-                        fbdTitle.textContent = educationData.fbd.pageTitle;
-                    }
-                    
-                    // Set about text
-                    const fbdAbout = document.getElementById('fbdAbout');
-                    if (fbdAbout && educationData.fbd.about) {
-                        fbdAbout.textContent = educationData.fbd.about;
-                    }
+                    const stats = educationData.fbd.stats || {};
+                    const statCompleted = document.getElementById('statCompleted');
+                    const statStudents = document.getElementById('statStudents');
+                    const statCommunity = document.getElementById('statCommunity');
+                    if (statCompleted) statCompleted.textContent = stats.projectsCompleted || '0';
+                    if (statStudents) statStudents.textContent = stats.studentsInvolved || '0';
+                    if (statCommunity) statCommunity.textContent = stats.communityServed || '0';
                     
                     // Load events
                     const eventsContainer = document.getElementById('fbdEventsContainer');
@@ -390,18 +433,24 @@
                             
                             const status = isPast ? 'Completed' : 'Upcoming';
                             const statusClass = isPast ? 'status-past' : 'status-upcoming';
+                            const hasImages = Boolean(event.imageUrl || event.hasImageChunks || event.hasGalleryImages);
                             
                             return `
                                 <div class="event-card reveal">
+                                    <div class="event-date-badge">
+                                        <div class="event-day">${dateInfo.day}</div>
+                                        <div class="event-month">${dateInfo.monthShort}</div>
+                                    </div>
                                     <div class="event-image" style="${event.imageUrl ? `background-image: url('${event.imageUrl}'); background-size: cover; background-position: center;` : ''}">
                                         ${event.imageUrl ? '' : (event.image || '🏗️')}
+                                        <span class="event-status ${statusClass}">${status}</span>
                                     </div>
                                     <div class="event-content">
                                         <h3 class="event-title">${event.title}</h3>
                                         <div class="event-meta">
                                             <div class="meta-item">
                                                 <span>📅</span>
-                                                <span>${dateInfo.fullDate}</span>
+                                                <span>${dateInfo.time}</span>
                                             </div>
                                             <div class="meta-item">
                                                 <span>📍</span>
@@ -414,16 +463,9 @@
                                         </div>
                                         <p class="event-description">${event.description}</p>
                                         <div class="event-actions">
-                                            ${!isPast ? (
-                                                event.registerUrl 
-                                                    ? `<a href="${event.registerUrl}" class="action-btn btn-register" target="_blank" rel="noopener noreferrer">Register Now</a>` 
-                                                    : '<button class="action-btn btn-register" disabled style="opacity: 0.6; cursor: not-allowed;">Registration Coming Soon</button>'
-                                            ) : (
-                                                event.galleryUrl 
-                                                    ? `<a href="${event.galleryUrl}" class="action-btn btn-register" target="_blank" rel="noopener noreferrer">View Gallery</a>`
-                                                    : '<button class="action-btn btn-register" disabled>Event Completed</button>'
-                                            )}
-                                            ${event.detailsUrl && !isPast ? `<a href="${event.detailsUrl}" class="action-btn btn-details" target="_blank" rel="noopener noreferrer">Details</a>` : ''}
+                                            ${!isPast && event.registerUrl ? `<a href="${event.registerUrl}" class="action-btn btn-register" target="_blank" rel="noopener noreferrer">Register Now</a>` : ''}
+                                            ${hasImages ? `<a href="gallery.html#${event.id}" class="action-btn btn-details">View Gallery</a>` : ''}
+                                            ${event.detailsUrl ? `<a href="${event.detailsUrl}" class="action-btn btn-details" style="background: var(--light-bg); color: var(--primary-color);" target="_blank" rel="noopener noreferrer">Details</a>` : ''}
                                         </div>
                                     </div>
                                 </div>
