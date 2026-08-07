@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Article - AIAS Basra</title>
+  <link rel="icon" type="image/png" href="static/images/branding/LOGO.png">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/mobile-optimized.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script type="module" src="js/auth.js"></script>
+  <style>
+    .article-hero { background:var(--gradient-1); color:var(--white); padding:8rem 0 4rem; text-align:center; }
+    .article-hero h1 { max-width:900px; margin:0 auto 1rem; font-size:clamp(2rem,5vw,3.5rem); }
+    .article-meta { opacity:.9; }
+    .article-page { max-width:900px; margin:0 auto; padding:4rem 1rem 6rem; }
+    .article-cover { width:100%; max-height:460px; object-fit:cover; border-radius:14px; margin-bottom:2.5rem; box-shadow:var(--shadow-lg); }
+    .article-body { color:var(--text-secondary); font-size:1.08rem; line-height:1.9; }
+    .article-body h2,.article-body h3 { color:var(--primary-color); margin:2rem 0 .75rem; line-height:1.3; }
+    .article-body p { margin:0 0 1.25rem; }
+    .article-body ul,.article-body ol { margin:0 0 1.25rem 1.5rem; }
+    .article-body a { color:var(--accent-color); }
+    .article-body blockquote { border-left:4px solid var(--accent-color); margin:1.5rem 0; padding:.5rem 1rem; background:var(--light-bg); }
+    #status { text-align:center; padding:5rem 1rem; color:var(--text-secondary); }
+  </style>
+</head>
+<body>
+  <nav class="navbar" id="navbar"></nav>
+  <section class="article-hero">
+    <div class="container">
+      <h1 id="articleTitle">Loading article...</h1>
+      <div id="articleMeta" class="article-meta"></div>
+    </div>
+  </section>
+  <main class="article-page">
+    <div id="status">Loading article...</div>
+    <article id="articleBody" class="article-body" hidden></article>
+  </main>
+
+  <script type="module">
+    import FirestoreAPI from './js/firestore-api.js';
+
+    const id = new URLSearchParams(window.location.search).get('id');
+    const title = document.getElementById('articleTitle');
+    const meta = document.getElementById('articleMeta');
+    const status = document.getElementById('status');
+    const body = document.getElementById('articleBody');
+
+    function escapeHtml(value) {
+      return String(value || '').replace(/[&<>"']/g, character => ({
+        '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;'
+      }[character]));
+    }
+
+    async function loadArticle() {
+      try {
+        if (!id) throw new Error('Article ID is missing.');
+        const result = await new FirestoreAPI().getAllContent();
+        const article = result.success ? (result.content.magazine?.articles || []).find(item => item.id === id) : null;
+        if (!article) throw new Error('Article not found.');
+        title.textContent = article.title || 'Article';
+        meta.textContent = [article.author ? `By ${article.author}` : '', article.date || ''].filter(Boolean).join(' • ');
+        body.innerHTML = `${article.imageUrl ? `<img class="article-cover" src="${escapeHtml(article.imageUrl)}" alt="${escapeHtml(article.title)}">` : ''}${article.content || `<p>${escapeHtml(article.summary)}</p>`}`;
+        status.hidden = true;
+        body.hidden = false;
+        document.title = `${article.title || 'Article'} - AIAS Basra`;
+      } catch (error) {
+        console.error('[Article] Failed to load:', error);
+        title.textContent = 'Article unavailable';
+        status.textContent = 'This article could not be found.';
+      }
+    }
+
+    loadArticle();
+  </script>
+  <script src="js/site-shell.js"></script>
+</body>
+</html>

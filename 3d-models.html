@@ -16,8 +16,16 @@
     .models-hero { background:var(--gradient-1); color:var(--white); padding:8rem 0 4rem; text-align:center; }
     .models-hero h1 { font-size:3rem; margin-bottom:1rem; }
     .models-section { padding:5rem 0; }
+    .models-view-controls { display:flex; justify-content:flex-end; gap:.5rem; margin-bottom:1rem; }
+    .models-view-controls button { border:1px solid var(--accent-light); background:var(--white); color:var(--primary-color); border-radius:8px; padding:.6rem .9rem; cursor:pointer; font-weight:600; }
+    .models-view-controls button.active, .models-view-controls button:hover { background:var(--gradient-1); color:var(--white); }
     #status { text-align:center; color:var(--text-secondary); padding:1rem 0 2rem; }
     .models-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1.25rem; }
+    .models-list { display:flex; flex-direction:column; gap:1rem; }
+    .models-list .model-card { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+    .models-compact { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:.75rem; }
+    .models-compact .model-card { padding:1rem; }
+    .models-compact .model-card p { font-size:.9rem; }
     .model-card { background:var(--white); border-radius:12px; padding:1.5rem; box-shadow:var(--shadow-sm); transition:all .3s ease; }
     .model-card:hover { transform:translateY(-6px); box-shadow:var(--shadow-lg); }
     .model-card h2 { margin:.1rem 0 .6rem; color:var(--primary-color); font-size:1.2rem; }
@@ -36,6 +44,11 @@
   </section>
   <section class="models-section">
     <div class="container">
+      <div class="models-view-controls" aria-label="3D model view options">
+        <button type="button" class="active" data-model-view="grid">Grid</button>
+        <button type="button" data-model-view="list">List</button>
+        <button type="button" data-model-view="compact">Compact</button>
+      </div>
       <div id="status">Loading 3D models...</div>
       <section id="modelsGrid" class="models-grid" aria-live="polite"></section>
     </div>
@@ -46,6 +59,14 @@
 
     const status = document.getElementById('status');
     const grid = document.getElementById('modelsGrid');
+
+    document.querySelectorAll('[data-model-view]').forEach(button => {
+      button.addEventListener('click', () => {
+        const view = button.dataset.modelView;
+        grid.className = `models-${view}`;
+        document.querySelectorAll('[data-model-view]').forEach(item => item.classList.toggle('active', item === button));
+      });
+    });
 
     async function loadModels() {
       try {

@@ -59,6 +59,11 @@
     .delete-btn { background: var(--error); } .delete-btn:hover { filter: brightness(0.95); }
     .edit-btn { background: #3182ce; } .edit-btn:hover { filter: brightness(0.95); }
     #education-tab { display: none !important; }
+    .rich-editor-toolbar { display:flex; flex-wrap:wrap; gap:.35rem; padding:.5rem; border:1px solid #d9e1ef; border-bottom:0; border-radius:8px 8px 0 0; background:#f7f9fc; }
+    .rich-editor-toolbar button { border:1px solid #cbd5e1; background:#fff; border-radius:5px; padding:.35rem .6rem; cursor:pointer; }
+    .rich-editor { min-height:260px; padding:1rem; border:1px solid #d9e1ef; border-radius:0 0 8px 8px; background:#fff; line-height:1.7; }
+    .rich-editor:focus { outline:2px solid rgba(102,126,234,.3); }
+    #articleContent { display:none !important; }
     .submit-btn { padding: .75rem 1.2rem; background: linear-gradient(135deg, var(--brand1) 0%, var(--brand2) 100%); color: white; border: none; border-radius: 10px; font-size: .95rem; font-weight: 700; cursor: pointer; transition:.25s; }
     .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(102,126,234,0.25); }
     .form-group { margin-bottom: 1rem; }
@@ -220,6 +225,16 @@
                 <input type="url" id="articleReadMoreUrl" name="readMoreUrl" placeholder="https://example.com/article"/>
               </div>
               <div class="form-group"><label for="articleContent" data-en="Full Content" data-ar="المحتوى الكامل">Full Content</label><textarea id="articleContent" name="content" required></textarea></div>
+              <div class="rich-editor-toolbar" role="toolbar" aria-label="Article formatting">
+                <button type="button" data-command="bold"><strong>B</strong></button>
+                <button type="button" data-command="italic"><em>I</em></button>
+                <button type="button" data-command="underline"><u>U</u></button>
+                <button type="button" data-command="formatBlock" data-value="h2">Heading</button>
+                <button type="button" data-command="insertUnorderedList">• List</button>
+                <button type="button" data-command="insertOrderedList">1. List</button>
+                <button type="button" data-command="createLink">Link</button>
+              </div>
+              <div id="articleContentEditor" class="rich-editor" contenteditable="true" role="textbox" aria-multiline="true"></div>
               <div id="articleErrors" class="error-box"></div>
               <button type="submit" id="articleSubmitBtn" class="submit-btn" data-en="Add Article" data-ar="إضافة مقال">Add Article</button>
             </form>
@@ -759,6 +774,7 @@
       articleDate.value = a.date || '';
       articleSummary.value = a.summary || '';
       articleContent.value = a.content || '';
+      if (articleContentEditor) articleContentEditor.innerHTML = a.content || '';
       articleImageUrl.value = a.imageUrl || '';
       articleReadMoreUrl.value = a.readMoreUrl || '';
       articleSubmitBtn.textContent = 'Update Article';
@@ -1005,12 +1021,31 @@
     const articleDate       = document.getElementById('articleDate');
     const articleSummary    = document.getElementById('articleSummary');
     const articleContent    = document.getElementById('articleContent');
+    const articleContentEditor = document.getElementById('articleContentEditor');
     const articleImageUrl   = document.getElementById('articleImageUrl');
     const articleImageFile  = document.getElementById('articleImageFile');
     const articleImageStatus = document.getElementById('articleImageStatus');
     const articleReadMoreUrl = document.getElementById('articleReadMoreUrl');
     const articleSubmitBtn  = document.getElementById('articleSubmitBtn');
     const articleErrorsBox  = document.getElementById('articleErrors');
+
+    articleContentEditor?.addEventListener('input', () => {
+      articleContent.value = articleContentEditor.innerHTML;
+    });
+    document.querySelectorAll('.rich-editor-toolbar [data-command]').forEach(button => {
+      button.addEventListener('click', () => {
+        articleContentEditor?.focus();
+        const command = button.dataset.command;
+        const value = button.dataset.value || null;
+        if (command === 'createLink') {
+          const url = window.prompt('Enter the link URL:');
+          if (url) document.execCommand(command, false, url);
+        } else {
+          document.execCommand(command, false, value);
+        }
+        articleContent.value = articleContentEditor?.innerHTML || '';
+      });
+    });
 
     const libraryForm       = document.getElementById('libraryForm');
     const libId             = document.getElementById('libId');
@@ -1376,6 +1411,8 @@
         imageUrl: articleImageUrl.value.trim(),
         readMoreUrl: articleReadMoreUrl.value.trim()
       };
+      articleContent.value = articleContentEditor?.innerHTML.trim() || '';
+      payload.content = articleContent.value;
       const errors = validateArticlePayload(payload);
       showErrors(articleErrorsBox, errors);
       if (errors.length) { console.warn('[ArticleForm] Validation failed:', errors); return; }
@@ -1391,6 +1428,8 @@
         if (r.success) {
           showMessage('Article saved successfully!', 'success');
           articleForm.reset();
+          if (articleContentEditor) articleContentEditor.innerHTML = '';
+          articleContent.value = '';
           articleForm.dataset.mode = 'add';
           articleSubmitBtn.textContent = 'Add Article';
           loadExistingArticles();
