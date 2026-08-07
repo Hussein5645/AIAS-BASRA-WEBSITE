@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Models - AIAS Basra</title>
+  <link rel="stylesheet" href="css/mobile-optimized.css">
+  <style>
+    :root { --primary:#263b80; --accent:#667eea; --bg:#f5f7fb; }
+    body { margin:0; font-family:Arial,sans-serif; background:var(--bg); color:#1f2937; }
+    header { padding:3rem 1rem 2rem; text-align:center; color:#fff; background:linear-gradient(135deg,var(--primary),var(--accent)); }
+    header h1 { margin:0 0 .6rem; }
+    main { max-width:1100px; margin:0 auto; padding:2rem 1rem 4rem; }
+    #status { text-align:center; color:#6b7280; padding:2rem; }
+    .models-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1.25rem; }
+    .model-card { background:#fff; border-radius:14px; padding:1.25rem; box-shadow:0 5px 18px rgba(31,41,55,.1); }
+    .model-card h2 { margin:.1rem 0 .6rem; color:var(--primary); font-size:1.2rem; }
+    .model-card p { margin:.35rem 0; color:#6b7280; }
+    .view-button { display:inline-block; margin-top:1rem; padding:.7rem 1rem; border-radius:8px; background:var(--accent); color:#fff; text-decoration:none; font-weight:700; }
+    .view-button:hover { background:var(--primary); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>3D Models</h1>
+    <p>Explore uploaded GLB models in the 3D viewer.</p>
+  </header>
+  <main>
+    <div id="status">Loading 3D models...</div>
+    <section id="modelsGrid" class="models-grid" aria-live="polite"></section>
+  </main>
+
+  <script type="module">
+    import FirestoreAPI from './js/firestore-api.js';
+
+    const status = document.getElementById('status');
+    const grid = document.getElementById('modelsGrid');
+
+    async function loadModels() {
+      try {
+        const result = await new FirestoreAPI().getAllContent();
+        if (!result.success) throw new Error(result.error || 'Could not load models.');
+        const models = (result.content.models3d || [])
+          .filter(model => model.code && (model.hasFile || model.hasImageChunks))
+          .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+
+        if (!models.length) {
+          status.textContent = 'No uploaded GLB models are available yet.';
+          return;
+        }
+
+        status.textContent = `${models.length} uploaded model${models.length === 1 ? '' : 's'}`;
+        grid.innerHTML = models.map(model => `
+          <article class="model-card">
+            <h2>${escapeHtml(model.name || 'Untitled model')}</h2>
+            <p>Code: ${escapeHtml(model.code)}</p>
+            ${model.date ? `<p>Date: ${escapeHtml(model.date)}</p>` : ''}
+            <a class="view-button" href="3DViewer.html?model=${encodeURIComponent(model.code)}">View in 3D</a>
+          </article>
+        `).join('');
+      } catch (error) {
+        console.error('[3D Models] Failed to load:', error);
+        status.textContent = 'Unable to load 3D models. Please try again later.';
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, character => ({
+        '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;'
+      }[character]));
+    }
+
+    loadModels();
+  </script>
+</body>
+</html>
