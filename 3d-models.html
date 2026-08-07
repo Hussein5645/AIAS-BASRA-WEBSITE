@@ -4,31 +4,42 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>3D Models - AIAS Basra</title>
+  <link rel="icon" type="image/png" href="static/images/branding/LOGO.png">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/animations.css">
   <link rel="stylesheet" href="css/mobile-optimized.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script type="module" src="js/auth.js"></script>
   <style>
-    :root { --primary:#263b80; --accent:#667eea; --bg:#f5f7fb; }
-    body { margin:0; font-family:Arial,sans-serif; background:var(--bg); color:#1f2937; }
-    header { padding:3rem 1rem 2rem; text-align:center; color:#fff; background:linear-gradient(135deg,var(--primary),var(--accent)); }
-    header h1 { margin:0 0 .6rem; }
-    main { max-width:1100px; margin:0 auto; padding:2rem 1rem 4rem; }
-    #status { text-align:center; color:#6b7280; padding:2rem; }
+    .models-hero { background:var(--gradient-1); color:var(--white); padding:8rem 0 4rem; text-align:center; }
+    .models-hero h1 { font-size:3rem; margin-bottom:1rem; }
+    .models-section { padding:5rem 0; }
+    #status { text-align:center; color:var(--text-secondary); padding:1rem 0 2rem; }
     .models-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1.25rem; }
-    .model-card { background:#fff; border-radius:14px; padding:1.25rem; box-shadow:0 5px 18px rgba(31,41,55,.1); }
-    .model-card h2 { margin:.1rem 0 .6rem; color:var(--primary); font-size:1.2rem; }
-    .model-card p { margin:.35rem 0; color:#6b7280; }
-    .view-button { display:inline-block; margin-top:1rem; padding:.7rem 1rem; border-radius:8px; background:var(--accent); color:#fff; text-decoration:none; font-weight:700; }
-    .view-button:hover { background:var(--primary); }
+    .model-card { background:var(--white); border-radius:12px; padding:1.5rem; box-shadow:var(--shadow-sm); transition:all .3s ease; }
+    .model-card:hover { transform:translateY(-6px); box-shadow:var(--shadow-lg); }
+    .model-card h2 { margin:.1rem 0 .6rem; color:var(--primary-color); font-size:1.2rem; }
+    .model-card p { margin:.35rem 0; color:var(--text-secondary); }
+    .view-button { display:inline-block; margin-top:1rem; padding:.7rem 1rem; border-radius:8px; background:var(--gradient-1); color:#fff; text-decoration:none; font-weight:700; }
+    .view-button:hover { transform:translateY(-2px); }
   </style>
 </head>
 <body>
-  <header>
-    <h1>3D Models</h1>
-    <p>Explore uploaded GLB models in the 3D viewer.</p>
-  </header>
-  <main>
-    <div id="status">Loading 3D models...</div>
-    <section id="modelsGrid" class="models-grid" aria-live="polite"></section>
-  </main>
+  <nav class="navbar" id="navbar"></nav>
+  <section class="models-hero">
+    <div class="container">
+      <h1 class="fade-in-up">3D Models</h1>
+      <p class="fade-in-up delay-1">Explore uploaded GLB models in the 3D viewer.</p>
+    </div>
+  </section>
+  <section class="models-section">
+    <div class="container">
+      <div id="status">Loading 3D models...</div>
+      <section id="modelsGrid" class="models-grid" aria-live="polite"></section>
+    </div>
+  </section>
 
   <script type="module">
     import FirestoreAPI from './js/firestore-api.js';
@@ -72,5 +83,6 @@
 
     loadModels();
   </script>
+  <script src="js/site-shell.js"></script>
 </body>
 </html>
