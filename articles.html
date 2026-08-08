@@ -38,6 +38,35 @@
     .comment-text { white-space:pre-wrap; color:var(--text-secondary); }
     .comment-delete { border:0; background:none; color:#b91c1c; cursor:pointer; padding:0; }
     #status { text-align:center; padding:5rem 1rem; color:var(--text-secondary); }
+    @media (max-width: 768px) {
+      .article-hero { padding:6.5rem .85rem 2.25rem; }
+      .article-hero h1 { font-size:clamp(1.65rem,8vw,2.35rem); line-height:1.2; overflow-wrap:anywhere; }
+      .article-meta { font-size:.82rem; line-height:1.5; }
+      .article-language-picker { max-width:100%; font-size:.78rem; }
+      .article-page { width:100%; box-sizing:border-box; padding:1.75rem .85rem 3rem; }
+      .article-cover { max-height:none; aspect-ratio:16/10; margin-bottom:1.5rem; border-radius:10px; }
+      .article-body { font-size:1rem; line-height:1.8; overflow-wrap:anywhere; }
+      .article-body h2,.article-body h3 { margin:1.5rem 0 .65rem; }
+      .article-body img { display:block; width:100%; height:auto; border-radius:9px; margin:1rem 0; }
+      .article-body blockquote { margin:1.25rem 0; padding:.7rem .85rem; }
+      .article-community { margin-top:2rem; padding:1.25rem .9rem 0; }
+      .article-community h2 { font-size:1.35rem; }
+      .article-community h3 { font-size:1.1rem; margin-top:1.5rem; }
+      .vote-bar { display:grid; grid-template-columns:1fr auto 1fr; gap:.5rem; align-items:center; margin:1rem 0 1.5rem; }
+      .vote-button { min-height:48px; padding:.65rem .45rem; font-size:.82rem; touch-action:manipulation; }
+      .vote-score { min-width:2.5rem; font-size:1.15rem; }
+      .comment-form { flex-direction:column; gap:.55rem; margin:1rem 0 1.5rem; }
+      .comment-form textarea { min-height:110px; width:100%; box-sizing:border-box; font-size:1rem; }
+      .comment-form button { width:100%; min-height:48px; }
+      .comment { padding:1rem .7rem; margin-bottom:.6rem; border:1px solid #e5e7eb; border-radius:9px; background:#fff; }
+      .comment-meta { font-size:.75rem; overflow-wrap:anywhere; }
+      .comment-text { font-size:.92rem; line-height:1.65; overflow-wrap:anywhere; }
+      .comment-delete { min-height:36px; margin-top:.55rem; padding:.35rem .1rem; }
+    }
+    @media (max-width: 420px) {
+      .vote-button { font-size:.74rem; }
+      .article-language-picker { width:100%; justify-content:space-between; box-sizing:border-box; }
+    }
   </style>
 </head>
 <body>
@@ -59,7 +88,7 @@
       <h2 data-en="Community" data-ar="المجتمع">Community</h2>
       <div class="vote-bar">
         <button id="upvoteButton" class="vote-button" type="button" data-en="▲ Upvote" data-ar="▲ تصويت مؤيد">▲ Upvote</button>
-        <span id="voteScore" class="vote-score">0</span>
+        <span id="voteScore" class="vote-score" aria-live="polite">0</span>
         <button id="downvoteButton" class="vote-button" type="button" data-en="▼ Downvote" data-ar="▼ تصويت معارض">▼ Downvote</button>
       </div>
       <h3 data-en="Comments" data-ar="التعليقات">Comments</h3>
@@ -137,9 +166,13 @@
 
     async function saveVote(value) {
       if (!currentUser) { alert(t('Please sign in to vote.', 'يرجى تسجيل الدخول للتصويت.')); return; }
+      upvoteButton.disabled = true;
+      downvoteButton.disabled = true;
       const voteRef = doc(votesRef(), currentUser.uid);
       await setDoc(voteRef, { userId: currentUser.uid, value: currentVote === value ? 0 : value, updatedAt: serverTimestamp() });
       await loadCommunity();
+      upvoteButton.disabled = false;
+      downvoteButton.disabled = false;
     }
 
     upvoteButton.addEventListener('click', () => saveVote(1));
@@ -148,9 +181,12 @@
       event.preventDefault();
       const text = commentInput.value.trim();
       if (!currentUser || !text) return;
+      const submitButton = commentForm.querySelector('button[type="submit"]');
+      if (submitButton) { submitButton.disabled = true; submitButton.textContent = 'Posting...'; }
       await addDoc(commentsRef(), { userId: currentUser.uid, userName: currentUser.displayName || currentUser.email || 'Member', text, createdAt: serverTimestamp() });
       commentInput.value = '';
       loadCommunity();
+      if (submitButton) { submitButton.disabled = false; submitButton.textContent = 'Comment'; }
     });
 
     function renderArticle(article) {
