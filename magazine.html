@@ -1970,7 +1970,15 @@
         }
 
         // Function to create article card HTML
+        function getLocalizedArticle(article) {
+            const language = localStorage.getItem('language') || 'en';
+            const translations = article?.translations || {};
+            const localized = translations[language] || translations[article?.defaultLanguage] || {};
+            return { ...article, ...localized, imageUrl: localized.imageUrl || article?.imageUrl };
+        }
+
         async function createArticleCard(article, index, categoryOverride = null) {
+            article = getLocalizedArticle(article);
             const dateInfo = dataLoader.formatDate(article.date);
             
             // Skip articles with invalid dates
@@ -2075,7 +2083,7 @@
                 if (magazineData) {
                     // Load featured article
                     if (magazineData.featuredArticle && featuredContent) {
-                        const featured = magazineData.featuredArticle;
+                        const featured = getLocalizedArticle(magazineData.featuredArticle);
                         const dateInfo = dataLoader.formatDate(featured.date);
                         
                         // Only show if date is valid
@@ -2323,6 +2331,7 @@
             loadMagazine();
             initViewToggle();
         });
+        window.addEventListener('aias-language-changed', () => loadMagazine());
     </script>
 </body>
 </html>

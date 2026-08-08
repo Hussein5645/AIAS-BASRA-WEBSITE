@@ -313,6 +313,11 @@
             return localStorage.getItem('language') || 'en';
         }
 
+        function getLocalizedArticle(article, language = getCurrentLanguage()) {
+            const translations = article?.translations || {};
+            return translations[language] || translations[article?.defaultLanguage] || article || {};
+        }
+
         function getLatestEvents(events, limit = 3) {
             return [...events]
                 .sort((a, b) => {
@@ -429,7 +434,10 @@
             document.querySelectorAll('[data-article-sort]').forEach(button => {
                 button.classList.toggle('active', button.dataset.articleSort === homeArticleSort);
             });
-            grid.innerHTML = articles.map(article => `
+            grid.innerHTML = articles.map(article => {
+                const localized = getLocalizedArticle(article, currentLang);
+                article = { ...article, ...localized, imageUrl: localized.imageUrl || article.imageUrl };
+                return `
                 <article class="home-article-card reveal">
                     <div class="home-article-image" style="${article.imageUrl ? `background-image:url('${escapeHtml(article.imageUrl)}')` : ''}">${article.imageUrl ? '' : '📰'}</div>
                     <div class="home-article-content">
@@ -440,7 +448,8 @@
                         <a class="home-article-link" href="articles.html?id=${encodeURIComponent(article.id)}">${currentLang === 'ar' ? 'اقرأ المقال ←' : 'Read Article →'}</a>
                     </div>
                 </article>
-            `).join('');
+                `;
+            }).join('');
         }
 
         async function loadHomeArticleModes() {
