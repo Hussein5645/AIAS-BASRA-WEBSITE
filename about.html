@@ -157,16 +157,19 @@
             font-size: 0.9rem;
         }
         
-        .document-section { padding: 5rem 0; background: var(--light-bg); }
-        .document-reader { max-width: 1100px; margin: 0 auto; background: #1b1b1b; border-radius: 14px; overflow: hidden; box-shadow: var(--shadow-lg); }
-        .document-toolbar { display:flex; align-items:center; justify-content:space-between; gap:.75rem; padding:.75rem 1rem; color:#fff; background:#252525; }
+        .document-section { padding: 5rem 0; background: #0b0b0b; color: #fff; }
+        .document-section .section-title { color: #fff; }
+        .document-section .section-subtitle { color: rgba(255,255,255,.6); }
+        .document-reader { max-width: 1180px; margin: 0 auto; background: #111; border: 1px solid rgba(192,151,117,.25); border-radius: 16px; overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,.35); }
+        .document-toolbar { display:flex; align-items:center; justify-content:space-between; gap:.75rem; padding:1rem 1.25rem; color:#fff; background:rgba(11,11,11,.96); border-bottom:1px solid rgba(192,151,117,.2); }
         .document-toolbar-group { display:flex; align-items:center; gap:.45rem; }
-        .document-toolbar button { border:1px solid #555; border-radius:7px; background:transparent; color:#fff; padding:.45rem .7rem; cursor:pointer; font:inherit; }
-        .document-toolbar button:hover { background:#3a3a3a; }
-        .document-page-label { min-width:92px; text-align:center; font-size:.9rem; }
-        .document-canvas-wrap { min-height:520px; padding:1.25rem; display:flex; align-items:flex-start; justify-content:center; overflow:auto; background:#303030; }
-        #aboutPdfCanvas { display:block; max-width:none; background:#fff; box-shadow:0 4px 18px rgba(0,0,0,.25); }
-        .document-status { padding:1rem; color:#fff; text-align:center; background:#252525; }
+        .document-toolbar button { border:1px solid rgba(192,151,117,.65); border-radius:999px; background:transparent; color:#fff; padding:.5rem .85rem; cursor:pointer; font:inherit; font-size:.82rem; letter-spacing:.03em; }
+        .document-toolbar button:hover:not(:disabled) { background:var(--primary-color); border-color:var(--accent-light); }
+        .document-toolbar button:disabled { opacity:.3; cursor:default; }
+        .document-page-label { min-width:92px; text-align:center; color:var(--accent-light); font-size:.75rem; letter-spacing:.16em; text-transform:uppercase; }
+        .document-canvas-wrap { min-height:560px; padding:2rem; display:flex; align-items:flex-start; justify-content:center; overflow:auto; background:radial-gradient(circle at center, #242424 0%, #111 72%); }
+        #aboutPdfCanvas { display:block; max-width:none; background:#fff; box-shadow:0 16px 45px rgba(0,0,0,.4); }
+        .document-status { padding:.7rem 1rem; color:rgba(255,255,255,.5); text-align:center; background:#111; font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; }
 
         @media (max-width: 768px) {
             .story-content {
