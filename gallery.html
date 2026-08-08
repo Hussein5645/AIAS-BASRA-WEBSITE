@@ -293,6 +293,11 @@
                 <p id="gallery-subtitle">Loading gallery...</p>
             </div>
 
+            <div class="gallery-view-controls" role="group" aria-label="Gallery view options">
+                <button type="button" class="active" data-gallery-view="list" data-en="List" data-ar="قائمة">List</button>
+                <button type="button" data-gallery-view="compact" data-en="Compact" data-ar="مضغوط">Compact</button>
+                <button type="button" data-gallery-view="timeline" data-en="Timeline" data-ar="مخطط زمني">Timeline</button>
+            </div>
             <div id="gallery-content">
                 <div class="loading">Loading images</div>
             </div>
@@ -329,6 +334,18 @@
             subtitle.textContent = `Loading Event Details...`;
             loadEventDetailsAndGallery();
         }
+        .gallery-view-controls { display:flex; justify-content:center; gap:.5rem; margin:1rem 0 1.5rem; }
+        .gallery-view-controls button { border:1px solid var(--accent-light); background:var(--white); color:var(--primary-color); border-radius:8px; padding:.6rem .9rem; cursor:pointer; font-weight:600; }
+        .gallery-view-controls button.active, .gallery-view-controls button:hover { background:var(--gradient-1); color:var(--white); }
+        .gallery-grid.view-list { display:flex; flex-direction:column; gap:1rem; }
+        .gallery-grid.view-list .gallery-item { display:flex; align-items:center; min-height:220px; }
+        .gallery-grid.view-list .gallery-item img { width:260px; height:220px; object-fit:cover; }
+        .gallery-grid.view-compact { grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:.75rem; }
+        .gallery-grid.view-compact .gallery-item { height:150px; }
+        .gallery-grid.view-timeline { display:block; max-width:900px; margin:0 auto; padding-left:2rem; border-left:3px solid var(--accent-color); }
+        .gallery-grid.view-timeline .gallery-item { position:relative; height:240px; margin-bottom:1rem; overflow:visible; }
+        .gallery-grid.view-timeline .gallery-item::before { content:''; position:absolute; left:-2.65rem; top:1.5rem; width:.9rem; height:.9rem; border:3px solid var(--white); border-radius:50%; background:var(--accent-color); box-shadow:0 0 0 2px var(--accent-color); z-index:2; }
+        .gallery-grid.view-timeline .gallery-item img { width:100%; height:100%; object-fit:cover; }
 
         async function loadEventDetailsAndGallery() {
             try {
@@ -406,7 +423,8 @@
         function displayGallery() {
             const galleryContent = document.getElementById('gallery-content');
             const grid = document.createElement('div');
-            grid.className = 'gallery-grid';
+            const selectedView = localStorage.getItem('gallery-view') || 'list';
+            grid.className = `gallery-grid view-${['list', 'compact', 'timeline'].includes(selectedView) ? selectedView : 'list'}`;
 
             images.forEach((base64Data, index) => {
                 const item = document.createElement('div');
@@ -425,6 +443,24 @@
 
             galleryContent.innerHTML = '';
             galleryContent.appendChild(grid);
+        }
+
+        document.querySelectorAll('[data-gallery-view]').forEach(button => {
+            button.addEventListener('click', () => {
+                const view = button.dataset.galleryView;
+                localStorage.setItem('gallery-view', view);
+                document.querySelectorAll('[data-gallery-view]').forEach(item => item.classList.toggle('active', item === button));
+                const grid = document.querySelector('.gallery-grid');
+                if (grid) {
+                    grid.classList.remove('view-list', 'view-compact', 'view-timeline');
+                    grid.classList.add(`view-${view}`);
+                }
+            });
+        });
+        const savedGalleryView = localStorage.getItem('gallery-view');
+        if (savedGalleryView && ['list', 'compact', 'timeline'].includes(savedGalleryView)) {
+            document.querySelector(`[data-gallery-view="${savedGalleryView}"]`)?.classList.add('active');
+            document.querySelector('[data-gallery-view="list"]')?.classList.toggle('active', savedGalleryView === 'list');
         }
 
         function showEmptyMessage() {

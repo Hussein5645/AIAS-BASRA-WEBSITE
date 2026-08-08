@@ -80,6 +80,16 @@
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 2rem;
         }
+        .fbd-view-controls { display:flex; justify-content:flex-end; gap:.5rem; margin:1.5rem 0; }
+        .fbd-view-controls button { border:1px solid var(--accent-light); background:var(--white); color:var(--primary-color); border-radius:8px; padding:.6rem .9rem; cursor:pointer; font-weight:600; }
+        .fbd-view-controls button.active, .fbd-view-controls button:hover { background:var(--gradient-1); color:var(--white); }
+        #fbdEventsContainer.view-list { display:flex; flex-direction:column; gap:1rem; }
+        #fbdEventsContainer.view-list .event-card { display:grid; grid-template-columns:240px 1fr; }
+        #fbdEventsContainer.view-compact { grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1rem; }
+        #fbdEventsContainer.view-compact .event-image { height:150px; }
+        #fbdEventsContainer.view-timeline { display:block; max-width:900px; margin:0 auto; padding-left:2rem; border-left:3px solid var(--accent-color); }
+        #fbdEventsContainer.view-timeline .event-card { position:relative; display:grid; grid-template-columns:180px 1fr; margin-bottom:1rem; overflow:visible; }
+        #fbdEventsContainer.view-timeline .event-card::before { content:''; position:absolute; left:-2.65rem; top:1.5rem; width:.9rem; height:.9rem; border:3px solid var(--white); border-radius:50%; background:var(--accent-color); box-shadow:0 0 0 2px var(--accent-color); }
         
         .event-card {
             background: var(--white);
@@ -305,7 +315,12 @@
                 <h2 class="section-title" data-en="Upcoming FBD Events" data-ar="فعاليات الحرية بالتصميم القادمة">Upcoming FBD Events</h2>
                 <p class="section-subtitle" data-en="Join us in making a difference through design" data-ar="انضم إلينا في إحداث فرق من خلال التصميم">Join us in making a difference through design</p>
             </div>
-            <div class="events-grid" id="fbdEventsContainer">
+            <div class="fbd-view-controls" role="group" aria-label="FBD event view options">
+                <button type="button" class="active" data-fbd-view="list" data-en="List" data-ar="قائمة">List</button>
+                <button type="button" data-fbd-view="compact" data-en="Compact" data-ar="مضغوط">Compact</button>
+                <button type="button" data-fbd-view="timeline" data-en="Timeline" data-ar="مخطط زمني">Timeline</button>
+            </div>
+            <div class="events-grid view-list" id="fbdEventsContainer">
                 <!-- Events will be loaded dynamically -->
             </div>
         </div>
@@ -358,6 +373,22 @@
         const DEBUG =
           (new URLSearchParams(window.location.search).has('debug') ||
            localStorage.getItem('debug') === 'true');
+
+        document.querySelectorAll('[data-fbd-view]').forEach(button => {
+            button.addEventListener('click', () => {
+                const view = button.dataset.fbdView;
+                const container = document.getElementById('fbdEventsContainer');
+                if (!container) return;
+                container.classList.remove('view-list', 'view-compact', 'view-timeline');
+                container.classList.add(`view-${view}`);
+                document.querySelectorAll('[data-fbd-view]').forEach(item => item.classList.toggle('active', item === button));
+                localStorage.setItem('fbd-events-view', view);
+            });
+        });
+        const savedFbdView = localStorage.getItem('fbd-events-view');
+        if (savedFbdView && ['list', 'compact', 'timeline'].includes(savedFbdView)) {
+            document.querySelector(`[data-fbd-view="${savedFbdView}"]`)?.click();
+        }
 
         // Load FBD data and populate page using Data Loader
         async function loadFBDData() {

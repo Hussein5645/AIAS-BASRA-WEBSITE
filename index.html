@@ -17,6 +17,14 @@
         .home-article-sort { display:flex; justify-content:flex-end; gap:.5rem; margin:0 0 1.5rem; }
         .home-article-sort-btn { border:1px solid var(--accent-light); background:var(--white); color:var(--primary-color); border-radius:8px; padding:.55rem .9rem; cursor:pointer; font-weight:600; }
         .home-article-sort-btn.active, .home-article-sort-btn:hover { background:var(--gradient-1); color:var(--white); }
+        .home-view-controls { display:flex; justify-content:flex-end; gap:.5rem; margin:0 0 1.25rem; }
+        .home-view-controls button { border:1px solid var(--accent-light); background:var(--white); color:var(--primary-color); border-radius:8px; padding:.5rem .8rem; cursor:pointer; font-weight:600; }
+        .home-view-controls button.active, .home-view-controls button:hover { background:var(--gradient-1); color:var(--white); }
+        .home-articles-grid.view-list, .latest-events-grid.view-list { display:flex; flex-direction:column; gap:1rem; }
+        .home-articles-grid.view-compact, .latest-events-grid.view-compact { grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem; }
+        .home-articles-grid.view-timeline, .latest-events-grid.view-timeline { display:block; max-width:900px; margin:0 auto; padding-left:2rem; border-left:3px solid var(--accent-color); }
+        .home-articles-grid.view-timeline > *, .latest-events-grid.view-timeline > * { position:relative; margin-bottom:1rem; }
+        .home-articles-grid.view-timeline > *::before, .latest-events-grid.view-timeline > *::before { content:''; position:absolute; left:-2.65rem; top:1.5rem; width:.9rem; height:.9rem; border:3px solid var(--white); border-radius:50%; background:var(--accent-color); box-shadow:0 0 0 2px var(--accent-color); }
         .home-article-card { background:var(--white); border-radius:12px; overflow:hidden; box-shadow:var(--shadow-sm); transition:transform .3s ease,box-shadow .3s ease; }
         .home-article-card:hover { transform:translateY(-6px); box-shadow:var(--shadow-lg); }
         .home-article-image { height:180px; display:flex; align-items:center; justify-content:center; background:var(--gradient-2); color:var(--white); font-size:3rem; background-size:cover; background-position:center; }
@@ -115,6 +123,11 @@
                 <button type="button" class="home-article-sort-btn active" data-article-sort="latest" data-en="Latest" data-ar="الأحدث">Latest</button>
                 <button type="button" class="home-article-sort-btn" data-article-sort="upvoted" data-en="Most Upvoted" data-ar="الأكثر تصويتاً">Most Upvoted</button>
             </div>
+            <div class="home-view-controls" role="group" aria-label="Article view options">
+                <button type="button" class="active" data-home-view="latestArticlesGrid" data-view-mode="list" data-en="List" data-ar="قائمة">List</button>
+                <button type="button" data-home-view="latestArticlesGrid" data-view-mode="compact" data-en="Compact" data-ar="مضغوط">Compact</button>
+                <button type="button" data-home-view="latestArticlesGrid" data-view-mode="timeline" data-en="Timeline" data-ar="مخطط زمني">Timeline</button>
+            </div>
             <div id="latestArticlesGrid" class="home-articles-grid">
                 <div class="loading-container"><p class="loading-text">Loading latest articles...</p></div>
             </div>
@@ -129,6 +142,11 @@
             <div class="section-header">
                 <h2 class="section-title" data-en="Latest Events" data-ar="أحدث الفعاليات">Latest Events</h2>
                 <p class="section-subtitle" data-en="Discover our 3 newest events and activities" data-ar="اكتشف أحدث 3 فعاليات وأنشطة لدينا">Discover our 3 newest events and activities</p>
+            </div>
+            <div class="home-view-controls" role="group" aria-label="Event view options">
+                <button type="button" class="active" data-home-view="latestEventsGrid" data-view-mode="list" data-en="List" data-ar="قائمة">List</button>
+                <button type="button" data-home-view="latestEventsGrid" data-view-mode="compact" data-en="Compact" data-ar="مضغوط">Compact</button>
+                <button type="button" data-home-view="latestEventsGrid" data-view-mode="timeline" data-en="Timeline" data-ar="مخطط زمني">Timeline</button>
             </div>
             <div id="latestEventsGrid" class="latest-events-grid">
                 <div class="loading-container">
@@ -449,6 +467,22 @@
             });
         });
         window.addEventListener('aias-language-changed', renderHomeArticleMode);
+
+        document.querySelectorAll('[data-home-view]').forEach(button => {
+            button.addEventListener('click', () => {
+                const container = document.getElementById(button.dataset.homeView);
+                if (!container) return;
+                const mode = button.dataset.viewMode;
+                container.classList.remove('view-list', 'view-compact', 'view-timeline');
+                container.classList.add(`view-${mode}`);
+                document.querySelectorAll(`[data-home-view="${button.dataset.homeView}"]`).forEach(item => item.classList.toggle('active', item === button));
+                localStorage.setItem(`home-view-${button.dataset.homeView}`, mode);
+            });
+        });
+        document.querySelectorAll('[data-home-view]').forEach(button => {
+            const saved = localStorage.getItem(`home-view-${button.dataset.homeView}`);
+            if (saved === button.dataset.viewMode) button.click();
+        });
 
         document.addEventListener('DOMContentLoaded', () => {
             loadLatestEvents();

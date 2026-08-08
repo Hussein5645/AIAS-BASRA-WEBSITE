@@ -157,6 +157,17 @@
             font-size: 0.9rem;
         }
         
+        .document-section { padding: 5rem 0; background: var(--light-bg); }
+        .document-reader { max-width: 1100px; margin: 0 auto; background: #1b1b1b; border-radius: 14px; overflow: hidden; box-shadow: var(--shadow-lg); }
+        .document-toolbar { display:flex; align-items:center; justify-content:space-between; gap:.75rem; padding:.75rem 1rem; color:#fff; background:#252525; }
+        .document-toolbar-group { display:flex; align-items:center; gap:.45rem; }
+        .document-toolbar button { border:1px solid #555; border-radius:7px; background:transparent; color:#fff; padding:.45rem .7rem; cursor:pointer; font:inherit; }
+        .document-toolbar button:hover { background:#3a3a3a; }
+        .document-page-label { min-width:92px; text-align:center; font-size:.9rem; }
+        .document-canvas-wrap { min-height:520px; padding:1.25rem; display:flex; align-items:flex-start; justify-content:center; overflow:auto; background:#303030; }
+        #aboutPdfCanvas { display:block; max-width:none; background:#fff; box-shadow:0 4px 18px rgba(0,0,0,.25); }
+        .document-status { padding:1rem; color:#fff; text-align:center; background:#252525; }
+
         @media (max-width: 768px) {
             .story-content {
                 grid-template-columns: 1fr;
@@ -166,6 +177,8 @@
             .about-hero h1 {
                 font-size: 2rem;
             }
+            .document-toolbar { flex-wrap:wrap; justify-content:center; }
+            .document-canvas-wrap { min-height:300px; padding:.5rem; }
         }
     </style>
 </head>
@@ -226,6 +239,34 @@
                     <p data-en="Founded by a passionate group of architecture students, the AIAS Basra Chapter was established to create a vibrant community for design, innovation, and collaboration." data-ar="تأسس فرع AIAS البصرة من قبل مجموعة متحمسة من طلاب الهندسة المعمارية، لإنشاء مجتمع نابض بالحياة للتصميم والابتكار والتعاون.">Founded by a passionate group of architecture students, the AIAS Basra Chapter was established to create a vibrant community for design, innovation, and collaboration.</p>
                     <p data-en="We aim to bridge the gap between academic learning and professional practice, offering workshops, lectures, and networking events that empower our members to become future leaders in architecture." data-ar="نهدف إلى سد الفجوة بين التعلم الأكاديمي والممارسة المهنية، من خلال تقديم ورش العمل والمحاضرات والفعاليات التي تمكن أعضاءنا من أن يصبحوا قادة المستقبل في الهندسة المعمارية.">We aim to bridge the gap between academic learning and professional practice, offering workshops, lectures, and networking events that empower our members to become future leaders in architecture.</p>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="document-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title" data-en="AIAS Basra Document" data-ar="وثيقة AIAS البصرة">AIAS Basra Document</h2>
+                <p class="section-subtitle" data-en="Read the document one page at a time." data-ar="اقرأ الوثيقة صفحةً تلو الأخرى.">Read the document one page at a time.</p>
+            </div>
+            <div class="document-reader" id="aboutPdfReader">
+                <div class="document-toolbar">
+                    <div class="document-toolbar-group">
+                        <button type="button" id="aboutPdfPrevious" data-en="Previous" data-ar="السابق">Previous</button>
+                        <button type="button" id="aboutPdfNext" data-en="Next" data-ar="التالي">Next</button>
+                    </div>
+                    <span class="document-page-label" id="aboutPdfPageLabel">Page 1 / 11</span>
+                    <div class="document-toolbar-group">
+                        <button type="button" id="aboutPdfZoomOut" aria-label="Zoom out">−</button>
+                        <button type="button" id="aboutPdfZoomReset" data-en="Reset" data-ar="إعادة ضبط">Reset</button>
+                        <button type="button" id="aboutPdfZoomIn" aria-label="Zoom in">+</button>
+                        <button type="button" id="aboutPdfFullscreen" data-en="Fullscreen" data-ar="ملء الشاشة">Fullscreen</button>
+                    </div>
+                </div>
+                <div class="document-canvas-wrap">
+                    <canvas id="aboutPdfCanvas" aria-label="AIAS Basra PDF page"></canvas>
+                </div>
+                <div class="document-status" id="aboutPdfStatus" data-en="Loading document..." data-ar="جارٍ تحميل الوثيقة...">Loading document...</div>
             </div>
         </div>
     </section>
@@ -310,6 +351,75 @@
     <script src="js/three-effects.js"></script>
     <script src="js/main.js"></script>
     <script src="js/site-shell.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        (() => {
+            const pdfUrl = 'static/documents/AIAS-BSR.pdf';
+            const canvas = document.getElementById('aboutPdfCanvas');
+            const context = canvas?.getContext('2d');
+            const status = document.getElementById('aboutPdfStatus');
+            const pageLabel = document.getElementById('aboutPdfPageLabel');
+            const canvasWrap = document.querySelector('.document-canvas-wrap');
+            if (!canvas || !context || !status || !window.pdfjsLib) return;
+
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            let pdfDocument = null;
+            let pageNumber = 1;
+            let zoom = 1;
+            let rendering = false;
+            let queuedPage = null;
+
+            function languageText(en, ar) {
+                return (localStorage.getItem('language') || 'en') === 'ar' ? ar : en;
+            }
+
+            async function renderPage(number) {
+                if (!pdfDocument) return;
+                if (rendering) { queuedPage = number; return; }
+                rendering = true;
+                try {
+                    const page = await pdfDocument.getPage(number);
+                    const baseViewport = page.getViewport({ scale: 1 });
+                    const availableWidth = Math.max(280, (canvasWrap?.clientWidth || 900) - 40);
+                    const fitScale = availableWidth / baseViewport.width;
+                    const viewport = page.getViewport({ scale: Math.max(.25, fitScale * zoom) });
+                    canvas.width = Math.floor(viewport.width);
+                    canvas.height = Math.floor(viewport.height);
+                    await page.render({ canvasContext: context, viewport }).promise;
+                    pageLabel.textContent = languageText(`Page ${number} / ${pdfDocument.numPages}`, `صفحة ${number} / ${pdfDocument.numPages}`);
+                    document.getElementById('aboutPdfPrevious').disabled = number <= 1;
+                    document.getElementById('aboutPdfNext').disabled = number >= pdfDocument.numPages;
+                    status.textContent = languageText('Ready', 'جاهز');
+                } catch (error) {
+                    console.error('[About PDF] Render failed:', error);
+                    status.textContent = languageText('Unable to display this page.', 'تعذر عرض هذه الصفحة.');
+                } finally {
+                    rendering = false;
+                    if (queuedPage !== null) { const nextPage = queuedPage; queuedPage = null; renderPage(nextPage); }
+                }
+            }
+
+            document.getElementById('aboutPdfPrevious').addEventListener('click', () => { if (pageNumber > 1) renderPage(--pageNumber); });
+            document.getElementById('aboutPdfNext').addEventListener('click', () => { if (pdfDocument && pageNumber < pdfDocument.numPages) renderPage(++pageNumber); });
+            document.getElementById('aboutPdfZoomOut').addEventListener('click', () => { zoom = Math.max(.6, zoom - .1); renderPage(pageNumber); });
+            document.getElementById('aboutPdfZoomIn').addEventListener('click', () => { zoom = Math.min(2, zoom + .1); renderPage(pageNumber); });
+            document.getElementById('aboutPdfZoomReset').addEventListener('click', () => { zoom = 1; renderPage(pageNumber); });
+            document.getElementById('aboutPdfFullscreen').addEventListener('click', () => document.getElementById('aboutPdfReader').requestFullscreen?.());
+            window.addEventListener('resize', () => renderPage(pageNumber));
+            window.addEventListener('aias-language-changed', () => {
+                if (pdfDocument) renderPage(pageNumber);
+            });
+
+            pdfjsLib.getDocument(pdfUrl).promise.then(documentData => {
+                pdfDocument = documentData;
+                status.textContent = languageText('Ready', 'جاهز');
+                renderPage(pageNumber);
+            }).catch(error => {
+                console.error('[About PDF] Load failed:', error);
+                status.textContent = languageText('Unable to load the document.', 'تعذر تحميل الوثيقة.');
+            });
+        })();
+    </script>
     
     </body>
 </html>
