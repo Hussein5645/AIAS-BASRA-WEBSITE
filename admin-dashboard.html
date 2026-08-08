@@ -67,6 +67,13 @@
     .rich-editor blockquote { border-left:4px solid #667eea; margin:1rem 0; padding:.5rem 1rem; background:#f7f9fc; }
     .rich-editor img { max-width:100%; height:auto; }
     .rich-editor:focus { outline:2px solid rgba(102,126,234,.3); }
+    .article-image-preview { display:flex; flex-wrap:wrap; gap:.6rem; margin-top:.6rem; }
+    .article-image-preview figure { margin:0; padding:.35rem; border:1px solid var(--border); border-radius:8px; background:#fff; }
+    .article-image-preview img { display:block; width:120px; height:80px; object-fit:cover; border-radius:5px; }
+    .article-image-preview figcaption { max-width:120px; margin-top:.25rem; color:var(--muted); font-size:.7rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .inline-image-tools { display:flex; align-items:center; flex-wrap:wrap; gap:.5rem; padding:.65rem .75rem; border:1px solid #d9e1ef; border-top:0; background:#f7f9fc; font-size:.78rem; }
+    .inline-image-tools label { font-weight:700; color:var(--muted); }
+    .inline-image-tools small { color:var(--muted); }
     #articleContent { display:none !important; }
     .submit-btn { padding: .75rem 1.2rem; background: linear-gradient(135deg, var(--brand1) 0%, var(--brand2) 100%); color: white; border: none; border-radius: 10px; font-size: .95rem; font-weight: 700; cursor: pointer; transition:.25s; }
     .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(102,126,234,0.25); }
@@ -231,6 +238,8 @@
                 <input type="url" id="articleImageUrl" name="imageUrl" placeholder="https://example.com/image.jpg"/>
                 <input id="articleImageFile" type="file" accept="image/*"/>
                 <small id="articleImageStatus" aria-live="polite"></small>
+                <div id="articleImagePreview" class="article-image-preview" aria-live="polite"></div>
+                <div id="articleStoredImages" class="article-image-preview" aria-live="polite"></div>
               </div>
               <div class="form-group">
               </div>
@@ -248,10 +257,16 @@
                   <button type="button" data-command="removeFormat">Clear format</button>
                 </div>
                 <div id="articleContentEditor" class="rich-editor" contenteditable="true" role="textbox" aria-multiline="true"></div>
+                <div class="inline-image-tools">
+                  <label for="articleInlineImageFile">Add image inside article</label>
+                  <input id="articleInlineImageFile" type="file" accept="image/*" />
+                  <small id="articleInlineImageStatus" aria-live="polite">Place the cursor in the article, then choose an image.</small>
+                </div>
                 <label for="articleMarkdownFile" style="display:block;margin-top:.6rem;">Import Markdown (.md)</label>
                 <input id="articleMarkdownFile" type="file" accept=".md,text/markdown" />
                 <small id="articleMarkdownStatus" aria-live="polite"></small>
               <div id="articleErrors" class="error-box"></div>
+              <button type="button" id="articleNewBtn" class="mini-btn">New Article</button>
               <button type="submit" id="articleSubmitBtn" class="submit-btn" data-en="Add Article" data-ar="إضافة مقال">Add Article</button>
             </form>
           </div>
@@ -791,6 +806,7 @@
       articleLanguage.value = a.defaultLanguage || a.language || 'en';
       populateArticleLanguage(articleLanguage.value);
       articleSubmitBtn.textContent = 'Update Article';
+      refreshStoredImages(firestoreAPI.paths.magazineArticlesCol, a.id, articleStoredImages);
     };
 
     window.deleteArticle = async function(id) {
@@ -1043,8 +1059,36 @@
     const articleImageUrl   = document.getElementById('articleImageUrl');
     const articleImageFile  = document.getElementById('articleImageFile');
     const articleImageStatus = document.getElementById('articleImageStatus');
+    const articleImagePreview = document.getElementById('articleImagePreview');
+    const articleStoredImages = document.getElementById('articleStoredImages');
+    const articleInlineImageFile = document.getElementById('articleInlineImageFile');
+    const articleInlineImageStatus = document.getElementById('articleInlineImageStatus');
     const articleSubmitBtn  = document.getElementById('articleSubmitBtn');
+    const articleNewBtn      = document.getElementById('articleNewBtn');
     const articleErrorsBox  = document.getElementById('articleErrors');
+    let savedArticleSelection = null;
+
+    function refreshArticleImagePreview() {
+      if (!articleImagePreview) return;
+      articleImagePreview.innerHTML = '';
+      const sources = [];
+      if (articleImageUrl?.value.trim()) sources.push({ src: articleImageUrl.value.trim(), label: 'Main image' });
+      articleContentEditor?.querySelectorAll('img[src]').forEach((image, index) => sources.push({ src: image.src, label: `Inline image ${index + 1}` }));
+      if (!sources.length) {
+        articleImagePreview.innerHTML = '<small>No article images loaded yet.</small>';
+        return;
+      }
+      sources.forEach(item => {
+        const figure = document.createElement('figure');
+        const image = document.createElement('img');
+        const caption = document.createElement('figcaption');
+        image.src = item.src;
+        image.alt = item.label;
+        caption.textContent = item.label;
+        figure.append(image, caption);
+        articleImagePreview.appendChild(figure);
+      });
+    }
 
     function articleVariant(record, language) {
       if (!record) return {};
@@ -1059,7 +1103,8 @@
       articleSummary.value = variant.summary || '';
       articleContent.value = variant.content || '';
       if (articleContentEditor) articleContentEditor.innerHTML = variant.content || '';
-      articleImageUrl.value = variant.imageUrl || '';
+      articleImageUrl.value = variant.imageUrl || editingArticleRecord?.imageUrl || '';
+      refreshArticleImagePreview();
       if (articleMarkdownStatus) articleMarkdownStatus.textContent = editingArticleRecord && !editingArticleRecord.translations?.[language]
         ? 'No translation exists yet. Enter the translated content and save it.'
         : '';
@@ -1069,11 +1114,58 @@
       if (articleForm.dataset.mode === 'edit') populateArticleLanguage(articleLanguage.value);
     });
 
+    articleNewBtn?.addEventListener('click', () => {
+      articleForm.reset();
+      articleForm.dataset.mode = 'add';
+      editingArticleRecord = null;
+      if (articleContentEditor) articleContentEditor.innerHTML = '';
+      if (articleLanguage) articleLanguage.value = 'en';
+      if (articleSubmitBtn) articleSubmitBtn.textContent = 'Add Article';
+      if (articleStoredImages) articleStoredImages.innerHTML = '';
+      refreshArticleImagePreview();
+      articleTitle?.focus();
+    });
+
     const syncArticleContent = () => {
       articleContent.value = articleContentEditor.innerHTML;
     };
     articleContentEditor?.addEventListener('input', syncArticleContent);
     articleContentEditor?.addEventListener('paste', () => setTimeout(syncArticleContent, 0));
+    articleImageUrl?.addEventListener('input', refreshArticleImagePreview);
+    ['keyup', 'mouseup', 'touchend'].forEach(eventName => articleContentEditor?.addEventListener(eventName, () => {
+      const selection = window.getSelection();
+      if (selection?.rangeCount) savedArticleSelection = selection.getRangeAt(0).cloneRange();
+    }));
+
+    articleInlineImageFile?.addEventListener('change', async () => {
+      const file = articleInlineImageFile.files?.[0];
+      if (!file) return;
+      if (file.size > 350 * 1024) {
+        articleInlineImageStatus.textContent = 'Please choose an image smaller than 350 KB for inline content.';
+        articleInlineImageFile.value = '';
+        return;
+      }
+      articleInlineImageStatus.textContent = 'Reading image...';
+      try {
+        const dataUrl = await toBase64(file);
+        articleContentEditor.focus();
+        if (savedArticleSelection) {
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(savedArticleSelection);
+        }
+        const safeName = file.name.replace(/[&<>"']/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[character]));
+        document.execCommand('insertHTML', false, `<p><img src="${dataUrl}" alt="${safeName}" style="max-width:100%;height:auto;"></p>`);
+        syncArticleContent();
+        refreshArticleImagePreview();
+        articleInlineImageStatus.textContent = 'Image inserted into the article.';
+      } catch (error) {
+        console.error('[ArticleEditor] Inline image failed:', error);
+        articleInlineImageStatus.textContent = 'Could not insert this image.';
+      } finally {
+        articleInlineImageFile.value = '';
+      }
+    });
 
     function markdownInline(value) {
       const escaped = String(value).replace(/[&<>"']/g, character => ({
@@ -1336,7 +1428,7 @@
 
     addEventImageFilesListener(document.getElementById('eventImageFiles'), document.getElementById('eventImageStatus'), eventId, eventSubmitBtn, firestoreAPI.paths.eventsCol, eventStoredImages);
     addEventImageFilesListener(document.getElementById('fbdEventImageFiles'), fbdEventImageStatus, fbdEventId, fbdEventSubmitBtn, firestoreAPI.paths.fbdEventsCol, fbdEventStoredImages);
-    addManualImageUploadListener(articleImageFile, articleImageStatus, articleId, articleSubmitBtn, firestoreAPI.paths.magazineArticlesCol);
+    addManualImageUploadListener(articleImageFile, articleImageStatus, articleId, articleSubmitBtn, firestoreAPI.paths.magazineArticlesCol, articleStoredImages);
     addManualImageUploadListener(libImageFile, libImageStatus, libId, libSubmitBtn, firestoreAPI.paths.libraryCol);
     addManualImageUploadListener(courseImageFile, courseImageStatus, courseId, courseSubmitBtn, firestoreAPI.paths.educationCoursesCol);
     addManualImageUploadListener(document.getElementById('eventImageFile'), document.getElementById('eventImageStatus'), eventId, eventSubmitBtn, firestoreAPI.paths.eventsCol, eventStoredImages);
@@ -1556,14 +1648,18 @@
           payload.defaultLanguage = language;
           payload.translations = { [language]: currentVariant };
         }
+        const knownArticleId = CACHE.articles.some(item => item.id === articleId.value);
+        const draftId = mode === 'add' && articleId.value && !knownArticleId ? articleId.value : null;
         const r = mode==='edit'
           ? await firestoreAPI.updateArticle(articleId.value, payload)
-          : await firestoreAPI.addArticle(payload, articleId.value || null);
+          : await firestoreAPI.addArticle(payload, draftId);
         if (r.success) {
           showMessage('Article saved successfully!', 'success');
           articleForm.reset();
           if (articleContentEditor) articleContentEditor.innerHTML = '';
           articleContent.value = '';
+          if (articleStoredImages) articleStoredImages.innerHTML = '';
+          refreshArticleImagePreview();
           articleForm.dataset.mode = 'add';
           editingArticleRecord = null;
           articleLanguage.value = 'en';

@@ -166,7 +166,8 @@
       }
       title.textContent = variant.title || 'Article';
       meta.textContent = [variant.author ? `By ${variant.author}` : '', variant.date || ''].filter(Boolean).join(' • ');
-      body.innerHTML = `${variant.imageUrl ? `<img class="article-cover" src="${escapeHtml(variant.imageUrl)}" alt="${escapeHtml(variant.title)}">` : ''}${variant.content || `<p>${escapeHtml(variant.summary)}</p>`}`;
+      const coverImage = variant.imageUrl || article.imageUrl || '';
+      body.innerHTML = `${coverImage ? `<img class="article-cover" src="${escapeHtml(coverImage)}" alt="${escapeHtml(variant.title)}">` : ''}${variant.content || `<p>${escapeHtml(variant.summary)}</p>`}`;
       status.hidden = true;
       body.hidden = false;
       community.hidden = false;
