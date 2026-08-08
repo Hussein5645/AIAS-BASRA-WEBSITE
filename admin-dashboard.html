@@ -401,14 +401,15 @@
       <!-- FBD -->
       <section id="fbd-tab" class="tab-content">
         <details class="accordion" open>
-          <summary data-en="FBD Page" data-ar="صفحة FBD">FBD Page</summary>
+          <summary data-en="FBD Statistics" data-ar="إحصائيات FBD">FBD Statistics</summary>
           <div class="accordion-body panel">
-            <form id="fbdPageForm">
-              <div class="two-col">
-                <div class="form-group"><label for="fbdTitle" data-en="Page Title" data-ar="عنوان الصفحة">Page Title</label><input id="fbdTitle" name="pageTitle" placeholder="FBD"/></div>
-                <div class="form-group"><label for="fbdAbout" data-en="About" data-ar="نبذة">About</label><input id="fbdAbout" name="about" placeholder="About FBD..."/></div>
+            <form id="fbdStatsForm">
+              <div class="three-col" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem">
+                <div class="form-group"><label for="fbdProjectsCompleted" data-en="Projects Completed" data-ar="المشاريع المكتملة">Projects Completed</label><input id="fbdProjectsCompleted" name="projectsCompleted" type="text" inputmode="numeric" value="0" required /></div>
+                <div class="form-group"><label for="fbdStudentsInvolved" data-en="Students Involved" data-ar="الطلاب المشاركون">Students Involved</label><input id="fbdStudentsInvolved" name="studentsInvolved" type="text" inputmode="numeric" value="0" required /></div>
+                <div class="form-group"><label for="fbdCommunityServed" data-en="Community Members Served" data-ar="أفراد المجتمع المخدومون">Community Members Served</label><input id="fbdCommunityServed" name="communityServed" type="text" value="0" required /></div>
               </div>
-              <button type="submit" class="submit-btn" data-en="Update FBD Page" data-ar="تحديث صفحة FBD">Update FBD Page</button>
+              <button type="submit" class="submit-btn" data-en="Update FBD Statistics" data-ar="تحديث إحصائيات FBD">Update FBD Statistics</button>
             </form>
           </div>
         </details>
@@ -958,8 +959,10 @@
         const r = await firestoreAPI.getAllContent();
         if (!r.success) throw new Error(r.error);
         const fbd = r.content.education?.fbd || { pageTitle:'', about:'', events:[] };
-        fbdTitle.value = fbd.pageTitle || '';
-        fbdAbout.value = fbd.about || '';
+        const stats = fbd.stats || {};
+        fbdProjectsCompleted.value = stats.projectsCompleted ?? '0';
+        fbdStudentsInvolved.value = stats.studentsInvolved ?? '0';
+        fbdCommunityServed.value = stats.communityServed ?? '0';
         CACHE.fbdEvents = fbd.events || [];
         if (CACHE.fbdEvents.length===0) { box.innerHTML = '<p>No FBD events found.</p>'; return; }
         box.innerHTML = CACHE.fbdEvents.map(ev => `
@@ -1185,9 +1188,10 @@
     const courseSubmitBtn   = document.getElementById('courseSubmitBtn');
     const courseErrorsBox   = document.getElementById('courseErrors');
 
-    const fbdPageForm       = document.getElementById('fbdPageForm');
-    const fbdTitle          = document.getElementById('fbdTitle');
-    const fbdAbout          = document.getElementById('fbdAbout');
+    const fbdStatsForm      = document.getElementById('fbdStatsForm');
+    const fbdProjectsCompleted = document.getElementById('fbdProjectsCompleted');
+    const fbdStudentsInvolved = document.getElementById('fbdStudentsInvolved');
+    const fbdCommunityServed = document.getElementById('fbdCommunityServed');
 
     const fbdEventForm          = document.getElementById('fbdEventForm');
     const fbdEventId            = document.getElementById('fbdEventId');
@@ -1691,21 +1695,19 @@
       }
     }, true);
 
-    /*************************************************
-     * إرسال نموذج صفحة FBD
-     *************************************************/
-    fbdPageForm.addEventListener('submit', async (e) => {
+    fbdStatsForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
       try {
-        const r = await firestoreAPI.updateFbdPage({
-          pageTitle: fbdTitle.value,
-          about: fbdAbout.value
+        const r = await firestoreAPI.updateFbdStats({
+          projectsCompleted: fbdProjectsCompleted.value,
+          studentsInvolved: fbdStudentsInvolved.value,
+          communityServed: fbdCommunityServed.value
         });
-        if (r.success) showMessage('FBD page updated', 'success');
-        else showMessage(r.error || 'Failed to update FBD page', 'error');
+        if (r.success) showMessage('FBD statistics updated', 'success');
+        else showMessage(r.error || 'Failed to update FBD statistics', 'error');
       } catch (err) {
-        console.error('[FbdPageForm] Exception:', err);
-        showMessage('Unexpected error updating FBD page', 'error');
+        console.error('[FbdStatsForm] Exception:', err);
+        showMessage('Unexpected error updating FBD statistics', 'error');
       }
     });
 

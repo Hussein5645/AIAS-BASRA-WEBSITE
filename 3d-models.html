@@ -38,18 +38,18 @@
   <nav class="navbar" id="navbar"></nav>
   <section class="models-hero">
     <div class="container">
-      <h1 class="fade-in-up">3D Models</h1>
-      <p class="fade-in-up delay-1">Explore uploaded GLB models in the 3D viewer.</p>
+      <h1 class="fade-in-up" data-en="3D Models" data-ar="نماذج ثلاثية الأبعاد">3D Models</h1>
+      <p class="fade-in-up delay-1" data-en="Explore uploaded GLB models in the 3D viewer." data-ar="استكشف نماذج GLB المرفوعة في العارض ثلاثي الأبعاد.">Explore uploaded GLB models in the 3D viewer.</p>
     </div>
   </section>
   <section class="models-section">
     <div class="container">
       <div class="models-view-controls" aria-label="3D model view options">
-        <button type="button" class="active" data-model-view="grid">Grid</button>
-        <button type="button" data-model-view="list">List</button>
-        <button type="button" data-model-view="compact">Compact</button>
+        <button type="button" class="active" data-model-view="grid" data-en="Grid" data-ar="شبكي">Grid</button>
+        <button type="button" data-model-view="list" data-en="List" data-ar="قائمة">List</button>
+        <button type="button" data-model-view="compact" data-en="Compact" data-ar="مضغوط">Compact</button>
       </div>
-      <div id="status">Loading 3D models...</div>
+      <div id="status" data-en="Loading 3D models..." data-ar="جارٍ تحميل النماذج ثلاثية الأبعاد...">Loading 3D models...</div>
       <section id="modelsGrid" class="models-grid" aria-live="polite"></section>
     </div>
   </section>
@@ -77,11 +77,15 @@
           .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
 
         if (!models.length) {
-          status.textContent = 'No uploaded GLB models are available yet.';
+          status.dataset.en = 'No uploaded GLB models are available yet.';
+          status.dataset.ar = 'لا توجد نماذج GLB مرفوعة حتى الآن.';
+          window.applyTranslations?.();
           return;
         }
 
-        status.textContent = `${models.length} uploaded model${models.length === 1 ? '' : 's'}`;
+        status.dataset.en = `${models.length} uploaded model${models.length === 1 ? '' : 's'}`;
+        status.dataset.ar = `تم تحميل ${models.length} ${models.length === 1 ? 'نموذج' : 'نماذج'}`;
+        window.applyTranslations?.();
         grid.innerHTML = models.map(model => `
           <article class="model-card">
             <h2>${escapeHtml(model.name || 'Untitled model')}</h2>
@@ -92,7 +96,9 @@
         `).join('');
       } catch (error) {
         console.error('[3D Models] Failed to load:', error);
-        status.textContent = 'Unable to load 3D models. Please try again later.';
+        status.dataset.en = 'Unable to load 3D models. Please try again later.';
+        status.dataset.ar = 'تعذر تحميل النماذج ثلاثية الأبعاد. يرجى المحاولة لاحقاً.';
+        window.applyTranslations?.();
       }
     }
 

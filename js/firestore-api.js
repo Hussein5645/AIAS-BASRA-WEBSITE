@@ -358,7 +358,7 @@ class FirestoreAPI {
       magazine.articles = magazineArticlesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
       // Education (weekly + courses subcollection) + FBD
-      const education = { weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "", workshopUrl: "" }, courses: [], fbd: { pageTitle: "", about: "", events: [] } };
+      const education = { weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "", workshopUrl: "" }, courses: [], fbd: { pageTitle: "", about: "", stats: { projectsCompleted: "0", studentsInvolved: "0", communityServed: "0" }, events: [] } };
       if (educationDocSnap.exists()) {
         const ed = educationDocSnap.data();
         const ww = ed.weeklyWorkshop || {};
@@ -375,6 +375,7 @@ class FirestoreAPI {
         const f = fbdDocSnap.data();
         education.fbd.pageTitle = f.pageTitle ?? "";
         education.fbd.about = f.about ?? "";
+        education.fbd.stats = f.stats || education.fbd.stats;
       }
       education.fbd.events = fbdEventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
@@ -545,6 +546,21 @@ class FirestoreAPI {
       await this.ensureBaseDocs();
       await setDoc(this._docRef(this.paths.fbdDoc), { pageTitle: toStr(pageTitle), about: toStr(about) }, { merge: true });
       return { success: true, message: 'FBD page updated successfully' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+  async updateFbdStats({ projectsCompleted, studentsInvolved, communityServed }) {
+    try {
+      await this.ensureBaseDocs();
+      await setDoc(this._docRef(this.paths.fbdDoc), {
+        stats: {
+          projectsCompleted: toStr(projectsCompleted),
+          studentsInvolved: toStr(studentsInvolved),
+          communityServed: toStr(communityServed)
+        }
+      }, { merge: true });
+      return { success: true, message: 'FBD statistics updated successfully' };
     } catch (error) {
       return { success: false, error: error.message };
     }

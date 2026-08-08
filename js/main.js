@@ -274,36 +274,72 @@ grids.forEach(grid => {
 // Language Toggle Functionality
 let currentLanguage = localStorage.getItem('language') || 'en';
 
-function setLanguage(lang) {
-    currentLanguage = lang;
-    localStorage.setItem('language', lang);
-    
-    // Update HTML lang attribute
-    document.documentElement.lang = lang === 'ar' ? 'ar' : 'en';
-    
-    // Update body direction for RTL
-    document.body.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
-    
-    // Update language toggle button
-    const langButton = document.getElementById('currentLang');
-    if (langButton) {
-        langButton.textContent = lang === 'ar' ? 'AR' : 'EN';
+function applyElementTranslation(element, lang) {
+    const translation = element.getAttribute(`data-${lang}`);
+    if (!translation) return;
+
+    // Inputs and textareas need their placeholder translated; setting
+    // textContent on them has no visible effect.
+    if (element.matches('input, textarea')) {
+        element.placeholder = translation;
+        return;
     }
-    
-    // Update all elements with translations
-    const elements = document.querySelectorAll('[data-en][data-ar]');
-    elements.forEach(element => {
-        const translation = lang === 'ar' ? element.getAttribute('data-ar') : element.getAttribute('data-en');
-        if (translation) {
-            element.textContent = translation;
-        }
-    });
+
+    // Keep child icons, counters, and controls intact when only a label is
+    // being translated. Use data-i18n-text when the element contains markup.
+    if (element.dataset.i18nText === 'true' || element.children.length === 0) {
+        element.textContent = translation;
+    } else {
+        const textNode = Array.from(element.childNodes).find(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+        if (textNode) textNode.textContent = translation;
+        else element.setAttribute('aria-label', translation);
+    }
 }
+
+function applyTranslations(root = document) {
+    const scope = root instanceof Element || root instanceof Document
+        ? root
+        : document;
+    const elements = scope.matches?.('[data-en][data-ar]')
+        ? [scope, ...scope.querySelectorAll('[data-en][data-ar]')]
+        : scope.querySelectorAll('[data-en][data-ar]');
+    elements.forEach(element => applyElementTranslation(element, currentLanguage));
+}
+
+function setLanguage(lang) {
+    currentLanguage = lang === 'ar' ? 'ar' : 'en';
+    localStorage.setItem('language', currentLanguage);
+
+    document.documentElement.lang = currentLanguage;
+    document.documentElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
+    document.body.setAttribute('dir', currentLanguage === 'ar' ? 'rtl' : 'ltr');
+
+    const langButton = document.getElementById('currentLang');
+    if (langButton) langButton.textContent = currentLanguage === 'ar' ? 'AR' : 'EN';
+
+    applyTranslations();
+    window.dispatchEvent(new CustomEvent('aias-language-changed', { detail: { language: currentLanguage } }));
+}
+
+window.setLanguage = setLanguage;
+window.applyTranslations = applyTranslations;
 
 // Initialize language on page load
 document.addEventListener('DOMContentLoaded', () => {
     setLanguage(currentLanguage);
     bindLanguageToggle();
+
+    // Translate cards and controls added later by Firestore renderers.
+    if (document.body && !window.__aiasTranslationObserver) {
+        window.__aiasTranslationObserver = new MutationObserver(mutations => {
+            mutations.forEach(mutation => {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === Node.ELEMENT_NODE) applyTranslations(node);
+                });
+            });
+        });
+        window.__aiasTranslationObserver.observe(document.body, { childList: true, subtree: true });
+    }
 });
 
 function bindLanguageToggle() {

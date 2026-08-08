@@ -16,6 +16,47 @@
         return filename || 'index.html';
     }
 
+    function applyShellLanguage(lang) {
+        const language = lang === 'ar' ? 'ar' : 'en';
+        localStorage.setItem('language', language);
+        document.documentElement.lang = language;
+        document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+        document.body.setAttribute('dir', language === 'ar' ? 'rtl' : 'ltr');
+        const currentLang = document.getElementById('currentLang');
+        if (currentLang) currentLang.textContent = language === 'ar' ? 'AR' : 'EN';
+
+        document.querySelectorAll('[data-en][data-ar]').forEach(element => {
+            const value = element.getAttribute(`data-${language}`);
+            if (!value) return;
+            if (element.matches('input, textarea')) element.placeholder = value;
+            else if (element.children.length === 0) element.textContent = value;
+            else {
+                const textNode = Array.from(element.childNodes).find(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+                if (textNode) textNode.textContent = value;
+            }
+        });
+    }
+
+    function setupShellLanguage() {
+        // main.js owns the shared toggle when it is present. Standalone pages
+        // such as the model listing still receive the same language behavior.
+        if (typeof window.setLanguage === 'function') {
+            window.setLanguage(localStorage.getItem('language') || 'en');
+            return;
+        }
+        window.setLanguage = applyShellLanguage;
+        window.applyTranslations = () => applyShellLanguage(localStorage.getItem('language') || 'en');
+        applyShellLanguage(localStorage.getItem('language') || 'en');
+        const toggle = document.getElementById('languageToggle');
+        if (toggle && toggle.dataset.langBound !== 'true') {
+            toggle.dataset.langBound = 'true';
+            toggle.addEventListener('click', () => {
+                const next = (localStorage.getItem('language') || 'en') === 'ar' ? 'en' : 'ar';
+                applyShellLanguage(next);
+            });
+        }
+    }
+
     function ensureNavigationStyles() {
         if (!document.querySelector('link[href="css/navigation.css"]')) {
             const navStyles = document.createElement('link');
@@ -164,26 +205,26 @@
                         <span></span>
                     </button>
                     <ul class="nav-links" id="navLinks">
-                        <li class="nav-item"><a href="index.html" class="shell-link-home">Home</a></li>
+                        <li class="nav-item"><a href="index.html" class="shell-link-home" data-en="Home" data-ar="الرئيسية">Home</a></li>
 
                         <li class="nav-item">
-                            <a href="#" data-mega-menu="programsMegaMenu" class="shell-link-programs">Programs</a>
+                            <a href="#" data-mega-menu="programsMegaMenu" class="shell-link-programs" data-en="Programs" data-ar="البرامج">Programs</a>
                             <div class="mega-menu" id="programsMegaMenu">
                                 <div class="mega-menu-content">
                                     <div class="mega-menu-section">
-                                        <h3>Get Involved</h3>
+                                        <h3 data-en="Get Involved" data-ar="شارك معنا">Get Involved</h3>
                                         <a href="events.html" class="mega-menu-link shell-link-events">
                                             <div class="mega-menu-icon">📅</div>
                                             <div class="mega-menu-link-content">
-                                                <div class="mega-menu-link-title">Events</div>
-                                                <div class="mega-menu-link-desc">Workshops, meetings, and competitions</div>
+                                            <div class="mega-menu-link-title" data-en="Events" data-ar="الفعاليات">Events</div>
+                                            <div class="mega-menu-link-desc" data-en="Workshops, meetings, and competitions" data-ar="ورش العمل والاجتماعات والمسابقات">Workshops, meetings, and competitions</div>
                                             </div>
                                         </a>
                                         <a href="fbd.html" class="mega-menu-link shell-link-fbd">
                                             <div class="mega-menu-icon">🏗️</div>
                                             <div class="mega-menu-link-content">
-                                                <div class="mega-menu-link-title">Freedom By Design</div>
-                                                <div class="mega-menu-link-desc">Community service projects</div>
+                                            <div class="mega-menu-link-title" data-en="Freedom By Design" data-ar="الحرية بالتصميم">Freedom By Design</div>
+                                            <div class="mega-menu-link-desc" data-en="Community service projects" data-ar="مشاريع خدمة المجتمع">Community service projects</div>
                                             </div>
                                         </a>
                                     </div>
@@ -192,30 +233,30 @@
                         </li>
 
                         <li class="nav-item">
-                            <a href="#" data-mega-menu="resourcesMegaMenu" class="shell-link-resources">Resources</a>
+                            <a href="#" data-mega-menu="resourcesMegaMenu" class="shell-link-resources" data-en="Resources" data-ar="الموارد">Resources</a>
                             <div class="mega-menu" id="resourcesMegaMenu">
                                 <div class="mega-menu-content">
                                     <div class="mega-menu-section">
-                                        <h3>Learn & Explore</h3>
+                                        <h3 data-en="Learn & Explore" data-ar="تعلّم واستكشف">Learn & Explore</h3>
                                         <a href="library.html" class="mega-menu-link shell-link-library">
                                             <div class="mega-menu-icon">📚</div>
                                             <div class="mega-menu-link-content">
-                                                <div class="mega-menu-link-title">Library</div>
-                                                <div class="mega-menu-link-desc">Books, guides, and templates</div>
+                                            <div class="mega-menu-link-title" data-en="Library" data-ar="المكتبة">Library</div>
+                                            <div class="mega-menu-link-desc" data-en="Books, guides, and templates" data-ar="كتب وأدلة وقوالب">Books, guides, and templates</div>
                                             </div>
                                         </a>
                                         <a href="3d-models.html" class="mega-menu-link shell-link-models3d">
                                             <div class="mega-menu-icon">🧊</div>
                                             <div class="mega-menu-link-content">
-                                                <div class="mega-menu-link-title">3D Models</div>
-                                                <div class="mega-menu-link-desc">Preview and open chapter model viewer files</div>
+                                            <div class="mega-menu-link-title" data-en="3D Models" data-ar="نماذج ثلاثية الأبعاد">3D Models</div>
+                                            <div class="mega-menu-link-desc" data-en="Preview and open chapter model viewer files" data-ar="عاين ملفات النماذج وافتحها في العارض">Preview and open chapter model viewer files</div>
                                             </div>
                                         </a>
                                         <a href="magazine.html" class="mega-menu-link shell-link-magazine">
                                             <div class="mega-menu-icon">📰</div>
                                             <div class="mega-menu-link-content">
-                                                <div class="mega-menu-link-title">Magazine</div>
-                                                <div class="mega-menu-link-desc">Articles and publications</div>
+                                            <div class="mega-menu-link-title" data-en="Magazine" data-ar="المجلة">Magazine</div>
+                                            <div class="mega-menu-link-desc" data-en="Articles and publications" data-ar="المقالات والمنشورات">Articles and publications</div>
                                             </div>
                                         </a>
                                     </div>
@@ -224,9 +265,9 @@
                         </li>
 
                         <li class="nav-item">
-                            <a href="#" class="shell-link-about">About</a>
+                            <a href="#" class="shell-link-about" data-en="About" data-ar="من نحن">About</a>
                             <div class="dropdown-menu">
-                                <a href="about.html" class="shell-link-about-page">About Us</a>
+                                <a href="about.html" class="shell-link-about-page" data-en="About Us" data-ar="من نحن">About Us</a>
                             </div>
                         </li>
 
@@ -286,6 +327,8 @@
                         type="text"
                         id="siteSearchInput"
                         placeholder="Search pages, events, articles..."
+                        data-en="Search pages, events, articles..."
+                        data-ar="ابحث في الصفحات والفعاليات والمقالات..."
                         autocomplete="off"
                     >
                 </div>
@@ -558,6 +601,7 @@
         setupMegaMenu();
         setupSearch();
         markActiveLinks();
+        setupShellLanguage();
         window.dispatchEvent(new CustomEvent('aias-site-shell-ready'));
     }
 

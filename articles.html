@@ -47,20 +47,20 @@
     </div>
   </section>
   <main class="article-page">
-    <div id="status">Loading article...</div>
+    <div id="status" data-en="Loading article..." data-ar="جارٍ تحميل المقال...">Loading article...</div>
     <article id="articleBody" class="article-body" hidden></article>
     <section id="articleCommunity" class="article-community" hidden>
-      <h2>Community</h2>
+      <h2 data-en="Community" data-ar="المجتمع">Community</h2>
       <div class="vote-bar">
-        <button id="upvoteButton" class="vote-button" type="button">▲ Upvote</button>
+        <button id="upvoteButton" class="vote-button" type="button" data-en="▲ Upvote" data-ar="▲ تصويت مؤيد">▲ Upvote</button>
         <span id="voteScore" class="vote-score">0</span>
-        <button id="downvoteButton" class="vote-button" type="button">▼ Downvote</button>
+        <button id="downvoteButton" class="vote-button" type="button" data-en="▼ Downvote" data-ar="▼ تصويت معارض">▼ Downvote</button>
       </div>
-      <h3>Comments</h3>
-      <p id="commentAuthMessage">Sign in to vote and comment.</p>
+      <h3 data-en="Comments" data-ar="التعليقات">Comments</h3>
+      <p id="commentAuthMessage" data-en="Sign in to vote and comment." data-ar="سجّل الدخول للتصويت والتعليق.">Sign in to vote and comment.</p>
       <form id="commentForm" class="comment-form" hidden>
-        <textarea id="commentInput" maxlength="2000" placeholder="Share your thoughts..."></textarea>
-        <button class="btn btn-primary" type="submit">Comment</button>
+        <textarea id="commentInput" maxlength="2000" placeholder="Share your thoughts..." data-en="Share your thoughts..." data-ar="شارك أفكارك..."></textarea>
+        <button class="btn btn-primary" type="submit" data-en="Comment" data-ar="تعليق">Comment</button>
       </form>
       <div id="commentsList"></div>
     </section>
@@ -94,6 +94,10 @@
     let currentUser = null;
     let currentVote = 0;
 
+    function t(en, ar) {
+      return (localStorage.getItem('language') || 'en') === 'ar' ? ar : en;
+    }
+
     function escapeHtml(value) {
       return String(value || '').replace(/[&<>"']/g, character => ({
         '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;'
@@ -115,7 +119,7 @@
       commentsList.innerHTML = comments.length ? comments.map(comment => `
         <div class="comment"><div class="comment-meta">${escapeHtml(comment.userName || 'Member')} · ${comment.createdAt?.toDate ? comment.createdAt.toDate().toLocaleString() : 'Just now'}</div>
         <div class="comment-text">${escapeHtml(comment.text)}</div>
-        ${currentUser?.uid === comment.userId ? `<button class="comment-delete" data-comment-id="${comment.id}" type="button">Delete</button>` : ''}</div>`).join('') : '<p>No comments yet. Start the discussion.</p>';
+        ${currentUser?.uid === comment.userId ? `<button class="comment-delete" data-comment-id="${comment.id}" type="button">${t('Delete', 'حذف')}</button>` : ''}</div>`).join('') : `<p>${t('No comments yet. Start the discussion.', 'لا توجد تعليقات بعد. ابدأ النقاش.')}</p>`;
       commentsList.querySelectorAll('.comment-delete').forEach(button => button.addEventListener('click', async () => {
         await deleteDoc(doc(commentsRef(), button.dataset.commentId));
         loadCommunity();
@@ -123,7 +127,7 @@
     }
 
     async function saveVote(value) {
-      if (!currentUser) { alert('Please sign in to vote.'); return; }
+      if (!currentUser) { alert(t('Please sign in to vote.', 'يرجى تسجيل الدخول للتصويت.')); return; }
       const voteRef = doc(votesRef(), currentUser.uid);
       await setDoc(voteRef, { userId: currentUser.uid, value: currentVote === value ? 0 : value, updatedAt: serverTimestamp() });
       await loadCommunity();
@@ -156,8 +160,8 @@
         await loadCommunity();
       } catch (error) {
         console.error('[Article] Failed to load:', error);
-        title.textContent = 'Article unavailable';
-        status.textContent = 'This article could not be found.';
+        title.textContent = t('Article unavailable', 'المقال غير متاح');
+        status.textContent = t('This article could not be found.', 'تعذر العثور على هذا المقال.');
       }
     }
 

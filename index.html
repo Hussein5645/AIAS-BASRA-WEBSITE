@@ -11,6 +11,19 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .home-articles { padding: 5rem 0; background: var(--light-bg); }
+        .home-articles-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.5rem; }
+        .home-article-card { background:var(--white); border-radius:12px; overflow:hidden; box-shadow:var(--shadow-sm); transition:transform .3s ease,box-shadow .3s ease; }
+        .home-article-card:hover { transform:translateY(-6px); box-shadow:var(--shadow-lg); }
+        .home-article-image { height:180px; display:flex; align-items:center; justify-content:center; background:var(--gradient-2); color:var(--white); font-size:3rem; background-size:cover; background-position:center; }
+        .home-article-content { padding:1.5rem; }
+        .home-article-date { color:var(--accent-color); font-size:.85rem; font-weight:700; margin-bottom:.5rem; }
+        .home-article-title { color:var(--primary-color); font-size:1.25rem; margin-bottom:.65rem; }
+        .home-article-summary { color:var(--text-secondary); line-height:1.6; margin-bottom:1rem; }
+        .home-article-link { color:var(--accent-color); font-weight:700; text-decoration:none; }
+        .home-article-link:hover { text-decoration:underline; }
+    </style>
 </head>
 <body>
     <!-- Intro Animation -->
@@ -85,6 +98,22 @@
         </div>
         <div class="scroll-indicator">
             <span></span>
+        </div>
+    </section>
+
+    <!-- Latest Articles Section -->
+    <section class="home-articles">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title" data-en="Latest Articles" data-ar="أحدث المقالات">Latest Articles</h2>
+                <p class="section-subtitle" data-en="Ideas, stories, and insights from the AIAS Basra community" data-ar="أفكار وقصص ورؤى من مجتمع AIAS البصرة">Ideas, stories, and insights from the AIAS Basra community</p>
+            </div>
+            <div id="latestArticlesGrid" class="home-articles-grid">
+                <div class="loading-container"><p class="loading-text">Loading latest articles...</p></div>
+            </div>
+            <div style="text-align:center;margin-top:2rem;">
+                <a href="magazine.html" class="btn btn-secondary" data-en="View All Articles" data-ar="عرض جميع المقالات">View All Articles</a>
+            </div>
         </div>
     </section>
         <!-- Latest Events Section -->
@@ -188,7 +217,7 @@
                     <p data-en="Join our upcoming workshops and gatherings" data-ar="انضم إلى ورش العمل والتجمعات القادمة">Join our upcoming workshops and gatherings</p>
                     <span class="link-arrow">→</span>
                 </a>
-                <a href="library.html#models3dGrid" class="link-card">
+                <a href="3d-models.html" class="link-card">
                     <div class="link-icon">🧊</div>
                     <h3 data-en="3D Models" data-ar="نماذج ثلاثية الأبعاد">3D Models</h3>
                     <p data-en="Browse model entries and open them in the 3D Viewer" data-ar="تصفح النماذج وافتحها في العارض ثلاثي الأبعاد">Browse model entries and open them in the 3D Viewer</p>
@@ -325,7 +354,45 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', loadLatestEvents);
+        function escapeHtml(value) {
+            return String(value || '').replace(/[&<>"']/g, character => ({
+                '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;'
+            }[character]));
+        }
+
+        async function loadLatestArticles() {
+            const articlesGrid = document.getElementById('latestArticlesGrid');
+            if (!articlesGrid) return;
+            try {
+                const result = await dataLoader.getMagazine();
+                const articles = (result.magazine?.articles || [])
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                    .slice(0, 3);
+                if (!articles.length) {
+                    articlesGrid.innerHTML = '<div class="empty-state"><p>No articles available yet.</p></div>';
+                    return;
+                }
+                articlesGrid.innerHTML = articles.map(article => `
+                    <article class="home-article-card reveal">
+                        <div class="home-article-image" style="${article.imageUrl ? `background-image:url('${escapeHtml(article.imageUrl)}')` : ''}">${article.imageUrl ? '' : '📰'}</div>
+                        <div class="home-article-content">
+                            <div class="home-article-date">${escapeHtml(article.date || 'Latest')}</div>
+                            <h3 class="home-article-title">${escapeHtml(article.title || 'Untitled article')}</h3>
+                            <p class="home-article-summary">${escapeHtml(article.summary || '')}</p>
+                            <a class="home-article-link" href="articles.html?id=${encodeURIComponent(article.id)}">Read Article →</a>
+                        </div>
+                    </article>
+                `).join('');
+            } catch (error) {
+                console.error('[Index] Error loading latest articles:', error);
+                articlesGrid.innerHTML = '<div class="error-container"><p>Unable to load latest articles.</p></div>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLatestEvents();
+            loadLatestArticles();
+        });
     </script>
 
     <script src="js/intro.js"></script>
