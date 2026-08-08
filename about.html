@@ -157,7 +157,7 @@
             font-size: 0.9rem;
         }
         
-        .document-section { padding: 5rem 0; background: #0b0b0b; color: #fff; }
+        .document-section { padding: 0; background: #fff; color: #111; }
         .document-section .section-title { color: #fff; }
         .document-section .section-subtitle { color: rgba(255,255,255,.6); }
         .document-reader { max-width: 1180px; margin: 0 auto; background: #111; border: 1px solid rgba(192,151,117,.25); border-radius: 16px; overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,.35); }
@@ -170,6 +170,13 @@
         .document-canvas-wrap { min-height:560px; padding:2rem; display:flex; align-items:flex-start; justify-content:center; overflow:auto; background:radial-gradient(circle at center, #242424 0%, #111 72%); }
         #aboutPdfCanvas { display:block; max-width:none; background:#fff; box-shadow:0 16px 45px rgba(0,0,0,.4); }
         .document-status { padding:.7rem 1rem; color:rgba(255,255,255,.5); text-align:center; background:#111; font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; }
+        .document-section { padding:0; min-height:100dvh; background:#fff; }
+        .document-reader { max-width:none; margin:0; border:0; border-radius:0; box-shadow:none; background:#fff; }
+        .document-pages { height:100dvh; overflow-y:auto; overflow-x:hidden; scroll-snap-type:y mandatory; scrollbar-width:none; overscroll-behavior:contain; background:#fff; }
+        .document-pages::-webkit-scrollbar { display:none; }
+        .document-page { min-height:100dvh; display:flex; align-items:flex-start; justify-content:center; padding:0; scroll-snap-align:start; scroll-snap-stop:always; background:#fff; }
+        .document-page canvas { display:block; width:100vw; max-width:none; height:auto; background:#fff; box-shadow:none; }
+        .document-page.is-loading::after { content:'Loading page'; color:rgba(255,255,255,.55); font-size:.75rem; letter-spacing:.16em; text-transform:uppercase; }
 
         @media (max-width: 768px) {
             .story-content {
@@ -180,8 +187,7 @@
             .about-hero h1 {
                 font-size: 2rem;
             }
-            .document-toolbar { flex-wrap:wrap; justify-content:center; }
-            .document-canvas-wrap { min-height:300px; padding:.5rem; }
+            .document-page { min-height:auto; }
         }
     </style>
 </head>
@@ -246,34 +252,6 @@
         </div>
     </section>
 
-    <section class="document-section">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title" data-en="AIAS Basra Document" data-ar="وثيقة AIAS البصرة">AIAS Basra Document</h2>
-                <p class="section-subtitle" data-en="Read the document one page at a time." data-ar="اقرأ الوثيقة صفحةً تلو الأخرى.">Read the document one page at a time.</p>
-            </div>
-            <div class="document-reader" id="aboutPdfReader">
-                <div class="document-toolbar">
-                    <div class="document-toolbar-group">
-                        <button type="button" id="aboutPdfPrevious" data-en="Previous" data-ar="السابق">Previous</button>
-                        <button type="button" id="aboutPdfNext" data-en="Next" data-ar="التالي">Next</button>
-                    </div>
-                    <span class="document-page-label" id="aboutPdfPageLabel">Page 1 / 11</span>
-                    <div class="document-toolbar-group">
-                        <button type="button" id="aboutPdfZoomOut" aria-label="Zoom out">−</button>
-                        <button type="button" id="aboutPdfZoomReset" data-en="Reset" data-ar="إعادة ضبط">Reset</button>
-                        <button type="button" id="aboutPdfZoomIn" aria-label="Zoom in">+</button>
-                        <button type="button" id="aboutPdfFullscreen" data-en="Fullscreen" data-ar="ملء الشاشة">Fullscreen</button>
-                    </div>
-                </div>
-                <div class="document-canvas-wrap">
-                    <canvas id="aboutPdfCanvas" aria-label="AIAS Basra PDF page"></canvas>
-                </div>
-                <div class="document-status" id="aboutPdfStatus" data-en="Loading document..." data-ar="جارٍ تحميل الوثيقة...">Loading document...</div>
-            </div>
-        </div>
-    </section>
-
     <section class="values-section">
         <div class="container">
             <div class="section-header">
@@ -297,6 +275,12 @@
                     <p>Providing opportunities for personal and professional development through workshops and mentorship.</p>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <section class="document-section" aria-label="AIAS Basra document">
+        <div class="document-reader" id="aboutPdfReader">
+            <div class="document-pages" id="aboutPdfPages" aria-live="polite"></div>
         </div>
     </section>
 
@@ -358,68 +342,66 @@
     <script>
         (() => {
             const pdfUrl = 'static/documents/AIAS-BSR.pdf';
-            const canvas = document.getElementById('aboutPdfCanvas');
-            const context = canvas?.getContext('2d');
-            const status = document.getElementById('aboutPdfStatus');
-            const pageLabel = document.getElementById('aboutPdfPageLabel');
-            const canvasWrap = document.querySelector('.document-canvas-wrap');
-            if (!canvas || !context || !status || !window.pdfjsLib) return;
+            const pagesContainer = document.getElementById('aboutPdfPages');
+            if (!pagesContainer || !window.pdfjsLib) return;
 
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-            let pdfDocument = null;
-            let pageNumber = 1;
-            let zoom = 1;
-            let rendering = false;
-            let queuedPage = null;
 
-            function languageText(en, ar) {
-                return (localStorage.getItem('language') || 'en') === 'ar' ? ar : en;
+            function pageScale(page) {
+                const baseViewport = page.getViewport({ scale: 1 });
+                const availableWidth = Math.max(280, pagesContainer.clientWidth);
+                return Math.min(1.5, availableWidth / baseViewport.width);
             }
 
-            async function renderPage(number) {
-                if (!pdfDocument) return;
-                if (rendering) { queuedPage = number; return; }
-                rendering = true;
-                try {
-                    const page = await pdfDocument.getPage(number);
-                    const baseViewport = page.getViewport({ scale: 1 });
-                    const availableWidth = Math.max(280, (canvasWrap?.clientWidth || 900) - 40);
-                    const fitScale = availableWidth / baseViewport.width;
-                    const viewport = page.getViewport({ scale: Math.max(.25, fitScale * zoom) });
-                    canvas.width = Math.floor(viewport.width);
-                    canvas.height = Math.floor(viewport.height);
-                    await page.render({ canvasContext: context, viewport }).promise;
-                    pageLabel.textContent = languageText(`Page ${number} / ${pdfDocument.numPages}`, `صفحة ${number} / ${pdfDocument.numPages}`);
-                    document.getElementById('aboutPdfPrevious').disabled = number <= 1;
-                    document.getElementById('aboutPdfNext').disabled = number >= pdfDocument.numPages;
-                    status.textContent = languageText('Ready', 'جاهز');
-                } catch (error) {
-                    console.error('[About PDF] Render failed:', error);
-                    status.textContent = languageText('Unable to display this page.', 'تعذر عرض هذه الصفحة.');
-                } finally {
-                    rendering = false;
-                    if (queuedPage !== null) { const nextPage = queuedPage; queuedPage = null; renderPage(nextPage); }
+            async function renderPdfPage(pdfDocument, pageNumber, wrapper) {
+                const page = await pdfDocument.getPage(pageNumber);
+                const canvas = document.createElement('canvas');
+                canvas.setAttribute('aria-label', `AIAS Basra document page ${pageNumber}`);
+                const viewport = page.getViewport({ scale: pageScale(page) });
+                canvas.width = Math.floor(viewport.width);
+                canvas.height = Math.floor(viewport.height);
+                wrapper.replaceChildren(canvas);
+                await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+                wrapper.classList.remove('is-loading');
+            }
+
+            pdfjsLib.getDocument(pdfUrl).promise.then(async pdfDocument => {
+                const pageWrappers = [];
+                for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber += 1) {
+                    const wrapper = document.createElement('section');
+                    wrapper.className = 'document-page is-loading';
+                    wrapper.dataset.page = String(pageNumber);
+                    wrapper.setAttribute('aria-label', `Document page ${pageNumber} of ${pdfDocument.numPages}`);
+                    pagesContainer.appendChild(wrapper);
+                    pageWrappers.push(wrapper);
                 }
-            }
 
-            document.getElementById('aboutPdfPrevious').addEventListener('click', () => { if (pageNumber > 1) renderPage(--pageNumber); });
-            document.getElementById('aboutPdfNext').addEventListener('click', () => { if (pdfDocument && pageNumber < pdfDocument.numPages) renderPage(++pageNumber); });
-            document.getElementById('aboutPdfZoomOut').addEventListener('click', () => { zoom = Math.max(.6, zoom - .1); renderPage(pageNumber); });
-            document.getElementById('aboutPdfZoomIn').addEventListener('click', () => { zoom = Math.min(2, zoom + .1); renderPage(pageNumber); });
-            document.getElementById('aboutPdfZoomReset').addEventListener('click', () => { zoom = 1; renderPage(pageNumber); });
-            document.getElementById('aboutPdfFullscreen').addEventListener('click', () => document.getElementById('aboutPdfReader').requestFullscreen?.());
-            window.addEventListener('resize', () => renderPage(pageNumber));
-            window.addEventListener('aias-language-changed', () => {
-                if (pdfDocument) renderPage(pageNumber);
-            });
+                // Render the first page immediately; load the remaining pages
+                // only as the reader approaches them while scrolling.
+                await renderPdfPage(pdfDocument, 1, pageWrappers[0]);
+                const renderedPages = new Set([0]);
+                const pageObserver = new IntersectionObserver(entries => {
+                    entries.forEach(entry => {
+                        if (!entry.isIntersecting) return;
+                        const wrapper = entry.target;
+                        const index = pageWrappers.indexOf(wrapper);
+                        if (renderedPages.has(index)) return;
+                        renderedPages.add(index);
+                        renderPdfPage(pdfDocument, index + 1, wrapper).catch(error => {
+                            console.error(`[About PDF] Page ${index + 1} failed:`, error);
+                            wrapper.classList.remove('is-loading');
+                        });
+                        pageObserver.unobserve(wrapper);
+                    });
+                });
+                pageWrappers.slice(1).forEach(wrapper => pageObserver.observe(wrapper));
 
-            pdfjsLib.getDocument(pdfUrl).promise.then(documentData => {
-                pdfDocument = documentData;
-                status.textContent = languageText('Ready', 'جاهز');
-                renderPage(pageNumber);
+                window.addEventListener('resize', () => {
+                    renderedPages.forEach(index => renderPdfPage(pdfDocument, index + 1, pageWrappers[index]));
+                });
             }).catch(error => {
                 console.error('[About PDF] Load failed:', error);
-                status.textContent = languageText('Unable to load the document.', 'تعذر تحميل الوثيقة.');
+                pagesContainer.innerHTML = '<p style="color:#fff;text-align:center;padding:4rem 1rem">Unable to load the document.</p>';
             });
         })();
     </script>
