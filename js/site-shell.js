@@ -1,14 +1,42 @@
 (function () {
     const SEARCH_DATA = [
-        { title: 'Home', url: 'index.html', type: 'page', description: 'Welcome to AIAS Basra Chapter' },
-        { title: 'Events', url: 'events.html', type: 'page', description: 'Upcoming and past chapter events' },
-        { title: 'Freedom By Design', url: 'fbd.html', type: 'page', description: 'Community service design projects' },
-        { title: 'Library', url: 'library.html', type: 'page', description: 'Resource repository and downloads' },
-        { title: '3D Models', url: '3d-models.html', type: 'page', description: 'Browse and preview uploaded 3D models' },
-        { title: 'Magazine', url: 'magazine.html', type: 'page', description: 'Articles and publications' },
-        { title: 'About Us', url: 'about.html', type: 'page', description: 'Learn about AIAS Basra Chapter' },
-        { title: 'Gallery', url: 'gallery.html', type: 'page', description: 'Photo gallery of chapter activities' }
+        { title: 'Home', titleAr: 'الرئيسية', url: 'index.html', type: 'Page', typeAr: 'صفحة', description: 'Welcome to AIAS Basra Chapter', descriptionAr: 'مرحباً بكم في فرع AIAS البصرة', keywords: 'aias basra welcome' },
+        { title: 'Events', titleAr: 'الفعاليات', url: 'events.html', type: 'Page', typeAr: 'صفحة', description: 'Upcoming and past chapter events', descriptionAr: 'الفعاليات القادمة والسابقة', keywords: 'workshop lecture activity calendar' },
+        { title: 'Freedom By Design', titleAr: 'الحرية من خلال التصميم', url: 'fbd.html', type: 'Page', typeAr: 'صفحة', description: 'Community service design projects', descriptionAr: 'مشاريع التصميم وخدمة المجتمع', keywords: 'community projects service fbd' },
+        { title: 'Library', titleAr: 'المكتبة', url: 'library.html', type: 'Page', typeAr: 'صفحة', description: 'Resource repository and downloads', descriptionAr: 'مصادر وملفات للقراءة والتحميل', keywords: 'resources books documents downloads' },
+        { title: '3D Models', titleAr: 'النماذج ثلاثية الأبعاد', url: '3d-models.html', type: 'Page', typeAr: 'صفحة', description: 'Browse and preview uploaded 3D models', descriptionAr: 'تصفح واعرض النماذج ثلاثية الأبعاد', keywords: '3d glb model viewer architecture' },
+        { title: 'Magazine', titleAr: 'المجلة', url: 'magazine.html', type: 'Page', typeAr: 'صفحة', description: 'Articles and publications', descriptionAr: 'المقالات والمنشورات', keywords: 'articles publications magazine news' },
+        { title: 'About Us', titleAr: 'من نحن', url: 'about.html', type: 'Page', typeAr: 'صفحة', description: 'Learn about AIAS Basra Chapter', descriptionAr: 'تعرف على فرع AIAS البصرة', keywords: 'mission vision values team chapter' },
+        { title: 'Gallery', titleAr: 'المعرض', url: 'gallery.html', type: 'Page', typeAr: 'صفحة', description: 'Photo gallery of chapter activities', descriptionAr: 'صور أنشطة وفعاليات الفرع', keywords: 'photos images pictures activities' },
+        { title: 'Articles', titleAr: 'المقالات', url: 'articles.html', type: 'Page', typeAr: 'صفحة', description: 'Read full articles and join the discussion', descriptionAr: 'اقرأ المقالات كاملة وشارك في النقاش', keywords: 'article comments vote upvote downvote' }
     ];
+    let dynamicSearchData = [];
+
+    function getSearchLanguage() {
+        return localStorage.getItem('language') === 'ar' ? 'ar' : 'en';
+    }
+
+    function normalizeSearchText(value) {
+        return String(value || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/[أإآ]/g, 'ا')
+            .replace(/ى/g, 'ي')
+            .replace(/ة/g, 'ه')
+            .replace(/[^\p{L}\p{N}]+/gu, ' ')
+            .trim();
+    }
+
+    function escapeHTML(value) {
+        return String(value || '').replace(/[&<>'"]/g, function (character) {
+            return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character];
+        });
+    }
+
+    function escapeRegExp(value) {
+        return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
 
     function getCurrentFile() {
         const pathname = window.location.pathname;
@@ -199,7 +227,7 @@
                         <img src="static/images/branding/LOGO.png" alt="AIAS Basra Logo">
                         <span>AIAS Basra</span>
                     </div>
-                    <button class="menu-toggle" id="menuToggle">
+                    <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open navigation menu" aria-controls="navLinks" aria-expanded="false">
                         <span></span>
                         <span></span>
                         <span></span>
@@ -317,7 +345,14 @@
         modal.className = 'search-modal';
         modal.id = 'searchModal';
         modal.innerHTML = `
-            <div class="search-modal-content">
+            <div class="search-modal-content" role="dialog" aria-modal="true" aria-labelledby="siteSearchTitle">
+                <div class="search-modal-header">
+                    <div>
+                        <p class="search-eyebrow" data-en="SITE SEARCH" data-ar="بحث الموقع">SITE SEARCH</p>
+                        <h2 id="siteSearchTitle" data-en="Find something quickly" data-ar="ابحث بسرعة">Find something quickly</h2>
+                    </div>
+                    <button class="search-close" id="searchClose" type="button" aria-label="Close search">×</button>
+                </div>
                 <div class="search-input-wrapper">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"></circle>
@@ -330,11 +365,14 @@
                         data-en="Search pages, events, articles..."
                         data-ar="ابحث في الصفحات والفعاليات والمقالات..."
                         autocomplete="off"
+                        aria-label="Search the website"
                     >
+                    <button class="search-clear" id="searchClear" type="button" aria-label="Clear search" hidden>×</button>
                 </div>
                 <div class="search-suggestions" id="searchSuggestions">
-                    <div style="padding: 2rem; text-align: center; color: var(--text-light);">Type to search...</div>
+                    <div class="search-empty-state" data-en="Start typing to search pages, articles, events, and resources." data-ar="ابدأ بالكتابة للبحث في الصفحات والمقالات والفعاليات والمصادر.">Start typing to search pages, articles, events, and resources.</div>
                 </div>
+                <div class="search-footer"><span id="searchResultCount"></span><span data-en="↑ ↓ to move · Enter to open · Esc to close" data-ar="↑ ↓ للتنقل · Enter للفتح · Esc للإغلاق">↑ ↓ to move · Enter to open · Esc to close</span></div>
             </div>
         `;
 
@@ -349,17 +387,23 @@
             return;
         }
 
+        const setMenuState = function (open) {
+            menuToggle.classList.toggle('active', open);
+            navLinks.classList.toggle('active', open);
+            menuToggle.setAttribute('aria-expanded', String(open));
+            menuToggle.setAttribute('aria-label', open ? 'Close navigation menu' : 'Open navigation menu');
+            document.body.classList.toggle('menu-open', open);
+        };
+
         menuToggle.addEventListener('click', function () {
-            menuToggle.classList.toggle('active');
-            navLinks.classList.toggle('active');
-            document.body.classList.toggle('menu-open');
+            setMenuState(!navLinks.classList.contains('active'));
         });
 
         navLinks.querySelectorAll('a').forEach(function (link) {
             link.addEventListener('click', function () {
-                menuToggle.classList.remove('active');
-                navLinks.classList.remove('active');
-                document.body.classList.remove('menu-open');
+                // Mega-menu triggers open a submenu; they should not close the drawer.
+                if (link.hasAttribute('data-mega-menu') || link.getAttribute('href') === '#') return;
+                setMenuState(false);
             });
         });
 
@@ -370,17 +414,17 @@
 
             const clickedInsideNav = event.target.closest('.nav-content');
             if (navLinks.classList.contains('active') && !clickedInsideNav) {
-                menuToggle.classList.remove('active');
-                navLinks.classList.remove('active');
-                document.body.classList.remove('menu-open');
+                setMenuState(false);
             }
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && navLinks.classList.contains('active')) setMenuState(false);
         });
 
         window.addEventListener('resize', function () {
             if (window.innerWidth > 768) {
-                menuToggle.classList.remove('active');
-                navLinks.classList.remove('active');
-                document.body.classList.remove('menu-open');
+                setMenuState(false);
                 document.querySelectorAll('.nav-item.open').forEach(function (item) {
                     item.classList.remove('open');
                 });
@@ -389,11 +433,11 @@
     }
 
     function setupMegaMenu() {
-        const megaMenuTriggers = document.querySelectorAll('[data-mega-menu]');
+        const megaMenuTriggers = document.querySelectorAll('[data-mega-menu], .shell-link-about');
 
         megaMenuTriggers.forEach(function (trigger) {
             const menuId = trigger.getAttribute('data-mega-menu');
-            const menu = document.getElementById(menuId);
+            const menu = (menuId && document.getElementById(menuId)) || trigger.parentElement.querySelector('.mega-menu, .dropdown-menu');
 
             if (!menu) {
                 return;
@@ -441,17 +485,79 @@
     }
 
     function highlightMatch(text, query) {
-        const regex = new RegExp(`(${query})`, 'gi');
-        return text.replace(regex, '<strong>$1</strong>');
+        let safeText = escapeHTML(text);
+        const terms = String(query).trim().split(/\s+/).filter(Boolean).sort((a, b) => b.length - a.length);
+        terms.forEach(function (term) {
+            if (term.length < 2) return;
+            safeText = safeText.replace(new RegExp(`(${escapeRegExp(escapeHTML(term))})`, 'giu'), '<strong>$1</strong>');
+        });
+        return safeText;
     }
 
     function searchData(query) {
-        const lowerQuery = query.toLowerCase();
-        return SEARCH_DATA.filter(function (item) {
-            return item.title.toLowerCase().includes(lowerQuery) ||
-                item.description.toLowerCase().includes(lowerQuery) ||
-                item.type.toLowerCase().includes(lowerQuery);
-        }).slice(0, 8);
+        const language = getSearchLanguage();
+        const terms = normalizeSearchText(query).split(/\s+/).filter(Boolean);
+        const data = SEARCH_DATA.concat(dynamicSearchData);
+        return data.map(function (item) {
+            const title = language === 'ar' ? (item.titleAr || item.title) : item.title;
+            const description = language === 'ar' ? (item.descriptionAr || item.description) : item.description;
+            const searchable = normalizeSearchText([item.title, item.titleAr, item.description, item.descriptionAr, item.keywords, item.type, item.typeAr].join(' '));
+            const titleSearch = normalizeSearchText([item.title, item.titleAr].join(' '));
+            if (!terms.every(term => searchable.includes(term))) return null;
+
+            let score = 0;
+            terms.forEach(function (term) {
+                if (titleSearch === term) score += 100;
+                else if (titleSearch.startsWith(term)) score += 60;
+                else if (titleSearch.includes(term)) score += 35;
+                else score += 10;
+            });
+            return { ...item, displayTitle: title, displayDescription: description, displayType: language === 'ar' ? (item.typeAr || item.type) : item.type, score };
+        }).filter(Boolean).sort((a, b) => b.score - a.score || a.displayTitle.localeCompare(b.displayTitle)).slice(0, 12);
+    }
+
+    async function loadDynamicSearchData() {
+        try {
+            const moduleUrl = new URL('js/data-loader.js', document.baseURI).href;
+            const dataLoaderModule = await import(moduleUrl);
+            const result = await dataLoaderModule.default.fetchData();
+            if (!result.success) return;
+
+            const content = result.data || {};
+            const toText = value => Array.isArray(value) ? value.map(toText).join(' ') : (value && typeof value === 'object' ? Object.values(value).map(toText).join(' ') : String(value || ''));
+            const makeItems = function (items, config) {
+                return (Array.isArray(items) ? items : []).map(function (item) {
+                    const title = item[config.title] || item.name || item.title || item.code || 'Untitled';
+                    const searchableFields = Object.entries(item)
+                        .filter(([key]) => !/(image|base64|chunk|filedata)/i.test(key))
+                        .map(([, value]) => toText(value))
+                        .filter(Boolean)
+                        .join(' ');
+                    const description = [searchableFields, item.description, item.about, item.location, item.type, item.category, item.tags].map(toText).filter(Boolean).join(' ');
+                    return {
+                        title: String(title),
+                        titleAr: String(item.titleAr || item.nameAr || title),
+                        description: description || config.description,
+                        descriptionAr: String(item.descriptionAr || description || config.description),
+                        type: config.type,
+                        typeAr: config.typeAr,
+                        keywords: [config.keywords, description].join(' '),
+                        url: config.url(item)
+                    };
+                });
+            };
+
+            dynamicSearchData = [
+                ...makeItems(content.events, { title: 'title', type: 'Event', typeAr: 'فعالية', description: 'Chapter event', keywords: 'event workshop activity', url: () => 'events.html' }),
+                ...makeItems(content.library, { title: 'title', type: 'Resource', typeAr: 'مصدر', description: 'Library resource', keywords: 'library resource book guide', url: () => 'library.html' }),
+                ...makeItems(content.magazine?.articles, { title: 'title', type: 'Article', typeAr: 'مقال', description: 'Article and publication', keywords: 'article publication magazine', url: item => `articles.html?id=${encodeURIComponent(item.id || '')}` }),
+                ...makeItems(content.education?.fbd?.events, { title: 'title', type: 'FBD Event', typeAr: 'فعالية FBD', description: 'Freedom By Design project', keywords: 'fbd community project', url: () => 'fbd.html' }),
+                ...makeItems(content.models3d, { title: 'name', type: '3D Model', typeAr: 'نموذج ثلاثي الأبعاد', description: 'Uploaded 3D model', keywords: '3d glb model viewer', url: () => '3d-models.html' })
+            ];
+            document.dispatchEvent(new CustomEvent('aias-search-index-ready', { detail: { count: dynamicSearchData.length } }));
+        } catch (error) {
+            console.warn('[Site Search] Dynamic Firestore index unavailable; using page index.', error);
+        }
     }
 
     function setupSearch() {
@@ -459,6 +565,10 @@
         const searchModal = document.getElementById('searchModal');
         const searchInput = document.getElementById('siteSearchInput');
         const suggestions = document.getElementById('searchSuggestions');
+        const searchClose = document.getElementById('searchClose');
+        const searchClear = document.getElementById('searchClear');
+        const resultCount = document.getElementById('searchResultCount');
+        let selectedResult = -1;
 
         if (!searchTrigger || !searchModal || !searchInput || !suggestions) {
             return;
@@ -475,9 +585,44 @@
         const closeSearch = function () {
             searchModal.classList.remove('active');
             document.body.style.overflow = '';
+            selectedResult = -1;
+        };
+
+        const renderSearch = function (query) {
+            const language = getSearchLanguage();
+            const emptyText = language === 'ar' ? 'ابدأ بالكتابة للبحث في الصفحات والمقالات والفعاليات والمصادر.' : 'Start typing to search pages, articles, events, and resources.';
+            const noResultsText = language === 'ar' ? 'لم يتم العثور على نتائج. جرّب كلمات أخرى.' : 'No results found. Try different keywords.';
+            searchClear.hidden = !query;
+            selectedResult = -1;
+
+            if (query.length < 2) {
+                suggestions.innerHTML = `<div class="search-empty-state">${emptyText}</div>`;
+                resultCount.textContent = '';
+                return;
+            }
+
+            const results = searchData(query);
+            resultCount.textContent = results.length ? `${results.length} ${language === 'ar' ? 'نتيجة' : (results.length === 1 ? 'result' : 'results')}` : '';
+            if (!results.length) {
+                suggestions.innerHTML = `<div class="search-empty-state">${noResultsText}</div>`;
+                return;
+            }
+
+            suggestions.innerHTML = results.map(function (result, index) {
+                return `<a href="${escapeHTML(result.url)}" class="search-suggestion" data-search-index="${index}">
+                    <div class="search-suggestion-title">${highlightMatch(result.displayTitle, query)}</div>
+                    <div class="search-suggestion-meta"><span class="search-result-type">${escapeHTML(result.displayType)}</span><span>${highlightMatch(result.displayDescription, query)}</span></div>
+                </a>`;
+            }).join('');
         };
 
         searchTrigger.addEventListener('click', openSearch);
+        if (searchClose) searchClose.addEventListener('click', closeSearch);
+        if (searchClear) searchClear.addEventListener('click', function () {
+            searchInput.value = '';
+            renderSearch('');
+            searchInput.focus();
+        });
 
         searchModal.addEventListener('click', function (event) {
             if (event.target === searchModal) {
@@ -487,6 +632,8 @@
 
         searchInput.addEventListener('input', function (event) {
             const query = event.target.value.trim();
+            renderSearch(query);
+            return;
 
             if (query.length < 2) {
                 suggestions.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--text-light);">Type to search...</div>';
@@ -510,6 +657,22 @@
         });
 
         searchInput.addEventListener('keydown', function (event) {
+            const resultLinks = Array.from(suggestions.querySelectorAll('.search-suggestion'));
+            if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                event.preventDefault();
+                if (!resultLinks.length) return;
+                selectedResult = event.key === 'ArrowDown'
+                    ? (selectedResult + 1) % resultLinks.length
+                    : (selectedResult - 1 + resultLinks.length) % resultLinks.length;
+                resultLinks.forEach((link, index) => link.classList.toggle('is-selected', index === selectedResult));
+                resultLinks[selectedResult].scrollIntoView({ block: 'nearest' });
+                return;
+            }
+            if (event.key === 'Enter' && selectedResult >= 0 && resultLinks[selectedResult]) {
+                event.preventDefault();
+                resultLinks[selectedResult].click();
+                return;
+            }
             if (event.key === 'Escape') {
                 closeSearch();
             }
@@ -525,6 +688,8 @@
                 closeSearch();
             }
         });
+
+        loadDynamicSearchData();
     }
 
     function markActiveLinks() {
