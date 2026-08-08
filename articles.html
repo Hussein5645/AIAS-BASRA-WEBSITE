@@ -37,6 +37,7 @@
     .comment-meta { color:var(--text-light); font-size:.85rem; margin-bottom:.35rem; }
     .comment-text { white-space:pre-wrap; color:var(--text-secondary); }
     .comment-delete { border:0; background:none; color:#b91c1c; cursor:pointer; padding:0; }
+    .community-status { min-height:1.2em; color:#b91c1c; font-size:.82rem; }
     #status { text-align:center; padding:5rem 1rem; color:var(--text-secondary); }
     @media (max-width: 768px) {
       .article-hero { padding:6.5rem .85rem 2.25rem; }
@@ -93,6 +94,7 @@
       </div>
       <h3 data-en="Comments" data-ar="التعليقات">Comments</h3>
       <p id="commentAuthMessage" data-en="Sign in to vote and comment." data-ar="سجّل الدخول للتصويت والتعليق.">Sign in to vote and comment.</p>
+      <p id="communityStatus" class="community-status" aria-live="polite"></p>
       <form id="commentForm" class="comment-form" hidden>
         <textarea id="commentInput" maxlength="2000" placeholder="Share your thoughts..." data-en="Share your thoughts..." data-ar="شارك أفكارك..."></textarea>
         <button class="btn btn-primary" type="submit" data-en="Comment" data-ar="تعليق">Comment</button>
@@ -128,6 +130,7 @@
     const commentInput = document.getElementById('commentInput');
     const commentsList = document.getElementById('commentsList');
     const commentAuthMessage = document.getElementById('commentAuthMessage');
+    const communityStatus = document.getElementById('communityStatus');
     let currentUser = null;
     let currentVote = 0;
     let loadedArticle = null;
@@ -169,10 +172,16 @@
       upvoteButton.disabled = true;
       downvoteButton.disabled = true;
       const voteRef = doc(votesRef(), currentUser.uid);
-      await setDoc(voteRef, { userId: currentUser.uid, value: currentVote === value ? 0 : value, updatedAt: serverTimestamp() });
-      await loadCommunity();
-      upvoteButton.disabled = false;
-      downvoteButton.disabled = false;
+      try {
+        await setDoc(voteRef, { userId: currentUser.uid, value: currentVote === value ? 0 : value, updatedAt: serverTimestamp() });
+        await loadCommunity();
+      } catch (error) {
+        console.error('[ArticleVote] Failed:', error);
+        if (communityStatus) communityStatus.textContent = t('Voting is unavailable. Ask an administrator to deploy the latest Firestore rules.', 'التصويت غير متاح حالياً. يجب نشر قواعد Firestore المحدثة.');
+      } finally {
+        upvoteButton.disabled = false;
+        downvoteButton.disabled = false;
+      }
     }
 
     upvoteButton.addEventListener('click', () => saveVote(1));
@@ -183,10 +192,16 @@
       if (!currentUser || !text) return;
       const submitButton = commentForm.querySelector('button[type="submit"]');
       if (submitButton) { submitButton.disabled = true; submitButton.textContent = 'Posting...'; }
-      await addDoc(commentsRef(), { userId: currentUser.uid, userName: currentUser.displayName || currentUser.email || 'Member', text, createdAt: serverTimestamp() });
-      commentInput.value = '';
-      loadCommunity();
-      if (submitButton) { submitButton.disabled = false; submitButton.textContent = 'Comment'; }
+      try {
+        await addDoc(commentsRef(), { userId: currentUser.uid, userName: currentUser.displayName || currentUser.email || 'Member', text, createdAt: serverTimestamp() });
+        commentInput.value = '';
+        await loadCommunity();
+      } catch (error) {
+        console.error('[ArticleComment] Failed:', error);
+        if (communityStatus) communityStatus.textContent = t('Commenting is unavailable. Ask an administrator to deploy the latest Firestore rules.', 'التعليق غير متاح حالياً. يجب نشر قواعد Firestore المحدثة.');
+      } finally {
+        if (submitButton) { submitButton.disabled = false; submitButton.textContent = 'Comment'; }
+      }
     });
 
     function renderArticle(article) {

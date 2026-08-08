@@ -611,7 +611,7 @@
             suggestions.innerHTML = results.map(function (result, index) {
                 return `<a href="${escapeHTML(result.url)}" class="search-suggestion" data-search-index="${index}">
                     <div class="search-suggestion-title">${highlightMatch(result.displayTitle, query)}</div>
-                    <div class="search-suggestion-meta"><span class="search-result-type">${escapeHTML(result.displayType)}</span><span>${highlightMatch(result.displayDescription, query)}</span></div>
+                    <div class="search-suggestion-meta"><span class="search-result-type">${escapeHTML(result.displayType)}</span></div>
                 </a>`;
             }).join('');
         };

@@ -79,7 +79,10 @@ function updateNavigationAuthUI() {
         }
 
         if (userNameElement) {
-            userNameElement.textContent = userName || userEmail || 'User';
+            const displayName = userName || userEmail || 'User';
+            userNameElement.textContent = displayName;
+            const logoutTrigger = logoutBtn?.matches('a') ? logoutBtn : logoutBtn?.querySelector('a');
+            if (logoutTrigger) logoutTrigger.dataset.userName = displayName;
         }
     } else {
         setElementVisibility(loginBtn, true);

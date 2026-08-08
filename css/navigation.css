@@ -317,6 +317,13 @@
     font-size: 0.875rem;
 }
 
+/* Keep the account name available without occupying header space. */
+#userProfile { position:relative; }
+#userProfile #userName { display:none!important; }
+#userProfile #logoutBtn { position:relative; }
+#userProfile #logoutBtn:hover::after,
+#userProfile #logoutBtn:focus-visible::after { content:attr(data-user-name); position:absolute; z-index:20; top:calc(100% + .45rem); right:0; min-width:max-content; max-width:220px; padding:.45rem .65rem; border-radius:7px; background:var(--primary-color); color:var(--white); box-shadow:0 8px 20px rgba(0,0,0,.18); font-size:.75rem; font-weight:600; white-space:nowrap; pointer-events:none; }
+
 .breadcrumb-item {
     display: flex;
     align-items: center;
