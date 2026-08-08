@@ -85,6 +85,11 @@
     .two-col { display:grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
     .error-box { display:none; background:#fff5f5; border:1px solid #feb2b2; color:#c53030; padding:.75rem .9rem; border-radius:8px; margin-bottom:.85rem; font-size:.75rem; line-height:1.4; }
     .error-box ul { margin:0; padding-left:1.05rem; }
+    .editor-mode-banner { display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:1rem; padding:.75rem .9rem; border:1px solid #bfdbfe; border-left:4px solid #3182ce; border-radius:9px; background:#eff6ff; color:#1e3a8a; font-size:.82rem; }
+    .editor-mode-banner.is-editing { border-color:#fed7aa; border-left-color:#ea580c; background:#fff7ed; color:#9a3412; }
+    .editor-mode-banner strong { display:block; font-size:.9rem; }
+    .editor-mode-banner small { display:block; margin-top:.15rem; opacity:.85; }
+    .editor-mode-new { flex:0 0 auto; border:1px solid currentColor; border-radius:7px; padding:.4rem .65rem; background:transparent; color:inherit; cursor:pointer; font-size:.75rem; font-weight:700; }
     @media (max-width: 900px) {
       .dashboard { grid-template-columns: 1fr; }
       .sidebar { position: static; height: auto; }
@@ -266,7 +271,6 @@
                 <input id="articleMarkdownFile" type="file" accept=".md,text/markdown" />
                 <small id="articleMarkdownStatus" aria-live="polite"></small>
               <div id="articleErrors" class="error-box"></div>
-              <button type="button" id="articleNewBtn" class="mini-btn">New Article</button>
               <button type="submit" id="articleSubmitBtn" class="submit-btn" data-en="Add Article" data-ar="إضافة مقال">Add Article</button>
             </form>
           </div>
@@ -754,6 +758,7 @@
     window.editEvent = function(id) {
       const ev = CACHE.events.find(x=>x.id===id); if (!ev) return;
       eventForm.dataset.mode = 'edit';
+      updateEditorMode(eventForm, 'edit', ev.title || ev.id);
       eventId.value = ev.id;
       eventTitle.value = ev.title || '';
       eventTime.value = ev.time ? new Date(ev.time).toISOString().slice(0,16) : '';
@@ -802,6 +807,7 @@
       const a = CACHE.articles.find(x=>x.id===id); if (!a) return;
       editingArticleRecord = a;
       articleForm.dataset.mode = 'edit';
+      updateEditorMode(articleForm, 'edit', a.title || a.id);
       articleId.value = a.id;
       articleLanguage.value = a.defaultLanguage || a.language || 'en';
       populateArticleLanguage(articleLanguage.value);
@@ -840,6 +846,7 @@
     window.editLibrary = function(id) {
       const r = CACHE.library.find(x=>x.id===id); if (!r) return;
       libraryForm.dataset.mode = 'edit';
+      updateEditorMode(libraryForm, 'edit', r.name || r.id);
       libId.value = r.id;
       libName.value = r.name || '';
       libType.value = r.type || 'Book';
@@ -901,6 +908,7 @@
       if (!model) return;
 
       models3dForm.dataset.mode = 'edit';
+      updateEditorMode(models3dForm, 'edit', model.name || model.id);
       model3dId.value = model.id;
       model3dCode.value = model.code || '';
       model3dName.value = model.name || '';
@@ -956,6 +964,7 @@
     window.editCourse = function(id) {
       const c = CACHE.courses.find(x=>x.id===id); if (!c) return;
       courseForm.dataset.mode = 'edit';
+      updateEditorMode(courseForm, 'edit', c.title || c.id);
       courseId.value = c.id;
       courseTitle.value = c.title || '';
       courseDescription.value = c.description || '';
@@ -1001,6 +1010,7 @@
     window.editFbdEvent = function(id) {
       const ev = CACHE.fbdEvents.find(x=>x.id===id); if (!ev) return;
       fbdEventForm.dataset.mode = 'edit';
+      updateEditorMode(fbdEventForm, 'edit', ev.title || ev.id);
       fbdEventId.value = ev.id;
       fbdEventTitle.value = ev.title || '';
       fbdEventTime.value = ev.time ? new Date(ev.time).toISOString().slice(0,16) : '';
@@ -1064,8 +1074,48 @@
     const articleInlineImageFile = document.getElementById('articleInlineImageFile');
     const articleInlineImageStatus = document.getElementById('articleInlineImageStatus');
     const articleSubmitBtn  = document.getElementById('articleSubmitBtn');
-    const articleNewBtn      = document.getElementById('articleNewBtn');
     const articleErrorsBox  = document.getElementById('articleErrors');
+
+    function updateEditorMode(form, mode = 'add', itemName = '') {
+      if (!form) return;
+      form.dataset.mode = mode;
+      let banner = form.querySelector('.editor-mode-banner');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.className = 'editor-mode-banner';
+        form.insertBefore(banner, form.firstElementChild);
+      }
+      banner.classList.toggle('is-editing', mode === 'edit');
+      const title = mode === 'edit' ? 'Editing existing item' : 'Creating a new item';
+      const detail = mode === 'edit' ? (itemName ? `You are editing: ${itemName}` : 'Changes will update the selected item.') : 'Your submission will be saved as a separate new item.';
+      banner.innerHTML = `<div><strong>${title}</strong><small>${detail}</small></div><button type="button" class="editor-mode-new">${mode === 'edit' ? 'Create New Instead' : 'Clear Form'}</button>`;
+      banner.querySelector('button').addEventListener('click', () => {
+        form.reset();
+        if (form.id === 'articleForm') {
+          editingArticleRecord = null;
+          if (articleContentEditor) articleContentEditor.innerHTML = '';
+          if (articleStoredImages) articleStoredImages.innerHTML = '';
+          if (articleImagePreview) articleImagePreview.innerHTML = '';
+          if (articleSubmitBtn) articleSubmitBtn.textContent = 'Add Article';
+        }
+        const editor = form.querySelector('[contenteditable="true"]');
+        if (editor) editor.innerHTML = '';
+        const submit = form.querySelector('[type="submit"]');
+        if (submit) submit.textContent = submit.dataset.addLabel || 'Add';
+        updateEditorMode(form, 'add');
+      });
+    }
+
+    const editorModes = [
+      ['eventForm', 'Event'], ['articleForm', 'Article'], ['libraryForm', 'Resource'],
+      ['models3dForm', '3D model'], ['courseForm', 'Course'], ['fbdEventForm', 'FBD event']
+    ];
+    editorModes.forEach(([id]) => {
+      const form = document.getElementById(id);
+      const submit = form?.querySelector('[type="submit"]');
+      if (submit && !submit.dataset.addLabel) submit.dataset.addLabel = submit.textContent;
+      updateEditorMode(form, form?.dataset.mode || 'add');
+    });
     let savedArticleSelection = null;
 
     function refreshArticleImagePreview() {
@@ -1112,18 +1162,6 @@
 
     articleLanguage?.addEventListener('change', () => {
       if (articleForm.dataset.mode === 'edit') populateArticleLanguage(articleLanguage.value);
-    });
-
-    articleNewBtn?.addEventListener('click', () => {
-      articleForm.reset();
-      articleForm.dataset.mode = 'add';
-      editingArticleRecord = null;
-      if (articleContentEditor) articleContentEditor.innerHTML = '';
-      if (articleLanguage) articleLanguage.value = 'en';
-      if (articleSubmitBtn) articleSubmitBtn.textContent = 'Add Article';
-      if (articleStoredImages) articleStoredImages.innerHTML = '';
-      refreshArticleImagePreview();
-      articleTitle?.focus();
     });
 
     const syncArticleContent = () => {
@@ -1576,6 +1614,7 @@
             eventForm.dataset.mainUploaded = 'false';
             eventForm.dataset.galleryUploaded = 'false';
           eventForm.dataset.mode = 'add';
+          updateEditorMode(eventForm, 'add');
             eventId.value = '';
           eventSubmitBtn.textContent = 'Add Event';
           loadExistingEvents();
@@ -1661,6 +1700,7 @@
           if (articleStoredImages) articleStoredImages.innerHTML = '';
           refreshArticleImagePreview();
           articleForm.dataset.mode = 'add';
+          updateEditorMode(articleForm, 'add');
           editingArticleRecord = null;
           articleLanguage.value = 'en';
           articleSubmitBtn.textContent = 'Add Article';
@@ -1712,6 +1752,7 @@
           showMessage('Resource saved successfully!', 'success');
           libraryForm.reset();
           libraryForm.dataset.mode = 'add';
+          updateEditorMode(libraryForm, 'add');
           libSubmitBtn.textContent = 'Add Resource';
           loadExistingLibraryResources();
         } else {
@@ -1762,6 +1803,7 @@
           showMessage('3D model saved successfully!', 'success');
           models3dForm.reset();
           models3dForm.dataset.mode = 'add';
+          updateEditorMode(models3dForm, 'add');
           model3dSubmitBtn.textContent = 'Add 3D Model';
           loadExistingModels3D();
         } else {
@@ -1837,6 +1879,7 @@
           showMessage('Course saved', 'success');
           courseForm.reset();
           courseForm.dataset.mode = 'add';
+          updateEditorMode(courseForm, 'add');
           courseSubmitBtn.textContent = 'Add Course';
           loadCourses();
         } else {
@@ -1923,6 +1966,7 @@
             fbdEventForm.dataset.mainUploaded = 'false';
             fbdEventForm.dataset.galleryUploaded = 'false';
           fbdEventForm.dataset.mode = 'add';
+          updateEditorMode(fbdEventForm, 'add');
             fbdEventId.value = '';
           fbdEventSubmitBtn.textContent = 'Add FBD Event';
           loadFbd();
