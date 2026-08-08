@@ -16,6 +16,8 @@
     .article-hero { background:var(--gradient-1); color:var(--white); padding:8rem 0 4rem; text-align:center; }
     .article-hero h1 { max-width:900px; margin:0 auto 1rem; font-size:clamp(2rem,5vw,3.5rem); }
     .article-meta { opacity:.9; }
+    .article-language-picker { display:inline-flex; align-items:center; gap:.6rem; margin-top:1rem; padding:.45rem .7rem; border:1px solid rgba(255,255,255,.45); border-radius:999px; font-size:.85rem; }
+    .article-language-picker select { border:0; border-radius:999px; padding:.35rem .6rem; color:var(--primary-color); background:var(--white); font:inherit; }
     .article-page { max-width:900px; margin:0 auto; padding:4rem 1rem 6rem; }
     .article-cover { width:100%; max-height:460px; object-fit:cover; border-radius:14px; margin-bottom:2.5rem; box-shadow:var(--shadow-lg); }
     .article-body { color:var(--text-secondary); font-size:1.08rem; line-height:1.9; }
@@ -44,6 +46,10 @@
     <div class="container">
       <h1 id="articleTitle">Loading article...</h1>
       <div id="articleMeta" class="article-meta"></div>
+      <label class="article-language-picker" for="articleLanguageSelect" hidden>
+        <span data-en="Article language" data-ar="لغة المقال">Article language</span>
+        <select id="articleLanguageSelect" aria-label="Choose article language"></select>
+      </label>
     </div>
   </section>
   <main class="article-page">
@@ -81,6 +87,8 @@
     const id = new URLSearchParams(window.location.search).get('id');
     const title = document.getElementById('articleTitle');
     const meta = document.getElementById('articleMeta');
+    const languagePicker = document.querySelector('.article-language-picker');
+    const languageSelect = document.getElementById('articleLanguageSelect');
     const status = document.getElementById('status');
     const body = document.getElementById('articleBody');
     const community = document.getElementById('articleCommunity');
@@ -93,6 +101,7 @@
     const commentAuthMessage = document.getElementById('commentAuthMessage');
     let currentUser = null;
     let currentVote = 0;
+    let loadedArticle = null;
 
     function t(en, ar) {
       return (localStorage.getItem('language') || 'en') === 'ar' ? ar : en;
@@ -144,19 +153,39 @@
       loadCommunity();
     });
 
+    function renderArticle(article) {
+      const preferredLanguage = localStorage.getItem('language') || 'en';
+      const translations = article.translations || {};
+      const availableLanguages = Object.keys(translations);
+      const selectedLanguage = translations[preferredLanguage] ? preferredLanguage : (translations[article.defaultLanguage] ? article.defaultLanguage : availableLanguages[0]);
+      const variant = translations[selectedLanguage] || article;
+      if (languageSelect && availableLanguages.length > 1) {
+        languageSelect.innerHTML = availableLanguages.map(lang => `<option value="${escapeHtml(lang)}">${lang === 'ar' ? 'العربية' : lang === 'en' ? 'English' : escapeHtml(lang)}</option>`).join('');
+        languageSelect.value = selectedLanguage;
+        languagePicker.hidden = false;
+      }
+      title.textContent = variant.title || 'Article';
+      meta.textContent = [variant.author ? `By ${variant.author}` : '', variant.date || ''].filter(Boolean).join(' • ');
+      body.innerHTML = `${variant.imageUrl ? `<img class="article-cover" src="${escapeHtml(variant.imageUrl)}" alt="${escapeHtml(variant.title)}">` : ''}${variant.content || `<p>${escapeHtml(variant.summary)}</p>`}`;
+      status.hidden = true;
+      body.hidden = false;
+      community.hidden = false;
+      document.title = `${variant.title || 'Article'} - AIAS Basra`;
+    }
+
+    languageSelect?.addEventListener('change', () => {
+      if (!loadedArticle) return;
+      localStorage.setItem('language', languageSelect.value);
+      renderArticle(loadedArticle);
+    });
+
     async function loadArticle() {
       try {
         if (!id) throw new Error('Article ID is missing.');
         const result = await new FirestoreAPI().getAllContent();
-        const article = result.success ? (result.content.magazine?.articles || []).find(item => item.id === id) : null;
-        if (!article) throw new Error('Article not found.');
-        title.textContent = article.title || 'Article';
-        meta.textContent = [article.author ? `By ${article.author}` : '', article.date || ''].filter(Boolean).join(' • ');
-        body.innerHTML = `${article.imageUrl ? `<img class="article-cover" src="${escapeHtml(article.imageUrl)}" alt="${escapeHtml(article.title)}">` : ''}${article.content || `<p>${escapeHtml(article.summary)}</p>`}`;
-        status.hidden = true;
-        body.hidden = false;
-        community.hidden = false;
-        document.title = `${article.title || 'Article'} - AIAS Basra`;
+        loadedArticle = result.success ? (result.content.magazine?.articles || []).find(item => item.id === id) : null;
+        if (!loadedArticle) throw new Error('Article not found.');
+        renderArticle(loadedArticle);
         await loadCommunity();
       } catch (error) {
         console.error('[Article] Failed to load:', error);

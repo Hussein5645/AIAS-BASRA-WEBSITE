@@ -66,7 +66,10 @@ const sanitizeArticle = (a) => ({
   summary: toStr(a.summary),
   content: toStr(a.content),
   imageUrl: toStr(a.imageUrl),
-  readMoreUrl: toStr(a.readMoreUrl)
+  readMoreUrl: toStr(a.readMoreUrl),
+  language: toStr(a.language || 'en'),
+  defaultLanguage: toStr(a.defaultLanguage || a.language || 'en'),
+  translations: a.translations && typeof a.translations === 'object' ? a.translations : {}
 });
 const sanitizeCourse = (c) => ({
   title: toStr(c.title),

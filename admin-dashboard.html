@@ -210,6 +210,14 @@
           <div class="accordion-body panel">
             <form id="articleForm" data-mode="add" novalidate>
               <input type="hidden" id="articleId"/>
+              <div class="form-group">
+                <label for="articleLanguage" data-en="Article Language" data-ar="لغة المقال">Article Language</label>
+                <select id="articleLanguage" name="language">
+                  <option value="en">English</option>
+                  <option value="ar">العربية</option>
+                </select>
+                <small data-en="Choose a language, then save. Existing articles can receive additional translations." data-ar="اختر اللغة ثم احفظ. يمكن إضافة ترجمات للمقالات الموجودة.">Choose a language, then save. Existing articles can receive additional translations.</small>
+              </div>
               <div class="two-col">
                 <div class="form-group"><label for="articleTitle" data-en="Article Title" data-ar="عنوان المقال">Article Title</label><input id="articleTitle" name="title" required/></div>
                 <div class="form-group"><label for="articleAuthor" data-en="Author Name" data-ar="اسم الكاتب">Author Name</label><input id="articleAuthor" name="author" required/></div>
@@ -531,6 +539,7 @@
     const firestoreAPI = new FirestoreAPI();
 
     let CACHE = { events: [], articles: [], library: [], models3d: [], courses: [], fbdEvents: [] };
+    let editingArticleRecord = null;
 
     /*************************************************
      * تنقل التبويبات
@@ -763,7 +772,7 @@
         if (CACHE.articles.length===0) { box.innerHTML = '<p>No articles found.</p>'; return; }
         box.innerHTML = CACHE.articles.map(a => `
           <div class="content-item">
-            <div><strong>${a.title || '(no title)'}</strong><br><small>${a.author ? 'by ' + a.author : ''} ${a.date || ''}</small></div>
+            <div><strong>${a.title || '(no title)'}</strong><br><small>${a.author ? 'by ' + a.author : ''} ${a.date || ''} · Languages: ${Object.keys(a.translations || {}).length ? Object.keys(a.translations).join(', ') : (a.language || 'en')}</small></div>
             <div class="user-actions">
               <button class="btn edit-btn" onclick="editArticle('${a.id}')">Edit</button>
               <button class="btn delete-btn" onclick="deleteArticle('${a.id}')">Delete</button>
@@ -776,15 +785,11 @@
 
     window.editArticle = function(id) {
       const a = CACHE.articles.find(x=>x.id===id); if (!a) return;
+      editingArticleRecord = a;
       articleForm.dataset.mode = 'edit';
       articleId.value = a.id;
-      articleTitle.value = a.title || '';
-      articleAuthor.value = a.author || '';
-      articleDate.value = a.date || '';
-      articleSummary.value = a.summary || '';
-      articleContent.value = a.content || '';
-      if (articleContentEditor) articleContentEditor.innerHTML = a.content || '';
-      articleImageUrl.value = a.imageUrl || '';
+      articleLanguage.value = a.defaultLanguage || a.language || 'en';
+      populateArticleLanguage(articleLanguage.value);
       articleSubmitBtn.textContent = 'Update Article';
     };
 
@@ -1026,6 +1031,7 @@
 
     const articleForm       = document.getElementById('articleForm');
     const articleId         = document.getElementById('articleId');
+    const articleLanguage   = document.getElementById('articleLanguage');
     const articleTitle      = document.getElementById('articleTitle');
     const articleAuthor     = document.getElementById('articleAuthor');
     const articleDate       = document.getElementById('articleDate');
@@ -1039,6 +1045,29 @@
     const articleImageStatus = document.getElementById('articleImageStatus');
     const articleSubmitBtn  = document.getElementById('articleSubmitBtn');
     const articleErrorsBox  = document.getElementById('articleErrors');
+
+    function articleVariant(record, language) {
+      if (!record) return {};
+      return record.translations?.[language] || (language === (record.language || record.defaultLanguage || 'en') ? record : {});
+    }
+
+    function populateArticleLanguage(language) {
+      const variant = articleVariant(editingArticleRecord, language);
+      articleTitle.value = variant.title || '';
+      articleAuthor.value = variant.author || '';
+      articleDate.value = variant.date || '';
+      articleSummary.value = variant.summary || '';
+      articleContent.value = variant.content || '';
+      if (articleContentEditor) articleContentEditor.innerHTML = variant.content || '';
+      articleImageUrl.value = variant.imageUrl || '';
+      if (articleMarkdownStatus) articleMarkdownStatus.textContent = editingArticleRecord && !editingArticleRecord.translations?.[language]
+        ? 'No translation exists yet. Enter the translated content and save it.'
+        : '';
+    }
+
+    articleLanguage?.addEventListener('change', () => {
+      if (articleForm.dataset.mode === 'edit') populateArticleLanguage(articleLanguage.value);
+    });
 
     const syncArticleContent = () => {
       articleContent.value = articleContentEditor.innerHTML;
@@ -1479,6 +1508,7 @@
       e.stopImmediatePropagation();
       
       const mode = articleForm.dataset.mode || 'add';
+      const language = articleLanguage?.value || 'en';
       const payload = {
         title: articleTitle.value.trim(),
         author: articleAuthor.value.trim(),
@@ -1486,6 +1516,7 @@
         summary: articleSummary.value.trim(),
         content: articleContent.value.trim(),
         imageUrl: articleImageUrl.value.trim(),
+        language,
       };
       articleContent.value = articleContentEditor?.innerHTML.trim() || '';
       payload.content = articleContent.value;
@@ -1498,6 +1529,33 @@
       articleSubmitBtn.textContent = mode === 'edit' ? 'Updating...' : 'Saving...';
 
       try {
+        const currentVariant = {
+          title: payload.title,
+          author: payload.author,
+          date: payload.date,
+          summary: payload.summary,
+          content: payload.content,
+          imageUrl: payload.imageUrl,
+          readMoreUrl: payload.readMoreUrl || ''
+        };
+        if (mode === 'edit') {
+          const existing = editingArticleRecord || CACHE.articles.find(item => item.id === articleId.value) || {};
+          const defaultLanguage = existing.defaultLanguage || existing.language || 'en';
+          const translations = { ...(existing.translations || {}) };
+          if (!Object.keys(translations).length && (existing.title || existing.content)) {
+            translations[defaultLanguage] = {
+              title: existing.title || '', author: existing.author || '', date: existing.date || '',
+              summary: existing.summary || '', content: existing.content || '', imageUrl: existing.imageUrl || '', readMoreUrl: existing.readMoreUrl || ''
+            };
+          }
+          translations[language] = currentVariant;
+          payload.translations = translations;
+          payload.defaultLanguage = defaultLanguage;
+          if (language !== defaultLanguage && translations[defaultLanguage]) Object.assign(payload, translations[defaultLanguage]);
+        } else {
+          payload.defaultLanguage = language;
+          payload.translations = { [language]: currentVariant };
+        }
         const r = mode==='edit'
           ? await firestoreAPI.updateArticle(articleId.value, payload)
           : await firestoreAPI.addArticle(payload, articleId.value || null);
@@ -1507,6 +1565,8 @@
           if (articleContentEditor) articleContentEditor.innerHTML = '';
           articleContent.value = '';
           articleForm.dataset.mode = 'add';
+          editingArticleRecord = null;
+          articleLanguage.value = 'en';
           articleSubmitBtn.textContent = 'Add Article';
           loadExistingArticles();
         } else {
