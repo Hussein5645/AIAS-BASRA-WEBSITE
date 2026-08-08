@@ -196,6 +196,47 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
+
+        .articles-grid.view-timeline {
+            display: block;
+            max-width: 900px;
+            margin: 0 auto;
+            padding-left: 2rem;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .articles-grid.view-timeline .article-card {
+            position: relative;
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            margin: 0 0 1.5rem;
+            overflow: visible;
+        }
+
+        .articles-grid.view-timeline .article-card::before {
+            content: '';
+            position: absolute;
+            left: -2.65rem;
+            top: 1.5rem;
+            width: .9rem;
+            height: .9rem;
+            border: 3px solid var(--white);
+            border-radius: 50%;
+            background: var(--accent-color);
+            box-shadow: 0 0 0 2px var(--accent-color);
+        }
+
+        .articles-grid.view-timeline .article-image {
+            height: 100%;
+            min-height: 150px;
+            border-radius: 12px 0 0 12px;
+        }
+
+        .articles-grid.view-timeline .article-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
         
         /* Large Grid View */
         .articles-grid.view-large {
@@ -1023,18 +1064,18 @@
             <div class="view-controls">
                 <div></div>
                 <div class="view-toggle">
-                    <button class="view-btn active" data-view="grid" data-target="allArticles">
-                        <span>▦</span> Grid
-                    </button>
-                    <button class="view-btn" data-view="list" data-target="allArticles">
+                    <button class="view-btn active" data-view="list" data-target="allArticles" data-en="List" data-ar="قائمة">
                         <span>☰</span> List
                     </button>
-                    <button class="view-btn" data-view="compact" data-target="allArticles">
+                    <button class="view-btn" data-view="compact" data-target="allArticles" data-en="Compact" data-ar="مضغوط">
                         <span>▪</span> Compact
+                    </button>
+                    <button class="view-btn" data-view="timeline" data-target="allArticles" data-en="Timeline" data-ar="مخطط زمني">
+                        <span>◷</span> Timeline
                     </button>
                 </div>
             </div>
-            <div class="articles-grid view-grid" id="allArticles">
+            <div class="articles-grid view-list" id="allArticles">
                 <!-- All articles will be loaded here -->
             </div>
         </div>
@@ -2199,7 +2240,7 @@
                     if (!targetGrid) return;
                     
                     // Remove all view classes
-                    targetGrid.classList.remove('view-grid', 'view-list', 'view-compact', 'view-large');
+                    targetGrid.classList.remove('view-list', 'view-compact', 'view-timeline');
                     
                     // Add selected view class
                     targetGrid.classList.add(`view-${viewType}`);
@@ -2225,7 +2266,7 @@
                     const button = document.querySelector(`.view-btn[data-view="${savedView}"][data-target="${gridId}"]`);
                     
                     if (grid && button) {
-                        grid.classList.remove('view-grid', 'view-list', 'view-compact', 'view-large');
+                        grid.classList.remove('view-list', 'view-compact', 'view-timeline');
                         grid.classList.add(`view-${savedView}`);
                         
                         const siblingButtons = button.parentElement.querySelectorAll('.view-btn');

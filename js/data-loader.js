@@ -315,6 +315,16 @@ class DataLoader {
         return result;
     }
 
+    /** Return the net upvote score for each article. */
+    async getArticleVoteScores(articleIds = []) {
+        const scores = {};
+        await Promise.all(articleIds.filter(Boolean).map(async articleId => {
+            const snapshot = await getDocs(collection(this.db, 'content', 'magazine', 'articles', articleId, 'votes'));
+            scores[articleId] = snapshot.docs.reduce((total, item) => total + (Number(item.data()?.value) || 0), 0);
+        }));
+        return scores;
+    }
+
     /**
      * Get education content (with fbd nested for compatibility)
      */

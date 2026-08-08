@@ -26,6 +26,9 @@
     .models-compact { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:.75rem; }
     .models-compact .model-card { padding:1rem; }
     .models-compact .model-card p { font-size:.9rem; }
+    .models-timeline { max-width:900px; margin:0 auto; padding-left:2rem; border-left:3px solid var(--accent-color); }
+    .models-timeline .model-card { position:relative; margin-bottom:1rem; }
+    .models-timeline .model-card::before { content:''; position:absolute; left:-2.65rem; top:1.5rem; width:.9rem; height:.9rem; border:3px solid var(--white); border-radius:50%; background:var(--accent-color); box-shadow:0 0 0 2px var(--accent-color); }
     .model-card { background:var(--white); border-radius:12px; padding:1.5rem; box-shadow:var(--shadow-sm); transition:all .3s ease; }
     .model-card:hover { transform:translateY(-6px); box-shadow:var(--shadow-lg); }
     .model-card h2 { margin:.1rem 0 .6rem; color:var(--primary-color); font-size:1.2rem; }
@@ -45,12 +48,12 @@
   <section class="models-section">
     <div class="container">
       <div class="models-view-controls" aria-label="3D model view options">
-        <button type="button" class="active" data-model-view="grid" data-en="Grid" data-ar="شبكي">Grid</button>
-        <button type="button" data-model-view="list" data-en="List" data-ar="قائمة">List</button>
+        <button type="button" class="active" data-model-view="list" data-en="List" data-ar="قائمة">List</button>
         <button type="button" data-model-view="compact" data-en="Compact" data-ar="مضغوط">Compact</button>
+        <button type="button" data-model-view="timeline" data-en="Timeline" data-ar="مخطط زمني">Timeline</button>
       </div>
       <div id="status" data-en="Loading 3D models..." data-ar="جارٍ تحميل النماذج ثلاثية الأبعاد...">Loading 3D models...</div>
-      <section id="modelsGrid" class="models-grid" aria-live="polite"></section>
+      <section id="modelsGrid" class="models-list" aria-live="polite"></section>
     </div>
   </section>
 

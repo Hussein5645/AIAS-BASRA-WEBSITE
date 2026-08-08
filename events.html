@@ -99,16 +99,13 @@
     </div>
     
     <div class="view-toggle-group">
-        <button class="view-btn active" data-view="grid" data-en="📅 Grid" data-ar="📅 شبكة">
-<span>📅</span> Grid
-</button>
-<button class="view-btn" data-view="list" data-en="📋 List" data-ar="📋 قائمة">
+<button class="view-btn active" data-view="list" data-en="List" data-ar="قائمة">
 <span>📋</span> List
 </button>
-<button class="view-btn" data-view="compact" data-en="📦 Compact" data-ar="📦 مضغوط">
+<button class="view-btn" data-view="compact" data-en="Compact" data-ar="مضغوط">
 <span>📦</span> Compact
 </button>
-<button class="view-btn" data-view="timeline" data-en="📊 Timeline" data-ar="📊 جدول زمني">
+<button class="view-btn" data-view="timeline" data-en="Timeline" data-ar="مخطط زمني">
 <span>📊</span> Timeline
 </button>
     </div>
@@ -194,7 +191,7 @@
 
         // Track filter state
         let hideCompleted = false;
-        let currentView = 'grid';
+        let currentView = 'list';
         let searchQuery = '';
 
         // Initialize view toggle with event delegation
@@ -260,9 +257,6 @@
                     eventsGrid.classList.add('view-list');
                 } else if (view === 'compact') {
                     eventsGrid.classList.add('view-compact');
-                } else {
-                    // Grid view (default)
-                    eventsGrid.classList.add('view-grid');
                 }
             }
         }
