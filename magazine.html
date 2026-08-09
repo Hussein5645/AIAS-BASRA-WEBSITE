@@ -568,6 +568,9 @@
             position: relative;
             background: #525659;
         }
+
+        .pdf-modal.book-mode .pdf-modal-header { display:none; }
+        .pdf-modal.book-mode .pdf-modal-content { flex:1 1 100%; background:#151719; }
         
         .pdf-viewer-iframe {
             width: 100%;
@@ -618,7 +621,8 @@
             height: 100%;
             display: flex;
             flex-direction: column;
-            background: #2d3436;
+            background:radial-gradient(circle at 50% 42%,#34383c 0,#1b1e20 58%,#101112 100%);
+            position:relative;
         }
         
         .pdf-book-controls {
@@ -633,12 +637,16 @@
         }
 
         /* Minimal reading chrome: page turns and the current position only. */
-        .pdf-book-controls { justify-content:center; padding:.55rem 1rem; border-bottom:0; }
+        .pdf-book-controls { position:absolute; z-index:20; top:max(.65rem,env(safe-area-inset-top)); left:50%; transform:translateX(-50%); justify-content:center; padding:.35rem; border:1px solid rgba(255,255,255,.13); border-radius:999px; background:rgba(10,12,14,.58); backdrop-filter:blur(14px); box-shadow:0 8px 30px rgba(0,0,0,.28); }
         .pdf-book-controls > .pdf-book-nav:not(:first-child) { display:none; }
         .pdf-book-controls #firstPageBtn,
         .pdf-book-controls #lastPageBtn { display:none; }
+        .pdf-book-controls #pageInfo { display:none; }
         .pdf-book-controls > .pdf-book-nav:first-child { width:auto; flex-wrap:nowrap; }
-        .pdf-book-controls .pdf-book-btn { min-height:40px; border-radius:999px; box-shadow:none; }
+        .pdf-book-controls .pdf-book-btn { width:46px; height:46px; min-height:46px; padding:0; border-radius:50%; box-shadow:none; background:transparent; font-size:0; }
+        .pdf-book-controls #prevPageBtn::after { content:'‹'; font-size:2rem; line-height:1; }
+        .pdf-book-controls #nextPageBtn::after { content:'›'; font-size:2rem; line-height:1; }
+        .pdf-book-controls .pdf-book-btn:hover:not(:disabled) { background:rgba(255,255,255,.14); transform:none; box-shadow:none; }
         .pdf-book-controls .pdf-page-info { background:transparent; padding:.45rem .75rem; font-weight:500; }
         
         .pdf-book-nav {
@@ -775,7 +783,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 2rem;
+            padding: .75rem;
             overflow: auto;
             position: relative;
             min-height: 0;
@@ -790,6 +798,8 @@
             justify-content: center;
             transition: all 0.3s ease;
             transform-origin: center center;
+            perspective:1800px;
+            transform-style:preserve-3d;
         }
         
         .pdf-book-spread.single-page {
@@ -808,6 +818,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            backface-visibility:hidden;
+            transform-style:preserve-3d;
         }
         
         .pdf-book-page canvas {
@@ -852,43 +864,43 @@
         
         /* Page turn animations */
         .pdf-book-page.turning-next-left {
-            animation: turnPageNextLeft 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+            animation: turnPageNextLeft .78s cubic-bezier(.55,.02,.22,1);
         }
         
         .pdf-book-page.turning-next-right {
-            animation: turnPageNextRight 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+            animation: turnPageNextRight .78s cubic-bezier(.55,.02,.22,1);
         }
         
         .pdf-book-page.turning-prev-left {
-            animation: turnPagePrevLeft 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+            animation: turnPagePrevLeft .78s cubic-bezier(.55,.02,.22,1);
         }
         
         .pdf-book-page.turning-prev-right {
-            animation: turnPagePrevRight 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+            animation: turnPagePrevRight .78s cubic-bezier(.55,.02,.22,1);
         }
         
         @keyframes turnPageNextLeft {
-            0% { transform: rotateY(0deg); opacity: 1; }
-            50% { transform: rotateY(-90deg); opacity: 0.7; }
-            100% { transform: rotateY(0deg); opacity: 1; }
+            0% { transform:rotateY(0) translateZ(0); filter:brightness(1); }
+            55% { transform:rotateY(-82deg) translateZ(18px); filter:brightness(.58); box-shadow:30px 8px 45px rgba(0,0,0,.6); }
+            100% { transform:rotateY(-178deg) translateZ(0); filter:brightness(.35); }
         }
         
         @keyframes turnPageNextRight {
-            0% { transform: rotateY(0deg); opacity: 1; }
-            50% { transform: rotateY(90deg); opacity: 0.7; }
-            100% { transform: rotateY(0deg); opacity: 1; }
+            0% { transform:translateX(0) scale(1); filter:brightness(1); }
+            50% { transform:translateX(-1.5%) scale(.992); filter:brightness(.78); }
+            100% { transform:translateX(0) scale(1); filter:brightness(1); }
         }
         
         @keyframes turnPagePrevLeft {
-            0% { transform: rotateY(0deg); opacity: 1; }
-            50% { transform: rotateY(90deg); opacity: 0.7; }
-            100% { transform: rotateY(0deg); opacity: 1; }
+            0% { transform:translateX(0) scale(1); filter:brightness(1); }
+            50% { transform:translateX(1.5%) scale(.992); filter:brightness(.78); }
+            100% { transform:translateX(0) scale(1); filter:brightness(1); }
         }
         
         @keyframes turnPagePrevRight {
-            0% { transform: rotateY(0deg); opacity: 1; }
-            50% { transform: rotateY(-90deg); opacity: 0.7; }
-            100% { transform: rotateY(0deg); opacity: 1; }
+            0% { transform:rotateY(0) translateZ(0); filter:brightness(1); }
+            55% { transform:rotateY(82deg) translateZ(18px); filter:brightness(.58); box-shadow:-30px 8px 45px rgba(0,0,0,.6); }
+            100% { transform:rotateY(178deg) translateZ(0); filter:brightness(.35); }
         }
         
         /* Fullscreen mode */
@@ -1012,7 +1024,7 @@
             .pdf-book-controls { max-height: 29dvh; }
             .pdf-book-btn { min-height: 42px; }
             .pdf-page-info { flex: 1; text-align: center; }
-            .pdf-book-nav:first-child { display:grid; grid-template-columns:auto auto 1fr auto auto; }
+            .pdf-book-controls > .pdf-book-nav:first-child { display:flex; width:auto; }
             .pdf-book-viewer { padding:.25rem; }
         }
 
@@ -1240,6 +1252,7 @@
             // Close PDF Viewer
             window.closePDFViewer = function() {
                 modal.classList.remove('active');
+                modal.classList.remove('book-mode');
                 modalContent.innerHTML = '';
                 document.body.style.overflow = '';
                 viewToggle.style.display = 'none';
@@ -1251,6 +1264,7 @@
             // Switch to Normal View
             function loadNormalView() {
                 currentViewMode = 'normal';
+                modal.classList.remove('book-mode');
                 normalViewBtn.classList.add('active');
                 bookViewBtn.classList.remove('active');
                 
@@ -1287,6 +1301,7 @@
             // Switch to Book Mode
             async function loadBookMode() {
                 currentViewMode = 'book';
+                modal.classList.add('book-mode');
                 bookViewBtn.classList.add('active');
                 normalViewBtn.classList.remove('active');
                 
@@ -1511,6 +1526,8 @@
                     const deltaY = touch.clientY - touchStartY;
                     if (Math.abs(deltaX) > 55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.25) {
                         deltaX < 0 ? nextPage() : previousPage();
+                    } else if (deltaY > 120 && Math.abs(deltaY) > Math.abs(deltaX) * 1.5) {
+                        window.closePDFViewer();
                     }
                 }, { passive: true });
             }
@@ -1623,8 +1640,8 @@
                     // Calculate scale based on container size
                     let scale = 1.5; // Default scale
                     if (container) {
-                        const containerHeight = container.offsetHeight - 100;
-                        const containerWidth = container.offsetWidth - 100;
+                        const containerHeight = container.offsetHeight - 24;
+                        const containerWidth = container.offsetWidth - 24;
                         
                         // Calculate scale to fit height
                         const scaleHeight = containerHeight / viewport.height;
@@ -1704,7 +1721,7 @@
                     const pages = document.querySelectorAll('.pdf-book-page');
                     pages.forEach((page, index) => {
                         if (currentLayout === 'single') {
-                            page.classList.add('turning-next-right');
+                            page.classList.add('turning-next-left');
                         } else {
                             page.classList.add(index === 0 ? 'turning-next-left' : 'turning-next-right');
                         }
@@ -1713,7 +1730,7 @@
                     setTimeout(() => {
                         currentPage += increment;
                         renderBookPages();
-                    }, 300);
+                    }, 700);
                 } else if (currentPage < totalPages) {
                     // Handle last page in spread mode
                     currentPage = totalPages;
@@ -1728,7 +1745,7 @@
                     const pages = document.querySelectorAll('.pdf-book-page');
                     pages.forEach((page, index) => {
                         if (currentLayout === 'single') {
-                            page.classList.add('turning-prev-left');
+                            page.classList.add('turning-prev-right');
                         } else {
                             page.classList.add(index === 0 ? 'turning-prev-left' : 'turning-prev-right');
                         }
@@ -1737,7 +1754,7 @@
                     setTimeout(() => {
                         currentPage = Math.max(1, currentPage - decrement);
                         renderBookPages();
-                    }, 300);
+                    }, 700);
                 }
             }
             
