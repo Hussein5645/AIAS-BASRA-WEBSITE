@@ -58,7 +58,11 @@
     .btn { padding: .45rem .7rem; border: none; border-radius: 8px; color: white; font-weight: 700; cursor: pointer; font-size:.75rem; }
     .delete-btn { background: var(--error); } .delete-btn:hover { filter: brightness(0.95); }
     .edit-btn { background: #3182ce; } .edit-btn:hover { filter: brightness(0.95); }
-    #education-tab { display: none !important; }
+    .tab-content:not(#settings-tab).active { display:grid; grid-template-columns:minmax(250px,330px) minmax(0,1fr); gap:1rem; align-items:start; }
+    .tab-content:not(#settings-tab).active > details { margin:0; }
+    .tab-content:not(#settings-tab).active > details:first-child { position:sticky; top:1.25rem; max-height:calc(100vh - 2.5rem); overflow:auto; }
+    .tab-content:not(#settings-tab).active > details > summary { background:#f8fafc; }
+    .tab-content:not(#settings-tab) .accordion-body.panel { box-shadow:none; border-radius:0; }
     .rich-editor-toolbar { display:flex; flex-wrap:wrap; gap:.35rem; padding:.5rem; border:1px solid #d9e1ef; border-bottom:0; border-radius:8px 8px 0 0; background:#f7f9fc; }
     .rich-editor-toolbar button { border:1px solid #cbd5e1; background:#fff; border-radius:5px; padding:.35rem .6rem; cursor:pointer; }
     .rich-editor { min-height:260px; padding:1rem; border:1px solid #d9e1ef; border-radius:0 0 8px 8px; background:#fff; line-height:1.7; }
@@ -94,6 +98,8 @@
       .dashboard { grid-template-columns: 1fr; }
       .sidebar { position: static; height: auto; }
       .two-col { grid-template-columns: 1fr; }
+      .tab-content:not(#settings-tab).active { grid-template-columns:1fr; }
+      .tab-content:not(#settings-tab).active > details:first-child { position:static; max-height:none; }
     }
   </style>
 </head>
@@ -125,6 +131,7 @@
         <li><button data-tab="articles" data-en="Magazine" data-ar="المجلة">Magazine</button></li>
         <li><button data-tab="library" data-en="Library" data-ar="المكتبة">Library</button></li>
         <li><button data-tab="models3d" data-en="3D Models" data-ar="نماذج ثلاثية الأبعاد">3D Models</button></li>
+        <li><button data-tab="education" data-en="Education" data-ar="التعليم">Education</button></li>
         <li><button data-tab="fbd" data-en="FBD" data-ar="FBD">FBD</button></li>
         <li><button data-tab="settings" data-en="Settings" data-ar="الإعدادات">Settings</button></li>
       </ul>
@@ -719,10 +726,6 @@
     };
 
     window.showTab = function(tab) {
-      if (tab === 'articles' && !window.location.pathname.endsWith('admin-articles.html')) {
-        window.location.href = 'admin-articles.html';
-        return;
-      }
       document.querySelectorAll('.content > .tab-content').forEach(t=>t.classList.remove('active'));
       const target = document.getElementById(`${tab}-tab`);
       if (target) target.classList.add('active');

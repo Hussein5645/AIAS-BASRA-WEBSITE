@@ -631,6 +631,15 @@
             flex-wrap: wrap;
             gap: 1rem;
         }
+
+        /* Minimal reading chrome: page turns and the current position only. */
+        .pdf-book-controls { justify-content:center; padding:.55rem 1rem; border-bottom:0; }
+        .pdf-book-controls > .pdf-book-nav:not(:first-child) { display:none; }
+        .pdf-book-controls #firstPageBtn,
+        .pdf-book-controls #lastPageBtn { display:none; }
+        .pdf-book-controls > .pdf-book-nav:first-child { width:auto; flex-wrap:nowrap; }
+        .pdf-book-controls .pdf-book-btn { min-height:40px; border-radius:999px; box-shadow:none; }
+        .pdf-book-controls .pdf-page-info { background:transparent; padding:.45rem .75rem; font-weight:500; }
         
         .pdf-book-nav {
             display: flex;

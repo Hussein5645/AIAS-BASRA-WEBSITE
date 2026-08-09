@@ -50,6 +50,8 @@
     .reply-form { display:flex; gap:.5rem; margin-top:.75rem; }
     .reply-form textarea { flex:1; min-height:58px; padding:.65rem; border:1px solid #cbd5e1; border-radius:8px; resize:vertical; }
     .reply-form button { align-self:flex-end; }
+    .thread-toggle { color:#475569; }
+    .comment-children[hidden] { display:none; }
     .community-status { min-height:1.2em; color:#b91c1c; font-size:.82rem; }
     #status { text-align:center; padding:5rem 1rem; color:var(--text-secondary); }
     @media (max-width: 768px) {
@@ -186,18 +188,29 @@
         const children = byParent.get(comment.id) || [];
         const actions = `<div class="comment-actions">
           ${currentUser ? `<button class="comment-action comment-reply" data-comment-id="${comment.id}" data-user-name="${escapeHtml(comment.userName || 'Member')}" type="button">${t('Reply', 'رد')}</button>` : ''}
+          ${children.length ? `<button class="comment-action thread-toggle" type="button" aria-expanded="false">${t(`Show ${children.length} ${children.length === 1 ? 'reply' : 'replies'}`, `عرض الردود (${children.length})`)}</button>` : ''}
           ${currentUser?.uid === comment.userId ? `<button class="comment-action comment-delete" data-comment-id="${comment.id}" type="button">${t('Delete', 'حذف')}</button>` : ''}
         </div>`;
         return `<article class="comment" data-depth="${depth}">
           <div class="comment-meta">${escapeHtml(comment.userName || 'Member')} · ${comment.createdAt?.toDate ? comment.createdAt.toDate().toLocaleString() : t('Just now', 'الآن')}</div>
           <div class="comment-text">${escapeHtml(comment.text)}</div>${actions}
           <div class="reply-slot"></div>
-          ${children.length ? `<div class="comment-children">${children.map(child => renderComment(child, depth + 1)).join('')}</div>` : ''}
+          ${children.length ? `<div class="comment-children" hidden>${children.map(child => renderComment(child, depth + 1)).join('')}</div>` : ''}
         </article>`;
       };
       const roots = byParent.get(null) || [];
       roots.sort((a,b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
       commentsList.innerHTML = roots.length ? roots.map(comment => renderComment(comment)).join('') : `<p>${t('No comments yet. Start the discussion.', 'لا توجد تعليقات بعد. ابدأ النقاش.')}</p>`;
+      commentsList.querySelectorAll('.thread-toggle').forEach(button => button.addEventListener('click', () => {
+        const children = button.closest('.comment').querySelector(':scope > .comment-children');
+        const expanded = button.getAttribute('aria-expanded') === 'true';
+        button.setAttribute('aria-expanded', String(!expanded));
+        children.hidden = expanded;
+        const count = children.children.length;
+        button.textContent = expanded
+          ? t(`Show ${count} ${count === 1 ? 'reply' : 'replies'}`, `عرض الردود (${count})`)
+          : t('Hide replies', 'إخفاء الردود');
+      }));
       commentsList.querySelectorAll('.comment-reply').forEach(button => button.addEventListener('click', () => {
         commentsList.querySelectorAll('.reply-slot').forEach(slot => { slot.innerHTML = ''; });
         const slot = button.closest('.comment').querySelector(':scope > .reply-slot');
