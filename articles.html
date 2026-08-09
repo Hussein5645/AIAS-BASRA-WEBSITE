@@ -28,15 +28,28 @@
     .article-body blockquote { border-left:4px solid var(--accent-color); margin:1.5rem 0; padding:.5rem 1rem; background:var(--light-bg); }
     .article-community { margin-top:3rem; padding-top:2rem; border-top:1px solid #e5e7eb; }
     .vote-bar { display:flex; align-items:center; gap:.75rem; margin-bottom:2rem; }
-    .vote-button { border:1px solid #d1d5db; background:#fff; border-radius:8px; padding:.55rem .8rem; cursor:pointer; font-weight:700; }
-    .vote-button.active, .vote-button:hover { background:var(--gradient-1); color:#fff; }
-    .vote-score { min-width:2rem; text-align:center; font-weight:800; }
+    .vote-button { border:1px solid #d1d5db; background:#fff; border-radius:10px; padding:.65rem 1rem; cursor:pointer; font-weight:700; transition:background .2s,color .2s,border-color .2s,transform .2s; }
+    .vote-button:hover { transform:translateY(-1px); }
+    .vote-button.upvote { color:#15803d; border-color:#86efac; }
+    .vote-button.upvote:hover,.vote-button.upvote.active { color:#fff; background:#16a34a; border-color:#16a34a; }
+    .vote-button.downvote { color:#b91c1c; border-color:#fca5a5; }
+    .vote-button.downvote:hover,.vote-button.downvote.active { color:#fff; background:#dc2626; border-color:#dc2626; }
+    .vote-score { min-width:2rem; text-align:center; font-weight:800; color:#64748b; }
+    .vote-score.positive { color:#15803d; }
+    .vote-score.negative { color:#b91c1c; }
     .comment-form { display:flex; gap:.75rem; margin:1rem 0 2rem; }
     .comment-form textarea { flex:1; min-height:80px; padding:.75rem; border:1px solid #d1d5db; border-radius:8px; resize:vertical; }
-    .comment { padding:1rem 0; border-bottom:1px solid #e5e7eb; }
+    .comments-list { display:grid; gap:.85rem; }
+    .comment { padding:1rem; border:1px solid #e2e8f0; border-radius:12px; background:#fff; box-shadow:0 2px 8px rgba(15,23,42,.04); }
+    .comment-children { display:grid; gap:.7rem; margin:.8rem 0 0 1.5rem; padding-left:1rem; border-left:2px solid #dbeafe; }
     .comment-meta { color:var(--text-light); font-size:.85rem; margin-bottom:.35rem; }
     .comment-text { white-space:pre-wrap; color:var(--text-secondary); }
-    .comment-delete { border:0; background:none; color:#b91c1c; cursor:pointer; padding:0; }
+    .comment-actions { display:flex; gap:.8rem; margin-top:.65rem; }
+    .comment-action { border:0; background:none; color:#2563eb; cursor:pointer; padding:.2rem 0; font-weight:700; font-size:.82rem; }
+    .comment-delete { color:#b91c1c; }
+    .reply-form { display:flex; gap:.5rem; margin-top:.75rem; }
+    .reply-form textarea { flex:1; min-height:58px; padding:.65rem; border:1px solid #cbd5e1; border-radius:8px; resize:vertical; }
+    .reply-form button { align-self:flex-end; }
     .community-status { min-height:1.2em; color:#b91c1c; font-size:.82rem; }
     #status { text-align:center; padding:5rem 1rem; color:var(--text-secondary); }
     @media (max-width: 768px) {
@@ -60,6 +73,9 @@
       .comment-form textarea { min-height:110px; width:100%; box-sizing:border-box; font-size:1rem; }
       .comment-form button { width:100%; min-height:48px; }
       .comment { padding:1rem .7rem; margin-bottom:.6rem; border:1px solid #e5e7eb; border-radius:9px; background:#fff; }
+      .comment-children { margin-left:.45rem; padding-left:.65rem; }
+      .reply-form { flex-direction:column; }
+      .reply-form button { width:100%; min-height:42px; }
       .comment-meta { font-size:.75rem; overflow-wrap:anywhere; }
       .comment-text { font-size:.92rem; line-height:1.65; overflow-wrap:anywhere; }
       .comment-delete { min-height:36px; margin-top:.55rem; padding:.35rem .1rem; }
@@ -88,9 +104,9 @@
     <section id="articleCommunity" class="article-community" hidden>
       <h2 data-en="Community" data-ar="المجتمع">Community</h2>
       <div class="vote-bar">
-        <button id="upvoteButton" class="vote-button" type="button" data-en="▲ Upvote" data-ar="▲ تصويت مؤيد">▲ Upvote</button>
+        <button id="upvoteButton" class="vote-button upvote" type="button" data-en="▲ Upvote" data-ar="▲ تصويت مؤيد">▲ Upvote</button>
         <span id="voteScore" class="vote-score" aria-live="polite">0</span>
-        <button id="downvoteButton" class="vote-button" type="button" data-en="▼ Downvote" data-ar="▼ تصويت معارض">▼ Downvote</button>
+        <button id="downvoteButton" class="vote-button downvote" type="button" data-en="▼ Downvote" data-ar="▼ تصويت معارض">▼ Downvote</button>
       </div>
       <h3 data-en="Comments" data-ar="التعليقات">Comments</h3>
       <p id="commentAuthMessage" data-en="Sign in to vote and comment." data-ar="سجّل الدخول للتصويت والتعليق.">Sign in to vote and comment.</p>
@@ -99,7 +115,7 @@
         <textarea id="commentInput" maxlength="2000" placeholder="Share your thoughts..." data-en="Share your thoughts..." data-ar="شارك أفكارك..."></textarea>
         <button class="btn btn-primary" type="submit" data-en="Comment" data-ar="تعليق">Comment</button>
       </form>
-      <div id="commentsList"></div>
+      <div id="commentsList" class="comments-list"></div>
     </section>
   </main>
 
@@ -150,21 +166,70 @@
 
     async function loadCommunity() {
       const votes = (await getDocs(votesRef())).docs.map(item => item.data());
-      voteScore.textContent = votes.reduce((total, vote) => total + (Number(vote.value) || 0), 0);
+      const score = votes.reduce((total, vote) => total + (Number(vote.value) || 0), 0);
+      voteScore.textContent = score > 0 ? `+${score}` : score;
+      voteScore.classList.toggle('positive', score > 0);
+      voteScore.classList.toggle('negative', score < 0);
       currentVote = currentUser ? Number((await getDoc(doc(votesRef(), currentUser.uid))).data()?.value || 0) : 0;
       upvoteButton.classList.toggle('active', currentVote === 1);
       downvoteButton.classList.toggle('active', currentVote === -1);
 
-      const comments = (await getDocs(commentsRef())).docs.map(item => ({ id:item.id, ...item.data() }))
-        .sort((a,b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
-      commentsList.innerHTML = comments.length ? comments.map(comment => `
-        <div class="comment"><div class="comment-meta">${escapeHtml(comment.userName || 'Member')} · ${comment.createdAt?.toDate ? comment.createdAt.toDate().toLocaleString() : 'Just now'}</div>
-        <div class="comment-text">${escapeHtml(comment.text)}</div>
-        ${currentUser?.uid === comment.userId ? `<button class="comment-delete" data-comment-id="${comment.id}" type="button">${t('Delete', 'حذف')}</button>` : ''}</div>`).join('') : `<p>${t('No comments yet. Start the discussion.', 'لا توجد تعليقات بعد. ابدأ النقاش.')}</p>`;
+      const comments = (await getDocs(commentsRef())).docs.map(item => ({ id:item.id, ...item.data() }));
+      const byParent = new Map();
+      comments.forEach(comment => {
+        const parent = comments.some(item => item.id === comment.parentId) ? comment.parentId : null;
+        if (!byParent.has(parent)) byParent.set(parent, []);
+        byParent.get(parent).push(comment);
+      });
+      byParent.forEach(items => items.sort((a,b) => (a.createdAt?.toMillis?.() || 0) - (b.createdAt?.toMillis?.() || 0)));
+      const renderComment = (comment, depth = 0) => {
+        const children = byParent.get(comment.id) || [];
+        const actions = `<div class="comment-actions">
+          ${currentUser ? `<button class="comment-action comment-reply" data-comment-id="${comment.id}" data-user-name="${escapeHtml(comment.userName || 'Member')}" type="button">${t('Reply', 'رد')}</button>` : ''}
+          ${currentUser?.uid === comment.userId ? `<button class="comment-action comment-delete" data-comment-id="${comment.id}" type="button">${t('Delete', 'حذف')}</button>` : ''}
+        </div>`;
+        return `<article class="comment" data-depth="${depth}">
+          <div class="comment-meta">${escapeHtml(comment.userName || 'Member')} · ${comment.createdAt?.toDate ? comment.createdAt.toDate().toLocaleString() : t('Just now', 'الآن')}</div>
+          <div class="comment-text">${escapeHtml(comment.text)}</div>${actions}
+          <div class="reply-slot"></div>
+          ${children.length ? `<div class="comment-children">${children.map(child => renderComment(child, depth + 1)).join('')}</div>` : ''}
+        </article>`;
+      };
+      const roots = byParent.get(null) || [];
+      roots.sort((a,b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+      commentsList.innerHTML = roots.length ? roots.map(comment => renderComment(comment)).join('') : `<p>${t('No comments yet. Start the discussion.', 'لا توجد تعليقات بعد. ابدأ النقاش.')}</p>`;
+      commentsList.querySelectorAll('.comment-reply').forEach(button => button.addEventListener('click', () => {
+        commentsList.querySelectorAll('.reply-slot').forEach(slot => { slot.innerHTML = ''; });
+        const slot = button.closest('.comment').querySelector(':scope > .reply-slot');
+        const replyPlaceholder = escapeHtml(t(`Reply to ${button.dataset.userName}…`, `الرد على ${button.dataset.userName}…`));
+        slot.innerHTML = `<form class="reply-form"><textarea maxlength="2000" required placeholder="${replyPlaceholder}"></textarea><button class="btn btn-primary" type="submit">${t('Reply', 'رد')}</button></form>`;
+        const form = slot.querySelector('form');
+        form.querySelector('textarea').focus();
+        form.addEventListener('submit', async event => {
+          event.preventDefault();
+          await postComment(form.querySelector('textarea').value, button.dataset.commentId, form.querySelector('button'));
+        });
+      }));
       commentsList.querySelectorAll('.comment-delete').forEach(button => button.addEventListener('click', async () => {
         await deleteDoc(doc(commentsRef(), button.dataset.commentId));
         loadCommunity();
       }));
+    }
+
+    async function postComment(rawText, parentId = null, submitButton = null) {
+      const text = rawText.trim();
+      if (!currentUser || !text) return;
+      if (submitButton) { submitButton.disabled = true; submitButton.textContent = t('Posting…', 'جارٍ النشر…'); }
+      try {
+        await addDoc(commentsRef(), { userId: currentUser.uid, userName: currentUser.displayName || currentUser.email || 'Member', text, parentId, createdAt: serverTimestamp() });
+        commentInput.value = '';
+        await loadCommunity();
+      } catch (error) {
+        console.error('[ArticleComment] Failed:', error);
+        communityStatus.textContent = t('Commenting is unavailable. Ask an administrator to deploy the latest Firestore rules.', 'التعليق غير متاح حالياً. يجب نشر قواعد Firestore المحدثة.');
+      } finally {
+        if (submitButton) { submitButton.disabled = false; submitButton.textContent = parentId ? t('Reply', 'رد') : t('Comment', 'تعليق'); }
+      }
     }
 
     async function saveVote(value) {
@@ -188,20 +253,8 @@
     downvoteButton.addEventListener('click', () => saveVote(-1));
     commentForm.addEventListener('submit', async event => {
       event.preventDefault();
-      const text = commentInput.value.trim();
-      if (!currentUser || !text) return;
       const submitButton = commentForm.querySelector('button[type="submit"]');
-      if (submitButton) { submitButton.disabled = true; submitButton.textContent = 'Posting...'; }
-      try {
-        await addDoc(commentsRef(), { userId: currentUser.uid, userName: currentUser.displayName || currentUser.email || 'Member', text, createdAt: serverTimestamp() });
-        commentInput.value = '';
-        await loadCommunity();
-      } catch (error) {
-        console.error('[ArticleComment] Failed:', error);
-        if (communityStatus) communityStatus.textContent = t('Commenting is unavailable. Ask an administrator to deploy the latest Firestore rules.', 'التعليق غير متاح حالياً. يجب نشر قواعد Firestore المحدثة.');
-      } finally {
-        if (submitButton) { submitButton.disabled = false; submitButton.textContent = 'Comment'; }
-      }
+      await postComment(commentInput.value, null, submitButton);
     });
 
     function renderArticle(article) {
