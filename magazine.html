@@ -641,11 +641,12 @@
         .pdf-book-controls > .pdf-book-nav:not(:first-child) { display:none; }
         .pdf-book-controls #firstPageBtn,
         .pdf-book-controls #lastPageBtn { display:none; }
-        .pdf-book-controls #pageInfo { display:none; }
+        .pdf-book-controls #pageInfo { display:block; min-width:88px; text-align:center; font-variant-numeric:tabular-nums; }
         .pdf-book-controls > .pdf-book-nav:first-child { width:auto; flex-wrap:nowrap; }
         .pdf-book-controls .pdf-book-btn { width:46px; height:46px; min-height:46px; padding:0; border-radius:50%; box-shadow:none; background:transparent; font-size:0; }
         .pdf-book-controls #prevPageBtn::after { content:'‹'; font-size:2rem; line-height:1; }
         .pdf-book-controls #nextPageBtn::after { content:'›'; font-size:2rem; line-height:1; }
+        .pdf-book-controls .pdf-book-close::after { content:'×'; font-size:1.55rem; line-height:1; }
         .pdf-book-controls .pdf-book-btn:hover:not(:disabled) { background:rgba(255,255,255,.14); transform:none; box-shadow:none; }
         .pdf-book-controls .pdf-page-info { background:transparent; padding:.45rem .75rem; font-weight:500; }
         
@@ -793,13 +794,14 @@
         
         .pdf-book-spread {
             display: flex;
-            gap: 2rem;
+            gap: 2px;
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
             transform-origin: center center;
             perspective:1800px;
             transform-style:preserve-3d;
+            position:relative;
         }
         
         .pdf-book-spread.single-page {
@@ -821,6 +823,42 @@
             backface-visibility:hidden;
             transform-style:preserve-3d;
         }
+
+        .pdf-page-number-label { display:none; }
+        .pdf-page-turn-overlay,
+        .pdf-page-hold-overlay {
+            position:absolute;
+            z-index:30;
+            margin:0 !important;
+            pointer-events:none;
+            will-change:transform,filter,opacity;
+        }
+        .pdf-page-turn-overlay.turn-forward {
+            transform-origin:left center;
+            animation:bookFlipForward .82s cubic-bezier(.62,.02,.22,1) forwards;
+        }
+        .pdf-page-turn-overlay.turn-backward {
+            transform-origin:right center;
+            animation:bookFlipBackward .82s cubic-bezier(.62,.02,.22,1) forwards;
+        }
+        .pdf-page-hold-overlay { animation:bookHoldPage .82s ease forwards; }
+
+        @keyframes bookFlipForward {
+            0% { transform:perspective(2200px) rotateY(0); filter:brightness(1); box-shadow:0 12px 40px rgba(0,0,0,.48); }
+            42% { filter:brightness(.72); }
+            50% { box-shadow:24px 8px 42px rgba(0,0,0,.55); }
+            100% { transform:perspective(2200px) rotateY(-179deg); filter:brightness(.38); box-shadow:4px 4px 12px rgba(0,0,0,.15); }
+        }
+        @keyframes bookFlipBackward {
+            0% { transform:perspective(2200px) rotateY(0); filter:brightness(1); box-shadow:0 12px 40px rgba(0,0,0,.48); }
+            42% { filter:brightness(.72); }
+            50% { box-shadow:-24px 8px 42px rgba(0,0,0,.55); }
+            100% { transform:perspective(2200px) rotateY(179deg); filter:brightness(.38); box-shadow:-4px 4px 12px rgba(0,0,0,.15); }
+        }
+        @keyframes bookHoldPage {
+            0%,48% { opacity:1; }
+            62%,100% { opacity:0; }
+        }
         
         .pdf-book-page canvas {
             display: block;
@@ -833,10 +871,12 @@
         
         .pdf-book-page-left {
             transform-origin: right center;
+            box-shadow:-12px 12px 34px rgba(0,0,0,.42),inset -14px 0 18px -18px rgba(0,0,0,.65);
         }
         
         .pdf-book-page-right {
             transform-origin: left center;
+            box-shadow:12px 12px 34px rgba(0,0,0,.42),inset 14px 0 18px -18px rgba(0,0,0,.65);
         }
         
         .pdf-book-page-single {
@@ -1233,6 +1273,8 @@
             let pdfDocument = null;
             let currentPage = 1;
             let totalPages = 0;
+            let isPageAnimating = false;
+            let resizeTimer = null;
             
             // Open PDF Viewer
             window.openPDFViewer = function(pdfUrl, title) {
@@ -1259,6 +1301,7 @@
                 pdfDocument = null;
                 currentPage = 1;
                 totalPages = 0;
+                isPageAnimating = false;
             };
             
             // Switch to Normal View
@@ -1302,6 +1345,7 @@
             async function loadBookMode() {
                 currentViewMode = 'book';
                 modal.classList.add('book-mode');
+                currentLayout = window.matchMedia('(max-width: 768px)').matches ? 'single' : 'spread';
                 bookViewBtn.classList.add('active');
                 normalViewBtn.classList.remove('active');
                 
@@ -1458,6 +1502,14 @@
                 `;
                 
                 // Attach event listeners
+                const primaryControls = document.querySelector('.pdf-book-controls > .pdf-book-nav:first-child');
+                const readerCloseButton = document.createElement('button');
+                readerCloseButton.className = 'pdf-book-btn btn-icon pdf-book-close';
+                readerCloseButton.type = 'button';
+                readerCloseButton.title = 'Close reader';
+                readerCloseButton.setAttribute('aria-label', 'Close reader');
+                readerCloseButton.addEventListener('click', window.closePDFViewer);
+                primaryControls.prepend(readerCloseButton);
                 document.getElementById('firstPageBtn').addEventListener('click', () => goToPage(1));
                 document.getElementById('prevPageBtn').addEventListener('click', previousPage);
                 document.getElementById('nextPageBtn').addEventListener('click', nextPage);
@@ -1483,6 +1535,7 @@
                 // Layout toggle
                 document.getElementById('spreadLayoutBtn').addEventListener('click', () => {
                     currentLayout = 'spread';
+                    currentPage = normalizeSpreadPage(currentPage);
                     document.getElementById('spreadLayoutBtn').classList.add('active');
                     document.getElementById('singleLayoutBtn').classList.remove('active');
                     renderBookPages();
@@ -1515,6 +1568,7 @@
                 const bookViewer = document.getElementById('bookViewer');
                 let touchStartX = 0;
                 let touchStartY = 0;
+                let suppressEdgeClick = false;
                 bookViewer.addEventListener('touchstart', event => {
                     const touch = event.changedTouches[0];
                     touchStartX = touch.clientX;
@@ -1525,11 +1579,21 @@
                     const deltaX = touch.clientX - touchStartX;
                     const deltaY = touch.clientY - touchStartY;
                     if (Math.abs(deltaX) > 55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.25) {
+                        suppressEdgeClick = true;
                         deltaX < 0 ? nextPage() : previousPage();
                     } else if (deltaY > 120 && Math.abs(deltaY) > Math.abs(deltaX) * 1.5) {
+                        suppressEdgeClick = true;
                         window.closePDFViewer();
                     }
                 }, { passive: true });
+                bookViewer.addEventListener('click', event => {
+                    if (suppressEdgeClick) { suppressEdgeClick = false; return; }
+                    if (isPageAnimating || event.detail === 0) return;
+                    const bounds = bookViewer.getBoundingClientRect();
+                    const position = (event.clientX - bounds.left) / bounds.width;
+                    if (position < .22) previousPage();
+                    if (position > .78) nextPage();
+                });
             }
             
             // Update zoom level
@@ -1555,7 +1619,8 @@
                 if (!spread) return;
                 
                 // Update spread class
-                if (currentLayout === 'single') {
+                const coverOnly = currentLayout === 'spread' && currentPage === 1;
+                if (currentLayout === 'single' || coverOnly) {
                     spread.classList.add('single-page');
                 } else {
                     spread.classList.remove('single-page');
@@ -1567,7 +1632,7 @@
                 try {
                     const pages = [];
                     
-                    if (currentLayout === 'single') {
+                    if (currentLayout === 'single' || coverOnly) {
                         // Single page mode
                         if (currentPage <= totalPages) {
                             pages.push(renderPage(currentPage, 'single'));
@@ -1598,10 +1663,8 @@
                     
                     // Update page info
                     const displayPage = Math.min(currentPage, totalPages);
-                    const endPage = currentLayout === 'single' ? displayPage : Math.min(currentPage + 1, totalPages);
-                    const pageText = currentLayout === 'single' || currentPage >= totalPages 
-                        ? `Page ${displayPage} of ${totalPages}`
-                        : `Pages ${displayPage}-${endPage} of ${totalPages}`;
+                    const endPage = currentLayout === 'single' || coverOnly ? displayPage : Math.min(currentPage + 1, totalPages);
+                    const pageText = endPage === displayPage ? `${displayPage} / ${totalPages}` : `${displayPage}–${endPage} / ${totalPages}`;
                     
                     pageInfo.textContent = pageText;
                     
@@ -1613,7 +1676,7 @@
                     const isFirstPage = currentPage === 1;
                     const isLastPage = currentLayout === 'single' 
                         ? currentPage >= totalPages 
-                        : currentPage >= totalPages - 1;
+                        : currentPage > 1 && currentPage + 1 >= totalPages;
                     
                     document.getElementById('firstPageBtn').disabled = isFirstPage;
                     document.getElementById('prevPageBtn').disabled = isFirstPage;
@@ -1647,9 +1710,10 @@
                         const scaleHeight = containerHeight / viewport.height;
                         
                         // Calculate scale to fit width (accounting for layout)
-                        const maxWidth = currentLayout === 'single' 
+                        const isSingleDisplay = currentLayout === 'single' || currentPage === 1;
+                        const maxWidth = isSingleDisplay
                             ? containerWidth 
-                            : (containerWidth - 40) / 2; // Subtract gap
+                            : (containerWidth - 4) / 2;
                         const scaleWidth = maxWidth / viewport.width;
                         
                         // Use the smaller scale to ensure it fits
@@ -1691,6 +1755,7 @@
                     
                     // Add page number indicator
                     const pageLabel = document.createElement('div');
+                    pageLabel.className = 'pdf-page-number-label';
                     pageLabel.style.cssText = `
                         position: absolute;
                         bottom: 10px;
@@ -1713,60 +1778,90 @@
                 }
             }
             
-            // Navigation functions
+            function cloneRenderedPage(page) {
+                if (!page) return null;
+                const clone = page.cloneNode(true);
+                const sourceCanvas = page.querySelector('canvas');
+                const cloneCanvas = clone.querySelector('canvas');
+                if (sourceCanvas && cloneCanvas) {
+                    cloneCanvas.width = sourceCanvas.width;
+                    cloneCanvas.height = sourceCanvas.height;
+                    cloneCanvas.style.cssText = sourceCanvas.style.cssText;
+                    cloneCanvas.getContext('2d', { alpha:false }).drawImage(sourceCanvas, 0, 0);
+                }
+                return clone;
+            }
+
+            function positionOverlay(clone, rect, viewerRect, className) {
+                clone.className = `pdf-book-page ${className}`;
+                clone.style.left = `${rect.left - viewerRect.left + document.getElementById('bookViewer').scrollLeft}px`;
+                clone.style.top = `${rect.top - viewerRect.top + document.getElementById('bookViewer').scrollTop}px`;
+                clone.style.width = `${rect.width}px`;
+                clone.style.height = `${rect.height}px`;
+                return clone;
+            }
+
+            async function animateToPage(targetPage, direction) {
+                if (isPageAnimating || targetPage === currentPage || targetPage < 1 || targetPage > totalPages) return;
+                const viewer = document.getElementById('bookViewer');
+                const visiblePages = [...viewer.querySelectorAll('#bookSpread > .pdf-book-page')];
+                if (!visiblePages.length) return;
+
+                isPageAnimating = true;
+                const viewerRect = viewer.getBoundingClientRect();
+                const turningIndex = direction === 'forward' ? visiblePages.length - 1 : 0;
+                const overlays = visiblePages.map((page, index) => ({
+                    clone: cloneRenderedPage(page),
+                    rect: page.getBoundingClientRect(),
+                    turning: index === turningIndex
+                }));
+
+                currentPage = targetPage;
+                await renderBookPages();
+                if (!modal.classList.contains('active')) { isPageAnimating = false; return; }
+
+                overlays.forEach(item => {
+                    const className = item.turning
+                        ? `pdf-page-turn-overlay ${direction === 'forward' ? 'turn-forward' : 'turn-backward'}`
+                        : 'pdf-page-hold-overlay';
+                    viewer.appendChild(positionOverlay(item.clone, item.rect, viewerRect, className));
+                });
+                document.getElementById('prevPageBtn').disabled = true;
+                document.getElementById('nextPageBtn').disabled = true;
+                const turnDuration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 20 : 840;
+                await new Promise(resolve => setTimeout(resolve, turnDuration));
+                viewer.querySelectorAll('.pdf-page-turn-overlay,.pdf-page-hold-overlay').forEach(page => page.remove());
+                isPageAnimating = false;
+                document.getElementById('prevPageBtn').disabled = currentPage === 1;
+                document.getElementById('nextPageBtn').disabled = currentLayout === 'single'
+                    ? currentPage >= totalPages
+                    : currentPage > 1 && currentPage + 1 >= totalPages;
+            }
+
             function nextPage() {
-                const increment = currentLayout === 'single' ? 1 : 2;
-                if (currentPage + increment <= totalPages) {
-                    // Add animation class
-                    const pages = document.querySelectorAll('.pdf-book-page');
-                    pages.forEach((page, index) => {
-                        if (currentLayout === 'single') {
-                            page.classList.add('turning-next-left');
-                        } else {
-                            page.classList.add(index === 0 ? 'turning-next-left' : 'turning-next-right');
-                        }
-                    });
-                    
-                    setTimeout(() => {
-                        currentPage += increment;
-                        renderBookPages();
-                    }, 700);
-                } else if (currentPage < totalPages) {
-                    // Handle last page in spread mode
-                    currentPage = totalPages;
-                    renderBookPages();
-                }
+                const target = currentLayout === 'single'
+                    ? currentPage + 1
+                    : currentPage === 1 ? 2 : currentPage + 2;
+                if (target <= totalPages) animateToPage(target, 'forward');
             }
-            
+
             function previousPage() {
-                const decrement = currentLayout === 'single' ? 1 : 2;
-                if (currentPage > 1) {
-                    // Add animation class
-                    const pages = document.querySelectorAll('.pdf-book-page');
-                    pages.forEach((page, index) => {
-                        if (currentLayout === 'single') {
-                            page.classList.add('turning-prev-right');
-                        } else {
-                            page.classList.add(index === 0 ? 'turning-prev-left' : 'turning-prev-right');
-                        }
-                    });
-                    
-                    setTimeout(() => {
-                        currentPage = Math.max(1, currentPage - decrement);
-                        renderBookPages();
-                    }, 700);
-                }
+                const target = currentLayout === 'single'
+                    ? currentPage - 1
+                    : currentPage <= 2 ? 1 : currentPage - 2;
+                if (target >= 1) animateToPage(target, 'backward');
             }
-            
+
+            function normalizeSpreadPage(page) {
+                if (page <= 1) return 1;
+                return page % 2 === 0 ? page : page - 1;
+            }
+
             function goToPage(page) {
-                if (page >= 1 && page <= totalPages && page !== currentPage) {
-                    currentPage = page;
-                    // In spread mode, ensure we're on an odd page for proper alignment
-                    if (currentLayout === 'spread' && currentPage % 2 === 0 && currentPage > 1) {
-                        currentPage -= 1;
-                    }
-                    renderBookPages();
-                }
+                if (page < 1 || page > totalPages) return;
+                const target = currentLayout === 'spread' ? normalizeSpreadPage(page) : page;
+                if (target === currentPage) return;
+                animateToPage(target, target > currentPage ? 'forward' : 'backward');
             }
             
             // View mode toggle handlers
@@ -1830,6 +1925,19 @@
                         }
                     }
                 }
+            });
+
+            window.addEventListener('resize', () => {
+                if (!modal.classList.contains('active') || currentViewMode !== 'book' || isPageAnimating) return;
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => {
+                    const responsiveLayout = window.matchMedia('(max-width: 768px)').matches ? 'single' : 'spread';
+                    if (responsiveLayout !== currentLayout) {
+                        currentLayout = responsiveLayout;
+                        if (currentLayout === 'spread') currentPage = normalizeSpreadPage(currentPage);
+                    }
+                    renderBookPages();
+                }, 180);
             });
         }
         
