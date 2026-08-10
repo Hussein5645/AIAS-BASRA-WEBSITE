@@ -277,6 +277,7 @@
         <form id="profileSetupForm" style="margin-bottom:1.25rem;text-align:left;">
             <p style="color:#4a5568;margin:0 0 1rem;line-height:1.5;" data-en="Complete your public Community profile to finish registering." data-ar="أكمل ملف مجتمعك العام لإتمام التسجيل.">Complete your public Community profile to finish registering.</p>
             <div style="margin-bottom:.85rem;"><label for="profileName" style="display:block;font-weight:600;margin-bottom:.35rem;">Name</label><input id="profileName" required maxlength="80" style="width:100%;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;font:inherit;"></div>
+            <div style="margin-bottom:.85rem;"><label for="profileUsername" style="display:block;font-weight:600;margin-bottom:.35rem;">Unique username</label><input id="profileUsername" required minlength="3" maxlength="24" pattern="[a-z0-9_]{3,24}" placeholder="your_handle" autocomplete="username" style="width:100%;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;font:inherit;"><small style="display:block;margin-top:.3rem;color:#718096;">Your permanent profile will be p/your_handle. Use lowercase letters, numbers, or underscores.</small></div>
             <div style="margin-bottom:.85rem;"><label for="profileSchool" style="display:block;font-weight:600;margin-bottom:.35rem;">School / organization</label><input id="profileSchool" required maxlength="120" style="width:100%;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;font:inherit;"></div>
             <div style="margin-bottom:.85rem;"><label for="profileCity" style="display:block;font-weight:600;margin-bottom:.35rem;">City</label><input id="profileCity" required maxlength="80" style="width:100%;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;font:inherit;"></div>
             <div style="margin-bottom:.85rem;"><label for="profileBio" style="display:block;font-weight:600;margin-bottom:.35rem;">Short bio</label><textarea id="profileBio" required maxlength="600" style="width:100%;min-height:80px;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;font:inherit;"></textarea></div>
@@ -340,7 +341,7 @@
         // Import Firebase modules
         import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAdminAccess, persistAccessSession } from "./js/rbac.js";
 
         // Firebase configuration
@@ -370,14 +371,34 @@
         const completeProfileBtn = document.getElementById('completeProfileBtn');
         const requestedNext = new URLSearchParams(window.location.search).get('next') || '';
         const profileFields = {
-            displayName: document.getElementById('profileName'), school: document.getElementById('profileSchool'),
+            displayName: document.getElementById('profileName'), username: document.getElementById('profileUsername'), school: document.getElementById('profileSchool'),
             city: document.getElementById('profileCity'), bio: document.getElementById('profileBio')
         };
 
         function safeNext(fallback) {
-            return requestedNext && !requestedNext.includes('..') && /^[A-Za-z0-9_-]+\.html(?:\?[A-Za-z0-9_%=&.-]+)?$/.test(requestedNext)
+            return requestedNext && !requestedNext.includes('..') && /^[A-Za-z0-9_/-]+(?:\.html)?(?:\?[A-Za-z0-9_%=&.-]+)?$/.test(requestedNext)
                 ? requestedNext
                 : fallback;
+        }
+
+        function normalizeUsername(value) {
+            return String(value || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+        }
+
+        async function claimUsername(userId) {
+            const username = normalizeUsername(profileFields.username.value);
+            if (!/^[a-z0-9_]{3,24}$/.test(username)) throw new Error('Use 3–24 lowercase letters, numbers, or underscores.');
+            const usernameRef = doc(db, 'usernames', username);
+            await runTransaction(db, async (transaction) => {
+                const snapshot = await transaction.get(usernameRef);
+                if (snapshot.exists()) {
+                    if (snapshot.data().userId !== userId) throw new Error('That username is already taken.');
+                    return;
+                }
+                transaction.set(usernameRef, { userId, username, createdAt: serverTimestamp() });
+            });
+            profileFields.username.value = username;
+            return username;
         }
 
         function showMessage(text, type) {
@@ -394,6 +415,7 @@
                 if (profile.profileComplete) checkUserRoleAndRedirect(user);
                 else {
                     if (!profileFields.displayName.value) profileFields.displayName.value = profile.displayName || user.displayName || '';
+                    if (!profileFields.username.value) profileFields.username.value = profile.username || '';
                     if (!profileFields.school.value) profileFields.school.value = profile.school || '';
                     if (!profileFields.city.value) profileFields.city.value = profile.city || '';
                     if (!profileFields.bio.value) profileFields.bio.value = profile.bio || '';
@@ -447,8 +469,10 @@
                 } else {
                     // New account (or an incomplete registration): save all
                     // required public profile fields before redirecting.
+                    const username = await claimUsername(user.uid);
                     await setDoc(userRef, {
                         email: user.email,
+                        username,
                         displayName: profileFields.displayName.value.trim(),
                         photoURL: user.photoURL,
                         school: profileFields.school.value.trim(),
@@ -483,8 +507,9 @@
             const user = auth.currentUser;
             if (!user || !profileSetupForm.reportValidity()) return;
             try {
+                const username = await claimUsername(user.uid);
                 await setDoc(doc(db, 'users', user.uid), {
-                    email: user.email, displayName: profileFields.displayName.value.trim(), photoURL: user.photoURL || '',
+                    email: user.email, username, displayName: profileFields.displayName.value.trim(), photoURL: user.photoURL || '',
                     school: profileFields.school.value.trim(), city: profileFields.city.value.trim(), bio: profileFields.bio.value.trim(),
                     profileComplete: true, createdAt: new Date().toISOString(), lastLogin: new Date().toISOString()
                 }, { merge: true });

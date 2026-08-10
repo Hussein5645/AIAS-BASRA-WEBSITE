@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#661f22">
   <meta name="description" content="The AIAS Basra member community — share ideas, discuss architecture, and discover work by local designers.">
   <title>Community — AIAS Basra</title>
+  <base href="/">
   <link rel="icon" type="image/png" href="static/images/branding/LOGO.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,6 +40,13 @@
         <a class="rail-link" href="community.html?view=profile" data-route="profile"><span class="rail-icon" aria-hidden="true">◉</span><span>My profile</span></a>
         <a class="rail-link" href="community-projects.html"><span class="rail-icon" aria-hidden="true">◇</span><span>Selected projects</span></a>
       </nav>
+      <div class="rail-spaces">
+        <div class="rail-spaces-title"><span>Spaces</span><small>Explore</small></div>
+        <a href="a/studio-crit"><i>SC</i><span>a/studio-crit</span></a>
+        <a href="a/basra-city"><i>BC</i><span>a/basra-city</span></a>
+        <a href="a/sustainability"><i>SU</i><span>a/sustainability</span></a>
+        <a href="a/tools-tech"><i>TT</i><span>a/tools-tech</span></a>
+      </div>
       <div class="rail-cta">
         <span class="rail-cta-mark">A</span>
         <strong>Made for members</strong>
@@ -54,6 +62,12 @@
           <a href="community.html" data-route="home"><span aria-hidden="true">←</span> Back to the community</a>
           <span>Post</span>
         </div>
+
+        <section id="areaHeader" class="area-header" hidden>
+          <div class="area-symbol" id="areaSymbol">A</div>
+          <div><span class="mini-kicker" id="areaPath">a/community</span><h1 id="areaTitle">Community space</h1><p id="areaDescription"></p></div>
+          <button id="areaCreate" type="button">Create post <span aria-hidden="true">+</span></button>
+        </section>
 
         <section class="welcome-card" aria-labelledby="welcomeTitle">
           <div>
@@ -78,6 +92,7 @@
             <span class="filter-divider"></span>
             <button class="filter-pill active" type="button" data-type="both">All</button>
             <button class="filter-pill" type="button" data-type="text">Thoughts</button>
+            <button class="filter-pill" type="button" data-type="question">Questions</button>
             <button class="filter-pill" type="button" data-type="behance">Projects</button>
           </div>
         </div>
@@ -96,10 +111,22 @@
           <form id="postForm">
             <fieldset class="post-type-picker">
               <legend>What are you sharing?</legend>
-              <label><input type="radio" name="postTypeChoice" value="text" checked><span><b>Thought</b><small>Start a discussion or ask a question</small></span></label>
+              <label><input type="radio" name="postTypeChoice" value="text" checked><span><b>Thought</b><small>Share an idea or start a discussion</small></span></label>
+              <label><input type="radio" name="postTypeChoice" value="question"><span><b>Open question</b><small>Ask members and collect answers</small></span></label>
               <label><input type="radio" name="postTypeChoice" value="behance"><span><b>Project</b><small>Showcase a Behance project</small></span></label>
             </fieldset>
             <input id="postType" type="hidden" value="text">
+            <div class="form-group community-picker">
+              <label for="postCommunity">Choose where to post</label>
+              <select id="postCommunity">
+                <option value="main">Main thread</option>
+                <option value="studio-crit">a/studio-crit</option>
+                <option value="basra-city">a/basra-city</option>
+                <option value="sustainability">a/sustainability</option>
+                <option value="tools-tech">a/tools-tech</option>
+              </select>
+              <small>Posts in a space also appear in the main community thread.</small>
+            </div>
             <div class="form-group">
               <div class="label-line"><label for="postTitle">Give it a clear title</label><span id="titleCount">0 / 160</span></div>
               <input id="postTitle" required maxlength="160" placeholder="A question, insight, or project name">
@@ -147,13 +174,19 @@
         <h2>Good community energy</h2>
         <ul><li><span>01</span> Be curious, not dismissive.</li><li><span>02</span> Credit people and sources.</li><li><span>03</span> Make feedback useful.</li></ul>
       </section>
+      <section class="side-card spaces-card">
+        <div class="side-card-heading"><span>Popular spaces</span><i aria-hidden="true"></i></div>
+        <a href="a/studio-crit"><span class="space-avatar">SC</span><span><strong>a/studio-crit</strong><small>Share work and get useful critique</small></span><b>›</b></a>
+        <a href="a/basra-city"><span class="space-avatar">BC</span><span><strong>a/basra-city</strong><small>Urban life, heritage, and public space</small></span><b>›</b></a>
+        <a href="a/sustainability"><span class="space-avatar">SU</span><span><strong>a/sustainability</strong><small>Climate-aware design ideas</small></span><b>›</b></a>
+      </section>
       <a class="selected-card" href="community-projects.html"><span><small>CURATED BY AIAS BASRA</small><strong>Selected projects</strong></span><b aria-hidden="true">↗</b></a>
     </aside>
   </main>
 
   <nav class="mobile-nav" aria-label="Mobile community navigation">
     <a class="active" href="community.html" data-route="home"><span aria-hidden="true">⌂</span><small>Home</small></a>
-    <a href="community-projects.html"><span aria-hidden="true">◇</span><small>Projects</small></a>
+    <a href="a/studio-crit"><span aria-hidden="true">◇</span><small>Spaces</small></a>
     <a class="mobile-create" href="community.html?view=post" data-route="post"><span aria-hidden="true">+</span><small>Create</small></a>
     <a href="community.html?view=profile" data-route="profile"><span aria-hidden="true">◉</span><small>Profile</small></a>
     <a href="index.html"><span aria-hidden="true">←</span><small>Website</small></a>

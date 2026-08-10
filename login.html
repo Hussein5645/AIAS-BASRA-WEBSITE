@@ -362,7 +362,7 @@
         const requestedNext = new URLSearchParams(window.location.search).get('next') || '';
 
         function safeNext(fallback) {
-            return requestedNext && !requestedNext.includes('..') && /^[A-Za-z0-9_-]+\.html(?:\?[A-Za-z0-9_%=&.-]+)?$/.test(requestedNext)
+            return requestedNext && !requestedNext.includes('..') && /^[A-Za-z0-9_/-]+(?:\.html)?(?:\?[A-Za-z0-9_%=&.-]+)?$/.test(requestedNext)
                 ? requestedNext
                 : fallback;
         }

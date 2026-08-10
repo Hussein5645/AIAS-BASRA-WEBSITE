@@ -1,6 +1,6 @@
 import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 const config = {
   apiKey: 'AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ',
@@ -24,11 +24,67 @@ let activeCommentsPostId = null;
 let searchTerm = '';
 let toastTimer = null;
 let routeSequence = 0;
+let activeAreaSlug = null;
+
+const AREAS = {
+  'studio-crit': {
+    name: 'Studio Crit',
+    symbol: 'SC',
+    description: 'Share work in progress, ask for critique, and help each other make the next iteration stronger.'
+  },
+  'basra-city': {
+    name: 'Basra City',
+    symbol: 'BC',
+    description: 'A space for Basra’s streets, public life, heritage, housing, and the city we want to shape.'
+  },
+  sustainability: {
+    name: 'Sustainability',
+    symbol: 'SU',
+    description: 'Climate-aware materials, passive strategies, research, and practical ideas for responsible design.'
+  },
+  'tools-tech': {
+    name: 'Tools + Tech',
+    symbol: 'TT',
+    description: 'Software workflows, fabrication, visualization, AI, and the tools changing architectural practice.'
+  }
+};
 
 const $ = id => document.getElementById(id);
 const escapeHtml = value => String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const isProject = post => post.type === 'behance';
-const postLabel = post => isProject(post) ? 'Project' : 'Thought';
+const isQuestion = post => post.type === 'question';
+const postLabel = post => isProject(post) ? 'Project' : isQuestion(post) ? 'Open question' : 'Thought';
+
+function getPathRoute() {
+  const segments = decodeURIComponent(location.pathname).split('/').filter(Boolean);
+  const areaIndex = segments.lastIndexOf('a');
+  const profileIndex = segments.lastIndexOf('p');
+  return {
+    area: areaIndex >= 0 && segments[areaIndex + 1] ? segments[areaIndex + 1].toLowerCase() : null,
+    profile: profileIndex >= 0 && segments[profileIndex + 1] ? segments[profileIndex + 1] : null
+  };
+}
+
+function areaUrl(slug) {
+  return '/a/' + encodeURIComponent(slug);
+}
+
+function profileUrl(uid, username) {
+  return '/p/' + encodeURIComponent(username || uid);
+}
+
+async function resolveProfileId(routeValue) {
+  if (!routeValue) return null;
+  const normalized = String(routeValue).toLowerCase();
+  const usernameSnapshot = await getDoc(doc(db, 'usernames', normalized));
+  if (usernameSnapshot.exists()) return usernameSnapshot.data().userId || null;
+  const userSnapshot = await getDoc(doc(db, 'users', routeValue));
+  return userSnapshot.exists() ? routeValue : null;
+}
+
+function composerUrl() {
+  return activeAreaSlug ? areaUrl(activeAreaSlug) + '?view=post' : '/community.html?view=post';
+}
 
 function plainPostText(post) {
   if (post.type !== 'article') return post.content || post.summary || '';
@@ -75,6 +131,27 @@ async function getProfile(uid) {
   return profileCache.get(uid);
 }
 
+function normalizeUsername(value) {
+  return String(value || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+}
+
+async function claimUsername(uid, requestedUsername) {
+  const username = normalizeUsername(requestedUsername);
+  if (!/^[a-z0-9_]{3,24}$/.test(username)) {
+    throw new Error('Use 3–24 lowercase letters, numbers, or underscores.');
+  }
+  const usernameRef = doc(db, 'usernames', username);
+  await runTransaction(db, async transaction => {
+    const snapshot = await transaction.get(usernameRef);
+    if (snapshot.exists()) {
+      if (snapshot.data().userId !== uid) throw new Error('That username is already taken.');
+      return;
+    }
+    transaction.set(usernameRef, {userId:uid, username, createdAt:serverTimestamp()});
+  });
+  return username;
+}
+
 async function getPostMeta(post) {
   const [profile, votesSnapshot, commentsSnapshot] = await Promise.all([
     getProfile(post.userId),
@@ -91,14 +168,14 @@ async function getPostMeta(post) {
 
 function canonicalPostUrl(post) {
   const path = isProject(post)
-    ? 'project.html?communityPost=' + encodeURIComponent(post.id)
-    : 'community.html?post=' + encodeURIComponent(post.id);
-  return new URL(path, location.href).href;
+    ? '/project.html?communityPost=' + encodeURIComponent(post.id)
+    : '/community.html?post=' + encodeURIComponent(post.id);
+  return new URL(path, location.origin).href;
 }
 
 function loginUrl() {
-  const returnPath = location.pathname.split('/').pop() + location.search;
-  return 'login.html?next=' + encodeURIComponent(returnPath);
+  const returnPath = location.pathname.replace(/^\/+/, '') + location.search;
+  return '/login.html?next=' + encodeURIComponent(returnPath);
 }
 
 function setActiveNavigation(viewName) {
@@ -114,33 +191,50 @@ function showView(name) {
 
 function navigateTo(url, replace) {
   const next = new URL(url, location.href);
-  const relative = next.pathname.split('/').pop() + next.search + next.hash;
-  history[replace ? 'replaceState' : 'pushState']({}, '', relative);
+  history[replace ? 'replaceState' : 'pushState']({}, '', next.pathname + next.search + next.hash);
   handleRoute(true);
 }
 
 async function handleRoute(scrollToTop) {
   const sequence = ++routeSequence;
   const params = new URLSearchParams(location.search);
+  const pathRoute = getPathRoute();
   const selectedPostId = params.get('post');
   const requestedView = params.get('view');
-  const publicProfileId = params.get('user');
-  const view = publicProfileId || requestedView === 'profile' ? 'profile' : requestedView === 'post' ? 'post' : 'home';
+  const publicProfileRoute = pathRoute.profile || params.get('user');
+  const requestedArea = pathRoute.area || params.get('area');
+  activeAreaSlug = requestedArea && AREAS[requestedArea] ? requestedArea : null;
+  const view = publicProfileRoute || requestedView === 'profile' ? 'profile' : requestedView === 'post' ? 'post' : 'home';
   if (!params.has('comments')) closeCommentsUi();
   showView(view);
   if (scrollToTop) window.scrollTo({top:0, behavior:'smooth'});
 
   if (view === 'home') {
     $('detailContext').hidden = !selectedPostId;
-    document.querySelector('.welcome-card').hidden = Boolean(selectedPostId);
+    $('areaHeader').hidden = Boolean(selectedPostId) || !activeAreaSlug;
+    document.querySelector('.welcome-card').hidden = Boolean(selectedPostId) || Boolean(activeAreaSlug);
     $('quickComposer').hidden = Boolean(selectedPostId);
     document.querySelector('.feed-toolbar').hidden = Boolean(selectedPostId);
+    if (activeAreaSlug) {
+      const area = AREAS[activeAreaSlug];
+      $('areaSymbol').textContent = area.symbol;
+      $('areaPath').textContent = 'a/' + activeAreaSlug;
+      $('areaTitle').textContent = area.name;
+      $('areaDescription').textContent = area.description;
+      document.querySelector('.feed-heading h2').textContent = area.name + ' posts';
+      document.title = 'a/' + activeAreaSlug + ' — AIAS Basra Community';
+    } else {
+      document.querySelector('.feed-heading h2').textContent = 'Community feed';
+      document.title = selectedPostId ? 'Post — AIAS Basra Community' : 'Community — AIAS Basra';
+    }
     await loadPosts();
     if (sequence !== routeSequence) return;
     if (selectedPostId && params.get('comments') === '1') openComments(selectedPostId, false);
   } else if (view === 'profile') {
-    await loadProfile(publicProfileId || currentUser?.uid || null);
+    const profileId = publicProfileRoute ? await resolveProfileId(publicProfileRoute) : currentUser?.uid || null;
+    await loadProfile(profileId);
   } else {
+    $('postCommunity').value = activeAreaSlug || params.get('area') || 'main';
     renderPostGate();
   }
 }
@@ -149,7 +243,11 @@ function renderPostCard(post, index, detail) {
   const meta = post.meta;
   const authorName = post.authorName || meta.profile.displayName || 'Community member';
   const school = meta.profile.school || (isProject(post) ? 'Project author' : 'Community member');
-  const profileUrl = 'community.html?user=' + encodeURIComponent(post.userId);
+  const authorProfileUrl = profileUrl(post.userId, meta.profile.username);
+  const communitySlug = AREAS[post.communitySlug] ? post.communitySlug : 'main';
+  const communityContext = communitySlug === 'main'
+    ? '<span class="main-thread-label">Main thread</span>'
+    : '<a href="' + areaUrl(communitySlug) + '">a/' + escapeHtml(communitySlug) + '</a>';
   const destination = isProject(post)
     ? 'project.html?communityPost=' + encodeURIComponent(post.id)
     : 'community.html?post=' + encodeURIComponent(post.id);
@@ -162,13 +260,14 @@ function renderPostCard(post, index, detail) {
     ? '<div class="project-request">Selection request: <strong>' + escapeHtml(post.featureStatus || 'pending') + '</strong></div>'
     : '';
   return [
-    '<article class="post-card' + (detail ? ' detail' : '') + '" style="--i:' + index + '">',
+    '<article class="post-card' + (detail ? ' detail' : '') + (isQuestion(post) ? ' question' : '') + '" style="--i:' + index + '">',
+      '<div class="post-context">' + communityContext + '<span>·</span><span>' + postLabel(post) + '</span></div>',
       '<div class="post-head">',
-        '<a class="post-author" href="' + profileUrl + '">',
+        '<a class="post-author" href="' + authorProfileUrl + '">',
           avatarMarkup(authorName, meta.profile.photoURL, 'avatar'),
           '<span class="author-copy"><strong>' + escapeHtml(authorName) + '</strong><span>' + escapeHtml(school) + ' · ' + escapeHtml(formatDate(post.createdAt)) + selected + '</span></span>',
         '</a>',
-        '<span class="post-kind' + (isProject(post) ? ' project' : '') + '">' + postLabel(post) + '</span>',
+        '<span class="post-kind' + (isProject(post) ? ' project' : isQuestion(post) ? ' question' : '') + '">' + postLabel(post) + '</span>',
       '</div>',
       '<h2 class="post-title"><a href="' + destination + '">' + escapeHtml(post.title) + '</a></h2>',
       '<div class="post-body">' + escapeHtml(text) + '</div>',
@@ -176,7 +275,7 @@ function renderPostCard(post, index, detail) {
       '<div class="post-actions">',
         '<button class="action-button applaud ' + (meta.mine === 1 ? 'active' : '') + '" type="button" data-vote="1" data-current="' + meta.mine + '" data-id="' + post.id + '" aria-label="Applaud this post"><span class="action-icon" aria-hidden="true">✦</span><span>Applaud</span><b>' + meta.score + '</b></button>',
         '<button class="action-button down ' + (meta.mine === -1 ? 'active' : '') + '" type="button" data-vote="-1" data-current="' + meta.mine + '" data-id="' + post.id + '" aria-label="Show less like this"><span class="action-icon" aria-hidden="true">⌄</span></button>',
-        '<button class="action-button" type="button" data-open-comments="' + post.id + '"><span class="action-icon" aria-hidden="true">◯</span><span>' + meta.commentsCount + ' ' + (meta.commentsCount === 1 ? 'comment' : 'comments') + '</span></button>',
+        '<button class="action-button" type="button" data-open-comments="' + post.id + '"><span class="action-icon" aria-hidden="true">◯</span><span>' + meta.commentsCount + ' ' + (isQuestion(post) ? (meta.commentsCount === 1 ? 'answer' : 'answers') : (meta.commentsCount === 1 ? 'comment' : 'comments')) + '</span></button>',
         '<button class="action-button share" type="button" data-share="' + post.id + '"><span class="action-icon" aria-hidden="true">↗</span><span>Share</span></button>',
       '</div>',
       request,
@@ -247,7 +346,12 @@ async function loadPosts() {
     if (selectedPostId) {
       posts = posts.filter(post => post.id === selectedPostId);
     } else {
-      if (communityType !== 'both') posts = posts.filter(post => communityType === 'behance' ? isProject(post) : !isProject(post));
+      if (activeAreaSlug) posts = posts.filter(post => post.communitySlug === activeAreaSlug);
+      if (communityType !== 'both') {
+        posts = posts.filter(post => communityType === 'text'
+          ? !isProject(post) && !isQuestion(post)
+          : post.type === communityType);
+      }
       if (searchTerm) {
         posts = posts.filter(post => [post.title, plainPostText(post), post.authorName].join(' ').toLowerCase().includes(searchTerm));
       }
@@ -263,7 +367,9 @@ async function loadPosts() {
         ? ['Post unavailable', 'This post may have been removed or the link is incorrect.']
         : searchTerm
           ? ['No matches yet', 'Try another name, idea, or project keyword.']
-          : ['A quiet studio — for now', 'Be the first member to start this conversation.'];
+          : activeAreaSlug
+            ? ['This space is ready', 'Be the first member to post in a/' + activeAreaSlug + '.']
+            : ['A quiet studio — for now', 'Be the first member to start this conversation.'];
       target.innerHTML = '<div class="empty-state"><span class="empty-mark">A</span><h3>' + copy[0] + '</h3><p>' + copy[1] + '</p></div>';
     } else {
       target.innerHTML = posts.map((post, index) => renderPostCard(post, index, Boolean(selectedPostId))).join('');
@@ -299,7 +405,7 @@ async function openComments(postId, updateRoute) {
     const params = new URLSearchParams(location.search);
     params.set('post', postId);
     params.set('comments', '1');
-    history.pushState({communityOverlay:true}, '', 'community.html?' + params.toString());
+    history.pushState({communityOverlay:true}, '', '/community.html?' + params.toString());
   }
   activeCommentsPostId = postId;
   $('commentsOverlay').hidden = false;
@@ -322,12 +428,13 @@ async function openComments(postId, updateRoute) {
     });
     byParent.forEach(items => items.sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)));
     const roots = byParent.get(null) || [];
+    document.querySelector('.comments-sheet .mini-kicker').textContent = isQuestion(post) ? 'OPEN ANSWERS' : 'DISCUSSION';
     $('commentsSheetTitle').textContent = post.title || 'Comments';
     $('commentsSheetBody').innerHTML = [
       '<div class="comments">',
-        roots.length ? roots.map(comment => renderThread(comment, byParent)).join('') : '<div class="empty-state"><span class="empty-mark">+</span><h3>Start the conversation</h3><p>Ask a question or leave thoughtful feedback.</p></div>',
+        roots.length ? roots.map(comment => renderThread(comment, byParent)).join('') : '<div class="empty-state"><span class="empty-mark">+</span><h3>' + (isQuestion(post) ? 'Share the first answer' : 'Start the conversation') + '</h3><p>' + (isQuestion(post) ? 'Offer experience, a reference, or a useful direction.' : 'Ask a question or leave thoughtful feedback.') + '</p></div>',
         currentUser
-          ? '<form class="comment-form" data-comment="' + postId + '"><input required maxlength="2000" placeholder="Add to the conversation…" aria-label="Add a comment"><button class="comment-submit">Post</button></form>'
+          ? '<form class="comment-form" data-comment="' + postId + '"><input required maxlength="2000" placeholder="' + (isQuestion(post) ? 'Write an answer…' : 'Add to the conversation…') + '" aria-label="' + (isQuestion(post) ? 'Write an answer' : 'Add a comment') + '"><button class="comment-submit">' + (isQuestion(post) ? 'Answer' : 'Post') + '</button></form>'
           : '<p class="notice"><a href="' + loginUrl() + '">Sign in</a> to join the discussion.</p>',
       '</div>'
     ].join('');
@@ -404,27 +511,33 @@ function closeComments() {
     history.back();
   } else {
     params.delete('comments');
-    history.replaceState({}, '', 'community.html?' + params.toString());
+    history.replaceState({}, '', '/community.html?' + params.toString());
     closeCommentsUi();
   }
 }
 
 function renderPostTypeFields() {
-  const project = $('postType').value === 'behance';
+  const type = $('postType').value;
+  const project = type === 'behance';
+  const question = type === 'question';
   $('textFields').hidden = project;
   $('projectFields').hidden = !project;
   $('postContent').required = !project;
   $('postSummary').required = project;
   $('behanceEmbed').required = project;
+  document.querySelector('label[for="postContent"]').textContent = question ? 'Add helpful context' : 'Tell the community more';
+  $('postContent').placeholder = question ? 'What have you tried, and what kind of answer would help?' : 'Share context, a fresh perspective, or invite feedback…';
+  $('postTitle').placeholder = question ? 'Ask one clear, open question' : 'A question, insight, or project name';
   if (!project) $('featureRequest').checked = false;
 }
 
 function renderPostGate() {
-  const allowed = currentUser && currentProfile?.profileComplete;
+  const allowed = currentUser && currentProfile?.profileComplete && currentProfile?.username;
   if (allowed) {
     $('postGate').innerHTML = '';
   } else if (currentUser) {
-    $('postGate').innerHTML = '<p class="notice">Complete your <a href="community.html?view=profile">community profile</a> before publishing.</p>';
+    const action = currentProfile?.profileComplete && !currentProfile?.username ? 'Claim a unique username on' : 'Complete';
+    $('postGate').innerHTML = '<p class="notice">' + action + ' your <a href="' + profileUrl(currentUser.uid, currentProfile?.username) + '">community profile</a> before publishing.</p>';
   } else {
     $('postGate').innerHTML = '<p class="notice">You need to <a href="' + loginUrl() + '">sign in</a> before publishing to the community.</p>';
   }
@@ -478,18 +591,20 @@ async function loadProfile(uid) {
     const photo = profile.photoURL || (owner ? currentUser?.photoURL : '') || '';
     const locationLine = [profile.school, profile.city].filter(Boolean).join(' · ') || 'AIAS Basra community';
     const interests = String(profile.interests || '').split(',').map(item => item.trim()).filter(Boolean);
+    document.title = (profile.username ? 'p/' + profile.username : displayName) + ' — AIAS Basra Community';
     target.className = 'profile-hero';
     target.innerHTML = [
       '<div class="profile-top">',
         avatarMarkup(displayName, photo, 'profile-avatar'),
-        '<div class="profile-title"><h2>' + escapeHtml(displayName) + '</h2><p>' + escapeHtml(locationLine) + '</p></div>',
+        '<div class="profile-title"><h2>' + escapeHtml(displayName) + '</h2><span class="profile-handle">' + (profile.username ? '@' + escapeHtml(profile.username) : 'No username claimed') + '</span><p>' + escapeHtml(locationLine) + '</p></div>',
         owner ? '<button id="editProfile" class="edit-profile-button" type="button">Edit profile</button>' : '',
       '</div>',
       '<p class="profile-bio">' + escapeHtml(profile.bio || 'No bio added yet.') + '</p>',
       interests.length ? '<div class="interest-row">' + interests.map(item => '<span>' + escapeHtml(item) + '</span>').join('') + '</div>' : '',
       owner ? [
         '<form id="profileForm" class="profile-form" hidden>',
-          '<div class="form-grid"><div class="form-group"><label for="profileName">Name</label><input id="profileName" required value="' + escapeHtml(displayName) + '"></div><div class="form-group"><label for="profileSchool">School / organization</label><input id="profileSchool" required value="' + escapeHtml(profile.school || '') + '"></div></div>',
+          '<div class="form-grid"><div class="form-group"><label for="profileName">Name</label><input id="profileName" required value="' + escapeHtml(displayName) + '"></div><div class="form-group"><label for="profileUsername">Unique username</label><input id="profileUsername" required minlength="3" maxlength="24" pattern="[a-z0-9_]{3,24}" value="' + escapeHtml(profile.username || '') + '" ' + (profile.username ? 'readonly' : '') + ' placeholder="your_handle"><small>' + (profile.username ? 'Your permanent profile address is p/' + escapeHtml(profile.username) : 'Lowercase letters, numbers, and underscores only.') + '</small></div></div>',
+          '<div class="form-group"><label for="profileSchool">School / organization</label><input id="profileSchool" required value="' + escapeHtml(profile.school || '') + '"></div>',
           '<div class="form-grid"><div class="form-group"><label for="profileCity">City</label><input id="profileCity" required value="' + escapeHtml(profile.city || '') + '"></div><div class="form-group"><label for="profileInterests">Interests</label><input id="profileInterests" value="' + escapeHtml(profile.interests || '') + '" placeholder="Urbanism, interiors, sketching"></div></div>',
           '<div class="form-group"><label for="profileBio">Bio</label><textarea id="profileBio" required>' + escapeHtml(profile.bio || '') + '</textarea></div>',
           '<button class="primary-button" type="submit"><span>Save profile</span><b aria-hidden="true">→</b></button>',
@@ -505,19 +620,27 @@ async function loadProfile(uid) {
         event.preventDefault();
         const button = event.submitter;
         button.disabled = true;
-        await setDoc(doc(db, 'users', uid), {
-          displayName: $('profileName').value.trim(),
-          school: $('profileSchool').value.trim(),
-          city: $('profileCity').value.trim(),
-          interests: $('profileInterests').value.trim(),
-          bio: $('profileBio').value.trim(),
-          profileComplete: true,
-          updatedAt: serverTimestamp()
-        }, {merge:true});
-        profileCache.delete(uid);
-        currentProfile = await getProfile(uid);
-        showToast('Profile updated.');
-        await loadProfile(uid);
+        try {
+          const username = profile.username || await claimUsername(uid, $('profileUsername').value);
+          await setDoc(doc(db, 'users', uid), {
+            username,
+            displayName: $('profileName').value.trim(),
+            school: $('profileSchool').value.trim(),
+            city: $('profileCity').value.trim(),
+            interests: $('profileInterests').value.trim(),
+            bio: $('profileBio').value.trim(),
+            profileComplete: true,
+            updatedAt: serverTimestamp()
+          }, {merge:true});
+          profileCache.delete(uid);
+          currentProfile = await getProfile(uid);
+          showToast('Profile updated.');
+          history.replaceState({}, '', profileUrl(uid, username));
+          await loadProfile(uid);
+        } catch (error) {
+          showToast(error.message || 'Your profile could not be updated.');
+          button.disabled = false;
+        }
       });
     }
     await loadProfilePosts(uid);
@@ -562,14 +685,15 @@ $('communitySearch').addEventListener('input', event => {
   searchTerm = event.target.value.trim().toLowerCase();
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => {
-    if (new URLSearchParams(location.search).get('post')) navigateTo('community.html', true);
+    if (new URLSearchParams(location.search).get('post')) navigateTo('/community.html', true);
     else loadPosts();
   }, 180);
 });
 
-$('quickComposer').addEventListener('click', () => navigateTo('community.html?view=post', false));
+$('quickComposer').addEventListener('click', () => navigateTo(composerUrl(), false));
+$('areaCreate').addEventListener('click', () => navigateTo(composerUrl(), false));
 $('answerPrompt').addEventListener('click', () => {
-  navigateTo('community.html?view=post', false);
+  navigateTo('/community.html?view=post', false);
   setTimeout(() => {
     if (!$('postFormCard').hidden) {
       $('postTitle').value = 'A detail that changed how I see space';
@@ -616,14 +740,17 @@ $('postForm').addEventListener('submit', async event => {
   button.disabled = true;
   try {
     const featureRequest = type === 'behance' && $('featureRequest').checked;
+    const communitySlug = $('postCommunity').value;
     const postRef = await addDoc(collection(db, 'communityPosts'), {
       type,
       title,
       summary: type === 'behance' ? summary : content.slice(0, 360),
-      content: type === 'text' ? content : '',
+      content: type === 'behance' ? '' : content,
       behanceSrc,
+      communitySlug,
       userId: currentUser.uid,
       authorName: currentProfile.displayName || currentUser.displayName || 'Member',
+      authorUsername: currentProfile.username,
       published: true,
       featureRequest,
       featureStatus: featureRequest ? 'pending' : 'none',
@@ -635,7 +762,7 @@ $('postForm').addEventListener('submit', async event => {
     renderPostTypeFields();
     ['postTitle','postContent','postSummary'].forEach(id => $(id).dispatchEvent(new Event('input')));
     showToast('Your post is live.');
-    navigateTo('community.html?post=' + encodeURIComponent(postRef.id), false);
+    navigateTo('/community.html?post=' + encodeURIComponent(postRef.id), false);
   } catch (error) {
     console.error(error);
     $('postStatus').textContent = error.message || 'This post could not be published.';
@@ -650,7 +777,8 @@ onAuthStateChanged(auth, async user => {
     currentProfile = await getProfile(user.uid);
     const displayName = currentProfile.displayName || user.displayName || 'Member';
     const photo = currentProfile.photoURL || user.photoURL || '';
-    $('memberAction').href = 'community.html?view=profile';
+    $('memberAction').href = profileUrl(user.uid, currentProfile.username);
+    document.querySelectorAll('[data-route="profile"]').forEach(link => { link.href = profileUrl(user.uid, currentProfile.username); });
     $('memberAction').setAttribute('aria-label', 'Open your community profile');
     $('memberAction').innerHTML = photo ? '<img src="' + escapeHtml(photo) + '" alt="' + escapeHtml(displayName) + '">' : '<span>' + escapeHtml(initials(displayName)) + '</span>';
     $('quickAvatar').innerHTML = photo ? '<img src="' + escapeHtml(photo) + '" alt="">' : escapeHtml(initials(displayName));

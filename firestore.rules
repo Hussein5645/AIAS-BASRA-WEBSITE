@@ -57,17 +57,33 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if true;
-      allow create, update: if isAuthenticated() && request.auth.uid == userId;
+      allow create, update: if isAuthenticated()
+        && request.auth.uid == userId
+        && (!('username' in request.resource.data)
+          || getAfter(/databases/$(database)/documents/usernames/$(request.resource.data.username)).data.userId == userId);
     }
 
-    // Community members may publish plain-text posts or Behance projects.
+    // Public usernames are immutable reservations. The document ID is the
+    // lowercase handle, which makes profile routes unique without exposing email.
+    match /usernames/{username} {
+      allow read: if true;
+      allow create: if isAuthenticated()
+        && username.matches('^[a-z0-9_]{3,24}$')
+        && request.resource.data.userId == request.auth.uid
+        && !exists(/databases/$(database)/documents/usernames/$(username));
+      allow update, delete: if false;
+    }
+
+    // Community members may publish thoughts, open questions, or Behance projects.
     // Community managers can review project selections and moderate activity.
     match /communityPosts/{postId} {
       allow read: if true;
       allow create: if hasPermission('manage_community') || (isAuthenticated()
         && request.resource.data.userId == request.auth.uid
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.profileComplete == true
-        && request.resource.data.type in ['text', 'behance']
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username is string
+        && request.resource.data.type in ['text', 'question', 'behance']
+        && request.resource.data.communitySlug in ['main', 'studio-crit', 'basra-city', 'sustainability', 'tools-tech']
         && request.resource.data.title is string
         && request.resource.data.title.size() > 0
         && request.resource.data.title.size() <= 160
