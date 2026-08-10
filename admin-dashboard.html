@@ -760,6 +760,9 @@
           .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
         if (!posts.length) { box.innerHTML = '<p>No community posts have been submitted.</p>'; return; }
         box.innerHTML = posts.map(post => `<div class="item-card"><div><strong>${communityEscape(post.title)}</strong><br><small>${communityEscape(post.authorName || 'Member')} · ${communityEscape(post.type)} · ${post.featured ? 'Featured' : (post.featureRequest ? `Request: ${communityEscape(post.featureStatus || 'pending')}` : 'Not requested')}</small></div><div class="item-actions"><button class="btn edit-btn" onclick="reviewCommunityPost('${post.id}','approve')">Feature</button><button class="btn delete-btn" onclick="reviewCommunityPost('${post.id}','deny')">Deny request</button>${post.featured ? `<button class="btn" onclick="reviewCommunityPost('${post.id}','remove')">Unfeature</button>` : ''}</div></div>`).join('');
+        box.querySelectorAll('.item-actions').forEach((actions, index) => {
+          const preview = document.createElement('a'); preview.className = 'btn'; preview.href = `community.html?post=${encodeURIComponent(posts[index].id)}`; preview.target = '_blank'; preview.rel = 'noopener'; preview.textContent = 'View post'; actions.prepend(preview);
+        });
       } catch (error) { console.error('[CommunityAdmin] load failed', error); box.innerHTML = '<p style="color:red">Could not load community posts.</p>'; }
     };
     window.reviewCommunityPost = async function(id, action) {

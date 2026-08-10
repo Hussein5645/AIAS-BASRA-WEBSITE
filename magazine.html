@@ -1249,6 +1249,11 @@
         // Import Data Loader and Categories Loader
         import dataLoader from "./js/data-loader.js";
         import categoriesLoader from "./js/categories-loader.js";
+        import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        const communityConfig = { apiKey:'AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ', authDomain:'aias-bsr.firebaseapp.com', projectId:'aias-bsr', storageBucket:'aias-bsr.firebasestorage.app', messagingSenderId:'78055223814', appId:'1:78055223814:web:99460402c2b1fcd5ae8987' };
+        let communityApp; try { communityApp = getApp(); } catch { communityApp = initializeApp(communityConfig); }
+        const communityDb = getFirestore(communityApp);
 
         // Debug toggle: enable via ?debug=true or localStorage.setItem('debug','true')
         const DEBUG =
@@ -2151,6 +2156,12 @@
             return releases;
         }
 
+        async function getFeaturedCommunityArticles() {
+            const snapshot = await getDocs(collection(communityDb, 'communityPosts'));
+            return snapshot.docs.map(item => ({ id:item.id, ...item.data() })).filter(post => post.featured && post.type === 'article' && post.published !== false).map(post => ({ ...post, title:String(post.title || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])), summary:String(post.summary || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])), author:post.authorName || 'Community member', date:post.createdAt?.toDate ? post.createdAt.toDate().toISOString().slice(0,10) : new Date().toISOString().slice(0,10), isCommunityArticle:true }));
+        }
+        document.addEventListener('click', event => { const link = event.target.closest('.article-card[data-community-post] .read-more'); const postId = link?.closest('[data-community-post]')?.dataset.communityPost; if (postId) { event.preventDefault(); location.href = `articles.html?communityPost=${encodeURIComponent(postId)}`; } });
+
         // Function to create article card HTML
         function getLocalizedArticle(article) {
             const language = localStorage.getItem('language') || 'en';
@@ -2176,7 +2187,7 @@
             const icon = icons[index % icons.length];
             
             return `
-                <div class="article-card reveal">
+                <div class="article-card reveal" data-community-post="${article.isCommunityArticle ? article.id : ''}">
                     <div class="article-image" style="${article.imageUrl ? `background-image: url('${article.imageUrl}'); background-size: cover; background-position: center;` : ''}">
                         ${article.imageUrl ? '' : icon}
                         
@@ -2229,6 +2240,7 @@
                     throw new Error(result.error || 'Failed to load magazine');
                 }
                 
+                const featuredCommunityArticles = await getFeaturedCommunityArticles().catch(() => []);
                 const magazineData = result.magazine;
                 const articlesCount = magazineData?.articles?.length || 0;
                 const hasFeatured = !!magazineData?.featuredArticle;
@@ -2301,8 +2313,8 @@
                     }
                     
                     // Process all articles
-                    if (magazineData.articles && magazineData.articles.length > 0) {
-                        const allArticlesList = [...magazineData.articles];
+                    if ((magazineData.articles?.length || 0) + featuredCommunityArticles.length > 0) {
+                        const allArticlesList = [...featuredCommunityArticles, ...(magazineData.articles || [])].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
                         
                         // Latest Articles (first 3)
                         if (latestArticles) {
@@ -2340,7 +2352,7 @@
                         
                         // Community Articles (articles 6-9 or with Community category)
                         if (communityArticles) {
-                            const community = allArticlesList.slice(6, 9);
+                            const community = featuredCommunityArticles.length ? featuredCommunityArticles.slice(0, 3) : allArticlesList.slice(6, 9);
                             if (community.length > 0) {
                                 const cards = await Promise.all(community.map((article, index) => 
                                     createArticleCard(article, index, 'Community')

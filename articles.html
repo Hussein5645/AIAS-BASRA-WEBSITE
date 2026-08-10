@@ -133,7 +133,9 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const id = new URLSearchParams(window.location.search).get('id');
+    const articleParams = new URLSearchParams(window.location.search);
+    const id = articleParams.get('id');
+    const communityPostId = articleParams.get('communityPost');
     const title = document.getElementById('articleTitle');
     const meta = document.getElementById('articleMeta');
     const languagePicker = document.querySelector('.article-language-picker');
@@ -163,8 +165,8 @@
       }[character]));
     }
 
-    function votesRef() { return collection(db, 'content', 'magazine', 'articles', id, 'votes'); }
-    function commentsRef() { return collection(db, 'content', 'magazine', 'articles', id, 'comments'); }
+    function votesRef() { return communityPostId ? collection(db, 'communityPosts', communityPostId, 'votes') : collection(db, 'content', 'magazine', 'articles', id, 'votes'); }
+    function commentsRef() { return communityPostId ? collection(db, 'communityPosts', communityPostId, 'comments') : collection(db, 'content', 'magazine', 'articles', id, 'comments'); }
 
     async function loadCommunity() {
       const votes = (await getDocs(votesRef())).docs.map(item => item.data());
@@ -271,6 +273,17 @@
     });
 
     function renderArticle(article) {
+      if (communityPostId) {
+        languagePicker.hidden = true;
+        title.textContent = article.title || 'Community article';
+        meta.textContent = [article.author || article.authorName || 'Community member', article.date || ''].filter(Boolean).join(' · ');
+        body.innerHTML = article.content || `<p>${escapeHtml(article.summary)}</p>`;
+        status.hidden = true;
+        body.hidden = false;
+        community.hidden = false;
+        document.title = `${article.title || 'Community article'} - AIAS Basra`;
+        return;
+      }
       const preferredLanguage = localStorage.getItem('language') || 'en';
       const translations = article.translations || {};
       const availableLanguages = Object.keys(translations);
@@ -299,9 +312,15 @@
 
     async function loadArticle() {
       try {
-        if (!id) throw new Error('Article ID is missing.');
-        const result = await new FirestoreAPI().getAllContent();
-        loadedArticle = result.success ? (result.content.magazine?.articles || []).find(item => item.id === id) : null;
+        if (!id && !communityPostId) throw new Error('Article ID is missing.');
+        if (communityPostId) {
+          const postSnap = await getDoc(doc(db, 'communityPosts', communityPostId));
+          loadedArticle = postSnap.exists() ? { id:postSnap.id, ...postSnap.data(), author:postSnap.data().authorName || 'Community member', date:postSnap.data().createdAt?.toDate ? postSnap.data().createdAt.toDate().toLocaleDateString() : 'Community' } : null;
+          if (loadedArticle?.type !== 'article') loadedArticle = null;
+        } else {
+          const result = await new FirestoreAPI().getAllContent();
+          loadedArticle = result.success ? (result.content.magazine?.articles || []).find(item => item.id === id) : null;
+        }
         if (!loadedArticle) throw new Error('Article not found.');
         renderArticle(loadedArticle);
         await loadCommunity();

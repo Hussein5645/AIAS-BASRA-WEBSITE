@@ -237,7 +237,7 @@
                         <span></span>
                     </button>
                     <ul class="nav-links" id="navLinks">
-                        <li class="nav-item"><a href="community.html" class="shell-link-community" data-en="Community" data-ar="Community">Community</a></li>
+                        <li class="nav-item"><a href="#" data-mega-menu="communityMegaMenu" class="shell-link-community" data-en="Community" data-ar="Community">Community</a><div class="mega-menu" id="communityMegaMenu"><div class="mega-menu-content"><div class="mega-menu-section"><h3>Community</h3><a href="magazine.html#communityArticles" class="mega-menu-link"><div class="mega-menu-icon">Articles</div><div class="mega-menu-link-content"><div class="mega-menu-link-title">Featured Articles</div><div class="mega-menu-link-desc">Approved community articles</div></div></a><a href="community-projects.html" class="mega-menu-link"><div class="mega-menu-icon">Projects</div><div class="mega-menu-link-content"><div class="mega-menu-link-title">Featured Projects</div><div class="mega-menu-link-desc">Selected Behance work</div></div></a><a href="community.html" class="mega-menu-link"><div class="mega-menu-icon">Open</div><div class="mega-menu-link-content"><div class="mega-menu-link-title">Open Community</div><div class="mega-menu-link-desc">Share work and discuss</div></div></a></div></div></div></li>
                         <li class="nav-item"><a href="index.html" class="shell-link-home" data-en="Home" data-ar="الرئيسية">Home</a></li>
 
                         <li class="nav-item">
