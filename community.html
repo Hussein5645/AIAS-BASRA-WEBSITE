@@ -29,7 +29,14 @@
     .notice { padding:1rem; border-radius:10px; background:#fff8db; color:#765b00; margin-bottom:1rem; }
     .card { background:#fff; border:0; border-radius:18px; padding:1.25rem; box-shadow:0 8px 24px rgba(15,23,42,.07); }
     .post-list { display:grid; gap:1.15rem; }
-    .profile-post-grid { grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); align-items:start; }
+    .profile-post-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; align-items:start; }
+    .profile-post-tile { position:relative; display:block; aspect-ratio:1; overflow:hidden; background:linear-gradient(145deg,#f5eeee,#e7d9d0); color:#fff; text-decoration:none; }
+    .profile-post-tile iframe { width:100%; height:100%; border:0; pointer-events:none; background:#f8fafc; }
+    .profile-post-copy { height:100%; display:flex; flex-direction:column; justify-content:center; gap:.55rem; padding:clamp(.65rem,2.5vw,1.25rem); color:#3f2426; }
+    .profile-post-copy strong { font-size:clamp(.8rem,2vw,1.15rem); line-height:1.25; }
+    .profile-post-copy span { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:4; font-size:clamp(.66rem,1.4vw,.86rem); line-height:1.45; color:#6b4d4f; }
+    .profile-post-overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:1.1rem; padding:.75rem; opacity:0; color:#fff; background:rgba(26,20,21,.66); font-weight:800; transition:opacity .18s ease; }
+    .profile-post-tile:hover .profile-post-overlay,.profile-post-tile:focus-visible .profile-post-overlay { opacity:1; }
     .post-head { display:flex; justify-content:space-between; align-items:center; gap:1rem; }
     .author-link { color:var(--primary-color); text-decoration:none; font-weight:800; }
     .post-head .author-link { display:inline-flex; align-items:center; gap:.5rem; }
@@ -49,7 +56,7 @@
     .post-filters { position:sticky; top:73px; z-index:10; display:flex; flex-wrap:wrap; gap:.55rem; margin:0 0 1rem; padding:.55rem 0; background:rgba(247,247,246,.94); backdrop-filter:blur(10px); }
     .post-filters button { min-height:40px; border:1px solid #d8c4c4; background:#fff; color:var(--primary-color); border-radius:999px; padding:.45rem .7rem; cursor:pointer; font:inherit; font-weight:700; font-size:.85rem; }
     .post-filters button.active { background:var(--gradient-1); color:#fff; border-color:transparent; }
-    .comments { background:#fafafa; border-radius:12px; margin-top:1rem; padding:1rem; }
+    .comments { background:#fafafa; border-radius:12px; padding:1rem; }
     .comment { padding:.7rem 0; border-bottom:1px solid #e9edf2; color:#475569; }
     .comment strong { color:#334155; }
     .comment-children { margin:.75rem 0 0 1rem; padding-left:.8rem; border-left:2px solid #e2e8f0; }
@@ -75,23 +82,41 @@
     .status { min-height:1.25rem; margin-top:.75rem; color:#b91c1c; }
     .project-request { margin-top:1rem; padding-top:.8rem; border-top:1px dashed #cbd5e1; color:#765b00; font-size:.9rem; }
     .selected-project { color:#a16207; font-weight:800; }
+    body.comments-open { overflow:hidden; }
+    .comments-overlay { position:fixed; inset:0; z-index:100; display:grid; grid-template-columns:minmax(0,1fr) min(560px,100%); }
+    .comments-backdrop { position:absolute; inset:0; width:100%; border:0; background:rgba(15,23,42,.52); cursor:pointer; }
+    .comments-sheet { position:relative; grid-column:2; height:100%; overflow:hidden; display:flex; flex-direction:column; background:#fff; box-shadow:-18px 0 45px rgba(15,23,42,.2); }
+    .comments-sheet-head { min-height:72px; display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem 1.15rem; border-bottom:1px solid #e5e7eb; }
+    .comments-sheet-head h2 { margin:0; color:#243142; font-size:1.1rem; }
+    .comments-close { width:40px; height:40px; border:0; border-radius:50%; background:#f1f5f9; color:#334155; font-size:1.35rem; cursor:pointer; }
+    .comments-sheet-body { overflow-y:auto; padding:0 1.15rem 1.5rem; }
+    .comments-sheet .comments { background:#fff; padding:0; }
+    .comments-sheet .comment-form { position:sticky; bottom:0; z-index:2; margin:0 -1.15rem; padding:1rem 1.15rem max(1rem,env(safe-area-inset-bottom)); background:#fff; border-top:1px solid #e5e7eb; }
     @media (max-width:700px) {
       body { background:#f1f3f6; padding-bottom:84px; }
-      .community-header { position:static; }
+      .community-header { position:sticky; top:0; }
       .community-header .container { min-height:58px; padding:.65rem .9rem; }
       .community-brand { font-size:.9rem; }.community-brand::before { width:24px; height:24px; }
       .community-actions { display:none; }.back-site { font-size:.75rem; }
       .community-nav { position:fixed; z-index:30; bottom:0; left:0; right:0; height:72px; padding:.3rem .5rem max(.3rem,env(safe-area-inset-bottom)); justify-content:space-around; background:#fff; border-top:1px solid #e5e7eb; box-shadow:0 -4px 14px rgba(15,23,42,.08); }
       .community-nav button { min-height:56px; flex:1; display:flex; flex-direction:column; justify-content:center; gap:.15rem; font-size:.72rem; }
       .community-nav button::before { font-size:1.15rem; line-height:1; }.community-nav button[data-view="home"]::before { content:'⌂'; }.community-nav button[data-view="post"]::before { content:'＋'; }.community-nav button[data-view="profile"]::before { content:'●'; }
-      .community-hero { padding:1.65rem 1rem 1.5rem; }.community-hero .container { padding:0; }.community-hero h1 { font-size:1.7rem; }.community-hero p { font-size:.9rem; }
+      .community-hero { display:none; }
       .page,.view { padding:0; }.post-filters { top:0; overflow-x:auto; flex-wrap:nowrap; padding:.65rem .85rem; gap:.45rem; scrollbar-width:none; }.post-filters button { flex:0 0 auto; font-size:.78rem; }
-      .post-list { gap:.65rem; }.post-list > .card { border-radius:0; padding:1rem .9rem; box-shadow:0 1px 3px rgba(15,23,42,.05); }
+      .post-list { gap:.65rem; }.post-list > .card { border-radius:0; padding:1rem .9rem; box-shadow:0 1px 3px rgba(15,23,42,.05); border-bottom:1px solid #e5e7eb; }
       .post-head .author-link::before { width:38px; height:38px; }.post-title { font-size:1.08rem; }.post-body { font-size:.93rem; line-height:1.68; }
       .project-frame { min-height:280px; margin:1rem -.9rem 0; width:calc(100% + 1.8rem); border-radius:0; }
       .post-actions { gap:.35rem; }.vote,.link-button { flex:1; justify-content:center; text-align:center; font-size:.82rem; }
-      .comments { margin:1rem -.15rem 0; padding:.85rem; }.comment-children { margin-left:.55rem; padding-left:.55rem; }.comment-form,.reply-form { flex-direction:column; }
-      .profile-post-grid,.form-grid { grid-template-columns:1fr; }.profile-card { grid-template-columns:70px 1fr; border-radius:0; padding:1rem; }.avatar { width:70px; height:70px; }
+      .comment-children { margin-left:.55rem; padding-left:.55rem; }.reply-form { flex-direction:column; }
+      .form-grid { grid-template-columns:1fr; }.profile-card { grid-template-columns:70px 1fr; border-radius:0; padding:1rem; }.avatar { width:70px; height:70px; }
+      .profile-post-grid { gap:2px; }
+      .profile-post-copy { padding:.55rem; }.profile-post-copy span { -webkit-line-clamp:3; }
+      .profile-post-overlay { opacity:1; inset:auto 0 0; justify-content:flex-end; min-height:35%; padding:.5rem; background:linear-gradient(transparent,rgba(15,23,42,.76)); font-size:.72rem; }
+      .comments-overlay { display:block; padding-top:8vh; }
+      .comments-sheet { width:100%; height:92vh; border-radius:18px 18px 0 0; box-shadow:0 -16px 45px rgba(15,23,42,.22); }
+      .comments-sheet-head { min-height:58px; padding:.7rem .9rem; }
+      .comments-sheet-body { padding:0 .9rem 1rem; }
+      .comments-sheet .comment-form { margin:0 -.9rem; padding:.75rem .9rem max(.75rem,env(safe-area-inset-bottom)); }
     }
   </style>
 </head>
@@ -103,7 +128,7 @@
       <button data-view="post">New post</button>
       <button data-view="profile">Profile</button>
     </nav>
-    <div class="community-actions" aria-label="Community links"><a href="magazine.html">Magazine</a><a href="community-projects.html">Selected projects</a></div>
+    <div class="community-actions" aria-label="Community links"><a href="community-projects.html">Selected projects</a></div>
     <a class="back-site" href="index.html">← Main website</a>
   </div></header>
   <section class="community-hero"><div class="container"><h1>Share ideas. Show your work.</h1><p>Post a short update, join a discussion, or submit a Behance project for consideration on the main website.</p></div></section>
@@ -132,6 +157,13 @@
       </div>
     </section>
   </main>
+  <div id="commentsOverlay" class="comments-overlay" hidden>
+    <button class="comments-backdrop" type="button" data-close-comments aria-label="Close comments"></button>
+    <section class="comments-sheet" role="dialog" aria-modal="true" aria-labelledby="commentsSheetTitle">
+      <header class="comments-sheet-head"><h2 id="commentsSheetTitle">Comments</h2><button class="comments-close" type="button" data-close-comments aria-label="Close comments">&times;</button></header>
+      <div id="commentsSheetBody" class="comments-sheet-body"></div>
+    </section>
+  </div>
   <script type="module">
     import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
@@ -144,7 +176,7 @@
     const activeProfileId = params.get('user') || null;
     const selectedPostId = params.get('post') || null;
     const requestedView = params.get('view');
-    let currentUser = null, currentProfile = null, communitySort = 'latest', communityType = 'both';
+    let currentUser = null, currentProfile = null, communitySort = 'latest', communityType = 'both', activeCommentsPostId = null;
     const $ = id => document.getElementById(id);
     const escapeHtml = value => String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
     const isProject = post => post.type === 'behance';
@@ -185,40 +217,93 @@
       return `<article class="comment"><strong>${escapeHtml(comment.userName || 'Member')}</strong> <span class="post-meta">${comment.createdAt?.toDate ? comment.createdAt.toDate().toLocaleString() : 'Just now'}</span><div>${escapeHtml(comment.text)}</div><div class="comment-actions">${currentUser ? `<button class="comment-action" data-reply="${comment.id}" data-name="${escapeHtml(comment.userName || 'Member')}">Reply</button>` : ''}${children.length ? `<button class="comment-action" data-thread="${comment.id}">Show ${children.length} ${children.length === 1 ? 'reply' : 'replies'}</button>` : ''}${currentUser?.uid === comment.userId ? `<button class="comment-action" data-delete-comment="${comment.id}">Delete</button>` : ''}</div><div class="reply-slot"></div>${children.length ? `<div class="comment-children" data-children="${comment.id}" hidden>${children.map(child => renderThread(child, byParent)).join('')}</div>` : ''}</article>`;
     }
 
-    async function renderPost(post, compact = false) {
+    async function renderPost(post) {
       const vote = await getVotes(post.id);
       post.voteScore = vote.score;
       const date = post.createdAt?.toDate ? post.createdAt.toDate().toLocaleDateString() : 'Just now';
-      const comments = compact ? [] : (await getDocs(collection(db, 'communityPosts', post.id, 'comments'))).docs.map(item => ({id:item.id, ...item.data()}));
-      const byParent = new Map();
-      comments.forEach(comment => { const parent = comments.some(item => item.id === comment.parentId) ? comment.parentId : null; if (!byParent.has(parent)) byParent.set(parent, []); byParent.get(parent).push(comment); });
-      byParent.forEach(items => items.sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)));
+      const commentsCount = (await getDocs(collection(db, 'communityPosts', post.id, 'comments'))).size;
       const title = isProject(post) ? `<a href="project.html?communityPost=${encodeURIComponent(post.id)}">${escapeHtml(post.title)}</a>` : escapeHtml(post.title);
       const text = isProject(post) ? escapeHtml(post.summary) : escapeHtml(plainPostText(post));
       const projectFrame = isProject(post) && post.behanceSrc ? `<iframe class="project-frame" title="${escapeHtml(post.title)}" src="${escapeHtml(post.behanceSrc)}" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>` : '';
       const selection = isProject(post) && post.featured ? ' · <span class="selected-project">Selected project</span>' : '';
       const request = currentUser?.uid === post.userId && isProject(post) && !post.featured && post.featureRequest ? `<div class="project-request">Project selection request: ${escapeHtml(post.featureStatus || 'pending')}.</div>` : '';
-      const discussion = compact ? `<a class="link-button" href="${isProject(post) ? `project.html?communityPost=${encodeURIComponent(post.id)}#projectCommunity` : `community.html?post=${encodeURIComponent(post.id)}`}">Open post</a>` : `<button class="link-button" type="button" data-toggle-comments="${post.id}">Comments (${comments.length})</button>`;
-      return `<article class="card"><div class="post-head"><div><a class="author-link" href="community.html?user=${encodeURIComponent(post.userId)}">${escapeHtml(post.authorName || 'Member')}</a><div class="post-meta">${date}${selection}</div></div><span class="post-meta">${postLabel(post)}</span></div><h2 class="post-title">${title}</h2><div class="post-body">${text}</div>${projectFrame}<div class="post-actions"><button class="vote up ${vote.mine === 1 ? 'active' : ''}" data-vote="1" data-id="${post.id}">▲ ${vote.score}</button><button class="vote down ${vote.mine === -1 ? 'active' : ''}" data-vote="-1" data-id="${post.id}">▼</button>${discussion}</div>${compact ? '' : `<div class="comments" id="comments-${post.id}" hidden>${(byParent.get(null) || []).length ? (byParent.get(null) || []).map(comment => renderThread(comment, byParent)).join('') : '<p class="post-meta">No comments yet.</p>'}${currentUser ? `<form class="comment-form" data-comment="${post.id}"><input required maxlength="2000" placeholder="Join the discussion"><button class="submit">Comment</button></form>` : '<p class="post-meta">Sign in to vote and comment.</p>'}</div>`}${request}</article>`;
+      return `<article class="card feed-card"><div class="post-head"><div><a class="author-link" href="community.html?user=${encodeURIComponent(post.userId)}">${escapeHtml(post.authorName || 'Member')}</a><div class="post-meta">${date}${selection}</div></div><span class="post-meta">${postLabel(post)}</span></div><h2 class="post-title">${title}</h2><div class="post-body">${text}</div>${projectFrame}<div class="post-actions"><button class="vote up ${vote.mine === 1 ? 'active' : ''}" data-vote="1" data-id="${post.id}">▲ ${vote.score}</button><button class="vote down ${vote.mine === -1 ? 'active' : ''}" data-vote="-1" data-id="${post.id}">▼</button><button class="link-button" type="button" data-open-comments="${post.id}">Comments (${commentsCount})</button></div>${request}</article>`;
     }
 
     function bindPostActions(target) {
       target.querySelectorAll('[data-vote]').forEach(button => button.addEventListener('click', async () => {
         if (!currentUser) { location.href = 'login.html'; return; }
         await setDoc(doc(db, 'communityPosts', button.dataset.id, 'votes', currentUser.uid), {userId:currentUser.uid, value:Number(button.dataset.vote), updatedAt:serverTimestamp()});
-        loadPosts(target, target === $('profilePosts') ? (activeProfileId || currentUser?.uid) : null);
+        loadPosts(target);
       }));
-      target.querySelectorAll('[data-toggle-comments]').forEach(button => button.addEventListener('click', () => { const box = $(`comments-${button.dataset.toggleComments}`); box.hidden = !box.hidden; }));
-      target.querySelectorAll('[data-thread]').forEach(button => button.addEventListener('click', () => { const box = target.querySelector(`[data-children="${button.dataset.thread}"]`); if (!box) return; box.hidden = !box.hidden; button.textContent = box.hidden ? `Show ${box.children.length} replies` : 'Hide replies'; }));
+      target.querySelectorAll('[data-open-comments]').forEach(button => button.addEventListener('click', () => openComments(button.dataset.openComments)));
+    }
+
+    async function openComments(postId) {
+      activeCommentsPostId = postId;
+      $('commentsOverlay').hidden = false;
+      document.body.classList.add('comments-open');
+      $('commentsSheetBody').innerHTML = '<p class="empty">Loading comments…</p>';
+      try {
+        const [postSnapshot, commentsSnapshot] = await Promise.all([getDoc(doc(db, 'communityPosts', postId)), getDocs(collection(db, 'communityPosts', postId, 'comments'))]);
+        if (!postSnapshot.exists()) throw new Error('Post not found');
+        const post = postSnapshot.data();
+        const comments = commentsSnapshot.docs.map(item => ({id:item.id, ...item.data()}));
+        const knownIds = new Set(comments.map(comment => comment.id));
+        const byParent = new Map();
+        comments.forEach(comment => { const parent = knownIds.has(comment.parentId) ? comment.parentId : null; if (!byParent.has(parent)) byParent.set(parent, []); byParent.get(parent).push(comment); });
+        byParent.forEach(items => items.sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)));
+        $('commentsSheetTitle').textContent = post.title ? `Comments · ${post.title}` : 'Comments';
+        document.querySelectorAll(`[data-open-comments="${postId}"]`).forEach(button => { button.textContent = `Comments (${comments.length})`; });
+        const roots = byParent.get(null) || [];
+        $('commentsSheetBody').innerHTML = `<div class="comments">${roots.length ? roots.map(comment => renderThread(comment, byParent)).join('') : '<p class="empty">No comments yet. Start the conversation.</p>'}${currentUser ? `<form class="comment-form" data-comment="${postId}"><input required maxlength="2000" placeholder="Add a comment"><button class="submit">Post</button></form>` : '<p class="notice">Sign in to join the discussion.</p>'}</div>`;
+        bindCommentActions(postId);
+      } catch (error) {
+        console.error(error);
+        $('commentsSheetBody').innerHTML = '<p class="notice">Comments are unavailable right now.</p>';
+      }
+    }
+
+    function bindCommentActions(postId) {
+      const target = $('commentsSheetBody');
+      target.querySelectorAll('[data-thread]').forEach(button => button.addEventListener('click', () => {
+        const box = target.querySelector(`[data-children="${button.dataset.thread}"]`);
+        if (!box) return;
+        box.hidden = !box.hidden;
+        button.textContent = box.hidden ? `Show ${box.children.length} ${box.children.length === 1 ? 'reply' : 'replies'}` : 'Hide replies';
+      }));
       target.querySelectorAll('[data-reply]').forEach(button => button.addEventListener('click', () => {
         target.querySelectorAll('.reply-slot').forEach(slot => { slot.innerHTML = ''; });
         const slot = button.closest('.comment').querySelector('.reply-slot');
         slot.innerHTML = `<form class="reply-form"><textarea maxlength="2000" required placeholder="Reply to ${escapeHtml(button.dataset.name)}"></textarea><button class="submit">Reply</button></form>`;
-        slot.querySelector('form').addEventListener('submit', async event => { event.preventDefault(); const text = slot.querySelector('textarea').value.trim(); if (!text || !currentUser) return; const postId = event.target.closest('.comments').id.replace('comments-', ''); await addDoc(collection(db, 'communityPosts', postId, 'comments'), {userId:currentUser.uid, userName:currentProfile?.displayName || currentUser.displayName || 'Member', text, parentId:button.dataset.reply, createdAt:serverTimestamp()}); loadPosts(target); });
+        slot.querySelector('form').addEventListener('submit', async event => {
+          event.preventDefault();
+          const text = slot.querySelector('textarea').value.trim();
+          if (!text || !currentUser) return;
+          await addDoc(collection(db, 'communityPosts', postId, 'comments'), {userId:currentUser.uid, userName:currentProfile?.displayName || currentUser.displayName || 'Member', text, parentId:button.dataset.reply, createdAt:serverTimestamp()});
+          await openComments(postId);
+        });
       }));
-      target.querySelectorAll('[data-delete-comment]').forEach(button => button.addEventListener('click', async () => { const postId = button.closest('.comments').id.replace('comments-', ''); await deleteDoc(doc(db, 'communityPosts', postId, 'comments', button.dataset.deleteComment)); loadPosts(target); }));
-      target.querySelectorAll('[data-comment]').forEach(form => form.addEventListener('submit', async event => { event.preventDefault(); const input = form.querySelector('input'); if (!input.value.trim() || !currentUser) return; await addDoc(collection(db, 'communityPosts', form.dataset.comment, 'comments'), {userId:currentUser.uid, userName:currentProfile?.displayName || currentUser.displayName || 'Member', text:input.value.trim(), parentId:null, createdAt:serverTimestamp()}); loadPosts(target); }));
+      target.querySelectorAll('[data-delete-comment]').forEach(button => button.addEventListener('click', async () => {
+        await deleteDoc(doc(db, 'communityPosts', postId, 'comments', button.dataset.deleteComment));
+        await openComments(postId);
+      }));
+      target.querySelectorAll('[data-comment]').forEach(form => form.addEventListener('submit', async event => {
+        event.preventDefault();
+        const input = form.querySelector('input');
+        if (!input.value.trim() || !currentUser) return;
+        await addDoc(collection(db, 'communityPosts', postId, 'comments'), {userId:currentUser.uid, userName:currentProfile?.displayName || currentUser.displayName || 'Member', text:input.value.trim(), parentId:null, createdAt:serverTimestamp()});
+        await openComments(postId);
+      }));
     }
+
+    function closeComments() {
+      activeCommentsPostId = null;
+      $('commentsOverlay').hidden = true;
+      document.body.classList.remove('comments-open');
+    }
+    document.querySelectorAll('[data-close-comments]').forEach(button => button.addEventListener('click', closeComments));
+    document.addEventListener('keydown', event => { if (event.key === 'Escape' && activeCommentsPostId) closeComments(); });
 
     async function loadPosts(target = $('posts'), filterId = null) {
       try {
@@ -228,9 +313,23 @@
         if (!filterId && !selectedPostId) posts = posts.filter(post => communityType === 'both' || (communityType === 'behance' ? isProject(post) : !isProject(post)));
         await Promise.all(posts.map(async post => { post.voteScore = (await getVotes(post.id)).score; }));
         posts.sort((a,b) => communitySort === 'upvoted' ? b.voteScore - a.voteScore : (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-        target.innerHTML = posts.length ? (await Promise.all(posts.map(post => renderPost(post, Boolean(filterId))))).join('') : `<p class="empty">${selectedPostId ? 'This community post is unavailable.' : 'No matching community posts yet.'}</p>`;
+        target.innerHTML = posts.length ? (await Promise.all(posts.map(post => renderPost(post)))).join('') : `<p class="empty">${selectedPostId ? 'This community post is unavailable.' : 'No matching community posts yet.'}</p>`;
         bindPostActions(target);
+        if (!filterId && selectedPostId && posts.some(post => post.id === selectedPostId) && activeCommentsPostId !== selectedPostId) openComments(selectedPostId);
       } catch (error) { console.error(error); target.innerHTML = '<p class="notice">Community posts are unavailable right now.</p>'; }
+    }
+
+    async function loadProfilePosts(uid) {
+      const target = $('profilePosts');
+      try {
+        const posts = (await getDocs(collection(db, 'communityPosts'))).docs.map(item => ({id:item.id, ...item.data()})).filter(post => post.published !== false && post.userId === uid).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        target.innerHTML = posts.length ? (await Promise.all(posts.map(async post => {
+          const [vote, comments] = await Promise.all([getVotes(post.id), getDocs(collection(db, 'communityPosts', post.id, 'comments'))]);
+          const href = isProject(post) ? `project.html?communityPost=${encodeURIComponent(post.id)}` : `community.html?post=${encodeURIComponent(post.id)}`;
+          const visual = isProject(post) && post.behanceSrc ? `<iframe title="${escapeHtml(post.title)}" src="${escapeHtml(post.behanceSrc)}" loading="lazy" tabindex="-1"></iframe>` : `<div class="profile-post-copy"><strong>${escapeHtml(post.title)}</strong><span>${escapeHtml(plainPostText(post))}</span></div>`;
+          return `<a class="profile-post-tile" href="${href}" aria-label="Open ${escapeHtml(post.title)}">${visual}<span class="profile-post-overlay"><span>▲ ${vote.score}</span><span>○ ${comments.size}</span></span></a>`;
+        }))).join('') : '<p class="empty">No posts yet.</p>';
+      } catch (error) { console.error(error); target.innerHTML = '<p class="notice">Profile posts are unavailable right now.</p>'; }
     }
 
     function setupFilters() {
@@ -282,7 +381,7 @@
         $('profileForm').addEventListener('submit', async event => { event.preventDefault(); await setDoc(doc(db, 'users', uid), {displayName:$('profileName').value.trim(), school:$('profileSchool').value.trim(), city:$('profileCity').value.trim(), interests:$('profileInterests').value.trim(), bio:$('profileBio').value.trim(), profileComplete:true, updatedAt:serverTimestamp()}, {merge:true}); currentProfile = (await getDoc(doc(db, 'users', uid))).data(); loadProfile(); });
       }
       $('profilePosts').classList.add('profile-post-grid');
-      loadPosts($('profilePosts'), uid);
+      loadProfilePosts(uid);
     }
 
     setupFilters();

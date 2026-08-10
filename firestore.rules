@@ -106,7 +106,8 @@ service cloud.firestore {
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.text is string
         && request.resource.data.text.size() > 0
-        && request.resource.data.text.size() <= 2000;
+        && request.resource.data.text.size() <= 2000
+        && (request.resource.data.parentId == null || request.resource.data.parentId is string);
       allow delete: if hasPermission('manage_community') || (isAuthenticated() && resource.data.userId == request.auth.uid);
     }
 

@@ -35,16 +35,17 @@
     .vote.active[data-value="-1"] { background:#fee2e2; border-color:#fca5a5; color:#991b1b; }
     .comments { display:grid; gap:.75rem; margin-top:1.2rem; }
     .comment { padding:1rem; border-radius:12px; background:#f8f6f3; color:#4b5563; }
-    .comment strong { color:#263244; }.comment small { margin-left:.45rem; color:#7b8491; }
-    .comment-form { display:flex; gap:.65rem; margin-top:1rem; }
-    .comment-form input { flex:1; min-width:0; padding:.75rem .85rem; border:1px solid #d8d1ca; border-radius:10px; font:inherit; }
-    .comment-form button { border:0; border-radius:10px; padding:.75rem 1rem; background:#6b2228; color:#fff; font:inherit; font-weight:800; cursor:pointer; }
+    .comment strong { color:#263244; }.comment small { margin-left:.45rem; color:#7b8491; }.comment-text { margin-top:.45rem; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .project-comment-actions { display:flex; flex-wrap:wrap; gap:.75rem; margin-top:.65rem; }.project-comment-action { border:0; background:none; padding:0; color:#6b2228; font:inherit; font-size:.75rem; font-weight:800; cursor:pointer; }
+    .project-comment-children { display:grid; gap:.65rem; margin:.8rem 0 0 1.15rem; padding-left:.85rem; border-left:2px solid #dbcfc8; }.project-comment-children .comment { background:#fff; border:1px solid #e9e2dc; }
+    .project-reply-slot { margin-top:.65rem; }.comment-form,.project-reply-form { display:flex; gap:.65rem; margin-top:1rem; }.comment-form input,.project-reply-form textarea { flex:1; min-width:0; padding:.75rem .85rem; border:1px solid #d8d1ca; border-radius:10px; font:inherit; }.project-reply-form textarea { min-height:72px; resize:vertical; }
+    .comment-form button,.project-reply-form button { border:0; border-radius:10px; padding:.75rem 1rem; background:#6b2228; color:#fff; font:inherit; font-weight:800; cursor:pointer; }
     .empty,.error { padding:4rem 1rem; text-align:center; color:#687386; }.error h1 { color:#6b2228; }
     @media (max-width:760px) {
       .project-hero { min-height:350px; padding:7.2rem .9rem 3.4rem; }.project-hero h1 { font-size:clamp(2.2rem,13vw,3.9rem); }
       .project-shell { margin:-1.2rem auto 0; padding:0 .7rem 3rem; }.project-summary { grid-template-columns:1fr; padding:1.25rem; gap:1.25rem; border-radius:16px; }
       .project-side { padding:1rem 0 0; border-left:0; border-top:1px solid #e7e2dc; }.project-stage { padding:.45rem; border-radius:16px; }.project-stage iframe { min-height:560px; border-radius:12px; }
-      .project-community { padding:1.2rem; border-radius:16px; }.project-community-head { align-items:flex-start; flex-direction:column; }.comment-form { flex-direction:column; }
+      .project-community { padding:1.2rem; border-radius:16px; }.project-community-head { align-items:flex-start; flex-direction:column; }.comment-form,.project-reply-form { flex-direction:column; }.project-comment-children { margin-left:.45rem; padding-left:.55rem; }
     }
   </style>
   <script type="module" src="js/auth.js"></script>
@@ -56,7 +57,7 @@
   <script type="module">
     import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-    import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
     const config = {apiKey:'AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ',authDomain:'aias-bsr.firebaseapp.com',projectId:'aias-bsr',storageBucket:'aias-bsr.firebasestorage.app',messagingSenderId:'78055223814',appId:'1:78055223814:web:99460402c2b1fcd5ae8987'};
     let app; try { app = getApp(); } catch { app = initializeApp(config); }
@@ -71,13 +72,31 @@
       return {score:snapshot.docs.reduce((total, item) => total + (Number(item.data().value) || 0), 0), mine:snapshot.docs.find(item => item.id === currentUser?.uid)?.data().value || 0};
     }
 
+    function renderProjectComment(comment, byParent) {
+      const children = byParent.get(comment.id) || [];
+      return `<article class="comment"><div><strong>${escapeHtml(comment.userName || 'Member')}</strong><small>${comment.createdAt?.toDate ? comment.createdAt.toDate().toLocaleString() : 'Just now'}</small></div><div class="comment-text">${escapeHtml(comment.text)}</div><div class="project-comment-actions">${currentUser ? `<button class="project-comment-action" type="button" data-project-reply="${comment.id}" data-project-name="${escapeHtml(comment.userName || 'Member')}">Reply</button>` : ''}${children.length ? `<button class="project-comment-action" type="button" data-project-thread="${comment.id}" aria-expanded="false">View ${children.length} ${children.length === 1 ? 'reply' : 'replies'}</button>` : ''}${currentUser?.uid === comment.userId ? `<button class="project-comment-action" type="button" data-project-delete="${comment.id}">Delete</button>` : ''}</div><div class="project-reply-slot"></div>${children.length ? `<div class="project-comment-children" data-project-children="${comment.id}" hidden>${children.map(child => renderProjectComment(child, byParent)).join('')}</div>` : ''}</article>`;
+    }
+
+    async function postProjectComment(text, parentId = null) {
+      if (!currentUser || !text.trim()) return;
+      await addDoc(collection(db, 'communityPosts', projectId, 'comments'), {userId:currentUser.uid, userName:profile?.displayName || currentUser.displayName || 'Member', text:text.trim(), parentId, createdAt:serverTimestamp()});
+      await renderCommunity();
+    }
+
     async function renderCommunity() {
       const [vote, commentsSnapshot] = await Promise.all([voteState(), getDocs(collection(db, 'communityPosts', projectId, 'comments'))]);
       const comments = commentsSnapshot.docs.map(item => ({id:item.id, ...item.data()})).sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+      const byParent = new Map();
+      comments.forEach(comment => { const parent = comments.some(item => item.id === comment.parentId) ? comment.parentId : null; if (!byParent.has(parent)) byParent.set(parent, []); byParent.get(parent).push(comment); });
+      byParent.forEach(items => items.sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)));
+      const roots = byParent.get(null) || [];
       const box = document.getElementById('projectCommunity');
-      box.innerHTML = `<div class="project-community-head"><div><h2>Project discussion</h2><p style="margin:.35rem 0 0;color:#687386">${comments.length} ${comments.length === 1 ? 'comment' : 'comments'}</p></div><div class="vote-group"><button class="vote ${vote.mine === 1 ? 'active' : ''}" data-value="1">▲ ${vote.score}</button><button class="vote ${vote.mine === -1 ? 'active' : ''}" data-value="-1">▼</button></div></div><div class="comments">${comments.length ? comments.map(comment => `<article class="comment"><strong>${escapeHtml(comment.userName || 'Member')}</strong><small>${comment.createdAt?.toDate ? comment.createdAt.toDate().toLocaleString() : 'Just now'}</small><div style="margin-top:.45rem">${escapeHtml(comment.text)}</div></article>`).join('') : '<p style="color:#687386">No comments yet. Start the conversation.</p>'}</div>${currentUser ? '<form class="comment-form"><input required maxlength="2000" placeholder="Share feedback on this project"><button>Comment</button></form>' : '<p style="margin-top:1rem;color:#687386"><a href="login.html">Sign in</a> to vote or comment.</p>'}`;
+      box.innerHTML = `<div class="project-community-head"><div><h2>Project discussion</h2><p style="margin:.35rem 0 0;color:#687386">${comments.length} ${comments.length === 1 ? 'comment' : 'comments'}</p></div><div class="vote-group"><button class="vote ${vote.mine === 1 ? 'active' : ''}" data-value="1">▲ ${vote.score}</button><button class="vote ${vote.mine === -1 ? 'active' : ''}" data-value="-1">▼</button></div></div><div class="comments">${roots.length ? roots.map(comment => renderProjectComment(comment, byParent)).join('') : '<p style="color:#687386">No comments yet. Start the conversation.</p>'}</div>${currentUser ? '<form class="comment-form"><input required maxlength="2000" placeholder="Share feedback on this project"><button>Comment</button></form>' : '<p style="margin-top:1rem;color:#687386"><a href="login.html">Sign in</a> to vote or comment.</p>'}`;
       box.querySelectorAll('[data-value]').forEach(button => button.addEventListener('click', async () => { if (!currentUser) { location.href = 'login.html'; return; } await setDoc(doc(db, 'communityPosts', projectId, 'votes', currentUser.uid), {userId:currentUser.uid, value:Number(button.dataset.value), updatedAt:serverTimestamp()}); renderCommunity(); }));
-      box.querySelector('.comment-form')?.addEventListener('submit', async event => { event.preventDefault(); const input = event.target.querySelector('input'); if (!input.value.trim()) return; await addDoc(collection(db, 'communityPosts', projectId, 'comments'), {userId:currentUser.uid, userName:profile?.displayName || currentUser.displayName || 'Member', text:input.value.trim(), parentId:null, createdAt:serverTimestamp()}); renderCommunity(); });
+      box.querySelectorAll('[data-project-thread]').forEach(button => button.addEventListener('click', () => { const children = box.querySelector(`[data-project-children="${button.dataset.projectThread}"]`); if (!children) return; children.hidden = !children.hidden; button.setAttribute('aria-expanded', String(!children.hidden)); button.textContent = children.hidden ? `View ${children.children.length} ${children.children.length === 1 ? 'reply' : 'replies'}` : 'Hide replies'; }));
+      box.querySelectorAll('[data-project-reply]').forEach(button => button.addEventListener('click', () => { box.querySelectorAll('.project-reply-slot').forEach(slot => { slot.innerHTML = ''; }); const slot = button.closest('.comment').querySelector('.project-reply-slot'); slot.innerHTML = `<form class="project-reply-form"><textarea required maxlength="2000" placeholder="Reply to ${escapeHtml(button.dataset.projectName)}"></textarea><button>Reply</button></form>`; slot.querySelector('textarea').focus(); slot.querySelector('form').addEventListener('submit', async event => { event.preventDefault(); await postProjectComment(event.target.querySelector('textarea').value, button.dataset.projectReply); }); }));
+      box.querySelectorAll('[data-project-delete]').forEach(button => button.addEventListener('click', async () => { await deleteDoc(doc(db, 'communityPosts', projectId, 'comments', button.dataset.projectDelete)); renderCommunity(); }));
+      box.querySelector('.comment-form')?.addEventListener('submit', async event => { event.preventDefault(); await postProjectComment(event.target.querySelector('input').value); });
     }
 
     function renderProject() {
