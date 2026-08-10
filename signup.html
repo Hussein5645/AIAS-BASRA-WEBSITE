@@ -274,6 +274,15 @@
 
         <div id="message" class="message"></div>
 
+        <form id="profileSetupForm" style="margin-bottom:1.25rem;text-align:left;">
+            <p style="color:#4a5568;margin:0 0 1rem;line-height:1.5;" data-en="Complete your public Community profile to finish registering." data-ar="أكمل ملف مجتمعك العام لإتمام التسجيل.">Complete your public Community profile to finish registering.</p>
+            <div style="margin-bottom:.85rem;"><label for="profileName" style="display:block;font-weight:600;margin-bottom:.35rem;">Name</label><input id="profileName" required maxlength="80" style="width:100%;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;font:inherit;"></div>
+            <div style="margin-bottom:.85rem;"><label for="profileSchool" style="display:block;font-weight:600;margin-bottom:.35rem;">School / organization</label><input id="profileSchool" required maxlength="120" style="width:100%;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;font:inherit;"></div>
+            <div style="margin-bottom:.85rem;"><label for="profileCity" style="display:block;font-weight:600;margin-bottom:.35rem;">City</label><input id="profileCity" required maxlength="80" style="width:100%;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;font:inherit;"></div>
+            <div style="margin-bottom:.85rem;"><label for="profileBio" style="display:block;font-weight:600;margin-bottom:.35rem;">Short bio</label><textarea id="profileBio" required maxlength="600" style="width:100%;min-height:80px;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;font:inherit;"></textarea></div>
+            <button id="completeProfileBtn" type="submit" class="google-btn" style="display:none;width:100%;justify-content:center;">Complete registration</button>
+        </form>
+
         <button type="button" class="google-btn" id="googleSignUp">
             <svg viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -356,6 +365,12 @@
 
         const messageDiv = document.getElementById('message');
         const googleSignUpBtn = document.getElementById('googleSignUp');
+        const profileSetupForm = document.getElementById('profileSetupForm');
+        const completeProfileBtn = document.getElementById('completeProfileBtn');
+        const profileFields = {
+            displayName: document.getElementById('profileName'), school: document.getElementById('profileSchool'),
+            city: document.getElementById('profileCity'), bio: document.getElementById('profileBio')
+        };
 
         function showMessage(text, type) {
             messageDiv.textContent = text;
@@ -364,10 +379,20 @@
         }
 
         // Check if user is already logged in
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // User is signed in, redirect to appropriate page
-                checkUserRoleAndRedirect(user);
+                const snap = await getDoc(doc(db, 'users', user.uid));
+                const profile = snap.exists() ? snap.data() : {};
+                if (profile.profileComplete) checkUserRoleAndRedirect(user);
+                else {
+                    if (!profileFields.displayName.value) profileFields.displayName.value = profile.displayName || user.displayName || '';
+                    if (!profileFields.school.value) profileFields.school.value = profile.school || '';
+                    if (!profileFields.city.value) profileFields.city.value = profile.city || '';
+                    if (!profileFields.bio.value) profileFields.bio.value = profile.bio || '';
+                    googleSignUpBtn.style.display = 'none';
+                    completeProfileBtn.style.display = 'flex';
+                    showMessage('Complete your profile to finish registering.', 'success');
+                }
             }
         });
 
@@ -413,6 +438,7 @@
         // Handle Google Sign-Up button click
         googleSignUpBtn.addEventListener('click', async () => {
             try {
+                if (!profileSetupForm.reportValidity()) return;
                 googleSignUpBtn.disabled = true;
                 showMessage('Signing up...', 'success');
 
@@ -424,18 +450,23 @@
                 const userRef = doc(db, 'users', user.uid);
                 const userSnap = await getDoc(userRef);
 
-                if (userSnap.exists()) {
+                if (userSnap.exists() && userSnap.data().profileComplete) {
                     // User already exists, treat as login
                     showMessage('Account already exists. Logging you in...', 'success');
                     await setDoc(userRef, {
                         lastLogin: new Date().toISOString()
                     }, { merge: true });
                 } else {
-                    // New user - create document
+                    // New account (or an incomplete registration): save all
+                    // required public profile fields before redirecting.
                     await setDoc(userRef, {
                         email: user.email,
-                        displayName: user.displayName,
+                        displayName: profileFields.displayName.value.trim(),
                         photoURL: user.photoURL,
+                        school: profileFields.school.value.trim(),
+                        city: profileFields.city.value.trim(),
+                        bio: profileFields.bio.value.trim(),
+                        profileComplete: true,
                         createdAt: new Date().toISOString(),
                         lastLogin: new Date().toISOString()
                     });
@@ -457,6 +488,20 @@
                     showMessage('Sign-up failed: ' + error.message, 'error');
                 }
             }
+        });
+
+        profileSetupForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const user = auth.currentUser;
+            if (!user || !profileSetupForm.reportValidity()) return;
+            try {
+                await setDoc(doc(db, 'users', user.uid), {
+                    email: user.email, displayName: profileFields.displayName.value.trim(), photoURL: user.photoURL || '',
+                    school: profileFields.school.value.trim(), city: profileFields.city.value.trim(), bio: profileFields.bio.value.trim(),
+                    profileComplete: true, createdAt: new Date().toISOString(), lastLogin: new Date().toISOString()
+                }, { merge: true });
+                await checkUserRoleAndRedirect(user);
+            } catch (error) { showMessage('Could not save your profile: ' + error.message, 'error'); }
         });
     </script>
 </body>

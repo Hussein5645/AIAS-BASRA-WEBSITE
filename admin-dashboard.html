@@ -127,6 +127,7 @@
     <aside class="sidebar">
       <h3 data-en="Navigate" data-ar="التنقل">Navigate</h3>
       <ul class="nav" id="mainNav">
+        <li><button data-tab="community" data-en="Community" data-ar="Community">Community</button></li>
         <li><button data-tab="events" class="active" data-en="Events" data-ar="الفعاليات">Events</button></li>
         <li><button data-tab="articles" data-en="Magazine" data-ar="المجلة">Magazine</button></li>
         <li><button data-tab="library" data-en="Library" data-ar="المكتبة">Library</button></li>
@@ -282,6 +283,12 @@
             </form>
           </div>
         </details>
+      </section>
+
+      <!-- Community feature review and direct embeds -->
+      <section id="community-tab" class="tab-content">
+        <details class="accordion" open><summary>Community feature requests</summary><div class="accordion-body panel"><p style="color:#4a5568;margin-bottom:1rem">Approve to show a community post on the main Community Projects page, deny to remove its request, or unfeature a published selection.</p><div id="communityAdminList"><p>Loading community posts…</p></div></div></details>
+        <details class="accordion" open><summary>Add a Behance project directly</summary><div class="accordion-body panel"><p style="color:#4a5568;margin-bottom:1rem">Use the Magazine tab to create a full main-site article. Add a Behance project here to publish it directly to the Community Projects page.</p><form id="adminBehanceForm"><div class="two-col"><div class="form-group"><label for="adminBehanceTitle">Title</label><input id="adminBehanceTitle" required maxlength="160"></div><div class="form-group"><label for="adminBehanceSummary">Summary</label><input id="adminBehanceSummary" required maxlength="360"></div></div><div class="form-group"><label for="adminBehanceEmbed">Behance iframe code</label><textarea id="adminBehanceEmbed" required placeholder="&lt;iframe src=&quot;https://www.behance.net/embed/project/...&quot; ...&gt;&lt;/iframe&gt;"></textarea></div><button class="submit-btn" type="submit">Publish selected project</button><p id="adminBehanceStatus" style="margin-top:.75rem"></p></form></div></details>
       </section>
 
       <!-- Library -->
@@ -543,7 +550,7 @@
      *************************************************/
     import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, getDocs, collection, addDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import FirestoreAPI from "./js/firestore-api.js?v=20260808-fbd-stats";
     import categoriesLoader from "./js/categories-loader.js";
     import { toBase64, uploadFileChunks, createDocumentId } from "./js/file-chunks.js";
@@ -731,6 +738,7 @@
       if (target) target.classList.add('active');
       if (tab==='events') loadExistingEvents();
       if (tab==='articles') loadExistingArticles();
+      if (tab==='community') loadCommunityAdminPosts();
       if (tab==='library') loadExistingLibraryResources();
       if (tab==='models3d') loadExistingModels3D();
       if (tab==='education') { loadCourses(); }
@@ -741,6 +749,43 @@
     /*************************************************
      * تحميل القوائم
      *************************************************/
+    const communityEscape = (value) => String(value || '').replace(/[&<>"']/g, char => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;' })[char]);
+    window.loadCommunityAdminPosts = async function() {
+      const box = document.getElementById('communityAdminList');
+      if (!box) return;
+      box.innerHTML = '<p>Loading community posts…</p>';
+      try {
+        const posts = (await getDocs(collection(db, 'communityPosts'))).docs
+          .map(item => ({ id: item.id, ...item.data() }))
+          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        if (!posts.length) { box.innerHTML = '<p>No community posts have been submitted.</p>'; return; }
+        box.innerHTML = posts.map(post => `<div class="item-card"><div><strong>${communityEscape(post.title)}</strong><br><small>${communityEscape(post.authorName || 'Member')} · ${communityEscape(post.type)} · ${post.featured ? 'Featured' : (post.featureRequest ? `Request: ${communityEscape(post.featureStatus || 'pending')}` : 'Not requested')}</small></div><div class="item-actions"><button class="btn edit-btn" onclick="reviewCommunityPost('${post.id}','approve')">Feature</button><button class="btn delete-btn" onclick="reviewCommunityPost('${post.id}','deny')">Deny request</button>${post.featured ? `<button class="btn" onclick="reviewCommunityPost('${post.id}','remove')">Unfeature</button>` : ''}</div></div>`).join('');
+      } catch (error) { console.error('[CommunityAdmin] load failed', error); box.innerHTML = '<p style="color:red">Could not load community posts.</p>'; }
+    };
+    window.reviewCommunityPost = async function(id, action) {
+      const values = action === 'approve'
+        ? { featured: true, featureRequest: true, featureStatus: 'approved', featuredAt: serverTimestamp() }
+        : action === 'deny'
+          ? { featured: false, featureStatus: 'denied' }
+          : { featured: false, featureStatus: 'none' };
+      try { await setDoc(doc(db, 'communityPosts', id), values, { merge: true }); showMessage(action === 'approve' ? 'Community post featured on the main website.' : 'Community post updated.', 'success'); loadCommunityAdminPosts(); }
+      catch (error) { showMessage(error.message || 'Could not update the community post.', 'error'); }
+    };
+    document.getElementById('adminBehanceForm')?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const status = document.getElementById('adminBehanceStatus');
+      const raw = document.getElementById('adminBehanceEmbed').value.trim();
+      const parsed = new DOMParser().parseFromString(raw, 'text/html');
+      const src = parsed.querySelector('iframe')?.getAttribute('src') || '';
+      if (!/^https:\/\/(www\.)?behance\.net\/embed\/project\//i.test(src)) { status.textContent = 'Enter a valid Behance project iframe.'; status.style.color = '#b91c1c'; return; }
+      const button = event.submitter; button.disabled = true;
+      try {
+        await addDoc(collection(db, 'communityPosts'), { type: 'behance', title: document.getElementById('adminBehanceTitle').value.trim(), summary: document.getElementById('adminBehanceSummary').value.trim(), content: '', behanceSrc: src, userId: auth.currentUser?.uid || 'admin', authorName: auth.currentUser?.displayName || auth.currentUser?.email || 'AIAS Basra', published: true, featureRequest: false, featureStatus: 'approved', featured: true, createdAt: serverTimestamp(), featuredAt: serverTimestamp() });
+        event.target.reset(); status.textContent = 'Behance project published and featured.'; status.style.color = '#15803d'; loadCommunityAdminPosts();
+      } catch (error) { status.textContent = error.message || 'Could not publish this project.'; status.style.color = '#b91c1c'; }
+      finally { button.disabled = false; }
+    });
+
     window.loadExistingEvents = async function() {
       const box = document.getElementById('existingEventsList');
       box.innerHTML = '<p>Loading events...</p>';

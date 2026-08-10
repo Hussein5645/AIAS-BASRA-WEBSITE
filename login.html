@@ -368,7 +368,13 @@
         // Check if user is already logged in
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // User is already authenticated; redirect immediately
+                // A new Google identity cannot finish registration until it
+                // has supplied its public Community profile.
+                const profileSnap = await getDoc(doc(db, 'users', user.uid));
+                if (!profileSnap.exists() || !profileSnap.data().profileComplete) {
+                    window.location.href = 'signup.html';
+                    return;
+                }
                 showMessage('You are already signed in. Redirecting...', 'success');
                 await checkUserRoleAndRedirect(user);
             }
@@ -435,15 +441,10 @@
                 const userRef = doc(db, 'users', user.uid);
                 const userSnap = await getDoc(userRef);
 
-                if (!userSnap.exists()) {
-                    // New user - create document
-                    await setDoc(userRef, {
-                        email: user.email,
-                        displayName: user.displayName,
-                        photoURL: user.photoURL,
-                        createdAt: new Date().toISOString(),
-                        lastLogin: new Date().toISOString()
-                    });
+                if (!userSnap.exists() || !userSnap.data().profileComplete) {
+                    // Registration is only completed from the profile form.
+                    window.location.href = 'signup.html';
+                    return;
                 } else {
                     // Existing user found
                     const lastLoginData = userSnap.data().lastLogin

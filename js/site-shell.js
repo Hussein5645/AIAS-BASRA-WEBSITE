@@ -11,6 +11,10 @@
         { title: 'Articles', titleAr: 'المقالات', url: 'articles.html', type: 'Page', typeAr: 'صفحة', description: 'Read full articles and join the discussion', descriptionAr: 'اقرأ المقالات كاملة وشارك في النقاش', keywords: 'article comments vote upvote downvote' }
     ];
     let dynamicSearchData = [];
+    SEARCH_DATA.push(
+        { title: 'Community', titleAr: 'Community', url: 'community.html', type: 'Page', typeAr: 'Page', description: 'Posts, profiles, articles and Behance projects', descriptionAr: 'Posts, profiles, articles and Behance projects', keywords: 'community posts profile behance projects articles' },
+        { title: 'Community Projects', titleAr: 'Community Projects', url: 'community-projects.html', type: 'Page', typeAr: 'Page', description: 'Selected community work', descriptionAr: 'Selected community work', keywords: 'community featured projects behance' }
+    );
 
     function getSearchLanguage() {
         return localStorage.getItem('language') === 'ar' ? 'ar' : 'en';
@@ -233,6 +237,7 @@
                         <span></span>
                     </button>
                     <ul class="nav-links" id="navLinks">
+                        <li class="nav-item"><a href="community.html" class="shell-link-community" data-en="Community" data-ar="Community">Community</a></li>
                         <li class="nav-item"><a href="index.html" class="shell-link-home" data-en="Home" data-ar="الرئيسية">Home</a></li>
 
                         <li class="nav-item">
@@ -733,6 +738,11 @@
         if (currentFile === 'magazine.html' || currentFile === 'articles.html') {
             setActive('.shell-link-resources');
             setActive('.shell-link-magazine');
+            return;
+        }
+
+        if (currentFile === 'community.html' || currentFile === 'community-projects.html') {
+            setActive('.shell-link-community');
             return;
         }
 
