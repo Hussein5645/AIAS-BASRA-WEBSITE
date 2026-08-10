@@ -1,2 +1,54 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Community Projects — AIAS Basra</title><link rel="icon" type="image/png" href="static/images/branding/LOGO.png"><link rel="stylesheet" href="css/style.css"><style>.projects{padding:8rem 1rem 4rem;max-width:1100px;margin:auto}.projects h1{color:var(--primary-color)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.25rem;margin-top:2rem}.card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:1.25rem;box-shadow:var(--shadow-sm)}.card iframe{max-width:100%;border:0;border-radius:8px}.meta{color:#64748b;font-size:.9rem}.empty{color:#64748b;padding:2rem 0}</style><script type="module" src="js/auth.js"></script></head><body><nav class="navbar" id="navbar"></nav><main class="projects"><h1>Community Projects</h1><p>Selected work from the AIAS Basra Community.</p><div id="projects" class="grid"><p class="empty">Loading selected projects…</p></div></main><script type="module">import{initializeApp,getApp}from'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';import{getFirestore,collection,getDocs}from'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';const c={apiKey:'AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ',authDomain:'aias-bsr.firebaseapp.com',projectId:'aias-bsr',storageBucket:'aias-bsr.firebasestorage.app',messagingSenderId:'78055223814',appId:'1:78055223814:web:99460402c2b1fcd5ae8987'};let a;try{a=getApp()}catch{a=initializeApp(c)}const esc=s=>String(s||'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));const d=getFirestore(a),box=document.getElementById('projects');try{const posts=(await getDocs(collection(d,'communityPosts'))).docs.map(x=>({id:x.id,...x.data()})).filter(x=>x.featured);box.innerHTML=posts.length?posts.map(p=>`<article class="card"><p class="meta">${esc(p.authorName||'Member')} · ${p.type==='behance'?'Behance project':'Article'}</p><h2>${esc(p.title)}</h2><p>${esc(p.summary)}</p>${p.type==='behance'?`<iframe src="${esc(p.behanceSrc)}" width="404" height="316" allowfullscreen loading="lazy"></iframe>`:`<a class="btn btn-primary" href="community.html">Read in Community</a>`}</article>`).join(''):'<p class="empty">Featured community projects will appear here.</p>'}catch(e){box.innerHTML='<p class="empty">Projects are currently unavailable.</p>';console.error(e)}</script><script src="js/site-shell.js"></script></body></html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Selected Community Projects — AIAS Basra</title>
+  <link rel="icon" type="image/png" href="static/images/branding/LOGO.png">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body { background:#f5f2ee; }
+    .projects-hero { padding:9rem 1rem 5rem; color:#fff; background:radial-gradient(circle at 80% 20%,rgba(240,218,161,.26),transparent 28%),linear-gradient(135deg,#2a1820,#6b2228 58%,#9b5e4d); }
+    .projects-hero .container { max-width:1100px; }
+    .eyebrow { color:#f0daa1; text-transform:uppercase; letter-spacing:.16em; font-size:.78rem; font-weight:800; }
+    .projects-hero h1 { max-width:850px; margin:.8rem 0 1rem; font-size:clamp(2.4rem,6vw,5rem); line-height:1; letter-spacing:-.05em; }
+    .projects-hero p { max-width:680px; color:rgba(255,255,255,.84); font-size:1.08rem; line-height:1.75; }
+    .projects { max-width:1100px; margin:auto; padding:4rem 1rem 6rem; }
+    .projects-intro { display:flex; justify-content:space-between; align-items:end; gap:2rem; margin-bottom:2rem; }
+    .projects-intro h2 { margin:0; color:#6b2228; }
+    .projects-intro a { color:#6b2228; font-weight:800; text-decoration:none; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:1.4rem; }
+    .project-card { overflow:hidden; background:#fff; border-radius:18px; box-shadow:0 12px 30px rgba(42,24,32,.09); transition:transform .25s ease,box-shadow .25s ease; }
+    .project-card:hover { transform:translateY(-5px); box-shadow:0 20px 42px rgba(42,24,32,.14); }
+    .project-preview { position:relative; height:220px; overflow:hidden; background:#17151a; }
+    .project-preview iframe { width:100%; height:315px; border:0; pointer-events:none; transform:scale(.82); transform-origin:top center; }
+    .project-number { position:absolute; top:1rem; left:1rem; display:grid; place-items:center; width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,.94); color:#6b2228; font-weight:800; box-shadow:0 5px 14px rgba(0,0,0,.16); }
+    .project-content { padding:1.35rem; }
+    .meta { color:#8b6a52; font-size:.78rem; text-transform:uppercase; letter-spacing:.08em; font-weight:800; }
+    .project-card h2 { margin:.6rem 0 .65rem; color:#253044; font-size:1.28rem; line-height:1.3; }
+    .project-card p { color:#637083; line-height:1.65; }
+    .project-link { display:inline-flex; margin-top:.5rem; color:#6b2228; font-weight:800; text-decoration:none; }
+    .empty { grid-column:1/-1; padding:4rem 1rem; text-align:center; color:#687386; }
+    @media (max-width:680px) { .projects-hero { padding:7.5rem .9rem 3.5rem; }.projects { padding:2.5rem .8rem 4rem; }.projects-intro { align-items:flex-start; flex-direction:column; gap:.7rem; }.grid { grid-template-columns:1fr; } }
+  </style>
+  <script type="module" src="js/auth.js"></script>
+</head>
+<body>
+  <nav class="navbar" id="navbar"></nav>
+  <section class="projects-hero"><div class="container"><span class="eyebrow">Curated community work</span><h1>Selected Projects</h1><p>Architectural and design work submitted by AIAS Basra community members and selected for presentation by the chapter.</p></div></section>
+  <main class="projects"><div class="projects-intro"><div><h2>Explore the collection</h2><p>Open a project for its full visual presentation and discussion.</p></div><a href="community.html?view=post">Share your project →</a></div><div id="projects" class="grid"><p class="empty">Loading selected projects…</p></div></main>
+  <script type="module">
+    import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    const config = {apiKey:'AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ',authDomain:'aias-bsr.firebaseapp.com',projectId:'aias-bsr',storageBucket:'aias-bsr.firebasestorage.app',messagingSenderId:'78055223814',appId:'1:78055223814:web:99460402c2b1fcd5ae8987'};
+    let app; try { app = getApp(); } catch { app = initializeApp(config); }
+    const db = getFirestore(app), box = document.getElementById('projects');
+    const escapeHtml = value => String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+    try {
+      const projects = (await getDocs(collection(db, 'communityPosts'))).docs.map(item => ({id:item.id, ...item.data()})).filter(project => project.type === 'behance' && project.featured === true && project.published !== false).sort((a,b) => (b.featuredAt?.seconds || b.createdAt?.seconds || 0) - (a.featuredAt?.seconds || a.createdAt?.seconds || 0));
+      box.innerHTML = projects.length ? projects.map((project,index) => `<article class="project-card"><div class="project-preview"><iframe title="Preview of ${escapeHtml(project.title)}" src="${escapeHtml(project.behanceSrc)}" loading="lazy"></iframe><span class="project-number">${String(index + 1).padStart(2,'0')}</span></div><div class="project-content"><div class="meta">${escapeHtml(project.authorName || 'Community member')}</div><h2>${escapeHtml(project.title)}</h2><p>${escapeHtml(project.summary)}</p><a class="project-link" href="project.html?communityPost=${encodeURIComponent(project.id)}">Open project →</a></div></article>`).join('') : '<div class="empty"><h2>No selected projects yet</h2><p>Community members can submit a Behance project for consideration from the Community page.</p></div>';
+    } catch (error) { console.error(error); box.innerHTML = '<p class="empty">Projects are currently unavailable.</p>'; }
+  </script>
+  <script src="js/site-shell.js"></script>
+</body>
+</html>

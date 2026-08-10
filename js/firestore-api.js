@@ -322,7 +322,6 @@ class FirestoreAPI {
   // Read all content (current structure only)
   async getAllContent() {
     try {
-      await this.ensureBaseDocs();
       const [
         eventsSnap,
         librarySnap,
@@ -400,7 +399,6 @@ class FirestoreAPI {
   const v = this.validateRequiredFields(payload, ['title','time','location','description']);
   if (!v.valid) return { success: false, error: v.message };
   try {
-    await this.ensureBaseDocs();
     let refId;
     if (id) {
         await setDoc(doc(this.db, ...this.paths.eventsCol, id), payload);
@@ -438,7 +436,6 @@ class FirestoreAPI {
     const v = this.validateRequiredFields(payload, ['name','type','description']);
     if (!v.valid) return { success: false, error: v.message };
     try {
-      await this.ensureBaseDocs();
       const refId = id || (await addDoc(this._colRef(this.paths.libraryCol), payload)).id;
       if (id) await setDoc(this._docRef([...this.paths.libraryCol, id]), payload, { merge: true });
       return { success: true, id: refId, message: 'Library resource added successfully' };
@@ -470,7 +467,6 @@ class FirestoreAPI {
     const v = this.validateRequiredFields(payload, ['title','author','date','summary','content']);
     if (!v.valid) return { success: false, error: v.message };
     try {
-      await this.ensureBaseDocs();
       const refId = id || (await addDoc(this._colRef(this.paths.magazineArticlesCol), payload)).id;
       if (id) await setDoc(this._docRef([...this.paths.magazineArticlesCol, id]), payload, { merge: true });
       return { success: true, id: refId, message: 'Article added successfully' };
@@ -500,7 +496,6 @@ class FirestoreAPI {
   async updateEducation(weeklyWorkshop) {
     const ww = sanitizeWeekly(weeklyWorkshop); // Accept empty strings
     try {
-      await this.ensureBaseDocs();
       const ref = this._docRef(this.paths.educationDoc);
       const snap = await getDoc(ref);
       const existing = snap.exists() ? snap.data() : { weeklyWorkshop: { weekTitle: "", lecturerName: "", description: "" } };
@@ -517,7 +512,6 @@ class FirestoreAPI {
     const v = this.validateRequiredFields(payload, ['title','description']);
     if (!v.valid) return { success: false, error: v.message };
     try {
-      await this.ensureBaseDocs();
       const refId = id || (await addDoc(this._colRef(this.paths.educationCoursesCol), payload)).id;
       if (id) await setDoc(this._docRef([...this.paths.educationCoursesCol, id]), payload, { merge: true });
       return { success: true, id: refId, message: 'Course added successfully' };
@@ -546,7 +540,6 @@ class FirestoreAPI {
   // FBD (doc + events subcollection)
   async updateFbdPage({ pageTitle, about }) {
     try {
-      await this.ensureBaseDocs();
       await setDoc(this._docRef(this.paths.fbdDoc), { pageTitle: toStr(pageTitle), about: toStr(about) }, { merge: true });
       return { success: true, message: 'FBD page updated successfully' };
     } catch (error) {
@@ -555,7 +548,6 @@ class FirestoreAPI {
   }
   async updateFbdStats({ projectsCompleted, studentsInvolved, communityServed }) {
     try {
-      await this.ensureBaseDocs();
       await setDoc(this._docRef(this.paths.fbdDoc), {
         stats: {
           projectsCompleted: toStr(projectsCompleted),
@@ -573,7 +565,6 @@ class FirestoreAPI {
     const v = this.validateRequiredFields(payload, ['title','time','location','description']);
     if (!v.valid) return { success: false, error: v.message };
     try {
-      await this.ensureBaseDocs();
       let refId;
       if (id) {
           await setDoc(doc(this.db, ...this.paths.fbdEventsCol, id), payload);
@@ -629,7 +620,6 @@ class FirestoreAPI {
       return { success: false, error: 'Model code must be exactly 10 characters.' };
     }
     try {
-      await this.ensureBaseDocs();
       const codeTaken = await this.isModelCodeTaken(payload.code);
       if (codeTaken) return { success: false, error: 'This model code already exists.' };
       const refId = id || (await addDoc(this._colRef(this.paths.modelsCol), payload)).id;

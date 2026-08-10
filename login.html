@@ -334,6 +334,7 @@
         import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAdminAccess, persistAccessSession } from "./js/rbac.js";
 
         // Firebase configuration
         const firebaseConfig = {
@@ -380,20 +381,6 @@
             }
         });
 
-        async function checkIfAdmin(email) {
-            try {
-                // Fetch admin list from Firestore
-                const adminDoc = await getDoc(doc(db, 'config', 'admins'));
-                if (adminDoc.exists()) {
-                    const data = adminDoc.data();
-                    return data.admins && data.admins.includes(email.toLowerCase());
-                }
-                return false;
-            } catch (error) {
-                console.error('Error checking admin status:', error);
-                return false;
-            }
-        }
         // Continue as visitor
         const visitorBtn = document.getElementById('visitorBtn');
         visitorBtn.addEventListener('click', () => {
@@ -404,19 +391,19 @@
 
         async function checkUserRoleAndRedirect(user) {
             try {
-                const isAdmin = await checkIfAdmin(user.email);
+                const access = await getAdminAccess(db, user.email);
                 
                 // Store session data
                 localStorage.setItem('aias_authenticated', 'true');
                 localStorage.setItem('aias_user_email', user.email);
                 localStorage.setItem('aias_user_name', user.displayName || '');
                 localStorage.setItem('aias_user_picture', user.photoURL || '');
-                localStorage.setItem('aias_is_admin', isAdmin.toString());
+                persistAccessSession(access);
                 localStorage.setItem('aias_user_uid', user.uid);
                 localStorage.setItem('aias_visitor_mode', 'false');
 
                 // Redirect based on admin status
-                if (isAdmin) {
+                if (access.allowed) {
                     window.location.href = 'admin-dashboard.html';
                 } else {
                     window.location.href = 'index.html';

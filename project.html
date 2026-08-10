@@ -4,12 +4,102 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Community Project — AIAS Basra</title>
+  <link rel="icon" type="image/png" href="static/images/branding/LOGO.png">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { background:#eeeae4; color:#172033; }
+    .project-hero { min-height:430px; display:flex; align-items:flex-end; padding:9rem 1rem 4rem; color:#fff; background:radial-gradient(circle at 82% 12%,rgba(240,218,161,.28),transparent 30%),linear-gradient(135deg,#17151a 0%,#4a2026 55%,#7b423b 100%); }
+    .project-hero .container { width:100%; }
+    .project-kicker { display:inline-flex; align-items:center; gap:.55rem; margin-bottom:1.4rem; color:#f0daa1; text-transform:uppercase; letter-spacing:.16em; font-size:.76rem; font-weight:800; }
+    .project-kicker::before { content:''; width:34px; height:2px; background:currentColor; }
+    .project-hero h1 { max-width:950px; margin:0 0 1rem; font-size:clamp(2.35rem,7vw,5.6rem); line-height:.98; letter-spacing:-.055em; overflow-wrap:anywhere; }
+    .project-meta { display:flex; flex-wrap:wrap; gap:.65rem 1.5rem; color:rgba(255,255,255,.82); font-size:.94rem; }
+    .project-shell { max-width:1180px; margin:-1.8rem auto 0; padding:0 1rem 6rem; position:relative; }
+    .project-summary { display:grid; grid-template-columns:minmax(0,1.8fr) minmax(240px,.7fr); gap:2rem; padding:2rem; background:#fff; border-radius:22px; box-shadow:0 20px 55px rgba(39,25,28,.14); }
+    .project-summary h2 { margin:0 0 .7rem; color:#6b2228; font-size:1rem; text-transform:uppercase; letter-spacing:.12em; }
+    .project-summary p { margin:0; color:#526072; font-size:1.08rem; line-height:1.8; white-space:pre-wrap; }
+    .project-side { display:flex; flex-direction:column; align-items:flex-start; justify-content:space-between; gap:1rem; padding-left:1.5rem; border-left:1px solid #e7e2dc; }
+    .project-side a { color:#6b2228; font-weight:800; text-decoration:none; }
+    .project-badge { display:inline-flex; padding:.4rem .7rem; border-radius:999px; background:#f7efd9; color:#8a5d13; font-size:.78rem; font-weight:800; }
+    .project-stage { margin-top:2rem; padding:1rem; border-radius:24px; background:#17151a; box-shadow:0 22px 55px rgba(23,21,26,.18); }
+    .project-stage iframe { display:block; width:100%; min-height:720px; border:0; border-radius:16px; background:#fff; }
+    .project-community { margin-top:2rem; padding:2rem; background:#fff; border-radius:22px; box-shadow:0 12px 32px rgba(39,25,28,.09); }
+    .project-community-head { display:flex; justify-content:space-between; align-items:center; gap:1rem; padding-bottom:1.2rem; border-bottom:1px solid #e8e2dc; }
+    .project-community h2 { margin:0; color:#6b2228; }
+    .vote-group { display:flex; gap:.5rem; }
+    .vote { border:1px solid #d8d1ca; background:#fff; border-radius:10px; padding:.55rem .8rem; color:#4b5563; font:inherit; font-weight:800; cursor:pointer; }
+    .vote.active[data-value="1"] { background:#dcfce7; border-color:#86efac; color:#166534; }
+    .vote.active[data-value="-1"] { background:#fee2e2; border-color:#fca5a5; color:#991b1b; }
+    .comments { display:grid; gap:.75rem; margin-top:1.2rem; }
+    .comment { padding:1rem; border-radius:12px; background:#f8f6f3; color:#4b5563; }
+    .comment strong { color:#263244; }.comment small { margin-left:.45rem; color:#7b8491; }
+    .comment-form { display:flex; gap:.65rem; margin-top:1rem; }
+    .comment-form input { flex:1; min-width:0; padding:.75rem .85rem; border:1px solid #d8d1ca; border-radius:10px; font:inherit; }
+    .comment-form button { border:0; border-radius:10px; padding:.75rem 1rem; background:#6b2228; color:#fff; font:inherit; font-weight:800; cursor:pointer; }
+    .empty,.error { padding:4rem 1rem; text-align:center; color:#687386; }.error h1 { color:#6b2228; }
+    @media (max-width:760px) {
+      .project-hero { min-height:350px; padding:7.2rem .9rem 3.4rem; }.project-hero h1 { font-size:clamp(2.2rem,13vw,3.9rem); }
+      .project-shell { margin:-1.2rem auto 0; padding:0 .7rem 3rem; }.project-summary { grid-template-columns:1fr; padding:1.25rem; gap:1.25rem; border-radius:16px; }
+      .project-side { padding:1rem 0 0; border-left:0; border-top:1px solid #e7e2dc; }.project-stage { padding:.45rem; border-radius:16px; }.project-stage iframe { min-height:560px; border-radius:12px; }
+      .project-community { padding:1.2rem; border-radius:16px; }.project-community-head { align-items:flex-start; flex-direction:column; }.comment-form { flex-direction:column; }
+    }
+  </style>
+  <script type="module" src="js/auth.js"></script>
 </head>
 <body>
-  <script>
-    const postId = new URLSearchParams(location.search).get('communityPost');
-    location.replace(`articles.html?communityPost=${encodeURIComponent(postId || '')}`);
+  <nav class="navbar" id="navbar"></nav>
+  <div id="projectPage"><div class="empty">Loading project…</div></div>
+
+  <script type="module">
+    import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+    const config = {apiKey:'AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ',authDomain:'aias-bsr.firebaseapp.com',projectId:'aias-bsr',storageBucket:'aias-bsr.firebasestorage.app',messagingSenderId:'78055223814',appId:'1:78055223814:web:99460402c2b1fcd5ae8987'};
+    let app; try { app = getApp(); } catch { app = initializeApp(config); }
+    const auth = getAuth(app), db = getFirestore(app);
+    const projectId = new URLSearchParams(location.search).get('communityPost');
+    const page = document.getElementById('projectPage');
+    let currentUser = null, profile = null, project = null;
+    const escapeHtml = value => String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+
+    async function voteState() {
+      const snapshot = await getDocs(collection(db, 'communityPosts', projectId, 'votes'));
+      return {score:snapshot.docs.reduce((total, item) => total + (Number(item.data().value) || 0), 0), mine:snapshot.docs.find(item => item.id === currentUser?.uid)?.data().value || 0};
+    }
+
+    async function renderCommunity() {
+      const [vote, commentsSnapshot] = await Promise.all([voteState(), getDocs(collection(db, 'communityPosts', projectId, 'comments'))]);
+      const comments = commentsSnapshot.docs.map(item => ({id:item.id, ...item.data()})).sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+      const box = document.getElementById('projectCommunity');
+      box.innerHTML = `<div class="project-community-head"><div><h2>Project discussion</h2><p style="margin:.35rem 0 0;color:#687386">${comments.length} ${comments.length === 1 ? 'comment' : 'comments'}</p></div><div class="vote-group"><button class="vote ${vote.mine === 1 ? 'active' : ''}" data-value="1">▲ ${vote.score}</button><button class="vote ${vote.mine === -1 ? 'active' : ''}" data-value="-1">▼</button></div></div><div class="comments">${comments.length ? comments.map(comment => `<article class="comment"><strong>${escapeHtml(comment.userName || 'Member')}</strong><small>${comment.createdAt?.toDate ? comment.createdAt.toDate().toLocaleString() : 'Just now'}</small><div style="margin-top:.45rem">${escapeHtml(comment.text)}</div></article>`).join('') : '<p style="color:#687386">No comments yet. Start the conversation.</p>'}</div>${currentUser ? '<form class="comment-form"><input required maxlength="2000" placeholder="Share feedback on this project"><button>Comment</button></form>' : '<p style="margin-top:1rem;color:#687386"><a href="login.html">Sign in</a> to vote or comment.</p>'}`;
+      box.querySelectorAll('[data-value]').forEach(button => button.addEventListener('click', async () => { if (!currentUser) { location.href = 'login.html'; return; } await setDoc(doc(db, 'communityPosts', projectId, 'votes', currentUser.uid), {userId:currentUser.uid, value:Number(button.dataset.value), updatedAt:serverTimestamp()}); renderCommunity(); }));
+      box.querySelector('.comment-form')?.addEventListener('submit', async event => { event.preventDefault(); const input = event.target.querySelector('input'); if (!input.value.trim()) return; await addDoc(collection(db, 'communityPosts', projectId, 'comments'), {userId:currentUser.uid, userName:profile?.displayName || currentUser.displayName || 'Member', text:input.value.trim(), parentId:null, createdAt:serverTimestamp()}); renderCommunity(); });
+    }
+
+    function renderProject() {
+      const date = project.createdAt?.toDate ? project.createdAt.toDate().toLocaleDateString() : 'Community project';
+      page.innerHTML = `<section class="project-hero"><div class="container"><div class="project-kicker">Community project</div><h1>${escapeHtml(project.title)}</h1><div class="project-meta"><span>By ${escapeHtml(project.authorName || 'Community member')}</span><span>${escapeHtml(date)}</span></div></div></section><main class="project-shell"><section class="project-summary"><div><h2>About the project</h2><p>${escapeHtml(project.summary)}</p></div><aside class="project-side"><span class="project-badge">${project.featured ? 'Selected by AIAS Basra' : 'Community submission'}</span><a href="community.html?user=${encodeURIComponent(project.userId)}">View creator profile →</a></aside></section><section class="project-stage"><iframe title="${escapeHtml(project.title)}" src="${escapeHtml(project.behanceSrc)}" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></section><section id="projectCommunity" class="project-community"><p class="empty">Loading discussion…</p></section></main>`;
+      document.title = `${project.title || 'Community Project'} — AIAS Basra`;
+      renderCommunity().catch(error => { console.error(error); document.getElementById('projectCommunity').innerHTML = '<p class="error">The project discussion is unavailable right now.</p>'; });
+    }
+
+    async function loadProject() {
+      try {
+        if (!projectId) throw new Error('Project ID is missing.');
+        const snapshot = await getDoc(doc(db, 'communityPosts', projectId));
+        if (!snapshot.exists() || snapshot.data().type !== 'behance' || snapshot.data().published === false) throw new Error('Project not found.');
+        project = {id:snapshot.id, ...snapshot.data()};
+        renderProject();
+      } catch (error) { console.error(error); page.innerHTML = '<main class="error" style="padding-top:10rem"><h1>Project unavailable</h1><p>This project could not be found.</p><p><a href="community-projects.html">Browse community projects</a></p></main>'; }
+    }
+
+    onAuthStateChanged(auth, async user => { currentUser = user; if (user) { const snapshot = await getDoc(doc(db, 'users', user.uid)); profile = snapshot.exists() ? snapshot.data() : null; } else profile = null; if (project) renderCommunity(); });
+    loadProject();
   </script>
-  <p>Opening project…</p>
+  <script src="js/site-shell.js"></script>
 </body>
 </html>

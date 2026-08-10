@@ -138,7 +138,7 @@
             </div>
         </div>
     </section>
-    <section class="home-articles"><div class="container"><div class="section-header"><h2 class="section-title">Featured Community Projects</h2><p class="section-subtitle">Selected Behance projects from the AIAS Basra Community.</p></div><div id="featuredProjectsGrid" class="home-articles-grid"><div class="loading-container"><p class="loading-text">Loading featured projects...</p></div></div><div style="text-align:center;margin-top:2rem;"><a href="community-projects.html" class="btn btn-secondary">View All Projects</a></div></div></section>
+        <section class="home-articles"><div class="container"><div class="section-header"><h2 class="section-title">Selected Community Projects</h2><p class="section-subtitle">Behance projects submitted by members and selected by AIAS Basra.</p></div><div id="featuredProjectsGrid" class="home-articles-grid"><div class="loading-container"><p class="loading-text">Loading selected projects...</p></div></div><div style="text-align:center;margin-top:2rem;"><a href="community-projects.html" class="btn btn-secondary">View All Projects</a></div></div></section>
         <!-- Latest Events Section -->
     <section class="latest-events">
         <div class="container">
@@ -403,8 +403,8 @@
             if (!grid) return;
             try {
                 const projects = (await getDocs(collection(communityDb, 'communityPosts'))).docs.map(item => ({ id:item.id, ...item.data() })).filter(post => post.featured && post.type === 'behance' && post.published !== false).sort((a,b) => (b.featuredAt?.seconds || b.createdAt?.seconds || 0) - (a.featuredAt?.seconds || a.createdAt?.seconds || 0)).slice(0,3);
-                grid.innerHTML = projects.length ? projects.map(project => `<article class="home-article-card reveal"><div class="home-article-image" style="padding:0;overflow:hidden;background:#fff;"><iframe src="${escapeHtml(project.behanceSrc)}" title="${escapeHtml(project.title)}" style="width:100%;height:180px;border:0;" loading="lazy" allowfullscreen></iframe></div><div class="home-article-content"><div class="home-article-date">Featured project · ${escapeHtml(project.authorName || 'Community member')}</div><h3 class="home-article-title">${escapeHtml(project.title)}</h3><p class="home-article-summary">${escapeHtml(project.summary)}</p><a class="home-article-link" href="community.html?post=${encodeURIComponent(project.id)}">View Project →</a></div></article>`).join('') : '<div class="empty-state"><p>No featured community projects yet.</p></div>';
-            } catch (error) { console.error(error); grid.innerHTML = '<div class="empty-state"><p>Featured projects are unavailable right now.</p></div>'; }
+                grid.innerHTML = projects.length ? projects.map(project => `<article class="home-article-card reveal"><div class="home-article-image" style="padding:0;overflow:hidden;background:#fff;"><iframe src="${escapeHtml(project.behanceSrc)}" title="${escapeHtml(project.title)}" style="width:100%;height:180px;border:0;" loading="lazy" allowfullscreen></iframe></div><div class="home-article-content"><div class="home-article-date">Selected project · ${escapeHtml(project.authorName || 'Community member')}</div><h3 class="home-article-title">${escapeHtml(project.title)}</h3><p class="home-article-summary">${escapeHtml(project.summary)}</p><a class="home-article-link" href="project.html?communityPost=${encodeURIComponent(project.id)}">View Project →</a></div></article>`).join('') : '<div class="empty-state"><p>No selected community projects yet.</p></div>';
+            } catch (error) { console.error(error); grid.innerHTML = '<div class="empty-state"><p>Selected projects are unavailable right now.</p></div>'; }
         }
 
         async function loadLatestArticles() {

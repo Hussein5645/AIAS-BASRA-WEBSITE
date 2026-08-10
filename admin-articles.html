@@ -27,9 +27,10 @@
   <script type="module">
     import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-    import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
     import FirestoreAPI from './js/firestore-api.js?v=20260808-article-editor';
     import { toBase64 } from './js/file-chunks.js';
+    import { canManage, getAdminAccess, persistAccessSession } from './js/rbac.js';
     const config={apiKey:'AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ',authDomain:'aias-bsr.firebaseapp.com',projectId:'aias-bsr',storageBucket:'aias-bsr.firebasestorage.app',messagingSenderId:'78055223814',appId:'1:78055223814:web:99460402c2b1fcd5ae8987'};
     let app;try{app=getApp()}catch{app=initializeApp(config)}const auth=getAuth(app),db=getFirestore(app),api=new FirestoreAPI();
     const $=id=>document.getElementById(id);const form=$('articleForm'), list=$('articleList'), modeBanner=$('modeBanner'), message=$('message');let articles=[],editing=null,savedRange=null;
@@ -53,7 +54,7 @@
     fields.markdown.onchange=async()=>{const f=fields.markdown.files?.[0];if(f)fields.editor.innerHTML=escapeHtml(await f.text()).replace(/^### (.*)$/gm,'<h3>$1</h3>').replace(/^## (.*)$/gm,'<h2>$1</h2>').replace(/^# (.*)$/gm,'<h1>$1</h1>').replace(/\n\n/g,'<p>')};
     form.onsubmit=async e=>{e.preventDefault();const lang=fields.language.value;const current={title:fields.title.value.trim(),author:fields.author.value.trim(),date:fields.date.value,summary:fields.summary.value.trim(),content:fields.editor.innerHTML.trim(),imageUrl:fields.imageUrl.value.trim(),readMoreUrl:''};if(!current.title||!current.author||!current.date||!current.summary||!current.content){say('Complete all required article fields.','error');return}const payload={...current,language:lang};try{if(editing){const baseLang=editing.defaultLanguage||editing.language||'en';const translations={...(editing.translations||{})};if(!Object.keys(translations).length)translations[baseLang]={title:editing.title||'',author:editing.author||'',date:editing.date||'',summary:editing.summary||'',content:editing.content||'',imageUrl:editing.imageUrl||'',readMoreUrl:editing.readMoreUrl||''};translations[lang]=current;Object.assign(payload,translations[baseLang]);Object.assign(payload,{language:lang,defaultLanguage:baseLang,translations});await api.updateArticle(editing.id,payload)}else{payload.defaultLanguage=lang;payload.translations={[lang]:current};await api.addArticle(payload,fields.id.value||null)}say('Article saved successfully.');await loadArticles();resetForm()}catch(err){console.error(err);say(err.message||'Could not save article.','error')}};
     $('logoutBtn').onclick=async()=>{await signOut(auth);location.href='login.html'};
-    onAuthStateChanged(auth,async user=>{if(!user){location.href='login.html';return}const snap=await getDoc(doc(db,'config','admins'));const admins=snap.exists()?snap.data().admins||[]:[];if(!admins.includes((user.email||'').toLowerCase())){location.href='index.html';return}$('authMessage').hidden=true;$('editorApp').hidden=false;await loadArticles();setMode('add')});
+    onAuthStateChanged(auth,async user=>{if(!user){location.href='login.html';return}const access=await getAdminAccess(db,user.email||'');persistAccessSession(access);if(!canManage(access,'articles')){location.href=access.allowed?'admin-dashboard.html':'index.html';return}$('authMessage').hidden=true;$('editorApp').hidden=false;await loadArticles();setMode('add')});
   </script>
 </body>
 </html>

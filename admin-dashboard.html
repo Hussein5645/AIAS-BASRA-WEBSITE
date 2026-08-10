@@ -14,13 +14,13 @@
   <script src="js/main.js" defer></script>
   <style>
     :root {
-      --bg: #f7fafc;
+      --bg: #f4f1ed;
       --panel: #ffffff;
       --text: #1a202c;
       --muted: #4a5568;
       --border: #e2e8f0;
-      --brand1: #667eea;
-      --brand2: #764ba2;
+      --brand1: #6b2228;
+      --brand2: #9b5e4d;
       --success: #38a169;
       --error: #e53e3e;
     }
@@ -59,11 +59,21 @@
     .delete-btn { background: var(--error); } .delete-btn:hover { filter: brightness(0.95); }
     .edit-btn { background: #3182ce; } .edit-btn:hover { filter: brightness(0.95); }
     .community-review-controls { display:grid; grid-template-columns:1fr 120px; gap:.55rem; margin-bottom:.75rem; }.community-review-controls input,.community-review-controls select { min-width:0; padding:.55rem .65rem; border:1px solid var(--border); border-radius:8px; font:inherit; font-size:.8rem; }.community-review-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.75rem; padding:.8rem 0; border-bottom:1px solid var(--border); }.community-review-row:last-child { border-bottom:0; }.community-review-title { font-weight:800; color:#1f2937; line-height:1.35; }.community-review-meta { color:var(--muted); font-size:.76rem; margin-top:.25rem; }.community-review-actions { display:flex; flex-wrap:wrap; gap:.4rem; justify-content:flex-end; align-content:start; }.community-preview-btn { display:inline-flex; align-items:center; justify-content:center; padding:.45rem .7rem; border-radius:8px; color:#fff!important; background:#334155; text-decoration:none; font-weight:800; font-size:.75rem; box-shadow:0 2px 4px rgba(15,23,42,.2); }.community-preview-btn:hover { background:#0f172a; }.community-status { display:inline-block; border-radius:999px; padding:.14rem .42rem; font-weight:800; font-size:.68rem; }.community-status.pending { color:#92400e; background:#fef3c7; }.community-status.featured { color:#166534; background:#dcfce7; }.community-status.none { color:#475569; background:#e2e8f0; }.community-pagination { display:flex; justify-content:space-between; align-items:center; gap:.5rem; margin-top:.75rem; font-size:.75rem; color:var(--muted); }.community-pagination button { border:1px solid var(--border); background:#fff; border-radius:6px; padding:.35rem .55rem; cursor:pointer; font-weight:700; }.community-pagination button:disabled { opacity:.45; cursor:not-allowed; }
-    .tab-content:not(#settings-tab).active { display:grid; grid-template-columns:minmax(250px,330px) minmax(0,1fr); gap:1rem; align-items:start; }
-    .tab-content:not(#settings-tab).active > details { margin:0; }
-    .tab-content:not(#settings-tab).active > details:first-child { position:sticky; top:1.25rem; max-height:calc(100vh - 2.5rem); overflow:auto; }
-    .tab-content:not(#settings-tab).active > details > summary { background:#f8fafc; }
-    .tab-content:not(#settings-tab) .accordion-body.panel { box-shadow:none; border-radius:0; }
+    .access-badge { display:inline-flex; align-items:center; gap:.4rem; padding:.38rem .7rem; border:1px solid rgba(255,255,255,.45); border-radius:999px; background:rgba(255,255,255,.14); font-size:.75rem; font-weight:800; }
+    .access-card { margin:.8rem; padding:.9rem; border-radius:12px; color:#f8fafc; background:linear-gradient(145deg,#321c22,#6b2228); }.access-card strong,.access-card span { display:block; }.access-card strong { font-size:.86rem; }.access-card span { margin-top:.25rem; color:#ead7cf; font-size:.72rem; overflow-wrap:anywhere; }
+    .role-read-only details:has(form),.role-read-only form,.role-read-only .edit-btn,.role-read-only .delete-btn,.role-read-only .submit-btn,.role-read-only button[onclick] { display:none!important; }
+    .role-readonly-note { display:none; margin-bottom:.8rem; padding:.75rem .9rem; border-radius:10px; color:#7c4a03; background:#fff7df; border:1px solid #f1d68a; font-size:.82rem; font-weight:700; }.role-read-only > .role-readonly-note { display:block; }
+    .role-hero { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:1rem; padding:1.35rem; color:#fff; border-radius:16px; background:radial-gradient(circle at 85% 15%,rgba(240,218,161,.28),transparent 30%),linear-gradient(135deg,#321c22,#6b2228 65%,#9b5e4d); }.role-hero h2 { margin:0 0 .35rem; font-size:1.35rem; }.role-hero p { max-width:650px; margin:0; color:#eeded8; line-height:1.6; }
+    .role-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:.75rem; margin-bottom:1rem; }.role-stat { padding:1rem; border:1px solid var(--border); border-radius:12px; background:#fff; }.role-stat strong { display:block; color:var(--brand1); font-size:1.5rem; }.role-stat span { color:var(--muted); font-size:.75rem; }
+    .role-grid { display:grid; grid-template-columns:minmax(320px,.85fr) minmax(0,1.15fr); gap:1rem; align-items:start; }.role-grid .panel { border:1px solid var(--border); }
+    .permission-matrix { display:grid; gap:.55rem; margin:1rem 0; }.permission-row { display:grid; grid-template-columns:minmax(0,1fr) 150px; gap:.75rem; align-items:center; padding:.7rem; border:1px solid var(--border); border-radius:10px; background:#fafafa; }.permission-row strong,.permission-row small { display:block; }.permission-row small { margin-top:.2rem; color:var(--muted); font-size:.7rem; }.permission-row select { width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; background:#fff; font:inherit; }
+    .role-list,.assignment-list { display:grid; gap:.6rem; margin-top:.75rem; }.role-item,.assignment-item { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; padding:.85rem; border:1px solid var(--border); border-radius:10px; background:#fff; }.role-item h4,.assignment-item strong { margin:0; color:#263244; }.role-item p,.assignment-item small { display:block; margin:.25rem 0 0; color:var(--muted); font-size:.72rem; }.role-item-actions { display:flex; gap:.35rem; flex-wrap:wrap; justify-content:flex-end; }.role-item-actions button { border:1px solid var(--border); border-radius:7px; background:#fff; padding:.35rem .55rem; cursor:pointer; font:inherit; font-size:.7rem; font-weight:800; }.role-item-actions button.danger { color:#b91c1c; border-color:#fecaca; }
+    .role-form-actions { display:flex; gap:.5rem; }.role-form-actions button { flex:1; }.assignment-form { display:grid; grid-template-columns:minmax(0,1fr) 180px auto; gap:.55rem; align-items:end; }.assignment-form .form-group { margin:0; }
+    .tab-content:not(#settings-tab):not(#roles-tab).active { display:grid; grid-template-columns:minmax(250px,330px) minmax(0,1fr); gap:1rem; align-items:start; }
+    .tab-content:not(#settings-tab):not(#roles-tab).active > details { margin:0; }
+    .tab-content:not(#settings-tab):not(#roles-tab).active > details:first-child { position:sticky; top:1.25rem; max-height:calc(100vh - 2.5rem); overflow:auto; }
+    .tab-content:not(#settings-tab):not(#roles-tab).active > details > summary { background:#f8fafc; }
+    .tab-content:not(#settings-tab):not(#roles-tab) .accordion-body.panel { box-shadow:none; border-radius:0; }
     .rich-editor-toolbar { display:flex; flex-wrap:wrap; gap:.35rem; padding:.5rem; border:1px solid #d9e1ef; border-bottom:0; border-radius:8px 8px 0 0; background:#f7f9fc; }
     .rich-editor-toolbar button { border:1px solid #cbd5e1; background:#fff; border-radius:5px; padding:.35rem .6rem; cursor:pointer; }
     .rich-editor { min-height:260px; padding:1rem; border:1px solid #d9e1ef; border-radius:0 0 8px 8px; background:#fff; line-height:1.7; }
@@ -98,9 +108,9 @@
     @media (max-width: 900px) {
       .dashboard { grid-template-columns: 1fr; }
       .sidebar { position: static; height: auto; }
-      .two-col { grid-template-columns: 1fr; }
-      .tab-content:not(#settings-tab).active { grid-template-columns:1fr; }
-      .tab-content:not(#settings-tab).active > details:first-child { position:static; max-height:none; }
+      .two-col,.role-grid,.role-stats,.assignment-form { grid-template-columns: 1fr; }
+      .tab-content:not(#settings-tab):not(#roles-tab).active { grid-template-columns:1fr; }
+      .tab-content:not(#settings-tab):not(#roles-tab).active > details:first-child { position:static; max-height:none; }
     }
   </style>
 </head>
@@ -110,6 +120,7 @@
     <div class="container">
       <h1 data-en="Admin Dashboard" data-ar="لوحة التحكم الإدارية">Admin Dashboard</h1>
       <div class="admin-info">
+        <span id="currentRoleBadge" class="access-badge">Checking access…</span>
         <button class="language-toggle" id="languageToggle" style="display:inline-flex;align-items:center;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
             <circle cx="12" cy="12" r="10"/>
@@ -133,10 +144,11 @@
         <li><button data-tab="articles" data-en="Magazine" data-ar="المجلة">Magazine</button></li>
         <li><button data-tab="library" data-en="Library" data-ar="المكتبة">Library</button></li>
         <li><button data-tab="models3d" data-en="3D Models" data-ar="نماذج ثلاثية الأبعاد">3D Models</button></li>
-        <li><button data-tab="education" data-en="Education" data-ar="التعليم">Education</button></li>
         <li><button data-tab="fbd" data-en="FBD" data-ar="FBD">FBD</button></li>
         <li><button data-tab="settings" data-en="Settings" data-ar="الإعدادات">Settings</button></li>
+        <li><button data-tab="roles">Roles &amp; access</button></li>
       </ul>
+      <div class="access-card"><strong id="sidebarRoleName">Loading role…</strong><span id="sidebarUserEmail"></span><span id="sidebarAccessSummary"></span></div>
     </aside>
 
     <!-- Main content -->
@@ -286,9 +298,9 @@
         </details>
       </section>
 
-      <!-- Community feature review and direct embeds -->
+      <!-- Community project review and direct embeds -->
       <section id="community-tab" class="tab-content">
-        <details class="accordion" open><summary>Community feature requests</summary><div class="accordion-body panel"><p style="color:#4a5568;margin-bottom:1rem">Approve to show a community post on the main Community Projects page, deny to remove its request, or unfeature a published selection.</p><div id="communityAdminList"><p>Loading community posts…</p></div></div></details>
+        <details class="accordion" open><summary>Project selection requests</summary><div class="accordion-body panel"><p style="color:#4a5568;margin-bottom:1rem">Review Behance projects submitted for the Selected Projects page. Text posts cannot be selected or featured.</p><div id="communityAdminList"><p>Loading project requests…</p></div></div></details>
         <details class="accordion" open><summary>Add a Behance project directly</summary><div class="accordion-body panel"><p style="color:#4a5568;margin-bottom:1rem">Use the Magazine tab to create a full main-site article. Add a Behance project here to publish it directly to the Community Projects page.</p><form id="adminBehanceForm"><div class="two-col"><div class="form-group"><label for="adminBehanceTitle">Title</label><input id="adminBehanceTitle" required maxlength="160"></div><div class="form-group"><label for="adminBehanceSummary">Summary</label><input id="adminBehanceSummary" required maxlength="360"></div></div><div class="form-group"><label for="adminBehanceEmbed">Behance iframe code</label><textarea id="adminBehanceEmbed" required placeholder="&lt;iframe src=&quot;https://www.behance.net/embed/project/...&quot; ...&gt;&lt;/iframe&gt;"></textarea></div><button class="submit-btn" type="submit">Publish selected project</button><p id="adminBehanceStatus" style="margin-top:.75rem"></p></form></div></details>
       </section>
 
@@ -528,19 +540,27 @@
           </div>
         </details>
 
-        <details class="accordion" open>
-          <summary data-en="Admin Management" data-ar="إدارة المسؤولين">Admin Management</summary>
-          <div class="accordion-body panel">
-            <div style="margin-bottom:1rem">
-              <h4>Current Admins:</h4>
-              <div id="adminsList" style="background:#f7fafc;padding:1rem;border-radius:8px;min-height:60px"><p>Loading...</p></div>
-            </div>
-            <div class="form-group">
-          
-              </div>
-            </div>
+      </section>
+
+      <section id="roles-tab" class="tab-content">
+        <div class="role-hero"><div><h2>Roles &amp; access</h2><p>Create roles with precise view or manage access, then assign people by their sign-in email. Legacy administrators remain super admins during migration.</p></div><span class="access-badge">Super Admin only</span></div>
+        <div id="roleStats" class="role-stats"><div class="role-stat"><strong>—</strong><span>Roles</span></div><div class="role-stat"><strong>—</strong><span>Assigned people</span></div><div class="role-stat"><strong>—</strong><span>Super admins</span></div></div>
+        <div class="role-grid">
+          <div class="panel">
+            <h3 id="roleFormTitle" style="margin-top:0">Create a role</h3>
+            <form id="roleForm">
+              <input id="roleId" type="hidden">
+              <div class="form-group"><label for="roleName">Role name</label><input id="roleName" required maxlength="80" placeholder="Example: Events reviewer"></div>
+              <div class="form-group"><label for="roleDescription">Description</label><textarea id="roleDescription" maxlength="240" placeholder="What is this role responsible for?"></textarea></div>
+              <div id="rolePermissionMatrix" class="permission-matrix"></div>
+              <div class="role-form-actions"><button class="submit-btn" type="submit">Save role</button><button id="cancelRoleEdit" class="mini-btn" type="button">Clear</button></div>
+            </form>
           </div>
-        </details>
+          <div>
+            <div class="panel" style="margin-bottom:1rem"><h3 style="margin-top:0">Available roles</h3><div id="rolesList" class="role-list"><p>Loading roles…</p></div></div>
+            <div class="panel"><h3 style="margin-top:0">People &amp; assignments</h3><form id="assignmentForm" class="assignment-form"><div class="form-group"><label for="assignmentEmail">Google account email</label><input id="assignmentEmail" type="email" required placeholder="person@example.com"></div><div class="form-group"><label for="assignmentRole">Role</label><select id="assignmentRole" required></select></div><button class="submit-btn" type="submit">Assign</button></form><div id="assignmentsList" class="assignment-list"><p>Loading assignments…</p></div></div>
+          </div>
+        </div>
       </section>
     </main>
   </div>
@@ -555,6 +575,7 @@
     import FirestoreAPI from "./js/firestore-api.js?v=20260808-fbd-stats";
     import categoriesLoader from "./js/categories-loader.js";
     import { toBase64, uploadFileChunks, createDocumentId } from "./js/file-chunks.js";
+    import { ADMIN_AREAS, DEFAULT_ROLES, canManage, canView, clearAccessSession, ensureRoleConfiguration, getAdminAccess, normalizeEmail, persistAccessSession, saveAssignments, saveRoles } from "./js/rbac.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
@@ -574,6 +595,8 @@
 
     let CACHE = { events: [], articles: [], library: [], models3d: [], courses: [], fbdEvents: [] };
     let editingArticleRecord = null;
+    let currentAccess = null;
+    let currentAdminUser = null;
 
     /*************************************************
      * تنقل التبويبات
@@ -601,8 +624,9 @@
     window.logout = async function() {
       try {
         await signOut(auth);
-        ['aias_authenticated','aias_user_email','aias_user_name','aias_user_picture','aias_is_admin','aias_user_uid']
+        ['aias_authenticated','aias_user_email','aias_user_name','aias_user_picture','aias_user_uid']
           .forEach(localStorage.removeItem.bind(localStorage));
+        clearAccessSession();
         window.location.href = 'login.html';
       } catch (error) {
         console.error('Logout error:', error);
@@ -610,30 +634,26 @@
       }
     };
 
-    async function checkIfAdmin(email) {
-      try {
-        const adminDoc = await getDoc(doc(db, 'config', 'admins'));
-        if (adminDoc.exists()) {
-          const data = adminDoc.data();
-            return Array.isArray(data.admins) && data.admins.includes(email.toLowerCase());
-        }
-      } catch (error) { console.error('Error checking admin status:', error); }
-      return false;
-    }
-
     (function() {
       onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          const isAdmin = await checkIfAdmin(user.email);
+        if (!user) { clearAccessSession(); window.location.href = 'login.html'; return; }
+        try {
+          currentAdminUser = user;
+          currentAccess = await getAdminAccess(db, user.email);
+          if (!currentAccess.allowed) { clearAccessSession(); window.location.href = 'index.html'; return; }
+          if (currentAccess.isSuperAdmin) currentAccess = await ensureRoleConfiguration(db, currentAccess, user.email);
+          persistAccessSession(currentAccess);
           localStorage.setItem('aias_authenticated','true');
-          localStorage.setItem('aias_user_email', user.email);
+          localStorage.setItem('aias_user_email', user.email || '');
           localStorage.setItem('aias_user_name', user.displayName || 'Admin');
           localStorage.setItem('aias_user_picture', user.photoURL || '');
-          localStorage.setItem('aias_is_admin', isAdmin ? 'true' : 'false');
           localStorage.setItem('aias_user_uid', user.uid);
-        } else {
-          ['aias_authenticated','aias_user_email','aias_user_name','aias_user_picture','aias_is_admin','aias_user_uid']
-            .forEach(localStorage.removeItem.bind(localStorage));
+          applyRoleAccess();
+        } catch (error) {
+          console.error('Could not load admin access:', error);
+          clearAccessSession();
+          window.location.href = 'index.html';
+          return;
         }
         document.getElementById('currentLang').textContent = (localStorage.getItem('language') || 'EN').toUpperCase();
         
@@ -651,9 +671,32 @@
           });
         }
         
-        showTab('events'); // default
+        const firstVisibleTab = document.querySelector('#mainNav button[data-tab]:not([hidden])')?.dataset.tab;
+        if (firstVisibleTab) { document.querySelectorAll('#mainNav button').forEach(button => button.classList.toggle('active', button.dataset.tab === firstVisibleTab)); showTab(firstVisibleTab); }
       });
     })();
+
+    function applyRoleAccess() {
+      const roleName = currentAccess?.role?.name || 'Admin';
+      const visibleAreas = ADMIN_AREAS.filter(area => canView(currentAccess, area.id));
+      document.getElementById('currentRoleBadge').textContent = roleName;
+      document.getElementById('sidebarRoleName').textContent = roleName;
+      document.getElementById('sidebarUserEmail').textContent = currentAdminUser?.email || '';
+      document.getElementById('sidebarAccessSummary').textContent = currentAccess?.isSuperAdmin ? 'Full system access' : `${visibleAreas.length} visible area${visibleAreas.length === 1 ? '' : 's'}`;
+      document.querySelectorAll('#mainNav button[data-tab]').forEach(button => {
+        const tab = button.dataset.tab;
+        const visible = tab === 'settings' || tab === 'roles' ? currentAccess.isSuperAdmin : canView(currentAccess, tab);
+        button.hidden = !visible;
+        button.closest('li').hidden = !visible;
+      });
+      ADMIN_AREAS.forEach(area => {
+        const section = document.getElementById(`${area.id}-tab`);
+        if (!section) return;
+        const readOnly = canView(currentAccess, area.id) && !canManage(currentAccess, area.id);
+        section.classList.toggle('role-read-only', readOnly);
+        if (readOnly && !section.querySelector('.role-readonly-note')) section.insertAdjacentHTML('afterbegin', `<div class="role-readonly-note">Read-only access: you can review this section, but changes are disabled for your role.</div>`);
+      });
+    }
 
     /*************************************************
      * تحميل الفئات من JSON
@@ -734,6 +777,10 @@
     };
 
     window.showTab = function(tab) {
+      if (!currentAccess) return;
+      const knownArea = ADMIN_AREAS.some(area => area.id === tab);
+      const allowed = tab === 'settings' || tab === 'roles' ? currentAccess.isSuperAdmin : (knownArea && canView(currentAccess, tab));
+      if (!allowed) return;
       document.querySelectorAll('.content > .tab-content').forEach(t=>t.classList.remove('active'));
       const target = document.getElementById(`${tab}-tab`);
       if (target) target.classList.add('active');
@@ -742,37 +789,109 @@
       if (tab==='community') loadCommunityAdminPosts();
       if (tab==='library') loadExistingLibraryResources();
       if (tab==='models3d') loadExistingModels3D();
-      if (tab==='education') { loadCourses(); }
       if (tab==='fbd') { loadFbd(); }
-      if (tab==='settings') { testFirestoreConnection(); loadAdminsList?.(); }
+      if (tab==='settings') testFirestoreConnection();
+      if (tab==='roles') renderRolesAdmin();
     };
+
+    const roleEscape = value => String(value || '').replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
+
+    function renderPermissionMatrix(permissions = []) {
+      const matrix = document.getElementById('rolePermissionMatrix');
+      matrix.innerHTML = ADMIN_AREAS.map(area => {
+        const level = permissions.includes(`manage_${area.id}`) ? 'manage' : permissions.includes(`view_${area.id}`) ? 'view' : 'none';
+        return `<label class="permission-row"><span><strong>${roleEscape(area.label)}</strong><small>${roleEscape(area.description)}</small></span><select data-permission-area="${area.id}"><option value="none" ${level === 'none' ? 'selected' : ''}>No access</option><option value="view" ${level === 'view' ? 'selected' : ''}>View only</option><option value="manage" ${level === 'manage' ? 'selected' : ''}>View &amp; manage</option></select></label>`;
+      }).join('');
+    }
+
+    function resetRoleForm() {
+      const form = document.getElementById('roleForm');
+      form.reset();
+      document.getElementById('roleId').value = '';
+      document.getElementById('roleFormTitle').textContent = 'Create a role';
+      renderPermissionMatrix();
+    }
+
+    function permissionSummary(role) {
+      if ((role.permissions || []).includes('*')) return 'Full system access';
+      const managed = ADMIN_AREAS.filter(area => (role.permissions || []).includes(`manage_${area.id}`)).length;
+      const viewed = ADMIN_AREAS.filter(area => (role.permissions || []).includes(`view_${area.id}`)).length;
+      return `${managed} managed · ${viewed} view-only`;
+    }
+
+    async function renderRolesAdmin() {
+      if (!currentAccess?.isSuperAdmin) return;
+      currentAccess = await getAdminAccess(db, currentAdminUser.email);
+      persistAccessSession(currentAccess);
+      const roles = currentAccess.roles || DEFAULT_ROLES;
+      const assignments = currentAccess.assignments || {};
+      document.getElementById('roleStats').innerHTML = `<div class="role-stat"><strong>${Object.keys(roles).length}</strong><span>Roles</span></div><div class="role-stat"><strong>${Object.keys(assignments).length}</strong><span>Assigned people</span></div><div class="role-stat"><strong>${currentAccess.legacyAdmins.length}</strong><span>Legacy super admins</span></div>`;
+      document.getElementById('rolesList').innerHTML = Object.entries(roles).map(([id, role]) => `<article class="role-item"><div><h4>${roleEscape(role.name || id)}</h4><p>${roleEscape(role.description || '')}</p><p>${roleEscape(permissionSummary(role))}</p></div><div class="role-item-actions">${role.builtIn ? '<span class="community-status none">Built in</span>' : `<button type="button" data-edit-role="${id}">Edit</button><button class="danger" type="button" data-delete-role="${id}">Delete</button>`}</div></article>`).join('');
+      const roleOptions = Object.entries(roles).map(([id, role]) => `<option value="${id}">${roleEscape(role.name || id)}</option>`).join('');
+      document.getElementById('assignmentRole').innerHTML = roleOptions;
+      const assignedItems = Object.entries(assignments).map(([email, roleId]) => ({email, roleId, legacy:false}));
+      currentAccess.legacyAdmins.forEach(email => { if (!assignments[email]) assignedItems.push({email, roleId:'super_admin', legacy:true}); });
+      assignedItems.sort((a,b) => a.email.localeCompare(b.email));
+      document.getElementById('assignmentsList').innerHTML = assignedItems.length ? assignedItems.map(item => `<article class="assignment-item"><div><strong>${roleEscape(item.email)}</strong><small>${roleEscape((roles[item.roleId] || {}).name || item.roleId)}${item.legacy ? ' · Legacy administrator' : ''}</small></div>${item.legacy ? '<span class="community-status featured">Protected</span>' : `<div class="role-item-actions"><button type="button" data-edit-assignment="${roleEscape(item.email)}">Change</button><button class="danger" type="button" data-remove-assignment="${roleEscape(item.email)}">Remove</button></div>`}</article>`).join('') : '<p>No role assignments yet.</p>';
+
+      document.querySelectorAll('[data-edit-role]').forEach(button => button.addEventListener('click', () => {
+        const role = roles[button.dataset.editRole]; if (!role || role.builtIn) return;
+        document.getElementById('roleId').value = button.dataset.editRole;
+        document.getElementById('roleName').value = role.name || '';
+        document.getElementById('roleDescription').value = role.description || '';
+        document.getElementById('roleFormTitle').textContent = `Edit ${role.name || 'role'}`;
+        renderPermissionMatrix(role.permissions || []);
+        document.getElementById('roleForm').scrollIntoView({behavior:'smooth', block:'start'});
+      }));
+      document.querySelectorAll('[data-delete-role]').forEach(button => button.addEventListener('click', async () => {
+        const id = button.dataset.deleteRole;
+        if (Object.values(assignments).includes(id)) { showMessage('Reassign everyone using this role before deleting it.', 'error'); return; }
+        if (!confirm(`Delete the role “${roles[id]?.name || id}”?`)) return;
+        const nextRoles = {...roles}; delete nextRoles[id];
+        await saveRoles(db, nextRoles, currentAdminUser.email); resetRoleForm(); await renderRolesAdmin(); showMessage('Role deleted.', 'success');
+      }));
+      document.querySelectorAll('[data-edit-assignment]').forEach(button => button.addEventListener('click', () => { document.getElementById('assignmentEmail').value = button.dataset.editAssignment; document.getElementById('assignmentRole').value = assignments[button.dataset.editAssignment]; document.getElementById('assignmentEmail').focus(); }));
+      document.querySelectorAll('[data-remove-assignment]').forEach(button => button.addEventListener('click', async () => { if (normalizeEmail(button.dataset.removeAssignment) === normalizeEmail(currentAdminUser.email)) { showMessage('You cannot remove your own active access.', 'error'); return; } const next = {...assignments}; delete next[button.dataset.removeAssignment]; await saveAssignments(db, next, currentAdminUser.email); await renderRolesAdmin(); showMessage('Access removed.', 'success'); }));
+    }
+
+    document.getElementById('roleForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      if (!currentAccess?.isSuperAdmin) return;
+      const name = document.getElementById('roleName').value.trim();
+      const permissions = [...document.querySelectorAll('[data-permission-area]')].flatMap(select => select.value === 'none' ? [] : [`${select.value}_${select.dataset.permissionArea}`]);
+      if (!permissions.length) { showMessage('Choose at least one view or manage permission.', 'error'); return; }
+      const existingId = document.getElementById('roleId').value;
+      const baseId = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0,36) || 'custom_role';
+      const id = existingId || (currentAccess.roles[baseId] ? `${baseId}_${Date.now().toString(36)}` : baseId);
+      const roles = {...currentAccess.roles, [id]:{name, description:document.getElementById('roleDescription').value.trim(), permissions, builtIn:false}};
+      await saveRoles(db, roles, currentAdminUser.email); resetRoleForm(); await renderRolesAdmin(); showMessage(existingId ? 'Role updated.' : 'Role created.', 'success');
+    });
+    document.getElementById('cancelRoleEdit').addEventListener('click', resetRoleForm);
+
+    document.getElementById('assignmentForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      if (!currentAccess?.isSuperAdmin) return;
+      const email = normalizeEmail(document.getElementById('assignmentEmail').value);
+      if (currentAccess.legacyAdmins.includes(email)) { showMessage('Legacy administrators already have protected Super Admin access.', 'error'); return; }
+      const roleId = document.getElementById('assignmentRole').value;
+      if (!currentAccess.roles[roleId]) { showMessage('Choose a valid role.', 'error'); return; }
+      if (email === normalizeEmail(currentAdminUser.email) && roleId !== 'super_admin') { showMessage('You cannot reduce your own active Super Admin access.', 'error'); return; }
+      await saveAssignments(db, {...currentAccess.assignments, [email]:roleId}, currentAdminUser.email);
+      event.target.reset(); await renderRolesAdmin(); showMessage('Role assigned successfully.', 'success');
+    });
+    resetRoleForm();
 
     /*************************************************
      * تحميل القوائم
      *************************************************/
     const communityEscape = (value) => String(value || '').replace(/[&<>"']/g, char => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;' })[char]);
-    window.loadCommunityAdminPosts = async function() {
-      const box = document.getElementById('communityAdminList');
-      if (!box) return;
-      box.innerHTML = '<p>Loading community posts…</p>';
-      try {
-        const posts = (await getDocs(collection(db, 'communityPosts'))).docs
-          .map(item => ({ id: item.id, ...item.data() }))
-          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-        if (!posts.length) { box.innerHTML = '<p>No community posts have been submitted.</p>'; return; }
-        box.innerHTML = posts.map(post => `<div class="item-card"><div><strong>${communityEscape(post.title)}</strong><br><small>${communityEscape(post.authorName || 'Member')} · ${communityEscape(post.type)} · ${post.featured ? 'Featured' : (post.featureRequest ? `Request: ${communityEscape(post.featureStatus || 'pending')}` : 'Not requested')}</small></div><div class="item-actions"><button class="btn edit-btn" onclick="reviewCommunityPost('${post.id}','approve')">Feature</button><button class="btn delete-btn" onclick="reviewCommunityPost('${post.id}','deny')">Deny request</button>${post.featured ? `<button class="btn" onclick="reviewCommunityPost('${post.id}','remove')">Unfeature</button>` : ''}</div></div>`).join('');
-        box.querySelectorAll('.item-actions').forEach((actions, index) => {
-          const preview = document.createElement('a'); preview.className = 'btn'; preview.href = `community.html?post=${encodeURIComponent(posts[index].id)}`; preview.target = '_blank'; preview.rel = 'noopener'; preview.textContent = 'View post'; actions.prepend(preview);
-        });
-      } catch (error) { console.error('[CommunityAdmin] load failed', error); box.innerHTML = '<p style="color:red">Could not load community posts.</p>'; }
-    };
     let communityReviewState = { query:'', status:'all', page:0 };
     window.loadCommunityAdminPosts = async function() {
       const box = document.getElementById('communityAdminList');
       if (!box) return;
       box.innerHTML = '<p>Loading community posts…</p>';
       try {
-        const allPosts = (await getDocs(collection(db, 'communityPosts'))).docs.map(item => ({ id:item.id, ...item.data() })).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        const allPosts = (await getDocs(collection(db, 'communityPosts'))).docs.map(item => ({ id:item.id, ...item.data() })).filter(post => post.type === 'behance').sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
         const query = communityReviewState.query.trim().toLowerCase();
         const filtered = allPosts.filter(post => {
           const status = post.featured ? 'featured' : (post.featureRequest ? (post.featureStatus || 'pending') : 'none');
@@ -781,7 +900,7 @@
         const pageSize = 10, pages = Math.max(1, Math.ceil(filtered.length / pageSize));
         communityReviewState.page = Math.min(communityReviewState.page, pages - 1);
         const pagePosts = filtered.slice(communityReviewState.page * pageSize, (communityReviewState.page + 1) * pageSize);
-        box.innerHTML = `<div class="community-review-controls"><input id="communityReviewSearch" value="${communityEscape(communityReviewState.query)}" placeholder="Search title, author, or type"><select id="communityReviewStatus"><option value="all">All posts</option><option value="pending">Pending requests</option><option value="featured">Featured</option><option value="none">No request</option></select></div><div class="community-review-list">${pagePosts.length ? pagePosts.map(post => { const status = post.featured ? 'featured' : (post.featureRequest ? (post.featureStatus || 'pending') : 'none'); return `<article class="community-review-row"><div><div class="community-review-title">${communityEscape(post.title)}</div><div class="community-review-meta">${communityEscape(post.authorName || 'Member')} · ${communityEscape(post.type)} · <span class="community-status ${status === 'approved' ? 'featured' : status}">${communityEscape(status)}</span></div></div><div class="community-review-actions"><a class="community-preview-btn" href="community.html?post=${encodeURIComponent(post.id)}" target="_blank" rel="noopener">View post</a><button class="btn edit-btn" onclick="reviewCommunityPost('${post.id}','approve')">Feature</button><button class="btn delete-btn" onclick="reviewCommunityPost('${post.id}','deny')">Deny</button>${post.featured ? `<button class="btn" onclick="reviewCommunityPost('${post.id}','remove')">Unfeature</button>` : ''}</div></article>`; }).join('') : '<p>No posts match this review filter.</p>'}</div><div class="community-pagination"><button id="communityPrev" ${communityReviewState.page === 0 ? 'disabled' : ''}>Previous</button><span>${filtered.length} posts · Page ${communityReviewState.page + 1} of ${pages}</span><button id="communityNext" ${communityReviewState.page >= pages - 1 ? 'disabled' : ''}>Next</button></div>`;
+        box.innerHTML = `<div class="community-review-controls"><input id="communityReviewSearch" value="${communityEscape(communityReviewState.query)}" placeholder="Search project or author"><select id="communityReviewStatus"><option value="all">All projects</option><option value="pending">Pending requests</option><option value="featured">Selected projects</option><option value="none">No request</option></select></div><div class="community-review-list">${pagePosts.length ? pagePosts.map(post => { const status = post.featured ? 'featured' : (post.featureRequest ? (post.featureStatus || 'pending') : 'none'); return `<article class="community-review-row"><div><div class="community-review-title">${communityEscape(post.title)}</div><div class="community-review-meta">${communityEscape(post.authorName || 'Member')} · Behance project · <span class="community-status ${status === 'approved' ? 'featured' : status}">${communityEscape(status)}</span></div></div><div class="community-review-actions"><a class="community-preview-btn" href="project.html?communityPost=${encodeURIComponent(post.id)}" target="_blank" rel="noopener">Open project</a><button class="btn edit-btn" onclick="reviewCommunityPost('${post.id}','approve')">Select</button><button class="btn delete-btn" onclick="reviewCommunityPost('${post.id}','deny')">Deny</button>${post.featured ? `<button class="btn" onclick="reviewCommunityPost('${post.id}','remove')">Remove selection</button>` : ''}</div></article>`; }).join('') : '<p>No projects match this review filter.</p>'}</div><div class="community-pagination"><button id="communityPrev" ${communityReviewState.page === 0 ? 'disabled' : ''}>Previous</button><span>${filtered.length} projects · Page ${communityReviewState.page + 1} of ${pages}</span><button id="communityNext" ${communityReviewState.page >= pages - 1 ? 'disabled' : ''}>Next</button></div>`;
         document.getElementById('communityReviewStatus').value = communityReviewState.status;
         document.getElementById('communityReviewSearch').addEventListener('input', event => { communityReviewState.query = event.target.value; communityReviewState.page = 0; loadCommunityAdminPosts(); });
         document.getElementById('communityReviewStatus').addEventListener('change', event => { communityReviewState.status = event.target.value; communityReviewState.page = 0; loadCommunityAdminPosts(); });
@@ -791,13 +910,15 @@
     };
 
     window.reviewCommunityPost = async function(id, action) {
+      const postSnapshot = await getDoc(doc(db, 'communityPosts', id));
+      if (!postSnapshot.exists() || postSnapshot.data().type !== 'behance') { showMessage('Only Behance projects can be selected.', 'error'); return; }
       const values = action === 'approve'
         ? { featured: true, featureRequest: true, featureStatus: 'approved', featuredAt: serverTimestamp() }
         : action === 'deny'
           ? { featured: false, featureStatus: 'denied' }
           : { featured: false, featureStatus: 'none' };
-      try { await setDoc(doc(db, 'communityPosts', id), values, { merge: true }); showMessage(action === 'approve' ? 'Community post featured on the main website.' : 'Community post updated.', 'success'); loadCommunityAdminPosts(); }
-      catch (error) { showMessage(error.message || 'Could not update the community post.', 'error'); }
+      try { await setDoc(doc(db, 'communityPosts', id), values, { merge: true }); showMessage(action === 'approve' ? 'Project selected for the main website.' : 'Project selection updated.', 'success'); loadCommunityAdminPosts(); }
+      catch (error) { showMessage(error.message || 'Could not update the project.', 'error'); }
     };
     document.getElementById('adminBehanceForm')?.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -809,7 +930,7 @@
       const button = event.submitter; button.disabled = true;
       try {
         await addDoc(collection(db, 'communityPosts'), { type: 'behance', title: document.getElementById('adminBehanceTitle').value.trim(), summary: document.getElementById('adminBehanceSummary').value.trim(), content: '', behanceSrc: src, userId: auth.currentUser?.uid || 'admin', authorName: auth.currentUser?.displayName || auth.currentUser?.email || 'AIAS Basra', published: true, featureRequest: false, featureStatus: 'approved', featured: true, createdAt: serverTimestamp(), featuredAt: serverTimestamp() });
-        event.target.reset(); status.textContent = 'Behance project published and featured.'; status.style.color = '#15803d'; loadCommunityAdminPosts();
+        event.target.reset(); status.textContent = 'Behance project published and selected.'; status.style.color = '#15803d'; loadCommunityAdminPosts();
       } catch (error) { status.textContent = error.message || 'Could not publish this project.'; status.style.color = '#b91c1c'; }
       finally { button.disabled = false; }
     });
@@ -2144,14 +2265,6 @@
 
       addUploadListener('eventGalleryFiles', 'eventGalleryStatus', true, () => firestoreAPI.paths.eventsCol, 'eventId');
       addUploadListener('fbdEventGalleryFiles', 'fbdEventGalleryStatus', true, () => firestoreAPI.paths.fbdEventsCol, 'fbdEventId');
-
-      window.loadAdminsList = async function() {
-      const box = document.getElementById('adminsList'); box.innerHTML = '<p>Loading...</p>';
-      const r = await firestoreAPI.getAdmins();
-      if (!r.success) { box.innerHTML = `<p style="color:red">${r.error}</p>`; return; }
-      if ((r.admins||[]).length===0) { box.innerHTML = '<p>No admins found.</p>'; return; }
-      box.innerHTML = r.admins.map(a=>`<div class="content-item"><div>${a}</div></div>`).join('');
-    };
 
     /*************************************************
      * END

@@ -1,6 +1,8 @@
 // Authentication check for protected pages with Firebase integration
 import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { clearAccessSession, getAdminAccess, persistAccessSession } from "./rbac.js";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -21,6 +23,7 @@ try {
     app = initializeApp(firebaseConfig);
 }
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 function hasFirebaseSession() {
     try {
@@ -100,7 +103,7 @@ function clearLocalAuthState(clearSession = false) {
     localStorage.removeItem('aias_user_email');
     localStorage.removeItem('aias_user_name');
     localStorage.removeItem('aias_user_picture');
-    localStorage.removeItem('aias_is_admin');
+    clearAccessSession();
     localStorage.removeItem('aias_user_uid');
     localStorage.removeItem('aias_visitor_mode');
     if (clearSession) {
@@ -159,7 +162,9 @@ window.addEventListener('aias-auth-state-updated', syncAuthUI);
     // Check Firebase authentication state
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            const isAdmin = await checkIfAdmin(user.email || '');
+            let access;
+            try { access = await getAdminAccess(db, user.email || ''); }
+            catch (error) { console.error('Error checking admin access:', error); access = { allowed:false, isSuperAdmin:false, permissions:[] }; }
 
             // User is signed in with Firebase
             localStorage.setItem('aias_authenticated', 'true');
@@ -167,13 +172,13 @@ window.addEventListener('aias-auth-state-updated', syncAuthUI);
             localStorage.setItem('aias_user_name', user.displayName || '');
             localStorage.setItem('aias_user_picture', user.photoURL || '');
             localStorage.setItem('aias_user_uid', user.uid);
-            localStorage.setItem('aias_is_admin', isAdmin.toString());
+            persistAccessSession(access);
             localStorage.setItem('aias_visitor_mode', 'false');
             notifyAuthStateUpdated();
             syncAuthUI();
             
             // Protect admin page for admin users only
-            if (currentPage === ADMIN_PAGE && !isAdmin) {
+            if (currentPage === ADMIN_PAGE && !access.allowed) {
                 window.location.href = 'index.html';
             }
         } else {
@@ -189,22 +194,4 @@ window.addEventListener('aias-auth-state-updated', syncAuthUI);
         }
     });
     
-    async function checkIfAdmin(email) {
-        try {
-            // Import Firestore functions
-            const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-            const db = getFirestore(app);
-            
-            // Fetch admin list from Firestore
-            const adminDoc = await getDoc(doc(db, 'config', 'admins'));
-            if (adminDoc.exists()) {
-                const data = adminDoc.data();
-                return data.admins && data.admins.includes(email.toLowerCase());
-            }
-            return false;
-        } catch (error) {
-            console.error('Error checking admin status:', error);
-            return false;
-        }
-    }
 })();
