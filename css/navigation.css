@@ -351,6 +351,15 @@
     pointer-events: none;
 }
 
+/* Community menu uses the same visual language as the other icon menus. */
+#communityMegaMenu .mega-menu-link:nth-of-type(1) .mega-menu-icon,
+#communityMegaMenu .mega-menu-link:nth-of-type(2) .mega-menu-icon,
+#communityMegaMenu .mega-menu-link:nth-of-type(3) .mega-menu-icon { font-size:0; }
+#communityMegaMenu .mega-menu-link:nth-of-type(1) .mega-menu-icon::after { content:'📰'; }
+#communityMegaMenu .mega-menu-link:nth-of-type(2) .mega-menu-icon::after { content:'✨'; }
+#communityMegaMenu .mega-menu-link:nth-of-type(3) .mega-menu-icon::after { content:'👥'; }
+#communityMegaMenu .mega-menu-icon::after { font-size:1.25rem; line-height:1; }
+
 /* ========================================
    RESPONSIVE BEHAVIOR
    ======================================== */
