@@ -368,10 +368,17 @@
         const googleSignUpBtn = document.getElementById('googleSignUp');
         const profileSetupForm = document.getElementById('profileSetupForm');
         const completeProfileBtn = document.getElementById('completeProfileBtn');
+        const requestedNext = new URLSearchParams(window.location.search).get('next') || '';
         const profileFields = {
             displayName: document.getElementById('profileName'), school: document.getElementById('profileSchool'),
             city: document.getElementById('profileCity'), bio: document.getElementById('profileBio')
         };
+
+        function safeNext(fallback) {
+            return requestedNext && !requestedNext.includes('..') && /^[A-Za-z0-9_-]+\.html(?:\?[A-Za-z0-9_%=&.-]+)?$/.test(requestedNext)
+                ? requestedNext
+                : fallback;
+        }
 
         function showMessage(text, type) {
             messageDiv.textContent = text;
@@ -409,12 +416,7 @@
                 persistAccessSession(access);
                 localStorage.setItem('aias_user_uid', user.uid);
 
-                // Redirect based on admin status
-                if (access.allowed) {
-                    window.location.href = 'admin-dashboard.html';
-                } else {
-                    window.location.href = 'index.html';
-                }
+                window.location.href = safeNext(access.allowed ? 'admin-dashboard.html' : 'index.html');
             } catch (error) {
                 console.error('Error checking user role:', error);
                 showMessage('Error checking user permissions. Please try again.', 'error');

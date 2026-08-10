@@ -3,390 +3,171 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#661f22">
+  <meta name="description" content="The AIAS Basra member community — share ideas, discuss architecture, and discover work by local designers.">
   <title>Community — AIAS Basra</title>
   <link rel="icon" type="image/png" href="static/images/branding/LOGO.png">
-  <link rel="stylesheet" href="css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    body { background:#f7f7f6; padding-bottom:5rem; }
-    .community-header { position:sticky; top:0; z-index:20; background:#fff; border-bottom:1px solid #e5e7eb; box-shadow:0 2px 14px rgba(15,23,42,.06); }
-    .community-header .container { min-height:72px; display:flex; align-items:center; gap:1rem; justify-content:space-between; }
-    .community-brand { display:flex; align-items:center; gap:.45rem; color:var(--primary-color); font-weight:800; text-decoration:none; letter-spacing:-.02em; }
-    .community-brand::before { content:'✦'; display:grid; place-items:center; width:28px; height:28px; border-radius:9px; color:#fff; background:var(--gradient-1); font-size:.85rem; }
-    .community-nav { display:flex; gap:.5rem; }
-    .community-nav button { border:0; background:transparent; color:#64748b; padding:.65rem .9rem; border-radius:8px; font:inherit; font-weight:700; cursor:pointer; }
-    .community-nav button.active,.community-nav button:hover { color:var(--primary-color); background:#f5eeee; }
-    .community-actions { display:flex; gap:.45rem; }
-    .community-actions a { color:var(--primary-color); text-decoration:none; border:1px solid #d8c4c4; border-radius:999px; padding:.4rem .65rem; font-size:.78rem; font-weight:800; white-space:nowrap; }
-    .back-site { color:var(--primary-color); text-decoration:none; font-weight:700; font-size:.9rem; }
-    .community-hero { padding:2.2rem 0 2rem; color:#fff; background:linear-gradient(135deg,#661f22 0%,#945c50 55%,#b7866d 100%); }
-    .community-hero h1 { font-size:clamp(1.8rem,4vw,2.7rem); letter-spacing:-.04em; margin-bottom:.5rem; }
-    .community-hero p { max-width:650px; opacity:.92; font-size:1.02rem; }
-    .page { max-width:780px; margin:0 auto; padding:2rem 1rem; }
-    .view[hidden], [hidden] { display:none!important; }
-    .notice { padding:1rem; border-radius:10px; background:#fff8db; color:#765b00; margin-bottom:1rem; }
-    .card { background:#fff; border:0; border-radius:18px; padding:1.25rem; box-shadow:0 8px 24px rgba(15,23,42,.07); }
-    .post-list { display:grid; gap:1.15rem; }
-    .profile-post-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; align-items:start; }
-    .profile-post-tile { position:relative; display:block; aspect-ratio:1; overflow:hidden; background:linear-gradient(145deg,#f5eeee,#e7d9d0); color:#fff; text-decoration:none; }
-    .profile-post-tile iframe { width:100%; height:100%; border:0; pointer-events:none; background:#f8fafc; }
-    .profile-post-copy { height:100%; display:flex; flex-direction:column; justify-content:center; gap:.55rem; padding:clamp(.65rem,2.5vw,1.25rem); color:#3f2426; }
-    .profile-post-copy strong { font-size:clamp(.8rem,2vw,1.15rem); line-height:1.25; }
-    .profile-post-copy span { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:4; font-size:clamp(.66rem,1.4vw,.86rem); line-height:1.45; color:#6b4d4f; }
-    .profile-post-overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:1.1rem; padding:.75rem; opacity:0; color:#fff; background:rgba(26,20,21,.66); font-weight:800; transition:opacity .18s ease; }
-    .profile-post-tile:hover .profile-post-overlay,.profile-post-tile:focus-visible .profile-post-overlay { opacity:1; }
-    .post-head { display:flex; justify-content:space-between; align-items:center; gap:1rem; }
-    .author-link { color:var(--primary-color); text-decoration:none; font-weight:800; }
-    .post-head .author-link { display:inline-flex; align-items:center; gap:.5rem; }
-    .post-head .author-link::before { content:''; width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#f0daa1,#945c50); display:inline-block; }
-    .post-meta { font-size:.84rem; color:#64748b; }
-    .post-title { margin:.75rem 0 .45rem; color:#243142; font-size:1.18rem; line-height:1.35; }
-    .post-title a { color:inherit; text-decoration:none; }
-    .post-title a:hover { color:var(--primary-color); }
-    .post-body { color:#475569; line-height:1.75; white-space:pre-wrap; overflow-wrap:anywhere; }
-    .project-frame { display:block; width:100%; min-height:316px; margin-top:1rem; border:0; border-radius:12px; background:#f8fafc; }
-    .post-actions { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-top:1rem; padding-top:.85rem; border-top:1px solid #eef2f7; }
-    .vote,.link-button { min-height:40px; border-radius:10px; font:inherit; font-weight:700; cursor:pointer; }
-    .vote { border:1px solid #cbd5e1; background:#fff; padding:.45rem .7rem; }
-    .vote.up.active { background:#dcfce7; border-color:#86efac; }
-    .vote.down.active { background:#fee2e2; border-color:#fca5a5; }
-    .link-button { display:inline-flex; align-items:center; border:0; background:#f8fafc; color:var(--primary-color); text-decoration:none; padding:.45rem .7rem; }
-    .post-filters { position:sticky; top:73px; z-index:10; display:flex; flex-wrap:wrap; gap:.55rem; margin:0 0 1rem; padding:.55rem 0; background:rgba(247,247,246,.94); backdrop-filter:blur(10px); }
-    .post-filters button { min-height:40px; border:1px solid #d8c4c4; background:#fff; color:var(--primary-color); border-radius:999px; padding:.45rem .7rem; cursor:pointer; font:inherit; font-weight:700; font-size:.85rem; }
-    .post-filters button.active { background:var(--gradient-1); color:#fff; border-color:transparent; }
-    .comments { background:#fafafa; border-radius:12px; padding:1rem; }
-    .comment { padding:.7rem 0; border-bottom:1px solid #e9edf2; color:#475569; }
-    .comment strong { color:#334155; }
-    .comment-children { margin:.75rem 0 0 1rem; padding-left:.8rem; border-left:2px solid #e2e8f0; }
-    .reply-slot { margin-top:.65rem; }
-    .comment-actions { display:flex; gap:.6rem; margin-top:.4rem; }
-    .comment-action { border:0; background:none; padding:0; color:var(--primary-color); cursor:pointer; font-weight:700; }
-    .comment-form,.reply-form { display:flex; gap:.5rem; margin-top:.8rem; }
-    .comment-form input,.reply-form textarea { flex:1; min-height:44px; padding:.55rem; border:1px solid #cbd5e1; border-radius:8px; font:inherit; }
-    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
-    .form-group { margin-bottom:1rem; }
-    .form-group label { display:block; margin-bottom:.35rem; font-weight:700; color:#334155; }
-    .form-group input,.form-group textarea,.form-group select { width:100%; min-height:46px; padding:.7rem; border:1px solid #cbd5e1; border-radius:12px; font:inherit; }
-    .form-group textarea { min-height:130px; resize:vertical; }
-    .form-group small { color:#64748b; }
-    .feature-request { display:flex; gap:.55rem; align-items:flex-start; margin-bottom:1rem; padding:1rem; border-radius:12px; background:#faf7f1; color:#4b5563; }
-    .feature-request input { width:auto; margin-top:.25rem; }
-    .submit { min-height:46px; border:0; border-radius:12px; background:var(--gradient-1); color:#fff; padding:.75rem 1rem; font:inherit; font-weight:800; cursor:pointer; }
-    .submit:disabled { opacity:.6; cursor:wait; }
-    .profile-card { display:grid; grid-template-columns:100px 1fr; gap:1.25rem; }
-    .avatar { width:100px; height:100px; border-radius:50%; object-fit:cover; background:#eee; }
-    .profile-info p { color:#475569; margin:.35rem 0; }
-    .empty { text-align:center; color:#64748b; padding:2.5rem 1rem; }
-    .status { min-height:1.25rem; margin-top:.75rem; color:#b91c1c; }
-    .project-request { margin-top:1rem; padding-top:.8rem; border-top:1px dashed #cbd5e1; color:#765b00; font-size:.9rem; }
-    .selected-project { color:#a16207; font-weight:800; }
-    body.comments-open { overflow:hidden; }
-    .comments-overlay { position:fixed; inset:0; z-index:100; display:grid; grid-template-columns:minmax(0,1fr) min(560px,100%); }
-    .comments-backdrop { position:absolute; inset:0; width:100%; border:0; background:rgba(15,23,42,.52); cursor:pointer; }
-    .comments-sheet { position:relative; grid-column:2; height:100%; overflow:hidden; display:flex; flex-direction:column; background:#fff; box-shadow:-18px 0 45px rgba(15,23,42,.2); }
-    .comments-sheet-head { min-height:72px; display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem 1.15rem; border-bottom:1px solid #e5e7eb; }
-    .comments-sheet-head h2 { margin:0; color:#243142; font-size:1.1rem; }
-    .comments-close { width:40px; height:40px; border:0; border-radius:50%; background:#f1f5f9; color:#334155; font-size:1.35rem; cursor:pointer; }
-    .comments-sheet-body { overflow-y:auto; padding:0 1.15rem 1.5rem; }
-    .comments-sheet .comments { background:#fff; padding:0; }
-    .comments-sheet .comment-form { position:sticky; bottom:0; z-index:2; margin:0 -1.15rem; padding:1rem 1.15rem max(1rem,env(safe-area-inset-bottom)); background:#fff; border-top:1px solid #e5e7eb; }
-    @media (max-width:700px) {
-      body { background:#f1f3f6; padding-bottom:84px; }
-      .community-header { position:sticky; top:0; }
-      .community-header .container { min-height:58px; padding:.65rem .9rem; }
-      .community-brand { font-size:.9rem; }.community-brand::before { width:24px; height:24px; }
-      .community-actions { display:none; }.back-site { font-size:.75rem; }
-      .community-nav { position:fixed; z-index:30; bottom:0; left:0; right:0; height:72px; padding:.3rem .5rem max(.3rem,env(safe-area-inset-bottom)); justify-content:space-around; background:#fff; border-top:1px solid #e5e7eb; box-shadow:0 -4px 14px rgba(15,23,42,.08); }
-      .community-nav button { min-height:56px; flex:1; display:flex; flex-direction:column; justify-content:center; gap:.15rem; font-size:.72rem; }
-      .community-nav button::before { font-size:1.15rem; line-height:1; }.community-nav button[data-view="home"]::before { content:'⌂'; }.community-nav button[data-view="post"]::before { content:'＋'; }.community-nav button[data-view="profile"]::before { content:'●'; }
-      .community-hero { display:none; }
-      .page,.view { padding:0; }.post-filters { top:0; overflow-x:auto; flex-wrap:nowrap; padding:.65rem .85rem; gap:.45rem; scrollbar-width:none; }.post-filters button { flex:0 0 auto; font-size:.78rem; }
-      .post-list { gap:.65rem; }.post-list > .card { border-radius:0; padding:1rem .9rem; box-shadow:0 1px 3px rgba(15,23,42,.05); border-bottom:1px solid #e5e7eb; }
-      .post-head .author-link::before { width:38px; height:38px; }.post-title { font-size:1.08rem; }.post-body { font-size:.93rem; line-height:1.68; }
-      .project-frame { min-height:280px; margin:1rem -.9rem 0; width:calc(100% + 1.8rem); border-radius:0; }
-      .post-actions { gap:.35rem; }.vote,.link-button { flex:1; justify-content:center; text-align:center; font-size:.82rem; }
-      .comment-children { margin-left:.55rem; padding-left:.55rem; }.reply-form { flex-direction:column; }
-      .form-grid { grid-template-columns:1fr; }.profile-card { grid-template-columns:70px 1fr; border-radius:0; padding:1rem; }.avatar { width:70px; height:70px; }
-      .profile-post-grid { gap:2px; }
-      .profile-post-copy { padding:.55rem; }.profile-post-copy span { -webkit-line-clamp:3; }
-      .profile-post-overlay { opacity:1; inset:auto 0 0; justify-content:flex-end; min-height:35%; padding:.5rem; background:linear-gradient(transparent,rgba(15,23,42,.76)); font-size:.72rem; }
-      .comments-overlay { display:block; padding-top:8vh; }
-      .comments-sheet { width:100%; height:92vh; border-radius:18px 18px 0 0; box-shadow:0 -16px 45px rgba(15,23,42,.22); }
-      .comments-sheet-head { min-height:58px; padding:.7rem .9rem; }
-      .comments-sheet-body { padding:0 .9rem 1rem; }
-      .comments-sheet .comment-form { margin:0 -.9rem; padding:.75rem .9rem max(.75rem,env(safe-area-inset-bottom)); }
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/community.css">
 </head>
 <body>
-  <header class="community-header"><div class="container">
-    <a href="community.html" class="community-brand">AIAS Basra Community</a>
-    <nav class="community-nav" aria-label="Community navigation">
-      <button class="active" data-view="home">Home</button>
-      <button data-view="post">New post</button>
-      <button data-view="profile">Profile</button>
-    </nav>
-    <div class="community-actions" aria-label="Community links"><a href="community-projects.html">Selected projects</a></div>
-    <a class="back-site" href="index.html">← Main website</a>
-  </div></header>
-  <section class="community-hero"><div class="container"><h1>Share ideas. Show your work.</h1><p>Post a short update, join a discussion, or submit a Behance project for consideration on the main website.</p></div></section>
-  <main class="page">
-    <section id="homeView" class="view"><div id="posts" class="post-list"><p class="empty">Loading community posts…</p></div></section>
-    <section id="profileView" class="view" hidden><div id="profileContent" class="card"><p class="empty">Sign in to view a profile.</p></div><h2 style="margin:2rem 0 1rem">Posts</h2><div id="profilePosts" class="post-list"></div></section>
-    <section id="postView" class="view" hidden>
-      <div id="postGate"></div>
-      <div id="postFormCard" class="card" hidden>
-        <h2>Create a community post</h2>
-        <p style="color:#64748b;margin:.35rem 0 1rem">Write a normal text post or share a Behance project. Only projects can be submitted for selection.</p>
-        <form id="postForm">
-          <div class="form-grid">
-            <div class="form-group"><label for="postType">Post type</label><select id="postType"><option value="text">Text post</option><option value="behance">Behance project</option></select></div>
-            <div class="form-group"><label for="postTitle">Title</label><input id="postTitle" required maxlength="160"></div>
-          </div>
-          <div id="textFields" class="form-group"><label for="postContent">Post</label><textarea id="postContent" maxlength="2000" placeholder="What would you like to share?"></textarea><small>Plain text only, up to 2,000 characters.</small></div>
-          <div id="projectFields" hidden>
-            <div class="form-group"><label for="postSummary">Project description</label><textarea id="postSummary" maxlength="360" placeholder="Briefly describe the project and your role."></textarea></div>
-            <div class="form-group"><label for="behanceEmbed">Behance iframe code</label><textarea id="behanceEmbed" placeholder="&lt;iframe src=…&gt;&lt;/iframe&gt;"></textarea><small>Only an iframe from behance.net is accepted.</small></div>
-            <label class="feature-request"><input id="featureRequest" type="checkbox"><span>Ask AIAS Basra to consider this project for the Selected Projects page and the main website.</span></label>
-          </div>
-          <button class="submit" type="submit">Publish post</button>
-          <p id="postStatus" class="status" aria-live="polite"></p>
-        </form>
+  <header class="community-topbar">
+    <div class="topbar-inner">
+      <a class="community-wordmark" href="community.html" aria-label="AIAS Basra Community home">
+        <span class="logo-frame"><img src="static/images/branding/LOGO.png" alt=""></span>
+        <span><strong>AIAS Basra</strong><small>Community</small></span>
+      </a>
+      <label class="community-search" for="communitySearch">
+        <span aria-hidden="true">⌕</span>
+        <input id="communitySearch" type="search" autocomplete="off" placeholder="Search people, ideas, or projects" aria-label="Search community posts">
+        <kbd>/</kbd>
+      </label>
+      <div class="topbar-actions">
+        <a class="quiet-link" href="community-projects.html">Selected work</a>
+        <a class="topbar-avatar" id="memberAction" href="login.html" aria-label="Sign in"><span>?</span></a>
       </div>
+    </div>
+  </header>
+
+  <main class="community-layout">
+    <aside class="left-rail" aria-label="Community navigation">
+      <nav class="rail-nav">
+        <a class="rail-link active" href="community.html" data-route="home"><span class="rail-icon" aria-hidden="true">⌂</span><span>Home</span></a>
+        <a class="rail-link" href="community.html?view=post" data-route="post"><span class="rail-icon rail-icon-plus" aria-hidden="true">+</span><span>Create</span></a>
+        <a class="rail-link" href="community.html?view=profile" data-route="profile"><span class="rail-icon" aria-hidden="true">◉</span><span>My profile</span></a>
+        <a class="rail-link" href="community-projects.html"><span class="rail-icon" aria-hidden="true">◇</span><span>Selected projects</span></a>
+      </nav>
+      <div class="rail-cta">
+        <span class="rail-cta-mark">A</span>
+        <strong>Made for members</strong>
+        <p>Ask, share, and grow with Basra's design community.</p>
+        <a href="community.html?view=post" data-route="post">Start a post <span aria-hidden="true">→</span></a>
+      </div>
+      <a class="return-link" href="index.html"><span aria-hidden="true">←</span> Main website</a>
+    </aside>
+
+    <section class="main-column" aria-live="polite">
+      <section id="homeView" class="view">
+        <div id="detailContext" class="detail-context" hidden>
+          <a href="community.html" data-route="home"><span aria-hidden="true">←</span> Back to the community</a>
+          <span>Post</span>
+        </div>
+
+        <section class="welcome-card" aria-labelledby="welcomeTitle">
+          <div>
+            <span class="eyebrow"><i></i> THE STUDIO IS OPEN</span>
+            <h1 id="welcomeTitle">What are you exploring?</h1>
+            <p>Trade ideas, share work in progress, and meet the people shaping architecture in Basra.</p>
+          </div>
+          <div class="welcome-orbit" aria-hidden="true"><span>A</span><i></i><b></b></div>
+        </section>
+
+        <button class="quick-composer" id="quickComposer" type="button">
+          <span class="quick-avatar" id="quickAvatar">A</span>
+          <span class="quick-placeholder">Share an idea with the community…</span>
+          <span class="quick-action"><b aria-hidden="true">+</b> Create</span>
+        </button>
+
+        <div class="feed-toolbar">
+          <div class="feed-heading"><h2>Community feed</h2><span id="feedCount"></span></div>
+          <div class="filter-row" aria-label="Filter community posts">
+            <button class="filter-pill active" type="button" data-sort="latest">Latest</button>
+            <button class="filter-pill" type="button" data-sort="upvoted">Popular</button>
+            <span class="filter-divider"></span>
+            <button class="filter-pill active" type="button" data-type="both">All</button>
+            <button class="filter-pill" type="button" data-type="text">Thoughts</button>
+            <button class="filter-pill" type="button" data-type="behance">Projects</button>
+          </div>
+        </div>
+        <div id="posts" class="post-list" aria-busy="true">
+          <div class="post-skeleton"></div><div class="post-skeleton short"></div>
+        </div>
+      </section>
+
+      <section id="postView" class="view" hidden>
+        <header class="section-heading">
+          <a href="community.html" data-route="home" aria-label="Back to community">←</a>
+          <div><span class="eyebrow"><i></i> ADD TO THE CONVERSATION</span><h1>Create a post</h1><p>Share a thought, question, or a project you are proud of.</p></div>
+        </header>
+        <div id="postGate"></div>
+        <section id="postFormCard" class="composer-card" hidden>
+          <form id="postForm">
+            <fieldset class="post-type-picker">
+              <legend>What are you sharing?</legend>
+              <label><input type="radio" name="postTypeChoice" value="text" checked><span><b>Thought</b><small>Start a discussion or ask a question</small></span></label>
+              <label><input type="radio" name="postTypeChoice" value="behance"><span><b>Project</b><small>Showcase a Behance project</small></span></label>
+            </fieldset>
+            <input id="postType" type="hidden" value="text">
+            <div class="form-group">
+              <div class="label-line"><label for="postTitle">Give it a clear title</label><span id="titleCount">0 / 160</span></div>
+              <input id="postTitle" required maxlength="160" placeholder="A question, insight, or project name">
+            </div>
+            <div id="textFields" class="form-group">
+              <div class="label-line"><label for="postContent">Tell the community more</label><span id="contentCount">0 / 2,000</span></div>
+              <textarea id="postContent" maxlength="2000" placeholder="Share context, a fresh perspective, or invite feedback…"></textarea>
+            </div>
+            <div id="projectFields" hidden>
+              <div class="form-group">
+                <div class="label-line"><label for="postSummary">About the project</label><span id="summaryCount">0 / 360</span></div>
+                <textarea id="postSummary" maxlength="360" placeholder="Briefly describe the idea, process, and your role."></textarea>
+              </div>
+              <div class="form-group"><label for="behanceEmbed">Behance embed</label><textarea id="behanceEmbed" class="code-input" placeholder="Paste the iframe code from Behance"></textarea><small>Use the iframe code from Behance's Share → Embed menu.</small></div>
+              <label class="feature-request"><input id="featureRequest" type="checkbox"><span><b>Submit for selection</b><small>Ask AIAS Basra to consider this for the Selected Projects page.</small></span></label>
+            </div>
+            <footer class="composer-footer"><p id="postStatus" class="form-status" aria-live="polite"></p><button class="primary-button" type="submit"><span>Publish post</span><b aria-hidden="true">→</b></button></footer>
+          </form>
+        </section>
+      </section>
+
+      <section id="profileView" class="view" hidden>
+        <header class="section-heading compact">
+          <a href="community.html" data-route="home" aria-label="Back to community">←</a>
+          <div><span class="eyebrow"><i></i> COMMUNITY MEMBER</span><h1>Profile</h1></div>
+        </header>
+        <div id="profileContent" class="profile-skeleton"><span></span><div></div></div>
+        <div class="profile-posts-head"><h2>Posts</h2><span id="profilePostCount"></span></div>
+        <div id="profilePosts" class="profile-post-grid"></div>
+      </section>
     </section>
+
+    <aside class="right-rail">
+      <section class="side-card pulse-card">
+        <div class="side-card-heading"><span>Chapter pulse</span><i aria-hidden="true"></i></div>
+        <div class="pulse-grid"><div><strong id="postStat">—</strong><span>posts shared</span></div><div><strong id="projectStat">—</strong><span>projects</span></div></div>
+        <p><span class="live-dot"></span> The community is open</p>
+      </section>
+      <section class="side-card prompt-card">
+        <span class="mini-kicker">PROMPT OF THE WEEK</span>
+        <h2>What detail changed the way you see a space?</h2>
+        <button type="button" id="answerPrompt">Share your answer <span aria-hidden="true">→</span></button>
+      </section>
+      <section class="side-card values-card">
+        <h2>Good community energy</h2>
+        <ul><li><span>01</span> Be curious, not dismissive.</li><li><span>02</span> Credit people and sources.</li><li><span>03</span> Make feedback useful.</li></ul>
+      </section>
+      <a class="selected-card" href="community-projects.html"><span><small>CURATED BY AIAS BASRA</small><strong>Selected projects</strong></span><b aria-hidden="true">↗</b></a>
+    </aside>
   </main>
+
+  <nav class="mobile-nav" aria-label="Mobile community navigation">
+    <a class="active" href="community.html" data-route="home"><span aria-hidden="true">⌂</span><small>Home</small></a>
+    <a href="community-projects.html"><span aria-hidden="true">◇</span><small>Projects</small></a>
+    <a class="mobile-create" href="community.html?view=post" data-route="post"><span aria-hidden="true">+</span><small>Create</small></a>
+    <a href="community.html?view=profile" data-route="profile"><span aria-hidden="true">◉</span><small>Profile</small></a>
+    <a href="index.html"><span aria-hidden="true">←</span><small>Website</small></a>
+  </nav>
+
   <div id="commentsOverlay" class="comments-overlay" hidden>
     <button class="comments-backdrop" type="button" data-close-comments aria-label="Close comments"></button>
     <section class="comments-sheet" role="dialog" aria-modal="true" aria-labelledby="commentsSheetTitle">
-      <header class="comments-sheet-head"><h2 id="commentsSheetTitle">Comments</h2><button class="comments-close" type="button" data-close-comments aria-label="Close comments">&times;</button></header>
+      <header class="comments-sheet-head"><div><span class="mini-kicker">DISCUSSION</span><h2 id="commentsSheetTitle">Comments</h2></div><button class="comments-close" type="button" data-close-comments aria-label="Close comments">×</button></header>
       <div id="commentsSheetBody" class="comments-sheet-body"></div>
     </section>
   </div>
-  <script type="module">
-    import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-    import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+  <div id="communityToast" class="community-toast" role="status" aria-live="polite"></div>
 
-    const config = {apiKey:'AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ',authDomain:'aias-bsr.firebaseapp.com',projectId:'aias-bsr',storageBucket:'aias-bsr.firebasestorage.app',messagingSenderId:'78055223814',appId:'1:78055223814:web:99460402c2b1fcd5ae8987'};
-    let app; try { app = getApp(); } catch { app = initializeApp(config); }
-    const auth = getAuth(app), db = getFirestore(app);
-    const params = new URLSearchParams(location.search);
-    const activeProfileId = params.get('user') || null;
-    const selectedPostId = params.get('post') || null;
-    const requestedView = params.get('view');
-    let currentUser = null, currentProfile = null, communitySort = 'latest', communityType = 'both', activeCommentsPostId = null;
-    const $ = id => document.getElementById(id);
-    const escapeHtml = value => String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-    const isProject = post => post.type === 'behance';
-    const postLabel = post => isProject(post) ? 'Behance project' : 'Text post';
-    function plainPostText(post) {
-      if (post.type !== 'article') return post.content || post.summary || '';
-      const parsed = new DOMParser().parseFromString(post.content || post.summary || '', 'text/html');
-      return parsed.body.textContent || '';
-    }
-
-    function showView(name) {
-      document.querySelectorAll('.view').forEach(view => { view.hidden = view.id !== `${name}View`; });
-      document.querySelectorAll('.community-nav button').forEach(button => button.classList.toggle('active', button.dataset.view === name));
-      if (name === 'profile') loadProfile();
-      if (name === 'post') renderPostGate();
-    }
-    document.querySelectorAll('.community-nav button').forEach(button => button.addEventListener('click', () => showView(button.dataset.view)));
-
-    function renderPostTypeFields() {
-      const project = $('postType').value === 'behance';
-      $('textFields').hidden = project;
-      $('projectFields').hidden = !project;
-      $('postContent').required = !project;
-      $('postSummary').required = project;
-      $('behanceEmbed').required = project;
-      if (!project) $('featureRequest').checked = false;
-    }
-    $('postType').addEventListener('change', renderPostTypeFields);
-    renderPostTypeFields();
-
-    async function getVotes(postId) {
-      const snapshot = await getDocs(collection(db, 'communityPosts', postId, 'votes'));
-      return {score:snapshot.docs.reduce((total, item) => total + (Number(item.data().value) || 0), 0), mine:snapshot.docs.find(item => item.id === currentUser?.uid)?.data().value || 0};
-    }
-
-    function renderThread(comment, byParent) {
-      const children = byParent.get(comment.id) || [];
-      return `<article class="comment"><strong>${escapeHtml(comment.userName || 'Member')}</strong> <span class="post-meta">${comment.createdAt?.toDate ? comment.createdAt.toDate().toLocaleString() : 'Just now'}</span><div>${escapeHtml(comment.text)}</div><div class="comment-actions">${currentUser ? `<button class="comment-action" data-reply="${comment.id}" data-name="${escapeHtml(comment.userName || 'Member')}">Reply</button>` : ''}${children.length ? `<button class="comment-action" data-thread="${comment.id}">Show ${children.length} ${children.length === 1 ? 'reply' : 'replies'}</button>` : ''}${currentUser?.uid === comment.userId ? `<button class="comment-action" data-delete-comment="${comment.id}">Delete</button>` : ''}</div><div class="reply-slot"></div>${children.length ? `<div class="comment-children" data-children="${comment.id}" hidden>${children.map(child => renderThread(child, byParent)).join('')}</div>` : ''}</article>`;
-    }
-
-    async function renderPost(post) {
-      const vote = await getVotes(post.id);
-      post.voteScore = vote.score;
-      const date = post.createdAt?.toDate ? post.createdAt.toDate().toLocaleDateString() : 'Just now';
-      const commentsCount = (await getDocs(collection(db, 'communityPosts', post.id, 'comments'))).size;
-      const title = isProject(post) ? `<a href="project.html?communityPost=${encodeURIComponent(post.id)}">${escapeHtml(post.title)}</a>` : escapeHtml(post.title);
-      const text = isProject(post) ? escapeHtml(post.summary) : escapeHtml(plainPostText(post));
-      const projectFrame = isProject(post) && post.behanceSrc ? `<iframe class="project-frame" title="${escapeHtml(post.title)}" src="${escapeHtml(post.behanceSrc)}" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>` : '';
-      const selection = isProject(post) && post.featured ? ' · <span class="selected-project">Selected project</span>' : '';
-      const request = currentUser?.uid === post.userId && isProject(post) && !post.featured && post.featureRequest ? `<div class="project-request">Project selection request: ${escapeHtml(post.featureStatus || 'pending')}.</div>` : '';
-      return `<article class="card feed-card"><div class="post-head"><div><a class="author-link" href="community.html?user=${encodeURIComponent(post.userId)}">${escapeHtml(post.authorName || 'Member')}</a><div class="post-meta">${date}${selection}</div></div><span class="post-meta">${postLabel(post)}</span></div><h2 class="post-title">${title}</h2><div class="post-body">${text}</div>${projectFrame}<div class="post-actions"><button class="vote up ${vote.mine === 1 ? 'active' : ''}" data-vote="1" data-id="${post.id}">▲ ${vote.score}</button><button class="vote down ${vote.mine === -1 ? 'active' : ''}" data-vote="-1" data-id="${post.id}">▼</button><button class="link-button" type="button" data-open-comments="${post.id}">Comments (${commentsCount})</button></div>${request}</article>`;
-    }
-
-    function bindPostActions(target) {
-      target.querySelectorAll('[data-vote]').forEach(button => button.addEventListener('click', async () => {
-        if (!currentUser) { location.href = 'login.html'; return; }
-        await setDoc(doc(db, 'communityPosts', button.dataset.id, 'votes', currentUser.uid), {userId:currentUser.uid, value:Number(button.dataset.vote), updatedAt:serverTimestamp()});
-        loadPosts(target);
-      }));
-      target.querySelectorAll('[data-open-comments]').forEach(button => button.addEventListener('click', () => openComments(button.dataset.openComments)));
-    }
-
-    async function openComments(postId) {
-      activeCommentsPostId = postId;
-      $('commentsOverlay').hidden = false;
-      document.body.classList.add('comments-open');
-      $('commentsSheetBody').innerHTML = '<p class="empty">Loading comments…</p>';
-      try {
-        const [postSnapshot, commentsSnapshot] = await Promise.all([getDoc(doc(db, 'communityPosts', postId)), getDocs(collection(db, 'communityPosts', postId, 'comments'))]);
-        if (!postSnapshot.exists()) throw new Error('Post not found');
-        const post = postSnapshot.data();
-        const comments = commentsSnapshot.docs.map(item => ({id:item.id, ...item.data()}));
-        const knownIds = new Set(comments.map(comment => comment.id));
-        const byParent = new Map();
-        comments.forEach(comment => { const parent = knownIds.has(comment.parentId) ? comment.parentId : null; if (!byParent.has(parent)) byParent.set(parent, []); byParent.get(parent).push(comment); });
-        byParent.forEach(items => items.sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)));
-        $('commentsSheetTitle').textContent = post.title ? `Comments · ${post.title}` : 'Comments';
-        document.querySelectorAll(`[data-open-comments="${postId}"]`).forEach(button => { button.textContent = `Comments (${comments.length})`; });
-        const roots = byParent.get(null) || [];
-        $('commentsSheetBody').innerHTML = `<div class="comments">${roots.length ? roots.map(comment => renderThread(comment, byParent)).join('') : '<p class="empty">No comments yet. Start the conversation.</p>'}${currentUser ? `<form class="comment-form" data-comment="${postId}"><input required maxlength="2000" placeholder="Add a comment"><button class="submit">Post</button></form>` : '<p class="notice">Sign in to join the discussion.</p>'}</div>`;
-        bindCommentActions(postId);
-      } catch (error) {
-        console.error(error);
-        $('commentsSheetBody').innerHTML = '<p class="notice">Comments are unavailable right now.</p>';
-      }
-    }
-
-    function bindCommentActions(postId) {
-      const target = $('commentsSheetBody');
-      target.querySelectorAll('[data-thread]').forEach(button => button.addEventListener('click', () => {
-        const box = target.querySelector(`[data-children="${button.dataset.thread}"]`);
-        if (!box) return;
-        box.hidden = !box.hidden;
-        button.textContent = box.hidden ? `Show ${box.children.length} ${box.children.length === 1 ? 'reply' : 'replies'}` : 'Hide replies';
-      }));
-      target.querySelectorAll('[data-reply]').forEach(button => button.addEventListener('click', () => {
-        target.querySelectorAll('.reply-slot').forEach(slot => { slot.innerHTML = ''; });
-        const slot = button.closest('.comment').querySelector('.reply-slot');
-        slot.innerHTML = `<form class="reply-form"><textarea maxlength="2000" required placeholder="Reply to ${escapeHtml(button.dataset.name)}"></textarea><button class="submit">Reply</button></form>`;
-        slot.querySelector('form').addEventListener('submit', async event => {
-          event.preventDefault();
-          const text = slot.querySelector('textarea').value.trim();
-          if (!text || !currentUser) return;
-          await addDoc(collection(db, 'communityPosts', postId, 'comments'), {userId:currentUser.uid, userName:currentProfile?.displayName || currentUser.displayName || 'Member', text, parentId:button.dataset.reply, createdAt:serverTimestamp()});
-          await openComments(postId);
-        });
-      }));
-      target.querySelectorAll('[data-delete-comment]').forEach(button => button.addEventListener('click', async () => {
-        await deleteDoc(doc(db, 'communityPosts', postId, 'comments', button.dataset.deleteComment));
-        await openComments(postId);
-      }));
-      target.querySelectorAll('[data-comment]').forEach(form => form.addEventListener('submit', async event => {
-        event.preventDefault();
-        const input = form.querySelector('input');
-        if (!input.value.trim() || !currentUser) return;
-        await addDoc(collection(db, 'communityPosts', postId, 'comments'), {userId:currentUser.uid, userName:currentProfile?.displayName || currentUser.displayName || 'Member', text:input.value.trim(), parentId:null, createdAt:serverTimestamp()});
-        await openComments(postId);
-      }));
-    }
-
-    function closeComments() {
-      activeCommentsPostId = null;
-      $('commentsOverlay').hidden = true;
-      document.body.classList.remove('comments-open');
-    }
-    document.querySelectorAll('[data-close-comments]').forEach(button => button.addEventListener('click', closeComments));
-    document.addEventListener('keydown', event => { if (event.key === 'Escape' && activeCommentsPostId) closeComments(); });
-
-    async function loadPosts(target = $('posts'), filterId = null) {
-      try {
-        let posts = (await getDocs(collection(db, 'communityPosts'))).docs.map(item => ({id:item.id, ...item.data()})).filter(post => post.published !== false);
-        if (filterId) posts = posts.filter(post => post.userId === filterId);
-        if (!filterId && selectedPostId) posts = posts.filter(post => post.id === selectedPostId);
-        if (!filterId && !selectedPostId) posts = posts.filter(post => communityType === 'both' || (communityType === 'behance' ? isProject(post) : !isProject(post)));
-        await Promise.all(posts.map(async post => { post.voteScore = (await getVotes(post.id)).score; }));
-        posts.sort((a,b) => communitySort === 'upvoted' ? b.voteScore - a.voteScore : (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-        target.innerHTML = posts.length ? (await Promise.all(posts.map(post => renderPost(post)))).join('') : `<p class="empty">${selectedPostId ? 'This community post is unavailable.' : 'No matching community posts yet.'}</p>`;
-        bindPostActions(target);
-        if (!filterId && selectedPostId && posts.some(post => post.id === selectedPostId) && activeCommentsPostId !== selectedPostId) openComments(selectedPostId);
-      } catch (error) { console.error(error); target.innerHTML = '<p class="notice">Community posts are unavailable right now.</p>'; }
-    }
-
-    async function loadProfilePosts(uid) {
-      const target = $('profilePosts');
-      try {
-        const posts = (await getDocs(collection(db, 'communityPosts'))).docs.map(item => ({id:item.id, ...item.data()})).filter(post => post.published !== false && post.userId === uid).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-        target.innerHTML = posts.length ? (await Promise.all(posts.map(async post => {
-          const [vote, comments] = await Promise.all([getVotes(post.id), getDocs(collection(db, 'communityPosts', post.id, 'comments'))]);
-          const href = isProject(post) ? `project.html?communityPost=${encodeURIComponent(post.id)}` : `community.html?post=${encodeURIComponent(post.id)}`;
-          const visual = isProject(post) && post.behanceSrc ? `<iframe title="${escapeHtml(post.title)}" src="${escapeHtml(post.behanceSrc)}" loading="lazy" tabindex="-1"></iframe>` : `<div class="profile-post-copy"><strong>${escapeHtml(post.title)}</strong><span>${escapeHtml(plainPostText(post))}</span></div>`;
-          return `<a class="profile-post-tile" href="${href}" aria-label="Open ${escapeHtml(post.title)}">${visual}<span class="profile-post-overlay"><span>▲ ${vote.score}</span><span>○ ${comments.size}</span></span></a>`;
-        }))).join('') : '<p class="empty">No posts yet.</p>';
-      } catch (error) { console.error(error); target.innerHTML = '<p class="notice">Profile posts are unavailable right now.</p>'; }
-    }
-
-    function setupFilters() {
-      const filters = document.createElement('div');
-      filters.className = 'post-filters';
-      filters.innerHTML = '<button class="active" data-sort="latest">Latest</button><button data-sort="upvoted">Most upvoted</button><button class="active" data-type="both">All posts</button><button data-type="text">Text posts</button><button data-type="behance">Projects</button>';
-      $('homeView').insertBefore(filters, $('posts'));
-      filters.addEventListener('click', event => { const button = event.target.closest('button'); if (!button) return; if (button.dataset.sort) { communitySort = button.dataset.sort; filters.querySelectorAll('[data-sort]').forEach(item => item.classList.toggle('active', item === button)); } if (button.dataset.type) { communityType = button.dataset.type; filters.querySelectorAll('[data-type]').forEach(item => item.classList.toggle('active', item === button)); } loadPosts(); });
-    }
-
-    function renderPostGate() {
-      const allowed = currentUser && currentProfile?.profileComplete;
-      $('postGate').innerHTML = allowed ? '' : `<p class="notice">${currentUser ? 'Complete your profile before publishing.' : 'Sign in to publish a post.'}</p>`;
-      $('postFormCard').hidden = !allowed;
-    }
-
-    $('postForm').addEventListener('submit', async event => {
-      event.preventDefault();
-      const type = $('postType').value;
-      const title = $('postTitle').value.trim();
-      const content = $('postContent').value.trim();
-      const summary = $('postSummary').value.trim();
-      let behanceSrc = '';
-      if (type === 'text' && !content) { $('postStatus').textContent = 'Write something before publishing.'; return; }
-      if (type === 'behance') {
-        const parsed = new DOMParser().parseFromString($('behanceEmbed').value.trim(), 'text/html');
-        behanceSrc = parsed.querySelector('iframe')?.getAttribute('src') || '';
-        if (!/^https:\/\/(www\.)?behance\.net\/embed\/project\//i.test(behanceSrc)) { $('postStatus').textContent = 'Please provide a valid Behance iframe embed.'; return; }
-      }
-      const button = event.submitter; button.disabled = true;
-      try {
-        const featureRequest = type === 'behance' && $('featureRequest').checked;
-        await addDoc(collection(db, 'communityPosts'), {type, title, summary:type === 'behance' ? summary : content.slice(0,360), content:type === 'text' ? content : '', behanceSrc, userId:currentUser.uid, authorName:currentProfile.displayName || currentUser.displayName || 'Member', published:true, featureRequest, featureStatus:featureRequest ? 'pending' : 'none', featured:false, createdAt:serverTimestamp()});
-        $('postForm').reset(); renderPostTypeFields(); $('postStatus').style.color = '#15803d'; $('postStatus').textContent = 'Published to the community.'; showView('home'); loadPosts();
-      } catch (error) { $('postStatus').textContent = error.message || 'Could not publish this post.'; }
-      finally { button.disabled = false; }
-    });
-
-    async function loadProfile() {
-      const uid = activeProfileId || currentUser?.uid;
-      if (!uid) { $('profileContent').innerHTML = '<p class="empty">Sign in to create and view your community profile.</p>'; $('profilePosts').innerHTML = ''; return; }
-      const snapshot = await getDoc(doc(db, 'users', uid));
-      const profile = snapshot.exists() ? snapshot.data() : {};
-      const owner = currentUser?.uid === uid;
-      const photo = profile.photoURL || (owner ? currentUser?.photoURL : '') || 'static/images/branding/LOGO.png';
-      $('profileContent').innerHTML = `<div class="profile-card"><img class="avatar" src="${escapeHtml(photo)}" alt=""><div class="profile-info"><h2>${escapeHtml(profile.displayName || 'Community member')}</h2><p>${escapeHtml(profile.bio || 'No bio added yet.')}</p><p>${[profile.school,profile.city].filter(Boolean).map(escapeHtml).join(' · ')}</p><p>${escapeHtml(profile.interests || '')}</p>${owner ? '<button id="editProfile" class="submit" style="margin-top:.7rem">Edit profile</button>' : ''}</div></div>${owner ? `<form id="profileForm" hidden style="margin-top:1.25rem"><div class="form-grid"><div class="form-group"><label>Name</label><input id="profileName" required value="${escapeHtml(profile.displayName || currentUser.displayName || '')}"></div><div class="form-group"><label>School / organization</label><input id="profileSchool" required value="${escapeHtml(profile.school || '')}"></div></div><div class="form-grid"><div class="form-group"><label>City</label><input id="profileCity" required value="${escapeHtml(profile.city || '')}"></div><div class="form-group"><label>Interests</label><input id="profileInterests" value="${escapeHtml(profile.interests || '')}"></div></div><div class="form-group"><label>Bio</label><textarea id="profileBio" required>${escapeHtml(profile.bio || '')}</textarea></div><button class="submit">Save profile</button></form>` : ''}`;
-      if (owner) {
-        $('editProfile').addEventListener('click', () => { $('profileForm').hidden = false; });
-        $('profileForm').addEventListener('submit', async event => { event.preventDefault(); await setDoc(doc(db, 'users', uid), {displayName:$('profileName').value.trim(), school:$('profileSchool').value.trim(), city:$('profileCity').value.trim(), interests:$('profileInterests').value.trim(), bio:$('profileBio').value.trim(), profileComplete:true, updatedAt:serverTimestamp()}, {merge:true}); currentProfile = (await getDoc(doc(db, 'users', uid))).data(); loadProfile(); });
-      }
-      $('profilePosts').classList.add('profile-post-grid');
-      loadProfilePosts(uid);
-    }
-
-    setupFilters();
-    onAuthStateChanged(auth, async user => { currentUser = user; if (user) { const snapshot = await getDoc(doc(db, 'users', user.uid)); currentProfile = snapshot.exists() ? snapshot.data() : null; } else currentProfile = null; if (activeProfileId) showView('profile'); renderPostGate(); loadPosts(); });
-    if (activeProfileId) showView('profile'); else if (requestedView === 'post') showView('post');
-  </script>
+  <script type="module" src="js/community.js"></script>
 </body>
 </html>

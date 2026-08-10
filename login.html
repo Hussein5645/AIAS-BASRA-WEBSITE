@@ -359,6 +359,17 @@
 
         const messageDiv = document.getElementById('message');
         const googleSignInBtn = document.getElementById('googleSignIn');
+        const requestedNext = new URLSearchParams(window.location.search).get('next') || '';
+
+        function safeNext(fallback) {
+            return requestedNext && !requestedNext.includes('..') && /^[A-Za-z0-9_-]+\.html(?:\?[A-Za-z0-9_%=&.-]+)?$/.test(requestedNext)
+                ? requestedNext
+                : fallback;
+        }
+
+        function signupDestination() {
+            return requestedNext ? 'signup.html?next=' + encodeURIComponent(requestedNext) : 'signup.html';
+        }
 
         function showMessage(text, type) {
             messageDiv.textContent = text;
@@ -373,7 +384,7 @@
                 // has supplied its public Community profile.
                 const profileSnap = await getDoc(doc(db, 'users', user.uid));
                 if (!profileSnap.exists() || !profileSnap.data().profileComplete) {
-                    window.location.href = 'signup.html';
+                    window.location.href = signupDestination();
                     return;
                 }
                 showMessage('You are already signed in. Redirecting...', 'success');
@@ -402,12 +413,9 @@
                 localStorage.setItem('aias_user_uid', user.uid);
                 localStorage.setItem('aias_visitor_mode', 'false');
 
-                // Redirect based on admin status
-                if (access.allowed) {
-                    window.location.href = 'admin-dashboard.html';
-                } else {
-                    window.location.href = 'index.html';
-                }
+                // Preserve an in-site destination (for example, a Community
+                // post) while rejecting external redirect targets.
+                window.location.href = safeNext(access.allowed ? 'admin-dashboard.html' : 'index.html');
             } catch (error) {
                 console.error('Error checking user role:', error);
                 showMessage('Error checking user permissions. Please try again.', 'error');
@@ -430,7 +438,7 @@
 
                 if (!userSnap.exists() || !userSnap.data().profileComplete) {
                     // Registration is only completed from the profile form.
-                    window.location.href = 'signup.html';
+                    window.location.href = signupDestination();
                     return;
                 } else {
                     // Existing user found
