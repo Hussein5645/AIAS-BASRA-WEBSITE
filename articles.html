@@ -275,13 +275,16 @@
     function renderArticle(article) {
       if (communityPostId) {
         languagePicker.hidden = true;
-        title.textContent = article.title || 'Community article';
+        const isProject = article.type === 'behance';
+        title.textContent = article.title || (isProject ? 'Community project' : 'Community article');
         meta.textContent = [article.author || article.authorName || 'Community member', article.date || ''].filter(Boolean).join(' · ');
-        body.innerHTML = article.content || `<p>${escapeHtml(article.summary)}</p>`;
+        body.innerHTML = isProject
+          ? `<iframe title="${escapeHtml(article.title)}" src="${escapeHtml(article.behanceSrc)}" width="404" height="540" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin" style="display:block;width:100%;max-width:100%;border:0;border-radius:14px;"></iframe><p>${escapeHtml(article.summary)}</p>`
+          : (article.content || `<p>${escapeHtml(article.summary)}</p>`);
         status.hidden = true;
         body.hidden = false;
         community.hidden = false;
-        document.title = `${article.title || 'Community article'} - AIAS Basra`;
+        document.title = `${article.title || (isProject ? 'Community project' : 'Community article')} - AIAS Basra`;
         return;
       }
       const preferredLanguage = localStorage.getItem('language') || 'en';
@@ -316,7 +319,7 @@
         if (communityPostId) {
           const postSnap = await getDoc(doc(db, 'communityPosts', communityPostId));
           loadedArticle = postSnap.exists() ? { id:postSnap.id, ...postSnap.data(), author:postSnap.data().authorName || 'Community member', date:postSnap.data().createdAt?.toDate ? postSnap.data().createdAt.toDate().toLocaleDateString() : 'Community' } : null;
-          if (loadedArticle?.type !== 'article') loadedArticle = null;
+          if (!['article', 'behance'].includes(loadedArticle?.type)) loadedArticle = null;
         } else {
           const result = await new FirestoreAPI().getAllContent();
           loadedArticle = result.success ? (result.content.magazine?.articles || []).find(item => item.id === id) : null;

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Community Project — AIAS Basra</title>
+</head>
+<body>
+  <script>
+    const postId = new URLSearchParams(location.search).get('communityPost');
+    location.replace(`articles.html?communityPost=${encodeURIComponent(postId || '')}`);
+  </script>
+  <p>Opening project…</p>
+</body>
+</html>

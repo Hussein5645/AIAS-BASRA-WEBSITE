@@ -106,6 +106,14 @@
       return `<article class="card"><div class="post-head"><div><a class="author-link" href="community.html?user=${encodeURIComponent(post.userId)}">${escape(post.authorName || 'Member')}</a><div class="post-meta">${date}${post.featured ? ' · <span class="featured">Featured</span>' : ''}</div></div><span class="post-meta">${post.type === 'behance' ? 'Behance project' : 'Article'}</span></div><h2 class="post-title">${title}</h2><p class="post-body">${escape(post.summary)}</p><div class="post-body">${safeContent(post)}</div><div class="post-actions"><button class="vote up ${vote.mine === 1 ? 'active' : ''}" data-vote="1" data-id="${post.id}">▲ ${vote.score}</button><button class="vote down ${vote.mine === -1 ? 'active' : ''}" data-vote="-1" data-id="${post.id}">▼</button><button class="link-button" data-toggle-comments="${post.id}">Comments (${comments.length})</button></div><div class="comments" id="comments-${post.id}" hidden>${roots.length ? roots.map(comment => renderCommunityThread(comment, byParent)).join('') : '<p class="post-meta">No comments yet.</p>'}${currentUser ? `<form class="comment-form" data-comment="${post.id}"><input required maxlength="2000" placeholder="Join the discussion"><button class="submit">Comment</button></form>` : '<p class="post-meta">Sign in to vote and comment.</p>'}</div></article>`;
     }
 
+    async function renderFeedPost(post) {
+      const vote = await votes(post.id);
+      const date = post.createdAt?.toDate ? post.createdAt.toDate().toLocaleDateString() : 'Just now';
+      const isProject = post.type === 'behance';
+      const detailUrl = isProject ? `project.html?communityPost=${encodeURIComponent(post.id)}` : `articles.html?communityPost=${encodeURIComponent(post.id)}`;
+      return `<article class="card"><div class="post-head"><div><a class="author-link" href="community.html?user=${encodeURIComponent(post.userId)}">${escape(post.authorName || 'Member')}</a><div class="post-meta">${date}${post.featured ? ' · <span class="featured">Featured</span>' : ''}</div></div><span class="post-meta">${isProject ? 'Behance project' : 'Article'}</span></div><h2 class="post-title"><a class="author-link" href="${detailUrl}">${escape(post.title)}</a></h2><p class="post-body">${escape(post.summary)}</p><div class="post-body">${safeContent(post)}</div><div class="post-actions"><button class="vote up ${vote.mine === 1 ? 'active' : ''}" data-vote="1" data-id="${post.id}">▲ ${vote.score}</button><button class="vote down ${vote.mine === -1 ? 'active' : ''}" data-vote="-1" data-id="${post.id}">▼</button><a class="link-button" href="${detailUrl}#articleCommunity">Comments · Open discussion</a></div></article>`;
+    }
+
     async function loadPosts(target = $('posts'), filterId = null) {
       try {
         let items = (await getDocs(collection(db, 'communityPosts'))).docs.map(item => ({ id:item.id, ...item.data() })).filter(post => post.published !== false);
@@ -114,7 +122,7 @@
         if (!filterId) items = items.filter(post => communityType === 'both' || post.type === communityType);
         await Promise.all(items.map(async post => { post.voteScore = (await votes(post.id)).score; }));
         items.sort((a,b) => communitySort === 'upvoted' ? b.voteScore - a.voteScore : (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-        target.innerHTML = items.length ? (await Promise.all(items.map(renderPost))).join('') : `<p class="empty">${communitySelectedPostId ? 'This community post is unavailable.' : 'No matching community posts yet.'}</p>`;
+        target.innerHTML = items.length ? (await Promise.all(items.map(renderFeedPost))).join('') : `<p class="empty">${communitySelectedPostId ? 'This community post is unavailable.' : 'No matching community posts yet.'}</p>`;
         bindPostActions(target);
       } catch (error) { console.error(error); target.innerHTML = '<p class="notice">Community posts are unavailable.</p>'; }
     }
