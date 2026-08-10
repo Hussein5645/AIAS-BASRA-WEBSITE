@@ -58,6 +58,7 @@
     .btn { padding: .45rem .7rem; border: none; border-radius: 8px; color: white; font-weight: 700; cursor: pointer; font-size:.75rem; }
     .delete-btn { background: var(--error); } .delete-btn:hover { filter: brightness(0.95); }
     .edit-btn { background: #3182ce; } .edit-btn:hover { filter: brightness(0.95); }
+    .community-review-controls { display:grid; grid-template-columns:1fr 120px; gap:.55rem; margin-bottom:.75rem; }.community-review-controls input,.community-review-controls select { min-width:0; padding:.55rem .65rem; border:1px solid var(--border); border-radius:8px; font:inherit; font-size:.8rem; }.community-review-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.75rem; padding:.8rem 0; border-bottom:1px solid var(--border); }.community-review-row:last-child { border-bottom:0; }.community-review-title { font-weight:800; color:#1f2937; line-height:1.35; }.community-review-meta { color:var(--muted); font-size:.76rem; margin-top:.25rem; }.community-review-actions { display:flex; flex-wrap:wrap; gap:.4rem; justify-content:flex-end; align-content:start; }.community-preview-btn { display:inline-flex; align-items:center; justify-content:center; padding:.45rem .7rem; border-radius:8px; color:#fff!important; background:#334155; text-decoration:none; font-weight:800; font-size:.75rem; box-shadow:0 2px 4px rgba(15,23,42,.2); }.community-preview-btn:hover { background:#0f172a; }.community-status { display:inline-block; border-radius:999px; padding:.14rem .42rem; font-weight:800; font-size:.68rem; }.community-status.pending { color:#92400e; background:#fef3c7; }.community-status.featured { color:#166534; background:#dcfce7; }.community-status.none { color:#475569; background:#e2e8f0; }.community-pagination { display:flex; justify-content:space-between; align-items:center; gap:.5rem; margin-top:.75rem; font-size:.75rem; color:var(--muted); }.community-pagination button { border:1px solid var(--border); background:#fff; border-radius:6px; padding:.35rem .55rem; cursor:pointer; font-weight:700; }.community-pagination button:disabled { opacity:.45; cursor:not-allowed; }
     .tab-content:not(#settings-tab).active { display:grid; grid-template-columns:minmax(250px,330px) minmax(0,1fr); gap:1rem; align-items:start; }
     .tab-content:not(#settings-tab).active > details { margin:0; }
     .tab-content:not(#settings-tab).active > details:first-child { position:sticky; top:1.25rem; max-height:calc(100vh - 2.5rem); overflow:auto; }
@@ -765,6 +766,30 @@
         });
       } catch (error) { console.error('[CommunityAdmin] load failed', error); box.innerHTML = '<p style="color:red">Could not load community posts.</p>'; }
     };
+    let communityReviewState = { query:'', status:'all', page:0 };
+    window.loadCommunityAdminPosts = async function() {
+      const box = document.getElementById('communityAdminList');
+      if (!box) return;
+      box.innerHTML = '<p>Loading community posts…</p>';
+      try {
+        const allPosts = (await getDocs(collection(db, 'communityPosts'))).docs.map(item => ({ id:item.id, ...item.data() })).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        const query = communityReviewState.query.trim().toLowerCase();
+        const filtered = allPosts.filter(post => {
+          const status = post.featured ? 'featured' : (post.featureRequest ? (post.featureStatus || 'pending') : 'none');
+          return (!query || [post.title, post.authorName, post.type].join(' ').toLowerCase().includes(query)) && (communityReviewState.status === 'all' || status === communityReviewState.status);
+        });
+        const pageSize = 10, pages = Math.max(1, Math.ceil(filtered.length / pageSize));
+        communityReviewState.page = Math.min(communityReviewState.page, pages - 1);
+        const pagePosts = filtered.slice(communityReviewState.page * pageSize, (communityReviewState.page + 1) * pageSize);
+        box.innerHTML = `<div class="community-review-controls"><input id="communityReviewSearch" value="${communityEscape(communityReviewState.query)}" placeholder="Search title, author, or type"><select id="communityReviewStatus"><option value="all">All posts</option><option value="pending">Pending requests</option><option value="featured">Featured</option><option value="none">No request</option></select></div><div class="community-review-list">${pagePosts.length ? pagePosts.map(post => { const status = post.featured ? 'featured' : (post.featureRequest ? (post.featureStatus || 'pending') : 'none'); return `<article class="community-review-row"><div><div class="community-review-title">${communityEscape(post.title)}</div><div class="community-review-meta">${communityEscape(post.authorName || 'Member')} · ${communityEscape(post.type)} · <span class="community-status ${status === 'approved' ? 'featured' : status}">${communityEscape(status)}</span></div></div><div class="community-review-actions"><a class="community-preview-btn" href="community.html?post=${encodeURIComponent(post.id)}" target="_blank" rel="noopener">View post</a><button class="btn edit-btn" onclick="reviewCommunityPost('${post.id}','approve')">Feature</button><button class="btn delete-btn" onclick="reviewCommunityPost('${post.id}','deny')">Deny</button>${post.featured ? `<button class="btn" onclick="reviewCommunityPost('${post.id}','remove')">Unfeature</button>` : ''}</div></article>`; }).join('') : '<p>No posts match this review filter.</p>'}</div><div class="community-pagination"><button id="communityPrev" ${communityReviewState.page === 0 ? 'disabled' : ''}>Previous</button><span>${filtered.length} posts · Page ${communityReviewState.page + 1} of ${pages}</span><button id="communityNext" ${communityReviewState.page >= pages - 1 ? 'disabled' : ''}>Next</button></div>`;
+        document.getElementById('communityReviewStatus').value = communityReviewState.status;
+        document.getElementById('communityReviewSearch').addEventListener('input', event => { communityReviewState.query = event.target.value; communityReviewState.page = 0; loadCommunityAdminPosts(); });
+        document.getElementById('communityReviewStatus').addEventListener('change', event => { communityReviewState.status = event.target.value; communityReviewState.page = 0; loadCommunityAdminPosts(); });
+        document.getElementById('communityPrev').addEventListener('click', () => { communityReviewState.page--; loadCommunityAdminPosts(); });
+        document.getElementById('communityNext').addEventListener('click', () => { communityReviewState.page++; loadCommunityAdminPosts(); });
+      } catch (error) { console.error('[CommunityAdmin] load failed', error); box.innerHTML = '<p style="color:red">Could not load community posts.</p>'; }
+    };
+
     window.reviewCommunityPost = async function(id, action) {
       const values = action === 'approve'
         ? { featured: true, featureRequest: true, featureStatus: 'approved', featuredAt: serverTimestamp() }
