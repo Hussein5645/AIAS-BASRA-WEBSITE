@@ -79,7 +79,7 @@ service cloud.firestore {
         && request.resource.data.recipientId == userId
         && request.resource.data.actorId == request.auth.uid
         && userId != request.auth.uid
-        && request.resource.data.type in ['comment', 'reply', 'applause']
+        && request.resource.data.type in ['comment', 'reply', 'applause', 'connection', 'space_connection']
         && request.resource.data.postId is string
         && request.resource.data.detailId is string
         && request.resource.data.actorName is string
@@ -90,18 +90,26 @@ service cloud.firestore {
         && request.resource.data.postTitle.size() <= 160
         && request.resource.data.createdAt == request.time
         && request.resource.data.read == false
-        && exists(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId))
-        && ((request.resource.data.type == 'applause'
-            && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)).data.userId == userId
-            && exists(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/votes/$(request.auth.uid))
-            && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/votes/$(request.auth.uid)).data.value == 1)
-          || (request.resource.data.type == 'comment'
-            && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)).data.userId == userId
-            && exists(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/comments/$(request.resource.data.detailId))
-            && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/comments/$(request.resource.data.detailId)).data.userId == request.auth.uid)
-          || (request.resource.data.type == 'reply'
-            && exists(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/comments/$(request.resource.data.detailId))
-            && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/comments/$(request.resource.data.detailId)).data.userId == userId));
+        && (((request.resource.data.type in ['comment', 'reply', 'applause'])
+            && exists(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId))
+            && ((request.resource.data.type == 'applause'
+                && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)).data.userId == userId
+                && exists(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/votes/$(request.auth.uid))
+                && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/votes/$(request.auth.uid)).data.value == 1)
+              || (request.resource.data.type == 'comment'
+                && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)).data.userId == userId
+                && exists(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/comments/$(request.resource.data.detailId))
+                && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/comments/$(request.resource.data.detailId)).data.userId == request.auth.uid)
+              || (request.resource.data.type == 'reply'
+                && exists(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/comments/$(request.resource.data.detailId))
+                && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/comments/$(request.resource.data.detailId)).data.userId == userId)))
+          || (request.resource.data.type == 'connection'
+            && request.resource.data.detailId == userId
+            && exists(/databases/$(database)/documents/users/$(userId)/followers/$(request.auth.uid)))
+          || (request.resource.data.type == 'space_connection'
+            && exists(/databases/$(database)/documents/communitySpaces/$(request.resource.data.detailId))
+            && get(/databases/$(database)/documents/communitySpaces/$(request.resource.data.detailId)).data.creatorId == userId
+            && exists(/databases/$(database)/documents/communitySpaces/$(request.resource.data.detailId)/connections/$(request.auth.uid))));
       allow update: if isAuthenticated()
         && request.auth.uid == userId
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'readAt']);

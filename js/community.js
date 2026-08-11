@@ -222,7 +222,34 @@ async function removeNotification(recipientId, type, postId, detailId = '') {
   catch (error) { console.warn('[Community] Notification could not be removed.', error); }
 }
 
+async function updateConnectionNotification(recipientId, type, detailId, title, connected) {
+  if (!currentUser || !recipientId || recipientId === currentUser.uid) return;
+  const notificationRef = doc(db, 'users', recipientId, 'notifications', notificationKey(type, detailId, currentUser.uid));
+  try {
+    if (!connected) {
+      await deleteDoc(notificationRef);
+      return;
+    }
+    await setDoc(notificationRef, {
+      recipientId,
+      actorId:currentUser.uid,
+      actorName:currentProfile?.displayName || currentUser.displayName || tr('Member','عضو'),
+      actorUsername:currentProfile?.username || '',
+      type,
+      postId:'',
+      postTitle:title || tr('Community connection','تواصل مجتمعي'),
+      detailId,
+      read:false,
+      createdAt:serverTimestamp()
+    });
+  } catch (error) {
+    console.warn('[Community] Connection notification could not be updated.', error);
+  }
+}
+
 function notificationCopy(item) {
+  if (item.type === 'connection') return tr(' connected with you',' تواصل معك');
+  if (item.type === 'space_connection') return tr(' connected with your space',' تواصل مع مساحتك');
   if (item.type === 'reply') return tr(' replied to your comment',' ردّ على تعليقك');
   if (item.type === 'applause') return tr(' applauded your post',' صفّق لمنشورك');
   return tr(' commented on your post',' علّق على منشورك');
@@ -234,7 +261,15 @@ function renderNotifications() {
   $('notificationBadge').textContent = unread > 99 ? '99+' : String(unread);
   $('markNotificationsRead').disabled = unread === 0;
   $('notificationList').innerHTML = notificationItems.length
-    ? notificationItems.map(item => '<button class="notification-item' + (item.read ? '' : ' unread') + '" type="button" data-notification-id="' + escapeHtml(item.id) + '" data-notification-post="' + escapeHtml(item.postId) + '"><span class="notification-symbol" aria-hidden="true">' + (item.type === 'reply' ? '↩' : item.type === 'applause' ? '✦' : '◯') + '</span><span><strong>' + escapeHtml(item.actorName || tr('Member','عضو')) + notificationCopy(item) + '</strong><small>' + escapeHtml(item.postTitle || tr('Community post','منشور المجتمع')) + ' · ' + escapeHtml(formatDate(item.createdAt)) + '</small></span><i aria-hidden="true"></i></button>').join('')
+    ? notificationItems.map(item => {
+      const targetUrl = item.type === 'connection'
+        ? profileUrl(item.actorId, item.actorUsername)
+        : item.type === 'space_connection'
+          ? areaUrl(item.detailId)
+          : '/community.html?post=' + encodeURIComponent(item.postId) + '&comments=1';
+      const symbol = item.type === 'connection' ? '◎' : item.type === 'space_connection' ? '#' : item.type === 'reply' ? '↩' : item.type === 'applause' ? '✦' : '◯';
+      return '<button class="notification-item' + (item.read ? '' : ' unread') + '" type="button" data-notification-id="' + escapeHtml(item.id) + '" data-notification-url="' + escapeHtml(targetUrl) + '"><span class="notification-symbol" aria-hidden="true">' + symbol + '</span><span><strong>' + escapeHtml(item.actorName || tr('Member','عضو')) + notificationCopy(item) + '</strong><small>' + escapeHtml(item.postTitle || tr('Community post','منشور المجتمع')) + ' · ' + escapeHtml(formatDate(item.createdAt)) + '</small></span><i aria-hidden="true"></i></button>';
+    }).join('')
     : '<p class="notification-empty">' + tr('No notifications yet.','لا توجد إشعارات بعد.') + '</p>';
 }
 
@@ -294,6 +329,7 @@ async function toggleUserConnection(targetId) {
   }
   await batch.commit();
   if (next) connectedUserIds.add(targetId); else connectedUserIds.delete(targetId);
+  await updateConnectionNotification(targetId, 'connection', targetId, tr('New connection','تواصل جديد'), next);
   return next;
 }
 
@@ -314,6 +350,8 @@ async function toggleSpaceConnection(slug) {
   }
   await batch.commit();
   if (next) connectedSpaceSlugs.add(slug); else connectedSpaceSlugs.delete(slug);
+  const space = communityAreas[slug];
+  await updateConnectionNotification(space.creatorId, 'space_connection', slug, space.name || 'a/' + slug, next);
   return next;
 }
 
@@ -1646,8 +1684,9 @@ async function loadProfile(uid, routedProfile) {
       '<div class="profile-top">',
         avatarMarkup(displayName, photo, 'profile-avatar'),
         '<div class="profile-title"><h2>' + escapeHtml(displayName) + '</h2><span class="profile-handle">' + (profile.username ? '@' + escapeHtml(profile.username) : tr('No username claimed','لم يتم اختيار اسم مستخدم')) + '</span><p>' + escapeHtml(locationLine) + '</p></div>',
-        owner ? '<button id="editProfile" class="edit-profile-button" type="button">' + tr('Edit profile','تعديل الملف') + '</button>' : '<button id="profileConnect" class="edit-profile-button connect-button ' + (profileConnectionActive ? 'connected' : '') + '" type="button"><span>' + (profileConnectionActive ? tr('Connected','متصل') : tr('Connect','تواصل')) + '</span><b>' + profileConnectionCount.toLocaleString(isArabic() ? 'ar-IQ' : undefined) + '</b></button>',
+        owner ? '<button id="editProfile" class="edit-profile-button" type="button">' + tr('Edit profile','تعديل الملف') + '</button>' : '<button id="profileConnect" class="edit-profile-button connect-button ' + (profileConnectionActive ? 'connected' : '') + '" type="button"><span>' + (profileConnectionActive ? tr('Connected','متصل') : tr('Connect','تواصل')) + '</span></button>',
       '</div>',
+      '<div class="profile-connection-stat"><span aria-hidden="true">◎</span><strong id="profileConnectionCount">' + profileConnectionCount.toLocaleString(isArabic() ? 'ar-IQ' : undefined) + '</strong><span id="profileConnectionLabel">' + tr('connected people','أشخاص متصلون') + '</span></div>',
       '<p class="profile-bio">' + escapeHtml(profile.bio || tr('No bio added yet.','لم تُضف نبذة بعد.')) + '</p>',
       interests.length ? '<div class="interest-row">' + interests.map(item => '<span>' + escapeHtml(item) + '</span>').join('') + '</div>' : '',
       owner ? [
@@ -1675,7 +1714,7 @@ async function loadProfile(uid, routedProfile) {
           profileConnectionCount += next ? 1 : -1;
           button.classList.toggle('connected', next);
           button.querySelector('span').textContent = next ? tr('Connected','متصل') : tr('Connect','تواصل');
-          button.querySelector('b').textContent = Math.max(0, profileConnectionCount).toLocaleString(isArabic() ? 'ar-IQ' : undefined);
+          $('profileConnectionCount').textContent = Math.max(0, profileConnectionCount).toLocaleString(isArabic() ? 'ar-IQ' : undefined);
           showToast(next ? tr('Connection added.','تمت إضافة التواصل.') : tr('Connection removed.','تمت إزالة التواصل.'));
         } catch (error) {
           console.error(error);
@@ -1980,7 +2019,7 @@ $('notificationList').addEventListener('click', async event => {
   if (!item || !currentUser) return;
   try { await setDoc(doc(db, 'users', currentUser.uid, 'notifications', item.dataset.notificationId), {read:true, readAt:serverTimestamp()}, {merge:true}); } catch {}
   $('notificationPanel').hidden = true;
-  navigateTo('/community.html?post=' + encodeURIComponent(item.dataset.notificationPost) + '&comments=1', false);
+  navigateTo(item.dataset.notificationUrl, false);
 });
 $('feedModeBar').addEventListener('click', event => {
   const button = event.target.closest('[data-feed-mode]');

@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/community.css?v=20260811-space-limits">
+  <link rel="stylesheet" href="css/community.css?v=20260811-connection-activity">
 </head>
 <body>
   <header class="community-topbar">
@@ -79,8 +79,8 @@
         <section id="areaHeader" class="area-header" hidden>
           <div id="areaBanner" class="area-banner-media"></div>
           <div class="area-symbol" id="areaSymbol">A</div>
-          <div class="area-copy"><span class="mini-kicker" id="areaPath">a/community</span><h1 id="areaTitle">Community space</h1><p id="areaDescription"></p></div>
-          <div class="area-header-actions"><button id="areaConnect" type="button" hidden><span data-en="Connect" data-ar="تواصل">Connect</span> <b id="areaConnectCount">0</b></button><button id="areaManage" type="button" hidden><span data-en="Manage space" data-ar="إدارة المساحة">Manage space</span> <span aria-hidden="true">⚙</span></button><button id="areaCreate" type="button"><span data-en="Create post" data-ar="إنشاء منشور">Create post</span> <span aria-hidden="true">+</span></button></div>
+          <div class="area-copy"><span class="mini-kicker" id="areaPath">a/community</span><h1 id="areaTitle">Community space</h1><p id="areaDescription"></p><div class="area-connection-stat"><span aria-hidden="true">◎</span><strong id="areaConnectCount">0</strong><span data-en="connected members" data-ar="أعضاء متصلون">connected members</span></div></div>
+          <div class="area-header-actions"><button id="areaConnect" type="button" hidden><span data-en="Connect" data-ar="تواصل">Connect</span></button><button id="areaManage" type="button" hidden><span data-en="Manage space" data-ar="إدارة المساحة">Manage space</span> <span aria-hidden="true">⚙</span></button><button id="areaCreate" type="button"><span data-en="Create post" data-ar="إنشاء منشور">Create post</span> <span aria-hidden="true">+</span></button></div>
         </section>
 
         <section class="welcome-card" aria-labelledby="welcomeTitle">
@@ -301,6 +301,6 @@
   </dialog>
   <div id="communityToast" class="community-toast" role="status" aria-live="polite"></div>
 
-  <script type="module" src="js/community.js?v=20260811-space-limits"></script>
+  <script type="module" src="js/community.js?v=20260811-connection-activity"></script>
 </body>
 </html>
