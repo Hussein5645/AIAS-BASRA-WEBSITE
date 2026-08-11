@@ -85,6 +85,13 @@
           <div class="area-copy"><span class="mini-kicker" id="areaPath">a/community</span><h1 id="areaTitle">Community space</h1><p id="areaDescription"></p><div class="area-connection-stat"><span aria-hidden="true">◎</span><strong id="areaConnectCount">0</strong><span data-en="connected members" data-ar="أعضاء متصلون">connected members</span></div></div>
           <div class="area-header-actions"><button id="areaConnect" type="button" hidden><span data-en="Connect" data-ar="تواصل">Connect</span></button><button id="areaManage" type="button" hidden><span data-en="Manage space" data-ar="إدارة المساحة">Manage space</span> <span aria-hidden="true">⚙</span></button><button id="areaCreate" type="button"><span data-en="Create post" data-ar="إنشاء منشور">Create post</span> <span aria-hidden="true">+</span></button></div>
         </section>
+        <section id="privateSpaceGate" class="private-space-gate" hidden>
+          <div class="private-space-dialog-icon" aria-hidden="true">◐</div>
+          <span class="mini-kicker" data-en="PRIVATE SPACE" data-ar="مساحة خاصة">PRIVATE SPACE</span>
+          <h2 id="privateSpaceDialogTitle" data-en="This space is private" data-ar="هذه المساحة خاصة">This space is private</h2>
+          <p id="privateSpaceDialogCopy"></p>
+          <div class="private-space-dialog-actions"><a id="privateSpaceBack" class="secondary-button" href="community.html" data-route="home" data-en="Back to community" data-ar="العودة إلى المجتمع">Back to community</a><button id="privateSpaceRequest" class="primary-button" type="button"><span data-en="Request access" data-ar="طلب الوصول">Request access</span><b aria-hidden="true">→</b></button></div>
+        </section>
 
         <section class="welcome-card" aria-labelledby="welcomeTitle">
           <div>
@@ -345,13 +352,6 @@
       <section class="space-danger-zone"><div><strong data-en="Delete this space" data-ar="حذف هذه المساحة">Delete this space</strong><small data-en="Its posts remain safely available in the main community feed." data-ar="ستبقى منشوراتها متاحة بأمان في الخلاصة الرئيسية للمجتمع.">Its posts remain safely available in the main community feed.</small></div><button id="deleteOwnedSpace" type="button" data-en="Delete space" data-ar="حذف المساحة">Delete space</button></section>
       <footer><button id="spaceEditCancel" class="secondary-button" type="button" data-en="Cancel" data-ar="إلغاء">Cancel</button><button class="primary-button" type="submit"><span data-en="Save space" data-ar="حفظ المساحة">Save space</span><b aria-hidden="true">→</b></button></footer>
     </form>
-  </dialog>
-  <dialog id="privateSpaceDialog" class="private-space-dialog" aria-labelledby="privateSpaceDialogTitle">
-    <div class="private-space-dialog-icon" aria-hidden="true">◐</div>
-    <span class="mini-kicker" data-en="PRIVATE SPACE" data-ar="مساحة خاصة">PRIVATE SPACE</span>
-    <h2 id="privateSpaceDialogTitle" data-en="This space is private" data-ar="هذه المساحة خاصة">This space is private</h2>
-    <p id="privateSpaceDialogCopy"></p>
-    <div class="private-space-dialog-actions"><button id="privateSpaceBack" class="secondary-button" type="button" data-en="Back to community" data-ar="العودة إلى المجتمع">Back to community</button><button id="privateSpaceRequest" class="primary-button" type="button"><span data-en="Request access" data-ar="طلب الوصول">Request access</span><b aria-hidden="true">→</b></button></div>
   </dialog>
   <div id="communityToast" class="community-toast" role="status" aria-live="polite"></div>
 
