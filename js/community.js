@@ -68,6 +68,12 @@ let connectionSpaceItems = [];
 let activeImagePost = null;
 let postImageDataUrl = '';
 let postImageMimeType = '';
+let mentionMenu = null;
+let mentionMenuInput = null;
+let mentionMenuRange = null;
+let mentionMenuItems = [];
+let mentionMenuIndex = 0;
+let mentionMenuSequence = 0;
 const POST_IMAGE_MAX_BYTES = 10 * 1024 * 1024;
 const POST_IMAGE_CHUNK_SIZE = 700000;
 
@@ -204,11 +210,183 @@ function profileUrl(uid, username) {
   return '/p/' + encodeURIComponent(username || uid);
 }
 
+function extractMentions(text) {
+  const usernames = new Set();
+  const spaceSlugs = new Set();
+  const pattern = /(^|[^A-Za-z0-9_.+-])@(?:(?:a\/)([a-z0-9-]{3,32})|([a-z0-9_]{3,24}))/gi;
+  let match;
+  while ((match = pattern.exec(String(text || '')))) {
+    if (match[2]) spaceSlugs.add(match[2].toLowerCase());
+    else if (match[3]) usernames.add(match[3].toLowerCase());
+  }
+  return {usernames:[...usernames].slice(0, 20), spaceSlugs:[...spaceSlugs].slice(0, 20)};
+}
+
+async function resolveMentions(text) {
+  const extracted = extractMentions(text);
+  const userIds = (await Promise.all(extracted.usernames.map(async username => {
+    try {
+      const snapshot = await getDoc(doc(db, 'usernames', username));
+      return snapshot.exists() ? snapshot.data().userId || '' : '';
+    } catch {
+      return '';
+    }
+  }))).filter(Boolean);
+  return {
+    userIds:[...new Set(userIds)].slice(0, 20),
+    spaceSlugs:extracted.spaceSlugs.filter(slug => communityAreas[slug]).slice(0, 20)
+  };
+}
+
+function renderMentionedText(text) {
+  const value = String(text || '');
+  const pattern = /(^|[^A-Za-z0-9_.+-])@(?:(?:a\/)([a-z0-9-]{3,32})|([a-z0-9_]{3,24}))/gi;
+  let result = '';
+  let lastIndex = 0;
+  let match;
+  while ((match = pattern.exec(value))) {
+    result += escapeHtml(value.slice(lastIndex, match.index));
+    result += escapeHtml(match[1] || '');
+    if (match[2]) {
+      const slug = match[2].toLowerCase();
+      result += '<a class="community-mention space" href="' + areaUrl(slug) + '">@a/' + escapeHtml(slug) + '</a>';
+    } else {
+      const username = match[3].toLowerCase();
+      result += '<a class="community-mention person" href="' + profileUrl('', username) + '">@' + escapeHtml(username) + '</a>';
+    }
+    lastIndex = pattern.lastIndex;
+  }
+  return result + escapeHtml(value.slice(lastIndex));
+}
+
+function renderMentionedTitle(text, destination) {
+  const value = String(text || '');
+  const pattern = /(^|[^A-Za-z0-9_.+-])@(?:(?:a\/)([a-z0-9-]{3,32})|([a-z0-9_]{3,24}))/gi;
+  const postLink = value => value ? '<a href="' + escapeHtml(destination) + '">' + escapeHtml(value) + '</a>' : '';
+  let result = '';
+  let lastIndex = 0;
+  let match;
+  while ((match = pattern.exec(value))) {
+    const prefixEnd = match.index + (match[1] || '').length;
+    result += postLink(value.slice(lastIndex, prefixEnd));
+    if (match[2]) {
+      const slug = match[2].toLowerCase();
+      result += '<a class="community-mention space" href="' + areaUrl(slug) + '">@a/' + escapeHtml(slug) + '</a>';
+    } else {
+      const username = match[3].toLowerCase();
+      result += '<a class="community-mention person" href="' + profileUrl('', username) + '">@' + escapeHtml(username) + '</a>';
+    }
+    lastIndex = pattern.lastIndex;
+  }
+  return result + postLink(value.slice(lastIndex));
+}
+
+function mentionQueryAtCursor(input) {
+  const cursor = input.selectionStart;
+  if (!Number.isInteger(cursor)) return null;
+  const before = input.value.slice(0, cursor);
+  const match = before.match(/(^|[^A-Za-z0-9_.+-])@([a-z0-9_\/-]*)$/i);
+  if (!match) return null;
+  const start = cursor - match[2].length - 1;
+  return {start, end:cursor, query:match[2].toLowerCase()};
+}
+
+function closeMentionMenu() {
+  mentionMenu?.remove();
+  mentionMenu = null;
+  mentionMenuInput?.removeAttribute('aria-controls');
+  mentionMenuInput?.removeAttribute('aria-expanded');
+  mentionMenuInput?.removeAttribute('aria-activedescendant');
+  mentionMenuInput = null;
+  mentionMenuRange = null;
+  mentionMenuItems = [];
+}
+
+function positionMentionMenu() {
+  if (!mentionMenu || !mentionMenuInput) return;
+  const rect = mentionMenuInput.getBoundingClientRect();
+  const width = Math.min(Math.max(rect.width, 280), 430, window.innerWidth - 20);
+  mentionMenu.style.width = width + 'px';
+  mentionMenu.style.left = Math.max(10, Math.min(rect.left, window.innerWidth - width - 10)) + 'px';
+  const menuHeight = Math.min(mentionMenu.scrollHeight || 260, 300);
+  const showAbove = window.innerHeight - rect.bottom < menuHeight + 12 && rect.top > menuHeight;
+  mentionMenu.style.top = (showAbove ? Math.max(10, rect.top - menuHeight - 7) : Math.min(window.innerHeight - menuHeight - 10, rect.bottom + 7)) + 'px';
+}
+
+function paintMentionMenu() {
+  if (!mentionMenu) return;
+  mentionMenu.querySelectorAll('[data-mention-option]').forEach((button, index) => {
+    const active = index === mentionMenuIndex;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-selected', String(active));
+    if (active) {
+      mentionMenuInput?.setAttribute('aria-activedescendant', button.id);
+      button.scrollIntoView({block:'nearest'});
+    }
+  });
+}
+
+function chooseMention(index = mentionMenuIndex) {
+  const item = mentionMenuItems[index];
+  const input = mentionMenuInput;
+  const range = mentionMenuRange;
+  if (!item || !input || !range) return;
+  const token = item.kind === 'space' ? '@a/' + item.handle : '@' + item.handle;
+  input.setRangeText(token + ' ', range.start, range.end, 'end');
+  input.dispatchEvent(new Event('input', {bubbles:true}));
+  closeMentionMenu();
+  input.focus();
+}
+
+async function openMentionMenu(input) {
+  const range = mentionQueryAtCursor(input);
+  if (!range) return closeMentionMenu();
+  const sequence = ++mentionMenuSequence;
+  let index;
+  try { index = await loadCommunitySearchIndex(); }
+  catch { return closeMentionMenu(); }
+  if (sequence !== mentionMenuSequence || document.activeElement !== input) return;
+  const raw = range.query;
+  const spaceOnly = raw.startsWith('a/');
+  const queryText = normalizeSearchText(raw.replace(/^a\//, ''));
+  const candidates = index
+    .filter(item => (item.kind === 'member' || item.kind === 'space') && (!spaceOnly || item.kind === 'space'))
+    .map(item => ({...item, mentionScore:queryText ? searchResultScore(item, (item.kind === 'member' ? '@' : 'a/') + queryText) : (item.kind === 'member' ? 8 : 7)}))
+    .filter(item => item.mentionScore >= 0)
+    .sort((left, right) => right.mentionScore - left.mentionScore || right.sortTime - left.sortTime)
+    .slice(0, 8);
+  if (!candidates.length) return closeMentionMenu();
+  closeMentionMenu();
+  mentionMenuInput = input;
+  mentionMenuRange = range;
+  mentionMenuItems = candidates;
+  mentionMenuIndex = 0;
+  mentionMenu = document.createElement('div');
+  mentionMenu.id = 'communityMentionMenu';
+  mentionMenu.className = 'mention-menu';
+  mentionMenu.setAttribute('role', 'listbox');
+  mentionMenu.innerHTML = candidates.map((item, itemIndex) => {
+    const handle = item.kind === 'space' ? '@a/' + item.handle : '@' + item.handle;
+    const kind = item.kind === 'space' ? tr('Space','مساحة') : tr('Person','شخص');
+    return '<button id="mention-option-' + itemIndex + '" type="button" role="option" data-mention-option="' + itemIndex + '"><span class="mention-option-icon ' + item.kind + '">' + escapeHtml(item.icon) + '</span><span><strong>' + escapeHtml(item.title) + '</strong><small>' + escapeHtml(handle) + ' · ' + kind + '</small></span></button>';
+  }).join('');
+  document.body.appendChild(mentionMenu);
+  input.setAttribute('aria-controls', mentionMenu.id);
+  input.setAttribute('aria-expanded', 'true');
+  mentionMenu.addEventListener('mousedown', event => event.preventDefault());
+  mentionMenu.addEventListener('click', event => {
+    const option = event.target.closest('[data-mention-option]');
+    if (option) chooseMention(Number(option.dataset.mentionOption));
+  });
+  positionMentionMenu();
+  paintMentionMenu();
+}
+
 function notificationKey(type, postId, actorId, detailId = '') {
   return [type, postId, actorId, detailId].filter(Boolean).join('_');
 }
 
-async function sendNotification(recipientId, type, post, detailId = '', eventId = detailId) {
+async function sendNotification(recipientId, type, post, detailId = '', eventId = detailId, sourceId = '') {
   if (!currentUser || !recipientId || recipientId === currentUser.uid) return;
   const id = notificationKey(type, post.id, currentUser.uid, eventId);
   try {
@@ -221,6 +399,7 @@ async function sendNotification(recipientId, type, post, detailId = '', eventId 
       postId:post.id,
       postTitle:post.title || tr('Community post','منشور المجتمع'),
       detailId,
+      sourceId,
       read:false,
       createdAt:serverTimestamp()
     });
@@ -280,6 +459,9 @@ async function sendSpaceRequestNotification(space) {
 }
 
 function notificationCopy(item) {
+  if (item.type === 'space_post') return tr(' posted in your space',' نشر في مساحتك');
+  if (item.type === 'mention') return tr(' mentioned you',' أشار إليك');
+  if (item.type === 'space_mention') return tr(' mentioned your space',' أشار إلى مساحتك');
   if (item.type === 'connection') return tr(' connected with you',' تواصل معك');
   if (item.type === 'space_connection') return tr(' connected with your space',' تواصل مع مساحتك');
   if (item.type === 'space_request') return tr(' requested access to your space',' طلب الوصول إلى مساحتك');
@@ -342,6 +524,22 @@ function registerNotificationServiceWorker() {
       .catch(error => { console.warn('[Community] Native notification service is unavailable.', error); return null; });
   }
   return notificationServiceWorkerReady;
+}
+
+async function sendMentionNotifications(post, mentions, sourceId = '') {
+  if (!currentUser || !post?.id || !mentions) return;
+  const tasks = mentions.userIds.map(userId => sendNotification(userId, 'mention', post, sourceId, sourceId || post.id));
+  mentions.spaceSlugs.forEach(slug => {
+    const ownerId = communityAreas[slug]?.creatorId;
+    if (ownerId) tasks.push(sendNotification(ownerId, 'space_mention', post, slug, (sourceId || post.id) + '_' + slug, sourceId));
+  });
+  await Promise.all(tasks);
+}
+
+async function notifySpaceAdminOfPost(post) {
+  const slug = post?.communitySlug;
+  const ownerId = slug && slug !== 'main' ? communityAreas[slug]?.creatorId : '';
+  if (ownerId) await sendNotification(ownerId, 'space_post', post, slug, post.id);
 }
 
 function notificationPermissionHelp() {
@@ -1586,8 +1784,8 @@ function renderPostCard(post, index, detail) {
         '</a>',
         '<span class="post-kind' + (isProject(post) ? ' project' : isQuestion(post) ? ' question' : '') + '">' + postLabel(post) + '</span>',
       '</div>',
-      '<h2 class="post-title"><a href="' + destination + '">' + escapeHtml(post.title) + '</a></h2>',
-      '<div class="post-body">' + escapeHtml(text) + '</div>',
+      '<h2 class="post-title">' + renderMentionedTitle(post.title, destination) + '</h2>',
+      '<div class="post-body">' + renderMentionedText(text) + '</div>',
       imagePreview,
       projectPreview,
       '<div class="post-actions">',
@@ -1797,7 +1995,7 @@ function renderThread(comment, byParent) {
   return [
     '<article class="comment">',
       '<div class="comment-head"><strong>' + escapeHtml(comment.userName || tr('Member','عضو')) + '</strong><span class="comment-time">' + escapeHtml(formatDate(comment.createdAt)) + '</span></div>',
-      '<div class="comment-text">' + escapeHtml(comment.text) + '</div>',
+      '<div class="comment-text">' + renderMentionedText(comment.text) + '</div>',
       '<div class="comment-actions">',
         currentUser ? '<button class="comment-action" type="button" data-reply="' + comment.id + '" data-user="' + escapeHtml(comment.userId) + '" data-name="' + escapeHtml(comment.userName || tr('Member','عضو')) + '">' + tr('Reply','رد') + '</button>' : '',
         children.length ? '<button class="comment-action" type="button" data-thread="' + comment.id + '" aria-expanded="false">' + (isArabic() ? 'عرض ' + children.length + ' رد' : 'Show ' + children.length + ' ' + (children.length === 1 ? 'reply' : 'replies')) + '</button>' : '',
@@ -1844,7 +2042,7 @@ async function openComments(postId, updateRoute) {
       '<div class="comments">',
         roots.length ? roots.map(comment => renderThread(comment, byParent)).join('') : '<div class="empty-state"><span class="empty-mark">+</span><h3>' + (isQuestion(post) ? tr('Share the first answer','شارك أول إجابة') : tr('Start the conversation','ابدأ الحوار')) + '</h3><p>' + (isQuestion(post) ? tr('Offer experience, a reference, or a useful direction.','شارك تجربة أو مرجعاً أو اتجاهاً مفيداً.') : tr('Ask a question or leave thoughtful feedback.','اطرح سؤالاً أو اترك ملاحظة بنّاءة.')) + '</p></div>',
         currentUser
-          ? '<form class="comment-form" data-comment="' + postId + '"><input required maxlength="2000" placeholder="' + (isQuestion(post) ? tr('Write an answer…','اكتب إجابة…') : tr('Add to the conversation…','أضف إلى الحوار…')) + '" aria-label="' + (isQuestion(post) ? tr('Write an answer','اكتب إجابة') : tr('Add a comment','أضف تعليقاً')) + '"><button class="comment-submit">' + (isQuestion(post) ? tr('Answer','إجابة') : tr('Post','نشر')) + '</button></form>'
+          ? '<form class="comment-form" data-comment="' + postId + '"><input class="mention-input" required maxlength="2000" autocomplete="off" aria-autocomplete="list" placeholder="' + (isQuestion(post) ? tr('Write an answer…','اكتب إجابة…') : tr('Add to the conversation…','أضف إلى الحوار…')) + '" aria-label="' + (isQuestion(post) ? tr('Write an answer','اكتب إجابة') : tr('Add a comment','أضف تعليقاً')) + '"><button class="comment-submit">' + (isQuestion(post) ? tr('Answer','إجابة') : tr('Post','نشر')) + '</button></form>'
           : '<p class="notice"><a href="' + loginUrl() + '">' + tr('Sign in','سجّل الدخول') + '</a> ' + tr('to join the discussion.','للانضمام إلى النقاش.') + '</p>',
       '</div>'
     ].join('');
@@ -1868,7 +2066,7 @@ function bindCommentActions(postId, post) {
   target.querySelectorAll('[data-reply]').forEach(button => button.addEventListener('click', () => {
     target.querySelectorAll('.reply-slot').forEach(slot => { slot.innerHTML = ''; });
     const slot = button.closest('.comment').querySelector('.reply-slot');
-    slot.innerHTML = '<form class="reply-form"><textarea maxlength="2000" required placeholder="' + tr('Reply to ','الرد على ') + escapeHtml(button.dataset.name) + '"></textarea><button class="comment-submit">' + tr('Reply','رد') + '</button></form>';
+    slot.innerHTML = '<form class="reply-form"><textarea class="mention-input" maxlength="2000" required autocomplete="off" aria-autocomplete="list" placeholder="' + tr('Reply to ','الرد على ') + escapeHtml(button.dataset.name) + '"></textarea><button class="comment-submit">' + tr('Reply','رد') + '</button></form>';
     slot.querySelector('textarea').focus();
     slot.querySelector('form').addEventListener('submit', async event => {
       event.preventDefault();
@@ -1881,7 +2079,11 @@ function bindCommentActions(postId, post) {
         parentId: button.dataset.reply,
         createdAt: serverTimestamp()
       });
-      await sendNotification(button.dataset.user, 'reply', post, button.dataset.reply, commentRef.id);
+      const mentions = await resolveMentions(text);
+      await Promise.all([
+        sendNotification(button.dataset.user, 'reply', post, button.dataset.reply, commentRef.id),
+        sendMentionNotifications(post, {...mentions, userIds:mentions.userIds.filter(userId => userId !== button.dataset.user)}, commentRef.id)
+      ]);
       await openComments(postId, false);
     });
   }));
@@ -1895,14 +2097,19 @@ function bindCommentActions(postId, post) {
     if (!input.value.trim() || !currentUser) return;
     const submit = form.querySelector('button');
     submit.disabled = true;
+    const text = input.value.trim();
     const commentRef = await addDoc(collection(db, 'communityPosts', postId, 'comments'), {
       userId: currentUser.uid,
       userName: currentProfile?.displayName || currentUser.displayName || tr('Member','عضو'),
-      text: input.value.trim(),
+      text,
       parentId: null,
       createdAt: serverTimestamp()
     });
-    await sendNotification(post.userId, 'comment', post, commentRef.id);
+    const mentions = await resolveMentions(text);
+    await Promise.all([
+      sendNotification(post.userId, 'comment', post, commentRef.id),
+      sendMentionNotifications(post, {...mentions, userIds:mentions.userIds.filter(userId => userId !== post.userId)}, commentRef.id)
+    ]);
     await openComments(postId, false);
   }));
 }
@@ -2268,6 +2475,7 @@ async function loadProfile(uid, routedProfile) {
 }
 
 document.addEventListener('click', event => {
+  if (mentionMenu && !event.target.closest('.mention-menu') && event.target !== mentionMenuInput) closeMentionMenu();
   const link = event.target.closest('a[href]');
   if (!link || link.hasAttribute('data-route') || link.target || link.hasAttribute('download') || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
   const destination = new URL(link.href, location.href);
@@ -2285,6 +2493,24 @@ document.querySelectorAll('[data-route]').forEach(link => link.addEventListener(
 
 document.querySelectorAll('[data-close-comments]').forEach(button => button.addEventListener('click', closeComments));
 document.addEventListener('keydown', event => {
+  if (mentionMenu && event.target === mentionMenuInput) {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      mentionMenuIndex = (mentionMenuIndex + (event.key === 'ArrowDown' ? 1 : -1) + mentionMenuItems.length) % mentionMenuItems.length;
+      paintMentionMenu();
+      return;
+    }
+    if ((event.key === 'Enter' || event.key === 'Tab') && mentionMenuItems.length) {
+      event.preventDefault();
+      chooseMention();
+      return;
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeMentionMenu();
+      return;
+    }
+  }
   const tag = document.activeElement?.tagName;
   if (event.key === 'Escape' && !$('communitySearchResults').hidden) {
     closeCommunitySearch();
@@ -2296,6 +2522,14 @@ document.addEventListener('keydown', event => {
     $('communitySearch').focus();
   }
 });
+document.addEventListener('input', event => {
+  if (event.target.matches('.mention-input')) openMentionMenu(event.target);
+});
+document.addEventListener('click', event => {
+  if (event.target.matches('.mention-input')) openMentionMenu(event.target);
+});
+window.addEventListener('resize', positionMentionMenu);
+window.addEventListener('scroll', positionMentionMenu, true);
 function syncCommentKeyboardOffset() {
   const active = document.activeElement;
   const editingComment = active?.matches?.('.comment-form input, .reply-form textarea');
@@ -2737,6 +2971,12 @@ $('postForm').addEventListener('submit', async event => {
       await savePostImageChunks(postRef.id, imageDataUrl);
       await setDoc(postRef, {published:true}, {merge:true});
     }
+    const publishedPost = {id:postRef.id, type, title, content, summary:content.slice(0, 360), communitySlug};
+    const mentions = await resolveMentions(title + '\n' + content);
+    await Promise.all([
+      notifySpaceAdminOfPost(publishedPost),
+      sendMentionNotifications(publishedPost, {...mentions, spaceSlugs:mentions.spaceSlugs.filter(slug => slug !== communitySlug)})
+    ]);
     invalidateCommunitySearchIndex();
     $('postForm').reset();
     postImageDataUrl = '';

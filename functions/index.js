@@ -13,6 +13,9 @@ function destinationFor(notification) {
 function notificationBody(notification) {
   const actor = notification.actorName || 'A community member';
   const action = {
+    space_post:'posted in your space',
+    mention:'mentioned you',
+    space_mention:'mentioned your space',
     connection:'connected with you',
     space_connection:'connected with your space',
     space_request:'requested access to your space',

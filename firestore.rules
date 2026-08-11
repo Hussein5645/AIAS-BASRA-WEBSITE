@@ -102,7 +102,7 @@ service cloud.firestore {
         && request.resource.data.recipientId == userId
         && request.resource.data.actorId == request.auth.uid
         && userId != request.auth.uid
-        && request.resource.data.type in ['comment', 'reply', 'applause', 'connection', 'space_connection', 'space_request']
+        && request.resource.data.type in ['comment', 'reply', 'applause', 'connection', 'space_connection', 'space_request', 'space_post', 'mention', 'space_mention']
         && request.resource.data.postId is string
         && request.resource.data.detailId is string
         && request.resource.data.actorName is string
@@ -126,6 +126,32 @@ service cloud.firestore {
               || (request.resource.data.type == 'reply'
                 && exists(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/comments/$(request.resource.data.detailId))
                 && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/comments/$(request.resource.data.detailId)).data.userId == userId)))
+          || (request.resource.data.type == 'space_post'
+            && exists(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId))
+            && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)).data.userId == request.auth.uid
+            && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)).data.communitySlug == request.resource.data.detailId
+            && exists(/databases/$(database)/documents/communitySpaces/$(request.resource.data.detailId))
+            && get(/databases/$(database)/documents/communitySpaces/$(request.resource.data.detailId)).data.creatorId == userId)
+          || (request.resource.data.type == 'mention'
+            && request.resource.data.sourceId is string
+            && request.resource.data.sourceId.size() <= 128
+            && exists(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId))
+            && ((request.resource.data.sourceId == ''
+                && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)).data.userId == request.auth.uid)
+              || (request.resource.data.sourceId != ''
+                && exists(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/comments/$(request.resource.data.sourceId))
+                && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/comments/$(request.resource.data.sourceId)).data.userId == request.auth.uid)))
+          || (request.resource.data.type == 'space_mention'
+            && request.resource.data.sourceId is string
+            && request.resource.data.sourceId.size() <= 128
+            && exists(/databases/$(database)/documents/communitySpaces/$(request.resource.data.detailId))
+            && get(/databases/$(database)/documents/communitySpaces/$(request.resource.data.detailId)).data.creatorId == userId
+            && exists(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId))
+            && ((request.resource.data.sourceId == ''
+                && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)).data.userId == request.auth.uid)
+              || (request.resource.data.sourceId != ''
+                && exists(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/comments/$(request.resource.data.sourceId))
+                && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/comments/$(request.resource.data.sourceId)).data.userId == request.auth.uid)))
           || (request.resource.data.type == 'connection'
             && request.resource.data.detailId == userId
             && exists(/databases/$(database)/documents/users/$(userId)/followers/$(request.auth.uid)))

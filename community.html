@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/community.css?v=20260811-mobile-manage-button-v10">
+  <link rel="stylesheet" href="css/community.css?v=20260811-community-mentions-v11">
 </head>
 <body>
   <header class="community-topbar">
@@ -194,11 +194,11 @@
             <div id="postIdentity" class="post-identity"></div>
             <div class="form-group">
               <div class="label-line"><label for="postTitle" data-en="Give it a clear title" data-ar="اكتب عنواناً واضحاً">Give it a clear title</label><span id="titleCount">0 / 160</span></div>
-              <input id="postTitle" required maxlength="160" placeholder="A clear question or insight" data-en="A clear question or insight" data-ar="سؤال واضح أو فكرة موجزة">
+              <input id="postTitle" class="mention-input" required maxlength="160" autocomplete="off" placeholder="A clear question or insight" data-en="A clear question or insight" data-ar="سؤال واضح أو فكرة موجزة" aria-autocomplete="list">
             </div>
             <div id="textFields" class="form-group">
               <div class="label-line"><label for="postContent" data-en="Tell the community more" data-ar="أخبر المجتمع بالمزيد">Tell the community more</label><span id="contentCount">0 / 2,000</span></div>
-              <textarea id="postContent" maxlength="2000" placeholder="Share context, a fresh perspective, or invite feedback…" data-en="Share context, a fresh perspective, or invite feedback…" data-ar="شارك السياق أو منظوراً جديداً أو اطلب آراء الأعضاء…"></textarea>
+              <textarea id="postContent" class="mention-input" maxlength="2000" autocomplete="off" placeholder="Share context, a fresh perspective, or invite feedback…" data-en="Share context, a fresh perspective, or invite feedback…" data-ar="شارك السياق أو منظوراً جديداً أو اطلب آراء الأعضاء…" aria-autocomplete="list"></textarea>
             </div>
             <div id="postImageGroup" class="form-group">
               <label for="postImageFile" data-en="Add an image (optional)" data-ar="أضف صورة (اختياري)">Add an image (optional)</label>
@@ -335,7 +335,7 @@
       <header><div><span class="mini-kicker" data-en="MANAGE YOUR POST" data-ar="إدارة منشورك">MANAGE YOUR POST</span><h2 id="postEditTitle" data-en="Edit post" data-ar="تعديل المنشور">Edit post</h2></div><button id="postEditClose" type="button" aria-label="Close editor" data-aria-en="Close editor" data-aria-ar="إغلاق المحرر">×</button></header>
       <input id="postEditId" type="hidden">
       <div class="form-group"><label for="postEditHeading" data-en="Title" data-ar="العنوان">Title</label><input id="postEditHeading" required maxlength="160"></div>
-      <div class="form-group"><label id="postEditBodyLabel" for="postEditBody" data-en="Content" data-ar="المحتوى">Content</label><textarea id="postEditBody" required maxlength="2000"></textarea></div>
+      <div class="form-group"><label id="postEditBodyLabel" for="postEditBody" data-en="Content" data-ar="المحتوى">Content</label><textarea id="postEditBody" class="mention-input" required maxlength="2000" autocomplete="off" aria-autocomplete="list"></textarea></div>
       <div id="postEditBehanceGroup" class="form-group" hidden><label for="postEditBehance" data-en="Behance project embed link" data-ar="رابط تضمين مشروع Behance">Behance project embed link</label><input id="postEditBehance" type="text" inputmode="url"></div>
       <p id="postEditStatus" class="form-status" aria-live="polite"></p>
       <footer><button id="postEditCancel" class="secondary-button" type="button" data-en="Cancel" data-ar="إلغاء">Cancel</button><button class="primary-button" type="submit"><span data-en="Save changes" data-ar="حفظ التغييرات">Save changes</span><b aria-hidden="true">→</b></button></footer>
@@ -365,6 +365,6 @@
   <div id="communityToast" class="community-toast" role="status" aria-live="polite"></div>
 
   <script src="/js/app-open-prompt.js?v=20260811" defer></script>
-  <script type="module" src="js/community.js?v=20260811-community-verification-v14"></script>
+  <script type="module" src="js/community.js?v=20260811-community-mentions-v15"></script>
 </body>
 </html>
