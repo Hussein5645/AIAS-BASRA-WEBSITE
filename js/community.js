@@ -1,5 +1,5 @@
 import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc, query, where, limit, orderBy, onSnapshot, writeBatch, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 const config = {
@@ -34,6 +34,7 @@ let communitySearchIndexPromise = null;
 let communitySearchSequence = 0;
 let communitySearchActiveIndex = -1;
 let profilePostFilter = 'all';
+let showOwnPrivateSpacePosts = false;
 let activeProfilePosts = [];
 let activeEditPostId = null;
 let spaceDirectorySort = 'popular';
@@ -1768,15 +1769,16 @@ function renderSpaceGate() {
 
 function renderProfilePosts() {
   const target = $('profilePosts');
-  const posts = profilePostFilter === 'all' ? activeProfilePosts : activeProfilePosts.filter(post => post.type === profilePostFilter);
+  const allowedPosts = activeProfilePosts.filter(post => showOwnPrivateSpacePosts || !communityAreas[post.communitySlug]?.isPrivate);
+  const posts = profilePostFilter === 'all' ? allowedPosts : allowedPosts.filter(post => post.type === profilePostFilter);
   document.querySelectorAll('[data-profile-filter]').forEach(button => button.classList.toggle('active', button.dataset.profileFilter === profilePostFilter));
   const visibleCount = isArabic() ? posts.length.toLocaleString('ar-IQ') : posts.length.toLocaleString();
-  const totalCount = isArabic() ? activeProfilePosts.length.toLocaleString('ar-IQ') : activeProfilePosts.length.toLocaleString();
+  const totalCount = isArabic() ? allowedPosts.length.toLocaleString('ar-IQ') : allowedPosts.length.toLocaleString();
   $('profilePostCount').textContent = profilePostFilter === 'all'
-    ? (isArabic() ? totalCount + ' منشوراً' : totalCount + (activeProfilePosts.length === 1 ? ' post' : ' posts'))
+    ? (isArabic() ? totalCount + ' منشوراً' : totalCount + (allowedPosts.length === 1 ? ' post' : ' posts'))
     : tr(visibleCount + ' of ' + totalCount, visibleCount + ' من ' + totalCount);
   if (!posts.length) {
-    const filtered = activeProfilePosts.length > 0;
+    const filtered = allowedPosts.length > 0;
     target.innerHTML = '<div class="empty-state"><span class="empty-mark">A</span><h3>' + (filtered ? tr('Nothing in this filter','لا يوجد محتوى في هذا التصنيف') : tr('No posts yet','لا توجد منشورات بعد')) + '</h3><p>' + (filtered ? tr('Try another profile filter.','جرّب تصنيفاً آخر للملف.') : tr('This member is still preparing their first idea.','لا يزال هذا العضو يحضّر فكرته الأولى.')) + '</p></div>';
     return;
   }
@@ -1786,7 +1788,7 @@ function renderProfilePosts() {
       return [
         '<article class="profile-post-tile' + (isProject(post) ? ' project' : '') + '">',
           '<a class="profile-post-main" href="' + href + '">',
-          '<div class="profile-post-content"><span class="profile-post-kind">' + postLabel(post).toUpperCase() + '</span><strong class="profile-post-title">' + escapeHtml(post.title) + '</strong><p>' + escapeHtml(isProject(post) ? post.summary : plainPostText(post)) + '</p></div>',
+          '<div class="profile-post-content"><span class="profile-post-kind">' + postLabel(post).toUpperCase() + '</span>' + (communityAreas[post.communitySlug]?.isPrivate ? '<span class="profile-private-post">' + tr('Private space','مساحة خاصة') + '</span>' : '') + '<strong class="profile-post-title">' + escapeHtml(post.title) + '</strong><p>' + escapeHtml(isProject(post) ? post.summary : plainPostText(post)) + '</p></div>',
           '<span class="tile-stats"><span>✦ ' + post.meta.score + '</span><span>◯ ' + post.meta.commentsCount + '</span></span>',
           '</a>',
           owner ? '<div class="profile-post-actions"><button type="button" data-edit-profile-post="' + escapeHtml(post.id) + '">' + tr('Edit','تعديل') + '</button><button type="button" data-delete-profile-post="' + escapeHtml(post.id) + '">' + tr('Delete','حذف') + '</button></div>' : '',
@@ -1840,13 +1842,14 @@ async function deleteOwnedPost(postId) {
   }
 }
 
-async function loadProfilePosts(uid) {
+async function loadProfilePosts(uid, owner) {
   const target = $('profilePosts');
   target.innerHTML = '<div class="post-skeleton short"></div>';
   try {
     let posts = (await getDocs(collection(db, 'communityPosts'))).docs
       .map(item => ({id:item.id, ...item.data()}))
       .filter(post => post.published !== false && post.userId === uid)
+      .filter(post => owner || !communityAreas[post.communitySlug]?.isPrivate)
       .sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
     activeProfilePosts = await Promise.all(posts.map(async post => ({...post, meta:await getPostMeta(post)})));
     renderProfilePosts();
@@ -1874,6 +1877,10 @@ async function loadProfile(uid, routedProfile) {
   try {
     const profile = await getProfile(uid);
     const owner = currentUser?.uid === uid;
+    showOwnPrivateSpacePosts = false;
+    $('profilePrivatePostsToggle').hidden = !owner;
+    $('profilePrivatePostsToggle').classList.remove('active');
+    $('profilePrivatePostsToggle').setAttribute('aria-pressed', 'false');
     activeProfileId = uid;
     profileConnectionActive = connectedUserIds.has(uid);
     let profileConnectionCount = 0;
@@ -2020,7 +2027,7 @@ async function loadProfile(uid, routedProfile) {
         }
       });
     }
-    await loadProfilePosts(uid);
+    await loadProfilePosts(uid, owner);
   } catch (error) {
     console.error(error);
     target.className = '';
@@ -2096,6 +2103,13 @@ document.querySelectorAll('[data-profile-filter]').forEach(button => button.addE
   profilePostFilter = button.dataset.profileFilter;
   renderProfilePosts();
 }));
+$('profilePrivatePostsToggle').addEventListener('click', () => {
+  if (currentUser?.uid !== activeProfileId) return;
+  showOwnPrivateSpacePosts = !showOwnPrivateSpacePosts;
+  $('profilePrivatePostsToggle').classList.toggle('active', showOwnPrivateSpacePosts);
+  $('profilePrivatePostsToggle').setAttribute('aria-pressed', String(showOwnPrivateSpacePosts));
+  renderProfilePosts();
+});
 $('spaceDirectorySearch').addEventListener('input', renderSpaceDirectory);
 $('selectedShellSearch').addEventListener('input', renderSelectedShell);
 $('connectionsSearch').addEventListener('input', renderConnectionManager);
@@ -2357,6 +2371,18 @@ $('removePostImage').addEventListener('click', () => {
 $('communityLanguageToggle').addEventListener('click', () => {
   setCommunityLanguage(isArabic() ? 'en' : 'ar');
 });
+$('switchAccount').addEventListener('click', async event => {
+  const button = event.currentTarget;
+  button.disabled = true;
+  try {
+    await signOut(auth);
+    location.href = loginUrl();
+  } catch (error) {
+    console.error(error);
+    showToast(tr('Could not switch accounts. Please try again.','تعذر تبديل الحساب. حاول مرة أخرى.'));
+    button.disabled = false;
+  }
+});
 setCommunityLanguage(currentLanguage, false);
 
 $('postForm').addEventListener('submit', async event => {
@@ -2574,6 +2600,7 @@ onAuthStateChanged(auth, async user => {
     const displayName = currentProfile.displayName || user.displayName || tr('Member','عضو');
     const photo = currentProfile.photoBase64 || currentProfile.photoURL || user.photoURL || '';
     $('memberAction').href = profileUrl(user.uid, currentProfile.username);
+    $('switchAccount').hidden = false;
     document.querySelectorAll('[data-route="profile"]').forEach(link => { link.href = profileUrl(user.uid, currentProfile.username); });
     $('memberAction').setAttribute('aria-label', tr('Open your community profile','افتح ملفك المجتمعي'));
     $('memberAction').innerHTML = photo ? '<img src="' + escapeHtml(photo) + '" alt="' + escapeHtml(displayName) + '">' : '<span>' + escapeHtml(initials(displayName)) + '</span>';
@@ -2582,6 +2609,7 @@ onAuthStateChanged(auth, async user => {
     currentProfile = null;
     railSpacesExpanded = false;
     $('memberAction').href = loginUrl();
+    $('switchAccount').hidden = true;
     $('memberAction').setAttribute('aria-label', tr('Sign in','تسجيل الدخول'));
     $('memberAction').innerHTML = '<span>?</span>';
     $('quickAvatar').textContent = 'A';

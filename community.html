@@ -42,6 +42,7 @@
         </div>
         <button class="community-language-toggle" id="communityLanguageToggle" type="button" aria-label="Switch language"><span id="communityLanguageLabel">العربية</span></button>
         <a class="topbar-avatar" id="memberAction" href="login.html" aria-label="Sign in"><span>?</span></a>
+        <button id="switchAccount" class="switch-account-button" type="button" hidden><span aria-hidden="true">⇄</span><span data-en="Switch account" data-ar="تبديل الحساب">Switch account</span></button>
       </div>
     </div>
   </header>
@@ -246,6 +247,7 @@
           <button class="filter-pill" type="button" data-profile-filter="text" data-en="Thoughts" data-ar="الأفكار">Thoughts</button>
           <button class="filter-pill" type="button" data-profile-filter="behance" data-en="Projects" data-ar="المشاريع">Projects</button>
           <button class="filter-pill" type="button" data-profile-filter="question" data-en="Questions" data-ar="الأسئلة">Questions</button>
+          <button id="profilePrivatePostsToggle" class="filter-pill private-posts-toggle" type="button" aria-pressed="false" hidden><span data-en="Show private-space posts" data-ar="إظهار منشورات المساحات الخاصة">Show private-space posts</span></button>
         </div>
         <div id="profilePosts" class="profile-post-grid"></div>
       </section>
