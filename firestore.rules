@@ -73,6 +73,79 @@ service cloud.firestore {
               || request.resource.data.bannerBase64.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$'))));
     }
 
+    match /users/{userId}/notifications/{notificationId} {
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow create: if isAuthenticated()
+        && request.resource.data.recipientId == userId
+        && request.resource.data.actorId == request.auth.uid
+        && userId != request.auth.uid
+        && request.resource.data.type in ['comment', 'reply', 'applause']
+        && request.resource.data.postId is string
+        && request.resource.data.detailId is string
+        && request.resource.data.actorName is string
+        && request.resource.data.actorName.size() <= 100
+        && request.resource.data.actorUsername is string
+        && request.resource.data.actorUsername.size() <= 24
+        && request.resource.data.postTitle is string
+        && request.resource.data.postTitle.size() <= 160
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.read == false
+        && exists(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId))
+        && ((request.resource.data.type == 'applause'
+            && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)).data.userId == userId
+            && exists(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/votes/$(request.auth.uid))
+            && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/votes/$(request.auth.uid)).data.value == 1)
+          || (request.resource.data.type == 'comment'
+            && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)).data.userId == userId
+            && exists(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/comments/$(request.resource.data.detailId))
+            && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/comments/$(request.resource.data.detailId)).data.userId == request.auth.uid)
+          || (request.resource.data.type == 'reply'
+            && exists(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/comments/$(request.resource.data.detailId))
+            && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.postId)/comments/$(request.resource.data.detailId)).data.userId == userId));
+      allow update: if isAuthenticated()
+        && request.auth.uid == userId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'readAt']);
+      allow delete: if isAuthenticated()
+        && (request.auth.uid == userId || resource.data.actorId == request.auth.uid);
+    }
+
+    match /users/{userId}/connections/{targetUserId} {
+      allow read: if true;
+      allow create: if isAuthenticated()
+        && request.auth.uid == userId
+        && targetUserId != userId
+        && request.resource.data.userId == userId
+        && request.resource.data.targetUserId == targetUserId
+        && request.resource.data.createdAt == request.time
+        && exists(/databases/$(database)/documents/users/$(targetUserId));
+      allow update: if false;
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    match /users/{userId}/followers/{followerId} {
+      allow read: if true;
+      allow create: if isAuthenticated()
+        && request.auth.uid == followerId
+        && followerId != userId
+        && request.resource.data.userId == followerId
+        && request.resource.data.targetUserId == userId
+        && request.resource.data.createdAt == request.time;
+      allow update: if false;
+      allow delete: if isAuthenticated() && request.auth.uid == followerId;
+    }
+
+    match /users/{userId}/connectedSpaces/{spaceId} {
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow create: if isAuthenticated()
+        && request.auth.uid == userId
+        && request.resource.data.userId == userId
+        && request.resource.data.spaceSlug == spaceId
+        && request.resource.data.createdAt == request.time
+        && exists(/databases/$(database)/documents/communitySpaces/$(spaceId));
+      allow update: if false;
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
+    }
+
     // Public usernames are immutable reservations. The document ID is the
     // lowercase handle, which makes profile routes unique without exposing email.
     match /usernames/{username} {
@@ -142,6 +215,18 @@ service cloud.firestore {
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'description', 'symbol', 'imageBase64', 'bannerBase64', 'updatedAt'])));
       allow delete: if hasPermission('manage_community')
         || (isAuthenticated() && resource.data.creatorId == request.auth.uid);
+    }
+
+    match /communitySpaces/{spaceId}/connections/{userId} {
+      allow read: if true;
+      allow create: if isAuthenticated()
+        && request.auth.uid == userId
+        && request.resource.data.userId == userId
+        && request.resource.data.spaceSlug == spaceId
+        && request.resource.data.createdAt == request.time
+        && exists(/databases/$(database)/documents/communitySpaces/$(spaceId));
+      allow update: if false;
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
     }
 
     match /communitySettings/{settingId} {

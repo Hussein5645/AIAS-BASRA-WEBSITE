@@ -1,6 +1,6 @@
 import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc, query, where, limit, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc, query, where, limit, orderBy, onSnapshot, writeBatch, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 const config = {
   apiKey: 'AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ',
@@ -47,6 +47,14 @@ let activeEditSpaceSlug = null;
 let editSpaceImageBase64 = '';
 let editSpaceBannerBase64 = '';
 let editSpaceMediaBusy = 0;
+let feedMode = 'following';
+let connectedUserIds = new Set();
+let connectedSpaceSlugs = new Set();
+let activeProfileId = null;
+let profileConnectionActive = false;
+let activeAreaConnection = false;
+let unsubscribeNotifications = null;
+let notificationItems = [];
 
 const $ = id => document.getElementById(id);
 const escapeHtml = value => String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -87,6 +95,7 @@ function setCommunityLanguage(language, rerender = true) {
   }
   if (!rerender) return;
   renderCommunitySpaces();
+  renderNotifications();
   loadPromptOfTheWeek();
   handleRoute(false);
   if (!$('communitySearchResults').hidden) runCommunitySearch($('communitySearch').value);
@@ -178,6 +187,160 @@ function areaUrl(slug) {
 
 function profileUrl(uid, username) {
   return '/p/' + encodeURIComponent(username || uid);
+}
+
+function notificationKey(type, postId, actorId, detailId = '') {
+  return [type, postId, actorId, detailId].filter(Boolean).join('_');
+}
+
+async function sendNotification(recipientId, type, post, detailId = '', eventId = detailId) {
+  if (!currentUser || !recipientId || recipientId === currentUser.uid) return;
+  const id = notificationKey(type, post.id, currentUser.uid, eventId);
+  try {
+    await setDoc(doc(db, 'users', recipientId, 'notifications', id), {
+      recipientId,
+      actorId:currentUser.uid,
+      actorName:currentProfile?.displayName || currentUser.displayName || tr('Member','عضو'),
+      actorUsername:currentProfile?.username || '',
+      type,
+      postId:post.id,
+      postTitle:post.title || tr('Community post','منشور المجتمع'),
+      detailId,
+      read:false,
+      createdAt:serverTimestamp()
+    });
+  } catch (error) {
+    console.warn('[Community] Notification could not be created.', error);
+  }
+}
+
+async function removeNotification(recipientId, type, postId, detailId = '') {
+  if (!currentUser || !recipientId || recipientId === currentUser.uid) return;
+  try { await deleteDoc(doc(db, 'users', recipientId, 'notifications', notificationKey(type, postId, currentUser.uid, detailId))); }
+  catch (error) { console.warn('[Community] Notification could not be removed.', error); }
+}
+
+function notificationCopy(item) {
+  if (item.type === 'reply') return tr(' replied to your comment',' ردّ على تعليقك');
+  if (item.type === 'applause') return tr(' applauded your post',' صفّق لمنشورك');
+  return tr(' commented on your post',' علّق على منشورك');
+}
+
+function renderNotifications() {
+  const unread = notificationItems.filter(item => !item.read).length;
+  $('notificationBadge').hidden = unread === 0;
+  $('notificationBadge').textContent = unread > 99 ? '99+' : String(unread);
+  $('markNotificationsRead').disabled = unread === 0;
+  $('notificationList').innerHTML = notificationItems.length
+    ? notificationItems.map(item => '<button class="notification-item' + (item.read ? '' : ' unread') + '" type="button" data-notification-id="' + escapeHtml(item.id) + '" data-notification-post="' + escapeHtml(item.postId) + '"><span class="notification-symbol" aria-hidden="true">' + (item.type === 'reply' ? '↩' : item.type === 'applause' ? '✦' : '◯') + '</span><span><strong>' + escapeHtml(item.actorName || tr('Member','عضو')) + notificationCopy(item) + '</strong><small>' + escapeHtml(item.postTitle || tr('Community post','منشور المجتمع')) + ' · ' + escapeHtml(formatDate(item.createdAt)) + '</small></span><i aria-hidden="true"></i></button>').join('')
+    : '<p class="notification-empty">' + tr('No notifications yet.','لا توجد إشعارات بعد.') + '</p>';
+}
+
+function stopNotificationInbox() {
+  unsubscribeNotifications?.();
+  unsubscribeNotifications = null;
+  notificationItems = [];
+  $('notificationBell').hidden = true;
+  $('notificationPanel').hidden = true;
+  renderNotifications();
+}
+
+function startNotificationInbox() {
+  unsubscribeNotifications?.();
+  if (!currentUser) return stopNotificationInbox();
+  $('notificationBell').hidden = false;
+  const inboxQuery = query(collection(db, 'users', currentUser.uid, 'notifications'), orderBy('createdAt', 'desc'), limit(40));
+  unsubscribeNotifications = onSnapshot(inboxQuery, snapshot => {
+    notificationItems = snapshot.docs.map(item => ({id:item.id, ...item.data()}));
+    renderNotifications();
+  }, error => {
+    console.warn('[Community] Notifications unavailable.', error);
+    $('notificationList').innerHTML = '<p class="notification-empty">' + tr('Notifications are unavailable right now.','الإشعارات غير متاحة حالياً.') + '</p>';
+  });
+}
+
+async function loadConnections() {
+  connectedUserIds = new Set();
+  connectedSpaceSlugs = new Set();
+  if (!currentUser) return;
+  try {
+    const [people, spaces] = await Promise.all([
+      getDocs(collection(db, 'users', currentUser.uid, 'connections')),
+      getDocs(collection(db, 'users', currentUser.uid, 'connectedSpaces'))
+    ]);
+    connectedUserIds = new Set(people.docs.map(item => item.id));
+    connectedSpaceSlugs = new Set(spaces.docs.map(item => item.id).filter(slug => communityAreas[slug]));
+  } catch (error) {
+    console.warn('[Community] Connections unavailable.', error);
+  }
+}
+
+async function toggleUserConnection(targetId) {
+  if (!currentUser) { location.href = loginUrl(); return false; }
+  if (!targetId || targetId === currentUser.uid) return false;
+  const next = !connectedUserIds.has(targetId);
+  const batch = writeBatch(db);
+  const connectionRef = doc(db, 'users', currentUser.uid, 'connections', targetId);
+  const followerRef = doc(db, 'users', targetId, 'followers', currentUser.uid);
+  if (next) {
+    const record = {userId:currentUser.uid, targetUserId:targetId, createdAt:serverTimestamp()};
+    batch.set(connectionRef, record);
+    batch.set(followerRef, record);
+  } else {
+    batch.delete(connectionRef);
+    batch.delete(followerRef);
+  }
+  await batch.commit();
+  if (next) connectedUserIds.add(targetId); else connectedUserIds.delete(targetId);
+  return next;
+}
+
+async function toggleSpaceConnection(slug) {
+  if (!currentUser) { location.href = loginUrl(); return false; }
+  if (!slug || !communityAreas[slug]) return false;
+  const next = !connectedSpaceSlugs.has(slug);
+  const batch = writeBatch(db);
+  const connectionRef = doc(db, 'users', currentUser.uid, 'connectedSpaces', slug);
+  const memberRef = doc(db, 'communitySpaces', slug, 'connections', currentUser.uid);
+  if (next) {
+    const record = {userId:currentUser.uid, spaceSlug:slug, createdAt:serverTimestamp()};
+    batch.set(connectionRef, record);
+    batch.set(memberRef, record);
+  } else {
+    batch.delete(connectionRef);
+    batch.delete(memberRef);
+  }
+  await batch.commit();
+  if (next) connectedSpaceSlugs.add(slug); else connectedSpaceSlugs.delete(slug);
+  return next;
+}
+
+function discoverScore(post) {
+  const created = post.createdAt?.seconds || 0;
+  const ageHours = Math.max(0, Date.now() / 1000 - created) / 3600;
+  const freshness = 72 / (1 + ageHours / 18);
+  const applause = Math.log2(Math.max(0, post.meta.score) + 1) * 17;
+  const conversation = Math.log2(post.meta.commentsCount + 1) * 14;
+  const quality = post.featured ? 18 : 0;
+  const invitation = isQuestion(post) ? 6 : 0;
+  const relevance = connectedUserIds.has(post.userId) || connectedSpaceSlugs.has(post.communitySlug) ? 4 : 0;
+  return freshness + applause + conversation + quality + invitation + relevance;
+}
+
+function rankDiscoverPosts(posts) {
+  const pool = posts.map(post => ({...post, discoverScore:discoverScore(post)})).sort((a,b) => b.discoverScore - a.discoverScore);
+  const result = [];
+  const authorCounts = new Map();
+  while (pool.length) {
+    const lastAuthor = result.at(-1)?.userId;
+    let index = pool.findIndex(post => post.userId !== lastAuthor && (authorCounts.get(post.userId) || 0) < 2);
+    if (index < 0) index = pool.findIndex(post => post.userId !== lastAuthor);
+    if (index < 0) index = 0;
+    const [post] = pool.splice(index, 1);
+    authorCounts.set(post.userId, (authorCounts.get(post.userId) || 0) + 1);
+    result.push(post);
+  }
+  return result;
 }
 
 async function resolveProfileId(routeValue) {
@@ -465,7 +628,20 @@ function renderActiveAreaHeader(area) {
   $('areaPath').textContent = 'a/' + activeAreaSlug;
   $('areaTitle').textContent = area.name;
   $('areaDescription').textContent = area.description;
-  $('areaManage').hidden = !currentUser || area.creatorId !== currentUser.uid;
+  const owner = currentUser && area.creatorId === currentUser.uid;
+  $('areaManage').hidden = !owner;
+  $('areaConnect').hidden = Boolean(owner);
+  activeAreaConnection = connectedSpaceSlugs.has(activeAreaSlug);
+  $('areaConnect').classList.toggle('connected', activeAreaConnection);
+  $('areaConnect').querySelector('span').textContent = activeAreaConnection ? tr('Connected','متصل') : tr('Connect','تواصل');
+  refreshAreaConnectionCount(activeAreaSlug);
+}
+
+async function refreshAreaConnectionCount(slug) {
+  try {
+    const snapshot = await getDocs(collection(db, 'communitySpaces', slug, 'connections'));
+    if (activeAreaSlug === slug) $('areaConnectCount').textContent = snapshot.size.toLocaleString(isArabic() ? 'ar-IQ' : undefined);
+  } catch { if (activeAreaSlug === slug) $('areaConnectCount').textContent = '0'; }
 }
 
 function closeSpaceEditor() {
@@ -746,7 +922,7 @@ async function runCommunitySearch(rawQuery) {
     if (!query) {
       const spaces = index.filter(item => item.kind === 'space').sort((a,b) => a.title.localeCompare(b.title)).slice(0, 4);
       const posts = index.filter(item => item.kind === 'post').sort((a,b) => b.sortTime - a.sortTime).slice(0, 4);
-      renderCommunitySearchResults([...spaces, ...posts], '', tr('Explore community','استكشف المجتمع'));
+      renderCommunitySearchResults([...spaces, ...posts], '', tr('Discover community','اكتشف المجتمع'));
       return;
     }
     const ranked = index
@@ -914,6 +1090,8 @@ async function handleRoute(scrollToTop) {
   const requestedArea = pathRoute.area || params.get('area');
   activeAreaSlug = requestedArea && communityAreas[requestedArea] ? requestedArea : null;
   const view = publicProfileRoute || requestedView === 'profile' ? 'profile' : requestedView === 'selected' ? 'selected' : requestedView === 'spaces' ? 'spaces' : requestedView === 'post' ? 'post' : requestedView === 'space' ? 'space' : 'home';
+  feedMode = currentUser ? (params.get('feed') === 'discover' ? 'discover' : 'following') : 'discover';
+  if (view === 'home' && !selectedPostId && !activeAreaSlug) communitySort = feedMode === 'discover' ? 'smart' : 'latest';
   if (!params.has('comments')) closeCommentsUi();
   showView(view);
   if (scrollToTop) window.scrollTo({top:0, behavior:'smooth'});
@@ -924,6 +1102,10 @@ async function handleRoute(scrollToTop) {
     document.querySelector('.welcome-card').hidden = Boolean(selectedPostId) || Boolean(activeAreaSlug);
     $('quickComposer').hidden = Boolean(selectedPostId);
     document.querySelector('.feed-toolbar').hidden = Boolean(selectedPostId);
+    $('feedModeBar').hidden = Boolean(selectedPostId) || Boolean(activeAreaSlug);
+    document.querySelectorAll('[data-feed-mode]').forEach(button => button.classList.toggle('active', button.dataset.feedMode === feedMode));
+    document.querySelectorAll('[data-sort]').forEach(button => button.classList.toggle('active', button.dataset.sort === communitySort));
+    $('feedModeTitle').textContent = feedMode === 'discover' ? tr('Discover','اكتشف') : tr('Connections','التواصلات');
     if (activeAreaSlug) {
       const area = communityAreas[activeAreaSlug];
       renderActiveAreaHeader(area);
@@ -931,7 +1113,8 @@ async function handleRoute(scrollToTop) {
       document.title = 'a/' + activeAreaSlug + (isArabic() ? ' — مجتمع AIAS البصرة' : ' — AIAS Basra Community');
     } else {
       $('areaManage').hidden = true;
-      document.querySelector('.feed-heading h2').textContent = tr('Community feed','منشورات المجتمع');
+      $('areaConnect').hidden = true;
+      document.querySelector('.feed-heading h2').textContent = feedMode === 'discover' ? tr('Discover feed','خلاصة الاكتشاف') : tr('From your connections','من تواصلاتك');
       document.title = selectedPostId ? tr('Post — AIAS Basra Community','منشور — مجتمع AIAS البصرة') : tr('Community — AIAS Basra','مجتمع AIAS البصرة');
     }
     await loadPosts();
@@ -941,7 +1124,7 @@ async function handleRoute(scrollToTop) {
     document.title = tr('Selected Projects — AIAS Basra Community','المشاريع المختارة — مجتمع AIAS البصرة');
     await loadSelectedShell();
   } else if (view === 'spaces') {
-    document.title = tr('Explore Spaces — AIAS Basra Community','استكشف المساحات — مجتمع AIAS البصرة');
+    document.title = tr('Discover Spaces — AIAS Basra Community','اكتشف المساحات — مجتمع AIAS البصرة');
     await loadSpaceDirectory();
   } else if (view === 'profile') {
     const profileId = publicProfileRoute ? await resolveProfileId(publicProfileRoute) : currentUser?.uid || null;
@@ -995,8 +1178,11 @@ function renderPostCard(post, index, detail) {
       '<div class="post-body">' + escapeHtml(text) + '</div>',
       projectPreview,
       '<div class="post-actions">',
-        '<button class="action-button applaud ' + (meta.mine === 1 ? 'active' : '') + '" type="button" data-vote="1" data-current="' + meta.mine + '" data-id="' + post.id + '" aria-label="' + tr('Applaud this post','التصفيق لهذا المنشور') + '"><span class="action-icon" aria-hidden="true">✦</span><span>' + tr('Applaud','تصفيق') + '</span><b>' + meta.score + '</b></button>',
-        '<button class="action-button down ' + (meta.mine === -1 ? 'active' : '') + '" type="button" data-vote="-1" data-current="' + meta.mine + '" data-id="' + post.id + '" aria-label="' + tr('Show less like this','عرض محتوى أقل من هذا النوع') + '"><span class="action-icon" aria-hidden="true">⌄</span></button>',
+        '<div class="vote-control" role="group" aria-label="' + tr('Post voting','تقييم المنشور') + '">',
+          '<button class="vote-arrow up ' + (meta.mine === 1 ? 'active' : '') + '" type="button" data-vote="1" data-current="' + meta.mine + '" data-id="' + post.id + '" aria-label="' + tr('Applaud this post','التصفيق لهذا المنشور') + '"><span aria-hidden="true">↑</span></button>',
+          '<b class="vote-score" data-vote-score="' + post.id + '">' + meta.score + '</b>',
+          '<button class="vote-arrow down ' + (meta.mine === -1 ? 'active' : '') + '" type="button" data-vote="-1" data-current="' + meta.mine + '" data-id="' + post.id + '" aria-label="' + tr('Show less like this','عرض محتوى أقل من هذا النوع') + '"><span aria-hidden="true">↓</span></button>',
+        '</div>',
         '<button class="action-button" type="button" data-open-comments="' + post.id + '"><span class="action-icon" aria-hidden="true">◯</span><span>' + meta.commentsCount + ' ' + (isQuestion(post) ? (isArabic() ? 'إجابة' : meta.commentsCount === 1 ? 'answer' : 'answers') : (isArabic() ? 'تعليق' : meta.commentsCount === 1 ? 'comment' : 'comments')) + '</span></button>',
         '<button class="action-button share" type="button" data-share="' + post.id + '"><span class="action-icon" aria-hidden="true">↗</span><span>' + tr('Share','مشاركة') + '</span></button>',
       '</div>',
@@ -1024,13 +1210,14 @@ function bindPostActions(target, posts) {
     const value = previousValue === requested ? 0 : requested;
     const nextScore = previousScore + value - previousValue;
     const reactionButtons = [...target.querySelectorAll('[data-vote]')].filter(item => item.dataset.id === postId);
+    const scoreTargets = [...target.querySelectorAll('[data-vote-score]')].filter(item => item.dataset.voteScore === postId);
     const paintReaction = (mine, score) => {
       reactionButtons.forEach(item => {
         const vote = Number(item.dataset.vote);
         item.dataset.current = String(mine);
         item.classList.toggle('active', vote === mine);
-        if (vote === 1) item.querySelector('b').textContent = String(score);
       });
+      scoreTargets.forEach(item => { item.textContent = String(score); });
     };
     reactionButtons.forEach(item => { item.disabled = true; });
     paintReaction(value, nextScore);
@@ -1045,6 +1232,8 @@ function bindPostActions(target, posts) {
         value,
         updatedAt: serverTimestamp()
       });
+      if (value === 1) await sendNotification(post.userId, 'applause', post);
+      else if (previousValue === 1) await removeNotification(post.userId, 'applause', post.id);
       post.meta.mine = value;
       post.meta.score = nextScore;
     } catch (error) {
@@ -1090,6 +1279,7 @@ async function loadPosts() {
       posts = posts.filter(post => post.id === selectedPostId);
     } else {
       if (activeAreaSlug) posts = posts.filter(post => post.communitySlug === activeAreaSlug);
+      else if (feedMode === 'following' && currentUser) posts = posts.filter(post => post.userId === currentUser.uid || connectedUserIds.has(post.userId) || connectedSpaceSlugs.has(post.communitySlug) || communityAreas[post.communitySlug]?.creatorId === currentUser.uid);
       if (communityType !== 'both') {
         posts = posts.filter(post => communityType === 'text'
           ? !isProject(post) && !isQuestion(post)
@@ -1097,9 +1287,10 @@ async function loadPosts() {
       }
     }
     posts = await Promise.all(posts.map(async post => ({...post, meta:await getPostMeta(post)})));
-    posts.sort((a, b) => communitySort === 'upvoted'
-      ? b.meta.score - a.meta.score || (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
-      : (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+    if (communitySort === 'smart') posts = rankDiscoverPosts(posts);
+    else posts.sort((a, b) => communitySort === 'upvoted'
+        ? b.meta.score - a.meta.score || (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
+        : (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
 
     $('feedCount').textContent = selectedPostId ? '' : isArabic() ? posts.length + ' منشور' : posts.length + (posts.length === 1 ? ' post' : ' posts');
     if (!posts.length) {
@@ -1107,8 +1298,12 @@ async function loadPosts() {
         ? [tr('Post unavailable','المنشور غير متاح'), tr('This post may have been removed or the link is incorrect.','ربما حُذف المنشور أو أن الرابط غير صحيح.')]
         : activeAreaSlug
             ? [tr('This space is ready','هذه المساحة جاهزة'), tr('Be the first member to post in a/','كن أول عضو ينشر في a/') + activeAreaSlug + '.']
-            : [tr('A quiet studio — for now','الاستوديو هادئ حالياً'), tr('Be the first member to start this conversation.','كن أول عضو يبدأ هذا الحوار.')];
-      target.innerHTML = '<div class="empty-state"><span class="empty-mark">A</span><h3>' + copy[0] + '</h3><p>' + copy[1] + '</p></div>';
+            : feedMode === 'following' && currentUser
+              ? [tr('Build your community feed','أنشئ خلاصتك المجتمعية'), tr('Connect with people or spaces, or open Discover to find conversations.','تواصل مع أشخاص أو مساحات، أو افتح الاكتشاف للعثور على حوارات.')]
+              : [tr('A quiet studio — for now','الاستوديو هادئ حالياً'), tr('Be the first member to start this conversation.','كن أول عضو يبدأ هذا الحوار.')];
+      const discoverAction = !selectedPostId && !activeAreaSlug && feedMode === 'following' ? '<button class="empty-discover" type="button" data-empty-discover>' + tr('Open Discover','فتح الاكتشاف') + ' <span aria-hidden="true">→</span></button>' : '';
+      target.innerHTML = '<div class="empty-state"><span class="empty-mark">A</span><h3>' + copy[0] + '</h3><p>' + copy[1] + '</p>' + discoverAction + '</div>';
+      target.querySelector('[data-empty-discover]')?.addEventListener('click', () => navigateTo('/community.html?feed=discover', false));
     } else {
       target.innerHTML = posts.map((post, index) => renderPostCard(post, index, Boolean(selectedPostId))).join('');
       bindPostActions(target, posts);
@@ -1128,7 +1323,7 @@ function renderThread(comment, byParent) {
       '<div class="comment-head"><strong>' + escapeHtml(comment.userName || tr('Member','عضو')) + '</strong><span class="comment-time">' + escapeHtml(formatDate(comment.createdAt)) + '</span></div>',
       '<div class="comment-text">' + escapeHtml(comment.text) + '</div>',
       '<div class="comment-actions">',
-        currentUser ? '<button class="comment-action" type="button" data-reply="' + comment.id + '" data-name="' + escapeHtml(comment.userName || tr('Member','عضو')) + '">' + tr('Reply','رد') + '</button>' : '',
+        currentUser ? '<button class="comment-action" type="button" data-reply="' + comment.id + '" data-user="' + escapeHtml(comment.userId) + '" data-name="' + escapeHtml(comment.userName || tr('Member','عضو')) + '">' + tr('Reply','رد') + '</button>' : '',
         children.length ? '<button class="comment-action" type="button" data-thread="' + comment.id + '" aria-expanded="false">' + (isArabic() ? 'عرض ' + children.length + ' رد' : 'Show ' + children.length + ' ' + (children.length === 1 ? 'reply' : 'replies')) + '</button>' : '',
         currentUser?.uid === comment.userId ? '<button class="comment-action" type="button" data-delete-comment="' + comment.id + '">' + tr('Delete','حذف') + '</button>' : '',
       '</div>',
@@ -1155,7 +1350,7 @@ async function openComments(postId, updateRoute) {
       getDocs(collection(db, 'communityPosts', postId, 'comments'))
     ]);
     if (!postSnapshot.exists()) throw new Error(tr('Post not found','المنشور غير موجود'));
-    const post = postSnapshot.data();
+    const post = {id:postId, ...postSnapshot.data()};
     const comments = commentsSnapshot.docs.map(item => ({id:item.id, ...item.data()}));
     const knownIds = new Set(comments.map(comment => comment.id));
     const byParent = new Map();
@@ -1176,7 +1371,7 @@ async function openComments(postId, updateRoute) {
           : '<p class="notice"><a href="' + loginUrl() + '">' + tr('Sign in','سجّل الدخول') + '</a> ' + tr('to join the discussion.','للانضمام إلى النقاش.') + '</p>',
       '</div>'
     ].join('');
-    bindCommentActions(postId);
+    bindCommentActions(postId, post);
     $('commentsOverlay').querySelector('.comments-close').focus();
   } catch (error) {
     console.error(error);
@@ -1184,7 +1379,7 @@ async function openComments(postId, updateRoute) {
   }
 }
 
-function bindCommentActions(postId) {
+function bindCommentActions(postId, post) {
   const target = $('commentsSheetBody');
   target.querySelectorAll('[data-thread]').forEach(button => button.addEventListener('click', () => {
     const box = target.querySelector('[data-children="' + button.dataset.thread + '"]');
@@ -1202,13 +1397,14 @@ function bindCommentActions(postId) {
       event.preventDefault();
       const text = slot.querySelector('textarea').value.trim();
       if (!text || !currentUser) return;
-      await addDoc(collection(db, 'communityPosts', postId, 'comments'), {
+      const commentRef = await addDoc(collection(db, 'communityPosts', postId, 'comments'), {
         userId: currentUser.uid,
         userName: currentProfile?.displayName || currentUser.displayName || tr('Member','عضو'),
         text,
         parentId: button.dataset.reply,
         createdAt: serverTimestamp()
       });
+      await sendNotification(button.dataset.user, 'reply', post, button.dataset.reply, commentRef.id);
       await openComments(postId, false);
     });
   }));
@@ -1222,13 +1418,14 @@ function bindCommentActions(postId) {
     if (!input.value.trim() || !currentUser) return;
     const submit = form.querySelector('button');
     submit.disabled = true;
-    await addDoc(collection(db, 'communityPosts', postId, 'comments'), {
+    const commentRef = await addDoc(collection(db, 'communityPosts', postId, 'comments'), {
       userId: currentUser.uid,
       userName: currentProfile?.displayName || currentUser.displayName || tr('Member','عضو'),
       text: input.value.trim(),
       parentId: null,
       createdAt: serverTimestamp()
     });
+    await sendNotification(post.userId, 'comment', post, commentRef.id);
     await openComments(postId, false);
   }));
 }
@@ -1403,6 +1600,10 @@ async function loadProfile(uid, routedProfile) {
   try {
     const profile = await getProfile(uid);
     const owner = currentUser?.uid === uid;
+    activeProfileId = uid;
+    profileConnectionActive = connectedUserIds.has(uid);
+    let profileConnectionCount = 0;
+    try { profileConnectionCount = (await getDocs(collection(db, 'users', uid, 'followers'))).size; } catch {}
     const displayName = profile.displayName || (owner ? currentUser?.displayName : '') || tr('Community member','عضو في المجتمع');
     const photo = profile.photoBase64 || profile.photoURL || (owner ? currentUser?.photoURL : '') || '';
     const banner = profile.bannerBase64 || '';
@@ -1415,7 +1616,7 @@ async function loadProfile(uid, routedProfile) {
       '<div class="profile-top">',
         avatarMarkup(displayName, photo, 'profile-avatar'),
         '<div class="profile-title"><h2>' + escapeHtml(displayName) + '</h2><span class="profile-handle">' + (profile.username ? '@' + escapeHtml(profile.username) : tr('No username claimed','لم يتم اختيار اسم مستخدم')) + '</span><p>' + escapeHtml(locationLine) + '</p></div>',
-        owner ? '<button id="editProfile" class="edit-profile-button" type="button">' + tr('Edit profile','تعديل الملف') + '</button>' : '',
+        owner ? '<button id="editProfile" class="edit-profile-button" type="button">' + tr('Edit profile','تعديل الملف') + '</button>' : '<button id="profileConnect" class="edit-profile-button connect-button ' + (profileConnectionActive ? 'connected' : '') + '" type="button"><span>' + (profileConnectionActive ? tr('Connected','متصل') : tr('Connect','تواصل')) + '</span><b>' + profileConnectionCount.toLocaleString(isArabic() ? 'ar-IQ' : undefined) + '</b></button>',
       '</div>',
       '<p class="profile-bio">' + escapeHtml(profile.bio || tr('No bio added yet.','لم تُضف نبذة بعد.')) + '</p>',
       interests.length ? '<div class="interest-row">' + interests.map(item => '<span>' + escapeHtml(item) + '</span>').join('') + '</div>' : '',
@@ -1433,6 +1634,25 @@ async function loadProfile(uid, routedProfile) {
         '</form>'
       ].join('') : ''
     ].join('');
+    if (!owner) {
+      $('profileConnect').addEventListener('click', async event => {
+        const button = event.currentTarget;
+        if (!currentUser) { location.href = loginUrl(); return; }
+        button.disabled = true;
+        try {
+          const next = await toggleUserConnection(uid);
+          profileConnectionActive = next;
+          profileConnectionCount += next ? 1 : -1;
+          button.classList.toggle('connected', next);
+          button.querySelector('span').textContent = next ? tr('Connected','متصل') : tr('Connect','تواصل');
+          button.querySelector('b').textContent = Math.max(0, profileConnectionCount).toLocaleString(isArabic() ? 'ar-IQ' : undefined);
+          showToast(next ? tr('Connection added.','تمت إضافة التواصل.') : tr('Connection removed.','تمت إزالة التواصل.'));
+        } catch (error) {
+          console.error(error);
+          showToast(tr('This connection could not be updated.','تعذر تحديث هذا التواصل.'));
+        } finally { button.disabled = false; }
+      });
+    }
     if (owner) {
       let nextPhotoBase64 = profile.photoBase64 || '';
       let nextBannerBase64 = profile.bannerBase64 || '';
@@ -1694,11 +1914,48 @@ $('communitySearchResults').addEventListener('click', event => {
 });
 document.addEventListener('pointerdown', event => {
   if (!event.target.closest('.community-search-shell')) closeCommunitySearch();
+  if (!event.target.closest('.notification-shell')) $('notificationPanel').hidden = true;
 });
 
 $('quickComposer').addEventListener('click', () => navigateTo(composerUrl(), false));
 $('areaCreate').addEventListener('click', () => navigateTo(composerUrl(), false));
 $('areaManage').addEventListener('click', openSpaceEditor);
+$('areaConnect').addEventListener('click', async event => {
+  if (!currentUser) { location.href = loginUrl(); return; }
+  const button = event.currentTarget;
+  button.disabled = true;
+  try {
+    activeAreaConnection = await toggleSpaceConnection(activeAreaSlug);
+    button.classList.toggle('connected', activeAreaConnection);
+    button.querySelector('span').textContent = activeAreaConnection ? tr('Connected','متصل') : tr('Connect','تواصل');
+    await refreshAreaConnectionCount(activeAreaSlug);
+    showToast(activeAreaConnection ? tr('Space connection added.','تمت إضافة التواصل مع المساحة.') : tr('Space connection removed.','تمت إزالة التواصل مع المساحة.'));
+  } catch (error) {
+    console.error(error);
+    showToast(tr('This space connection could not be updated.','تعذر تحديث التواصل مع هذه المساحة.'));
+  } finally { button.disabled = false; }
+});
+$('notificationBell').addEventListener('click', () => { $('notificationPanel').hidden = !$('notificationPanel').hidden; });
+$('markNotificationsRead').addEventListener('click', async () => {
+  if (!currentUser) return;
+  const unread = notificationItems.filter(item => !item.read);
+  if (!unread.length) return;
+  const batch = writeBatch(db);
+  unread.forEach(item => batch.set(doc(db, 'users', currentUser.uid, 'notifications', item.id), {read:true, readAt:serverTimestamp()}, {merge:true}));
+  try { await batch.commit(); } catch (error) { console.error(error); showToast(tr('Notifications could not be updated.','تعذر تحديث الإشعارات.')); }
+});
+$('notificationList').addEventListener('click', async event => {
+  const item = event.target.closest('[data-notification-id]');
+  if (!item || !currentUser) return;
+  try { await setDoc(doc(db, 'users', currentUser.uid, 'notifications', item.dataset.notificationId), {read:true, readAt:serverTimestamp()}, {merge:true}); } catch {}
+  $('notificationPanel').hidden = true;
+  navigateTo('/community.html?post=' + encodeURIComponent(item.dataset.notificationPost) + '&comments=1', false);
+});
+$('feedModeBar').addEventListener('click', event => {
+  const button = event.target.closest('[data-feed-mode]');
+  if (!button) return;
+  navigateTo(button.dataset.feedMode === 'discover' ? '/community.html?feed=discover' : '/community.html', false);
+});
 $('answerPrompt').addEventListener('click', () => {
   if (selectedPromptPostId) navigateTo('/community.html?post=' + encodeURIComponent(selectedPromptPostId) + '&comments=1', false);
 });
@@ -1945,6 +2202,9 @@ onAuthStateChanged(auth, async user => {
     $('memberAction').innerHTML = '<span>?</span>';
     $('quickAvatar').textContent = 'A';
   }
+  if (communityDataReady) await communityDataReady;
+  await loadConnections();
+  startNotificationInbox();
   renderPostGate();
   renderSpaceGate();
   handleRoute(false);

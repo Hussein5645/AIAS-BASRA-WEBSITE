@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/community.css?v=20260811-space-management">
+  <link rel="stylesheet" href="css/community.css?v=20260811-vote-control">
 </head>
 <body>
   <header class="community-topbar">
@@ -33,6 +33,13 @@
       </div>
       <div class="topbar-actions">
         <a class="quiet-link" href="community.html?view=selected" data-route="selected" data-en="Selected work" data-ar="الأعمال المختارة">Selected work</a>
+        <div class="notification-shell">
+          <button id="notificationBell" class="notification-bell" type="button" aria-label="Open notifications" data-aria-en="Open notifications" data-aria-ar="فتح الإشعارات" hidden><span aria-hidden="true">🔔</span><b id="notificationBadge" hidden>0</b></button>
+          <section id="notificationPanel" class="notification-panel" aria-label="Notifications" data-aria-en="Notifications" data-aria-ar="الإشعارات" hidden>
+            <header><div><span class="mini-kicker" data-en="YOUR ACTIVITY" data-ar="نشاطك">YOUR ACTIVITY</span><h2 data-en="Notifications" data-ar="الإشعارات">Notifications</h2></div><button id="markNotificationsRead" type="button" data-en="Mark all read" data-ar="تحديد الكل كمقروء">Mark all read</button></header>
+            <div id="notificationList"><p class="notification-empty" data-en="No notifications yet." data-ar="لا توجد إشعارات بعد.">No notifications yet.</p></div>
+          </section>
+        </div>
         <button class="community-language-toggle" id="communityLanguageToggle" type="button" aria-label="Switch language"><span id="communityLanguageLabel">العربية</span></button>
         <a class="topbar-avatar" id="memberAction" href="login.html" aria-label="Sign in"><span>?</span></a>
       </div>
@@ -72,7 +79,7 @@
           <div id="areaBanner" class="area-banner-media"></div>
           <div class="area-symbol" id="areaSymbol">A</div>
           <div class="area-copy"><span class="mini-kicker" id="areaPath">a/community</span><h1 id="areaTitle">Community space</h1><p id="areaDescription"></p></div>
-          <div class="area-header-actions"><button id="areaManage" type="button" hidden><span data-en="Manage space" data-ar="إدارة المساحة">Manage space</span> <span aria-hidden="true">⚙</span></button><button id="areaCreate" type="button"><span data-en="Create post" data-ar="إنشاء منشور">Create post</span> <span aria-hidden="true">+</span></button></div>
+          <div class="area-header-actions"><button id="areaConnect" type="button" hidden><span data-en="Connect" data-ar="تواصل">Connect</span> <b id="areaConnectCount">0</b></button><button id="areaManage" type="button" hidden><span data-en="Manage space" data-ar="إدارة المساحة">Manage space</span> <span aria-hidden="true">⚙</span></button><button id="areaCreate" type="button"><span data-en="Create post" data-ar="إنشاء منشور">Create post</span> <span aria-hidden="true">+</span></button></div>
         </section>
 
         <section class="welcome-card" aria-labelledby="welcomeTitle">
@@ -90,9 +97,11 @@
           <span class="quick-action"><b aria-hidden="true">+</b> <span data-en="Create" data-ar="إنشاء">Create</span></span>
         </button>
 
+        <div class="feed-mode-bar" id="feedModeBar"><div><span class="mini-kicker" data-en="YOUR COMMUNITY" data-ar="مجتمعك">YOUR COMMUNITY</span><strong id="feedModeTitle" data-en="Connections" data-ar="التواصلات">Connections</strong></div><div class="feed-mode-switch"><button class="active" type="button" data-feed-mode="following" data-en="Connections" data-ar="التواصلات">Connections</button><button type="button" data-feed-mode="discover" data-en="Discover" data-ar="اكتشف">Discover</button></div></div>
         <div class="feed-toolbar">
           <div class="feed-heading"><h2 data-en="Community feed" data-ar="منشورات المجتمع">Community feed</h2><span id="feedCount"></span></div>
           <div class="filter-row" aria-label="Filter community posts">
+            <button class="filter-pill" type="button" data-sort="smart" data-en="Recommended" data-ar="مقترحة">Recommended</button>
             <button class="filter-pill active" type="button" data-sort="latest" data-en="Latest" data-ar="الأحدث">Latest</button>
             <button class="filter-pill" type="button" data-sort="upvoted" data-en="Popular" data-ar="الأكثر رواجاً">Popular</button>
             <span class="filter-divider"></span>
@@ -110,7 +119,7 @@
       <section id="spacesView" class="view" hidden>
         <header class="section-heading space-directory-heading">
           <a href="community.html" data-route="home" aria-label="Back to community">←</a>
-          <div><span class="eyebrow"><i></i> <span data-en="FIND YOUR PEOPLE" data-ar="اعثر على مجتمعك">FIND YOUR PEOPLE</span></span><h1 data-en="Explore spaces" data-ar="استكشف المساحات">Explore spaces</h1><p data-en="Search member-created spaces, discover active conversations, or find what is new." data-ar="ابحث في مساحات الأعضاء واكتشف النقاشات النشطة أو تعرّف على المساحات الجديدة.">Search member-created spaces, discover active conversations, or find what is new.</p></div>
+          <div><span class="eyebrow"><i></i> <span data-en="FIND YOUR PEOPLE" data-ar="اعثر على مجتمعك">FIND YOUR PEOPLE</span></span><h1 data-en="Discover spaces" data-ar="اكتشف المساحات">Discover spaces</h1><p data-en="Search member-created spaces, discover active conversations, or find what is new." data-ar="ابحث في مساحات الأعضاء واكتشف النقاشات النشطة أو تعرّف على المساحات الجديدة.">Search member-created spaces, discover active conversations, or find what is new.</p></div>
           <a class="space-directory-create" href="community.html?view=space" data-route="space"><span data-en="New space" data-ar="مساحة جديدة">New space</span> <b aria-hidden="true">+</b></a>
         </header>
         <section class="space-directory-tools" aria-label="Find community spaces" data-aria-en="Find community spaces" data-aria-ar="البحث عن مساحات المجتمع">
@@ -290,6 +299,6 @@
   </dialog>
   <div id="communityToast" class="community-toast" role="status" aria-live="polite"></div>
 
-  <script type="module" src="js/community.js?v=20260811-space-management"></script>
+  <script type="module" src="js/community.js?v=20260811-vote-control"></script>
 </body>
 </html>
