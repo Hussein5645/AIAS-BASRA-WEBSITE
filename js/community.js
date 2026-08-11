@@ -494,6 +494,21 @@ function canPostToSpace(slug) {
   return Boolean(currentUser && area && (area.creatorId === currentUser.uid || connectedSpaceSlugs.has(slug)));
 }
 
+function canAccessPrivateSpace(area) {
+  return !area?.isPrivate || area.creatorId === currentUser?.uid || connectedSpaceSlugs.has(area.slug);
+}
+
+function openPrivateSpaceDialog(area) {
+  if (!area?.isPrivate || canAccessPrivateSpace(area)) return;
+  const dialog = $('privateSpaceDialog');
+  $('privateSpaceDialogTitle').textContent = tr('This space is private','هذه المساحة خاصة');
+  $('privateSpaceDialogCopy').textContent = currentUser
+    ? tr('a/' + area.slug + ' is available to approved members only. Send a request and the space admin can review it.','مساحة a/' + area.slug + ' متاحة للأعضاء الموافق عليهم فقط. أرسل طلباً ليتمكن مشرف المساحة من مراجعته.')
+    : tr('a/' + area.slug + ' is available to approved members only. Sign in to request access from its admin.','مساحة a/' + area.slug + ' متاحة للأعضاء الموافق عليهم فقط. سجّل الدخول لطلب الوصول من مشرفها.');
+  $('privateSpaceRequest').querySelector('span').textContent = currentUser ? tr('Request access','طلب الوصول') : tr('Sign in to request','سجّل الدخول للطلب');
+  if (!dialog.open) dialog.showModal();
+}
+
 function canViewSpacePost(post) {
   const area = communityAreas[post.communitySlug];
   return !area?.isPrivate || area.creatorId === currentUser?.uid || connectedSpaceSlugs.has(post.communitySlug) || post.userId === currentUser?.uid;
@@ -1318,6 +1333,7 @@ async function handleRoute(scrollToTop) {
   if (view === 'home' && !selectedPostId && !activeAreaSlug) communitySort = feedMode === 'discover' ? 'smart' : 'latest';
   if (!params.has('comments')) closeCommentsUi();
   showView(view);
+  if (view !== 'home' && $('privateSpaceDialog').open) $('privateSpaceDialog').close();
   updateMobilePromptVisibility();
   if (scrollToTop) window.scrollTo({top:0, behavior:'smooth'});
 
@@ -1343,6 +1359,7 @@ async function handleRoute(scrollToTop) {
       document.title = selectedPostId ? tr('Post — AIAS Basra Community','منشور — مجتمع AIAS البصرة') : tr('Community — AIAS Basra','مجتمع AIAS البصرة');
     }
     await loadPosts();
+    if (activeAreaSlug && !selectedPostId) openPrivateSpaceDialog(communityAreas[activeAreaSlug]);
     if (sequence !== routeSequence) return;
     if (selectedPostId && params.get('comments') === '1') openComments(selectedPostId, false);
   } else if (view === 'selected') {
@@ -2280,6 +2297,26 @@ $('areaConnect').addEventListener('click', async event => {
   } catch (error) {
     console.error(error);
     showToast(tr('This space connection could not be updated.','تعذر تحديث التواصل مع هذه المساحة.'));
+  } finally { button.disabled = false; }
+});
+$('privateSpaceBack').addEventListener('click', () => navigateTo('/community.html', false));
+$('privateSpaceDialog').addEventListener('cancel', event => { event.preventDefault(); navigateTo('/community.html', false); });
+$('privateSpaceRequest').addEventListener('click', async event => {
+  if (!currentUser) { location.href = loginUrl(); return; }
+  const area = activeAreaSlug ? communityAreas[activeAreaSlug] : null;
+  if (!area || !area.isPrivate) return;
+  const button = event.currentTarget;
+  button.disabled = true;
+  try {
+    const result = await toggleSpaceConnection(activeAreaSlug);
+    if (result === 'requested') {
+      $('privateSpaceDialog').close();
+      showToast(tr('Access request sent to the space admin.','تم إرسال طلب الوصول إلى مشرف المساحة.'));
+      navigateTo('/community.html', false);
+    }
+  } catch (error) {
+    console.error(error);
+    showToast(tr('The access request could not be sent.','تعذر إرسال طلب الوصول.'));
   } finally { button.disabled = false; }
 });
 $('notificationBell').addEventListener('click', () => { $('notificationPanel').hidden = !$('notificationPanel').hidden; });

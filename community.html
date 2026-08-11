@@ -346,6 +346,13 @@
       <footer><button id="spaceEditCancel" class="secondary-button" type="button" data-en="Cancel" data-ar="إلغاء">Cancel</button><button class="primary-button" type="submit"><span data-en="Save space" data-ar="حفظ المساحة">Save space</span><b aria-hidden="true">→</b></button></footer>
     </form>
   </dialog>
+  <dialog id="privateSpaceDialog" class="private-space-dialog" aria-labelledby="privateSpaceDialogTitle">
+    <div class="private-space-dialog-icon" aria-hidden="true">◐</div>
+    <span class="mini-kicker" data-en="PRIVATE SPACE" data-ar="مساحة خاصة">PRIVATE SPACE</span>
+    <h2 id="privateSpaceDialogTitle" data-en="This space is private" data-ar="هذه المساحة خاصة">This space is private</h2>
+    <p id="privateSpaceDialogCopy"></p>
+    <div class="private-space-dialog-actions"><button id="privateSpaceBack" class="secondary-button" type="button" data-en="Back to community" data-ar="العودة إلى المجتمع">Back to community</button><button id="privateSpaceRequest" class="primary-button" type="button"><span data-en="Request access" data-ar="طلب الوصول">Request access</span><b aria-hidden="true">→</b></button></div>
+  </dialog>
   <div id="communityToast" class="community-toast" role="status" aria-live="polite"></div>
 
   <script src="/js/app-open-prompt.js?v=20260811" defer></script>
