@@ -15,9 +15,20 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/community.css?v=20260811-community-mentions-v11">
+  <link rel="stylesheet" href="css/community.css?v=20260811-community-splash-v12">
 </head>
-<body>
+<body class="community-booting">
+  <div id="communitySplash" class="community-splash" role="status" aria-live="polite" aria-label="Loading the AIAS Basra community" data-aria-en="Loading the AIAS Basra community" data-aria-ar="جارٍ تحميل مجتمع AIAS البصرة">
+    <div class="community-splash-glow" aria-hidden="true"></div>
+    <div class="community-splash-content">
+      <span class="community-splash-logo"><img src="static/images/branding/LOGO.png" alt=""></span>
+      <span class="community-splash-kicker" data-en="AIAS BASRA" data-ar="AIAS البصرة">AIAS BASRA</span>
+      <h1 data-en="Community" data-ar="المجتمع">Community</h1>
+      <div class="community-splash-progress" aria-hidden="true"><i></i></div>
+      <p data-en="Loading spaces and conversations…" data-ar="جارٍ تحميل المساحات والمحادثات…">Loading spaces and conversations…</p>
+    </div>
+  </div>
+  <script>window.__communitySplashFallback=window.setTimeout(function(){var splash=document.getElementById('communitySplash');document.body.classList.remove('community-booting');if(splash){splash.classList.add('is-leaving');window.setTimeout(function(){splash.hidden=true;},450);}},15000);</script>
   <header class="community-topbar">
     <div class="topbar-inner">
       <a class="community-wordmark" href="community.html" aria-label="AIAS Basra Community home">
@@ -365,6 +376,6 @@
   <div id="communityToast" class="community-toast" role="status" aria-live="polite"></div>
 
   <script src="/js/app-open-prompt.js?v=20260811" defer></script>
-  <script type="module" src="js/community.js?v=20260811-private-search-filter-v16"></script>
+  <script type="module" src="js/community.js?v=20260811-community-splash-v17"></script>
 </body>
 </html>

@@ -68,6 +68,7 @@ let connectionSpaceItems = [];
 let activeImagePost = null;
 let postImageDataUrl = '';
 let postImageMimeType = '';
+let communitySplashDismissed = false;
 let mentionMenu = null;
 let mentionMenuInput = null;
 let mentionMenuRange = null;
@@ -82,6 +83,17 @@ const escapeHtml = value => String(value || '').replace(/[&<>"']/g, char => ({'&
 let currentLanguage = localStorage.getItem('language') === 'ar' ? 'ar' : 'en';
 const isArabic = () => currentLanguage === 'ar';
 const tr = (english, arabic) => isArabic() ? arabic : english;
+
+function dismissCommunitySplash() {
+  if (communitySplashDismissed) return;
+  communitySplashDismissed = true;
+  window.clearTimeout(window.__communitySplashFallback);
+  const splash = $('communitySplash');
+  document.body.classList.remove('community-booting');
+  if (!splash) return;
+  splash.classList.add('is-leaving');
+  window.setTimeout(() => { splash.hidden = true; }, 450);
+}
 
 function applyCommunityTranslations(root = document) {
   const scope = root instanceof Element || root instanceof Document ? root : document;
@@ -3135,6 +3147,7 @@ communityDataReady = loadCommunitySpaces();
 loadPromptOfTheWeek();
 
 onAuthStateChanged(auth, async user => {
+  try {
   currentUser = user;
   if (user) {
     currentProfile = await getProfile(user.uid);
@@ -3165,5 +3178,10 @@ onAuthStateChanged(auth, async user => {
   startNotificationInbox();
   renderPostGate();
   renderSpaceGate();
-  handleRoute(false);
+  await handleRoute(false);
+  } catch (error) {
+    console.error('[Community] Initial loading failed.', error);
+  } finally {
+    dismissCommunitySplash();
+  }
 });
