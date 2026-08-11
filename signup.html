@@ -340,16 +340,14 @@
     <script type="module">
         // Import Firebase modules
         import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInWithCredential, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAdminAccess, persistAccessSession } from "./js/rbac.js";
 
         // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
-            // Keep redirect state on the same origin. Required by Safari and
-            // modern Chrome when third-party storage is blocked.
-            authDomain: "www.aiasbsr.com",
+            authDomain: "aias-bsr.firebaseapp.com",
             projectId: "aias-bsr",
             storageBucket: "aias-bsr.firebasestorage.app",
             messagingSenderId: "78055223814",
@@ -449,9 +447,20 @@
             messageDiv.style.display = 'block';
         }
 
-        // Surface errors produced after Google redirects back to this page.
-        getRedirectResult(auth).catch((error) => {
-            console.error('Google redirect sign-up error:', error);
+        async function finishRelaySignIn() {
+            const relayResult = new URLSearchParams(window.location.hash.slice(1));
+            const idToken = relayResult.get('google_id_token');
+            const accessToken = relayResult.get('google_access_token');
+            const relayError = relayResult.get('auth_error');
+            if (!idToken && !accessToken && !relayError) return;
+
+            history.replaceState(null, '', window.location.pathname + window.location.search);
+            if (relayError) throw new Error(relayError);
+            await signInWithCredential(auth, GoogleAuthProvider.credential(idToken || null, accessToken || null));
+        }
+
+        finishRelaySignIn().catch((error) => {
+            console.error('Google relay sign-up error:', error);
             googleSignUpBtn.disabled = false;
             showMessage('Sign-up failed: ' + error.message, 'error');
         });
@@ -505,9 +514,11 @@
                     Object.fromEntries(Object.entries(profileFields).map(([key, field]) => [key, field.value]))
                 ));
 
-                const provider = new GoogleAuthProvider();
-                provider.setCustomParameters({ prompt: 'select_account' });
-                await signInWithRedirect(auth, provider);
+                const returnUrl = new URL(window.location.href);
+                returnUrl.hash = '';
+                const relayUrl = new URL('https://aias-bsr.firebaseapp.com/auth-relay.html');
+                relayUrl.searchParams.set('return', returnUrl.href);
+                window.location.assign(relayUrl.href);
 
             } catch (error) {
                 console.error('Could not start Google Sign-Up redirect:', error);

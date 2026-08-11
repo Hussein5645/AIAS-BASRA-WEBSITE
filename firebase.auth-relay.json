@@ -1,0 +1,21 @@
+{
+  "hosting": {
+    "public": "firebase-auth-relay",
+    "ignore": [
+      "firebase.auth-relay.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "headers": [
+      {
+        "source": "/auth-relay.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-store"
+          }
+        ]
+      }
+    ]
+  }
+}

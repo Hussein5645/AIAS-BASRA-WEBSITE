@@ -7,7 +7,7 @@ import { clearAccessSession, getAdminAccess, persistAccessSession } from "./rbac
 // Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
-    authDomain: "www.aiasbsr.com",
+    authDomain: "aias-bsr.firebaseapp.com",
     projectId: "aias-bsr",
     storageBucket: "aias-bsr.firebasestorage.app",
     messagingSenderId: "78055223814",
