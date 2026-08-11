@@ -1,6 +1,7 @@
 import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc, query, where, limit, orderBy, onSnapshot, writeBatch, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getMessaging, getToken, isSupported } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js';
 
 const config = {
   apiKey: 'AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ',
@@ -15,6 +16,7 @@ let app;
 try { app = getApp(); } catch { app = initializeApp(config); }
 const auth = getAuth(app);
 const db = getFirestore(app);
+const FCM_VAPID_KEY = 'BEcVJRbm5oN2OwJGWoIW5tz6mXAmhI2UHmd-W4Ne8U8T__GQweOLBVXUWQxFW380EOVB9VhC_CYyBwwQE7CUxsQ';
 const profileCache = new Map();
 let currentUser = null;
 let currentProfile = null;
@@ -59,6 +61,7 @@ let unsubscribeNotifications = null;
 let notificationItems = [];
 let notificationSnapshotReady = false;
 let notificationServiceWorkerReady = null;
+let fcmMessagingReady = null;
 let connectionDirectoryType = 'people';
 let connectionPeopleItems = [];
 let connectionSpaceItems = [];
@@ -341,6 +344,29 @@ function registerNotificationServiceWorker() {
   return notificationServiceWorkerReady;
 }
 
+async function notificationTokenId(token) {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token));
+  return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+async function registerPushSubscription() {
+  if (!currentUser || !('Notification' in window) || Notification.permission !== 'granted') return null;
+  const registration = await registerNotificationServiceWorker();
+  if (!registration || !(await isSupported())) return null;
+  if (!fcmMessagingReady) fcmMessagingReady = Promise.resolve(getMessaging(app));
+  const messaging = await fcmMessagingReady;
+  const token = await getToken(messaging, {vapidKey:FCM_VAPID_KEY, serviceWorkerRegistration:registration});
+  if (!token) return null;
+  const tokenId = await notificationTokenId(token);
+  await setDoc(doc(db, 'users', currentUser.uid, 'fcmTokens', tokenId), {
+    userId:currentUser.uid,
+    token,
+    userAgent:navigator.userAgent.slice(0, 500),
+    updatedAt:serverTimestamp()
+  }, {merge:true});
+  return token;
+}
+
 async function showBrowserNotification(item) {
   if (!item || item.read || !('Notification' in window) || Notification.permission !== 'granted') return;
   const target = item.type === 'connection' ? profileUrl(item.actorId, item.actorUsername) : item.type === 'space_connection' || item.type === 'space_request' ? areaUrl(item.detailId) : '/community.html?post=' + encodeURIComponent(item.postId) + '&comments=1';
@@ -370,7 +396,7 @@ function startNotificationInbox() {
   if (!currentUser) return stopNotificationInbox();
   notificationSnapshotReady = false;
   $('notificationBell').hidden = false;
-  if ('Notification' in window && Notification.permission === 'granted') registerNotificationServiceWorker();
+  if ('Notification' in window && Notification.permission === 'granted') registerPushSubscription().catch(error => console.warn('[Community] Push subscription could not be registered.', error));
   const inboxQuery = query(collection(db, 'users', currentUser.uid, 'notifications'), orderBy('createdAt', 'desc'), limit(40));
   unsubscribeNotifications = onSnapshot(inboxQuery, snapshot => {
     notificationItems = snapshot.docs.map(item => ({id:item.id, ...item.data()}));
@@ -2538,12 +2564,13 @@ $('notificationBell').addEventListener('click', async () => {
     try {
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
-        await registerNotificationServiceWorker();
+        await registerPushSubscription();
         showToast(tr('Browser notifications are enabled.','تم تفعيل إشعارات المتصفح.'));
       } else showToast(tr('Browser notifications are blocked. Enable them in your browser settings.','إشعارات المتصفح محظورة. فعّلها من إعدادات المتصفح.'));
     } catch {}
   } else if ('Notification' in window && Notification.permission === 'granted') {
-    await registerNotificationServiceWorker();
+    try { await registerPushSubscription(); }
+    catch (error) { console.warn('[Community] Push subscription could not be registered.', error); }
   }
   $('notificationPanel').hidden = !$('notificationPanel').hidden;
 });
