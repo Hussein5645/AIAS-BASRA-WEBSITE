@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/community.css?v=20260811-connection-activity">
+  <link rel="stylesheet" href="css/community.css?v=20260811-connection-management">
 </head>
 <body>
   <header class="community-topbar">
@@ -53,6 +53,7 @@
         <a class="rail-link" href="community.html?view=post" data-route="post"><span class="rail-icon rail-icon-plus" aria-hidden="true">+</span><span data-en="Create" data-ar="إنشاء">Create</span></a>
         <a class="rail-link" href="community.html?view=space" data-route="space"><span class="rail-icon" aria-hidden="true">#</span><span data-en="New space" data-ar="مساحة جديدة">New space</span></a>
         <a class="rail-link" href="community.html?view=profile" data-route="profile"><span class="rail-icon" aria-hidden="true">◉</span><span data-en="My profile" data-ar="ملفي الشخصي">My profile</span></a>
+        <a class="rail-link" href="community.html?view=connections" data-route="connections"><span class="rail-icon" aria-hidden="true">◎</span><span data-en="My connections" data-ar="تواصلاتي">My connections</span></a>
         <a class="rail-link" href="community.html?view=selected" data-route="selected"><span class="rail-icon" aria-hidden="true">◇</span><span data-en="Selected projects" data-ar="المشاريع المختارة">Selected projects</span></a>
       </nav>
       <div class="rail-spaces">
@@ -231,6 +232,22 @@
         </div>
         <div id="profilePosts" class="profile-post-grid"></div>
       </section>
+
+      <section id="connectionsView" class="view" hidden>
+        <header class="section-heading connections-heading">
+          <a href="community.html" data-route="home" aria-label="Back to community">←</a>
+          <div><span class="eyebrow"><i></i> <span data-en="YOUR COMMUNITY CIRCLE" data-ar="دائرتك المجتمعية">YOUR COMMUNITY CIRCLE</span></span><h1 data-en="Manage connections" data-ar="إدارة التواصلات">Manage connections</h1><p data-en="See every person and space you connect with, then manage your community circle in one place." data-ar="شاهد كل الأشخاص والمساحات التي تتواصل معها وأدر دائرتك المجتمعية من مكان واحد.">See every person and space you connect with, then manage your community circle in one place.</p></div>
+        </header>
+        <div id="connectionsGate"></div>
+        <section id="connectionsManager" class="connections-manager" hidden>
+          <div class="connections-overview"><div><strong id="connectionPeopleTotal">0</strong><span data-en="people" data-ar="أشخاص">people</span></div><div><strong id="connectionSpacesTotal">0</strong><span data-en="spaces" data-ar="مساحات">spaces</span></div></div>
+          <div class="connections-tools">
+            <div class="connections-tabs" role="group" aria-label="Connection type" data-aria-en="Connection type" data-aria-ar="نوع التواصل"><button class="active" type="button" data-connection-type="people"><span data-en="People" data-ar="الأشخاص">People</span> <b id="connectionPeopleTabCount">0</b></button><button type="button" data-connection-type="spaces"><span data-en="Spaces" data-ar="المساحات">Spaces</span> <b id="connectionSpacesTabCount">0</b></button></div>
+            <label class="connections-search" for="connectionsSearch"><span aria-hidden="true">⌕</span><input id="connectionsSearch" type="search" autocomplete="off" placeholder="Search your connections" data-en="Search your connections" data-ar="ابحث في تواصلاتك"></label>
+          </div>
+          <div id="connectionsList" class="connections-list" aria-live="polite"></div>
+        </section>
+      </section>
     </section>
 
     <aside class="right-rail">
@@ -301,6 +318,6 @@
   </dialog>
   <div id="communityToast" class="community-toast" role="status" aria-live="polite"></div>
 
-  <script type="module" src="js/community.js?v=20260811-connection-activity"></script>
+  <script type="module" src="js/community.js?v=20260811-connection-management"></script>
 </body>
 </html>

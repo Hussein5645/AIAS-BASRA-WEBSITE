@@ -57,6 +57,9 @@ let profileConnectionActive = false;
 let activeAreaConnection = false;
 let unsubscribeNotifications = null;
 let notificationItems = [];
+let connectionDirectoryType = 'people';
+let connectionPeopleItems = [];
+let connectionSpaceItems = [];
 
 const $ = id => document.getElementById(id);
 const escapeHtml = value => String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -310,6 +313,51 @@ async function loadConnections() {
   } catch (error) {
     console.warn('[Community] Connections unavailable.', error);
   }
+}
+
+function renderConnectionManager() {
+  const peopleTotal = connectionPeopleItems.length;
+  const spacesTotal = connectionSpaceItems.length;
+  const numberLocale = isArabic() ? 'ar-IQ' : undefined;
+  $('connectionPeopleTotal').textContent = peopleTotal.toLocaleString(numberLocale);
+  $('connectionSpacesTotal').textContent = spacesTotal.toLocaleString(numberLocale);
+  $('connectionPeopleTabCount').textContent = peopleTotal.toLocaleString(numberLocale);
+  $('connectionSpacesTabCount').textContent = spacesTotal.toLocaleString(numberLocale);
+  document.querySelectorAll('[data-connection-type]').forEach(button => button.classList.toggle('active', button.dataset.connectionType === connectionDirectoryType));
+  const term = $('connectionsSearch').value.trim().toLowerCase();
+  const source = connectionDirectoryType === 'people' ? connectionPeopleItems : connectionSpaceItems;
+  const filtered = source.filter(item => item.searchText.includes(term));
+  if (!filtered.length) {
+    const hasConnections = source.length > 0;
+    $('connectionsList').innerHTML = '<div class="connections-empty"><span aria-hidden="true">' + (connectionDirectoryType === 'people' ? '◎' : '#') + '</span><h2>' + (hasConnections ? tr('No matching connections','لا توجد تواصلات مطابقة') : connectionDirectoryType === 'people' ? tr('No people connected yet','لا يوجد أشخاص متصلون بعد') : tr('No spaces connected yet','لا توجد مساحات متصلة بعد')) + '</h2><p>' + (hasConnections ? tr('Try a different name or handle.','جرّب اسماً أو معرّفاً مختلفاً.') : tr('Use Discover to find people and spaces that interest you.','استخدم صفحة اكتشف للعثور على أشخاص ومساحات تهمك.')) + '</p>' + (!hasConnections ? '<a href="' + (connectionDirectoryType === 'spaces' ? '/community.html?view=spaces' : '/community.html?feed=discover') + '">' + tr('Start discovering','ابدأ الاكتشاف') + ' →</a>' : '') + '</div>';
+    return;
+  }
+  $('connectionsList').innerHTML = filtered.map(item => connectionDirectoryType === 'people'
+    ? '<article class="connection-card"><a href="' + escapeHtml(profileUrl(item.uid, item.username)) + '">' + avatarMarkup(item.displayName, item.photo, 'connection-card-avatar') + '<span class="connection-card-copy"><strong>' + escapeHtml(item.displayName) + '</strong><small>' + escapeHtml(item.username ? '@' + item.username : tr('Community member','عضو في المجتمع')) + '</small><p>' + escapeHtml(item.bio || [item.school, item.city].filter(Boolean).join(' · ') || tr('AIAS Basra community','مجتمع AIAS البصرة')) + '</p></span></a><button type="button" data-disconnect-user="' + escapeHtml(item.uid) + '"><span>' + tr('Disconnect','إلغاء التواصل') + '</span><b aria-hidden="true">×</b></button></article>'
+    : '<article class="connection-card space"><a href="' + escapeHtml(areaUrl(item.slug)) + '">' + spaceVisual(item.area, 'connection-card-avatar') + '<span class="connection-card-copy"><strong>' + escapeHtml(item.area.name || item.slug) + '</strong><small>a/' + escapeHtml(item.slug) + '</small><p>' + escapeHtml(item.area.description || tr('Community space','مساحة مجتمعية')) + '</p></span></a><button type="button" data-disconnect-space="' + escapeHtml(item.slug) + '"><span>' + tr('Disconnect','إلغاء التواصل') + '</span><b aria-hidden="true">×</b></button></article>'
+  ).join('');
+}
+
+async function loadConnectionManager() {
+  if (!currentUser) {
+    $('connectionsManager').hidden = true;
+    $('connectionsGate').innerHTML = '<p class="notice">' + tr('Sign in to view and manage your connections.','سجّل الدخول لعرض تواصلاتك وإدارتها.') + ' <a href="' + loginUrl() + '">' + tr('Sign in','تسجيل الدخول') + '</a></p>';
+    return;
+  }
+  $('connectionsGate').innerHTML = '';
+  $('connectionsManager').hidden = false;
+  $('connectionsList').innerHTML = '<div class="post-skeleton"></div><div class="post-skeleton short"></div>';
+  const people = await Promise.all([...connectedUserIds].map(async uid => {
+    const profile = await getProfile(uid);
+    const displayName = profile.displayName || tr('Community member','عضو في المجتمع');
+    return {uid, ...profile, displayName, photo:profile.photoBase64 || profile.photoURL || '', searchText:[displayName, profile.username, profile.school, profile.city, profile.bio].filter(Boolean).join(' ').toLowerCase()};
+  }));
+  connectionPeopleItems = people.sort((a,b) => a.displayName.localeCompare(b.displayName));
+  connectionSpaceItems = [...connectedSpaceSlugs].filter(slug => communityAreas[slug]).map(slug => {
+    const area = communityAreas[slug];
+    return {slug, area, searchText:[slug, area.name, area.description].filter(Boolean).join(' ').toLowerCase()};
+  }).sort((a,b) => (a.area.name || a.slug).localeCompare(b.area.name || b.slug));
+  renderConnectionManager();
 }
 
 async function toggleUserConnection(targetId) {
@@ -1157,7 +1205,7 @@ async function handleRoute(scrollToTop) {
   const publicProfileRoute = pathRoute.profile || params.get('user');
   const requestedArea = pathRoute.area || params.get('area');
   activeAreaSlug = requestedArea && communityAreas[requestedArea] ? requestedArea : null;
-  const view = publicProfileRoute || requestedView === 'profile' ? 'profile' : requestedView === 'selected' ? 'selected' : requestedView === 'spaces' ? 'spaces' : requestedView === 'post' ? 'post' : requestedView === 'space' ? 'space' : 'home';
+  const view = publicProfileRoute || requestedView === 'profile' ? 'profile' : requestedView === 'connections' ? 'connections' : requestedView === 'selected' ? 'selected' : requestedView === 'spaces' ? 'spaces' : requestedView === 'post' ? 'post' : requestedView === 'space' ? 'space' : 'home';
   feedMode = currentUser ? (params.get('feed') === 'discover' ? 'discover' : 'following') : 'discover';
   if (view === 'home' && !selectedPostId && !activeAreaSlug) communitySort = feedMode === 'discover' ? 'smart' : 'latest';
   if (!params.has('comments')) closeCommentsUi();
@@ -1197,6 +1245,9 @@ async function handleRoute(scrollToTop) {
   } else if (view === 'profile') {
     const profileId = publicProfileRoute ? await resolveProfileId(publicProfileRoute) : currentUser?.uid || null;
     await loadProfile(profileId, Boolean(publicProfileRoute));
+  } else if (view === 'connections') {
+    document.title = tr('My Connections — AIAS Basra Community','تواصلاتي — مجتمع AIAS البصرة');
+    await loadConnectionManager();
   } else if (view === 'post') {
     const requestedType = ['text','question','behance'].includes(params.get('type')) ? params.get('type') : $('postType').value;
     $('postType').value = requestedType;
@@ -1686,7 +1737,7 @@ async function loadProfile(uid, routedProfile) {
         '<div class="profile-title"><h2>' + escapeHtml(displayName) + '</h2><span class="profile-handle">' + (profile.username ? '@' + escapeHtml(profile.username) : tr('No username claimed','لم يتم اختيار اسم مستخدم')) + '</span><p>' + escapeHtml(locationLine) + '</p></div>',
         owner ? '<button id="editProfile" class="edit-profile-button" type="button">' + tr('Edit profile','تعديل الملف') + '</button>' : '<button id="profileConnect" class="edit-profile-button connect-button ' + (profileConnectionActive ? 'connected' : '') + '" type="button"><span>' + (profileConnectionActive ? tr('Connected','متصل') : tr('Connect','تواصل')) + '</span></button>',
       '</div>',
-      '<div class="profile-connection-stat"><span aria-hidden="true">◎</span><strong id="profileConnectionCount">' + profileConnectionCount.toLocaleString(isArabic() ? 'ar-IQ' : undefined) + '</strong><span id="profileConnectionLabel">' + tr('connected people','أشخاص متصلون') + '</span></div>',
+      '<div class="profile-connection-stat"><span aria-hidden="true">◎</span><strong id="profileConnectionCount">' + profileConnectionCount.toLocaleString(isArabic() ? 'ar-IQ' : undefined) + '</strong><span id="profileConnectionLabel">' + tr('connected people','أشخاص متصلون') + '</span>' + (owner ? '<a href="/community.html?view=connections">' + tr('Manage','إدارة') + ' →</a>' : '') + '</div>',
       '<p class="profile-bio">' + escapeHtml(profile.bio || tr('No bio added yet.','لم تُضف نبذة بعد.')) + '</p>',
       interests.length ? '<div class="interest-row">' + interests.map(item => '<span>' + escapeHtml(item) + '</span>').join('') + '</div>' : '',
       owner ? [
@@ -1826,7 +1877,8 @@ document.addEventListener('click', event => {
   const link = event.target.closest('a[href]');
   if (!link || link.hasAttribute('data-route') || link.target || link.hasAttribute('download') || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
   const destination = new URL(link.href, location.href);
-  if (destination.origin !== location.origin || !/^\/(a|p)\/[^/]+\/?$/.test(destination.pathname)) return;
+  const isCommunityDestination = /^\/(a|p)\/[^/]+\/?$/.test(destination.pathname) || destination.pathname === '/community.html';
+  if (destination.origin !== location.origin || !isCommunityDestination) return;
   event.preventDefault();
   navigateTo(destination.href, false);
 });
@@ -1891,6 +1943,29 @@ document.querySelectorAll('[data-profile-filter]').forEach(button => button.addE
 }));
 $('spaceDirectorySearch').addEventListener('input', renderSpaceDirectory);
 $('selectedShellSearch').addEventListener('input', renderSelectedShell);
+$('connectionsSearch').addEventListener('input', renderConnectionManager);
+document.querySelectorAll('[data-connection-type]').forEach(button => button.addEventListener('click', () => {
+  connectionDirectoryType = button.dataset.connectionType;
+  $('connectionsSearch').value = '';
+  renderConnectionManager();
+}));
+$('connectionsList').addEventListener('click', async event => {
+  const userButton = event.target.closest('[data-disconnect-user]');
+  const spaceButton = event.target.closest('[data-disconnect-space]');
+  const button = userButton || spaceButton;
+  if (!button || !currentUser) return;
+  button.disabled = true;
+  try {
+    if (userButton) await toggleUserConnection(userButton.dataset.disconnectUser);
+    else await toggleSpaceConnection(spaceButton.dataset.disconnectSpace);
+    await loadConnectionManager();
+    showToast(tr('Connection removed.','تمت إزالة التواصل.'));
+  } catch (error) {
+    console.error(error);
+    button.disabled = false;
+    showToast(tr('This connection could not be removed.','تعذرت إزالة هذا التواصل.'));
+  }
+});
 document.querySelectorAll('[data-space-sort]').forEach(button => button.addEventListener('click', () => {
   spaceDirectorySort = button.dataset.spaceSort;
   renderSpaceDirectory();
