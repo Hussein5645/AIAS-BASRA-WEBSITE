@@ -36,6 +36,7 @@ let communitySearchSequence = 0;
 let communitySearchActiveIndex = -1;
 let profilePostFilter = 'all';
 let activeProfilePosts = [];
+let activeEditPostId = null;
 
 const $ = id => document.getElementById(id);
 const escapeHtml = value => String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -93,6 +94,58 @@ function extractBehanceEmbed(value) {
   } catch {
     return '';
   }
+}
+
+async function loadLocalImage(file) {
+  if ('createImageBitmap' in window) return createImageBitmap(file);
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => { URL.revokeObjectURL(url); resolve(image); };
+    image.onerror = () => { URL.revokeObjectURL(url); reject(new Error(tr('This image could not be opened.','تعذر فتح هذه الصورة.'))); };
+    image.src = url;
+  });
+}
+
+async function prepareProfileImage(file, kind) {
+  if (!file || !String(file.type).startsWith('image/')) throw new Error(tr('Choose a valid image file.','اختر ملف صورة صالحاً.'));
+  if (file.size > 10 * 1024 * 1024) throw new Error(tr('Choose an image smaller than 10 MB.','اختر صورة أصغر من 10 ميغابايت.'));
+  const image = await loadLocalImage(file);
+  const sourceWidth = image.width || image.naturalWidth;
+  const sourceHeight = image.height || image.naturalHeight;
+  const settings = kind === 'avatar'
+    ? {width:420, height:420, maxChars:180000}
+    : {width:1400, height:466, maxChars:520000};
+  const targetRatio = settings.width / settings.height;
+  const sourceRatio = sourceWidth / sourceHeight;
+  let sourceX = 0, sourceY = 0, cropWidth = sourceWidth, cropHeight = sourceHeight;
+  if (sourceRatio > targetRatio) {
+    cropWidth = sourceHeight * targetRatio;
+    sourceX = (sourceWidth - cropWidth) / 2;
+  } else {
+    cropHeight = sourceWidth / targetRatio;
+    sourceY = (sourceHeight - cropHeight) / 2;
+  }
+  let lastResult = '';
+  for (const scale of [1, .82, .68]) {
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(settings.width * scale);
+    canvas.height = Math.round(settings.height * scale);
+    const context = canvas.getContext('2d', {alpha:false});
+    context.fillStyle = '#f4f0eb';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(image, sourceX, sourceY, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
+    for (const quality of [.84, .72, .6, .48]) {
+      lastResult = canvas.toDataURL('image/jpeg', quality);
+      if (lastResult.length <= settings.maxChars) {
+        image.close?.();
+        return lastResult;
+      }
+    }
+  }
+  image.close?.();
+  if (lastResult.length <= settings.maxChars) return lastResult;
+  throw new Error(tr('This image is too detailed to save. Try a simpler or smaller image.','هذه الصورة كبيرة التفاصيل ولا يمكن حفظها. جرّب صورة أبسط أو أصغر.'));
 }
 
 function getPathRoute() {
@@ -1056,13 +1109,62 @@ function renderProfilePosts() {
   }
   target.innerHTML = posts.map(post => {
       const href = isProject(post) ? 'project.html?communityPost=' + encodeURIComponent(post.id) : 'community.html?post=' + encodeURIComponent(post.id);
+      const owner = currentUser?.uid === post.userId;
       return [
-        '<a class="profile-post-tile' + (isProject(post) ? ' project' : '') + '" href="' + href + '">',
+        '<article class="profile-post-tile' + (isProject(post) ? ' project' : '') + '">',
+          '<a class="profile-post-main" href="' + href + '">',
           '<div><small>' + postLabel(post).toUpperCase() + '</small><strong>' + escapeHtml(post.title) + '</strong><p>' + escapeHtml(isProject(post) ? post.summary : plainPostText(post)) + '</p></div>',
           '<span class="tile-stats"><span>✦ ' + post.meta.score + '</span><span>◯ ' + post.meta.commentsCount + '</span></span>',
-        '</a>'
+          '</a>',
+          owner ? '<div class="profile-post-actions"><button type="button" data-edit-profile-post="' + escapeHtml(post.id) + '">' + tr('Edit','تعديل') + '</button><button type="button" data-delete-profile-post="' + escapeHtml(post.id) + '">' + tr('Delete','حذف') + '</button></div>' : '',
+        '</article>'
       ].join('');
     }).join('');
+}
+
+function closePostEditor() {
+  activeEditPostId = null;
+  $('postEditStatus').textContent = '';
+  if ($('postEditDialog').open) $('postEditDialog').close();
+}
+
+function openPostEditor(postId) {
+  const post = activeProfilePosts.find(item => item.id === postId);
+  if (!post || currentUser?.uid !== post.userId) return;
+  activeEditPostId = postId;
+  $('postEditId').value = postId;
+  $('postEditHeading').value = post.title || '';
+  $('postEditBody').value = post.content || post.summary || '';
+  $('postEditBehance').value = post.behanceSrc || '';
+  $('postEditBehanceGroup').hidden = !isProject(post);
+  $('postEditBodyLabel').textContent = isProject(post) ? tr('Project description','وصف المشروع') : tr('Content','المحتوى');
+  $('postEditStatus').textContent = '';
+  $('postEditDialog').showModal();
+  $('postEditHeading').focus();
+}
+
+async function deleteOwnedPost(postId) {
+  const post = activeProfilePosts.find(item => item.id === postId);
+  if (!post || currentUser?.uid !== post.userId) return;
+  if (!confirm(tr('Delete this post permanently? This cannot be undone.','هل تريد حذف هذا المنشور نهائياً؟ لا يمكن التراجع عن ذلك.'))) return;
+  try {
+    const [votes, comments] = await Promise.all([
+      getDocs(collection(db, 'communityPosts', postId, 'votes')),
+      getDocs(collection(db, 'communityPosts', postId, 'comments'))
+    ]);
+    await Promise.all([
+      ...votes.docs.map(item => deleteDoc(item.ref)),
+      ...comments.docs.map(item => deleteDoc(item.ref))
+    ]);
+    await deleteDoc(doc(db, 'communityPosts', postId));
+    activeProfilePosts = activeProfilePosts.filter(item => item.id !== postId);
+    invalidateCommunitySearchIndex();
+    renderProfilePosts();
+    showToast(tr('Post deleted.','تم حذف المنشور.'));
+  } catch (error) {
+    console.error(error);
+    showToast(tr('This post could not be deleted.','تعذر حذف هذا المنشور.'));
+  }
 }
 
 async function loadProfilePosts(uid) {
@@ -1213,6 +1315,50 @@ document.querySelectorAll('[data-profile-filter]').forEach(button => button.addE
   profilePostFilter = button.dataset.profileFilter;
   renderProfilePosts();
 }));
+
+$('profilePosts').addEventListener('click', event => {
+  const editButton = event.target.closest('[data-edit-profile-post]');
+  const deleteButton = event.target.closest('[data-delete-profile-post]');
+  if (editButton) openPostEditor(editButton.dataset.editProfilePost);
+  if (deleteButton) deleteOwnedPost(deleteButton.dataset.deleteProfilePost);
+});
+$('postEditClose').addEventListener('click', closePostEditor);
+$('postEditCancel').addEventListener('click', closePostEditor);
+$('postEditDialog').addEventListener('cancel', () => { activeEditPostId = null; });
+$('postEditDialog').addEventListener('click', event => { if (event.target === $('postEditDialog')) closePostEditor(); });
+$('postEditForm').addEventListener('submit', async event => {
+  event.preventDefault();
+  const post = activeProfilePosts.find(item => item.id === activeEditPostId);
+  if (!post || currentUser?.uid !== post.userId) return closePostEditor();
+  const button = event.submitter;
+  const title = $('postEditHeading').value.trim();
+  const content = $('postEditBody').value.trim();
+  const behanceSrc = isProject(post) ? extractBehanceEmbed($('postEditBehance').value) : post.behanceSrc || '';
+  if (!title || !content) {
+    $('postEditStatus').textContent = tr('Add a title and content before saving.','أضف عنواناً ومحتوى قبل الحفظ.');
+    return;
+  }
+  if (isProject(post) && !behanceSrc) {
+    $('postEditStatus').textContent = tr('Paste a valid Behance embed link.','الصق رابط تضمين صالحاً من Behance.');
+    return;
+  }
+  button.disabled = true;
+  try {
+    const changes = {title, content, summary:content.slice(0,360), updatedAt:serverTimestamp()};
+    if (isProject(post)) changes.behanceSrc = behanceSrc;
+    await setDoc(doc(db, 'communityPosts', post.id), changes, {merge:true});
+    activeProfilePosts = activeProfilePosts.map(item => item.id === post.id ? {...item, ...changes} : item);
+    invalidateCommunitySearchIndex();
+    closePostEditor();
+    renderProfilePosts();
+    showToast(tr('Post updated.','تم تحديث المنشور.'));
+  } catch (error) {
+    console.error(error);
+    $('postEditStatus').textContent = tr('This post could not be updated.','تعذر تحديث هذا المنشور.');
+  } finally {
+    button.disabled = false;
+  }
+});
 
 let searchTimer;
 $('communitySearch').addEventListener('focus', event => runCommunitySearch(event.target.value));

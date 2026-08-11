@@ -230,8 +230,19 @@
       <div id="commentsSheetBody" class="comments-sheet-body"></div>
     </section>
   </div>
+  <dialog id="postEditDialog" class="post-edit-dialog" aria-labelledby="postEditTitle">
+    <form id="postEditForm">
+      <header><div><span class="mini-kicker" data-en="MANAGE YOUR POST" data-ar="إدارة منشورك">MANAGE YOUR POST</span><h2 id="postEditTitle" data-en="Edit post" data-ar="تعديل المنشور">Edit post</h2></div><button id="postEditClose" type="button" aria-label="Close editor" data-aria-en="Close editor" data-aria-ar="إغلاق المحرر">×</button></header>
+      <input id="postEditId" type="hidden">
+      <div class="form-group"><label for="postEditHeading" data-en="Title" data-ar="العنوان">Title</label><input id="postEditHeading" required maxlength="160"></div>
+      <div class="form-group"><label id="postEditBodyLabel" for="postEditBody" data-en="Content" data-ar="المحتوى">Content</label><textarea id="postEditBody" required maxlength="2000"></textarea></div>
+      <div id="postEditBehanceGroup" class="form-group" hidden><label for="postEditBehance" data-en="Behance project embed link" data-ar="رابط تضمين مشروع Behance">Behance project embed link</label><input id="postEditBehance" type="text" inputmode="url"></div>
+      <p id="postEditStatus" class="form-status" aria-live="polite"></p>
+      <footer><button id="postEditCancel" class="secondary-button" type="button" data-en="Cancel" data-ar="إلغاء">Cancel</button><button class="primary-button" type="submit"><span data-en="Save changes" data-ar="حفظ التغييرات">Save changes</span><b aria-hidden="true">→</b></button></footer>
+    </form>
+  </dialog>
   <div id="communityToast" class="community-toast" role="status" aria-live="polite"></div>
 
-  <script type="module" src="js/community.js?v=20260811-projects"></script>
+  <script type="module" src="js/community.js?v=20260811-profile-media"></script>
 </body>
 </html>
