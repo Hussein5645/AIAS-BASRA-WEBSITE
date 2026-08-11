@@ -59,12 +59,14 @@
     .delete-btn { background: var(--error); } .delete-btn:hover { filter: brightness(0.95); }
     .edit-btn { background: #3182ce; } .edit-btn:hover { filter: brightness(0.95); }
     .community-review-controls { display:grid; grid-template-columns:1fr 120px; gap:.55rem; margin-bottom:.75rem; }.community-review-controls input,.community-review-controls select { min-width:0; padding:.55rem .65rem; border:1px solid var(--border); border-radius:8px; font:inherit; font-size:.8rem; }.community-review-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.75rem; padding:.8rem 0; border-bottom:1px solid var(--border); }.community-review-row:last-child { border-bottom:0; }.community-review-title { font-weight:800; color:#1f2937; line-height:1.35; }.community-review-meta { color:var(--muted); font-size:.76rem; margin-top:.25rem; }.community-review-actions { display:flex; flex-wrap:wrap; gap:.4rem; justify-content:flex-end; align-content:start; }.community-preview-btn { display:inline-flex; align-items:center; justify-content:center; padding:.45rem .7rem; border-radius:8px; color:#fff!important; background:#334155; text-decoration:none; font-weight:800; font-size:.75rem; box-shadow:0 2px 4px rgba(15,23,42,.2); }.community-preview-btn:hover { background:#0f172a; }.community-status { display:inline-block; border-radius:999px; padding:.14rem .42rem; font-weight:800; font-size:.68rem; }.community-status.pending { color:#92400e; background:#fef3c7; }.community-status.featured { color:#166534; background:#dcfce7; }.community-status.none { color:#475569; background:#e2e8f0; }.community-pagination { display:flex; justify-content:space-between; align-items:center; gap:.5rem; margin-top:.75rem; font-size:.75rem; color:var(--muted); }.community-pagination button { border:1px solid var(--border); background:#fff; border-radius:6px; padding:.35rem .55rem; cursor:pointer; font-weight:700; }.community-pagination button:disabled { opacity:.45; cursor:not-allowed; }
-    .community-admin-toolbar { grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem 1.1rem; border:1px solid #dacac3; border-radius:14px; background:linear-gradient(135deg,#fff,#faf5f2); box-shadow:0 6px 18px rgba(50,28,34,.06); }
-    .community-admin-toolbar h2 { margin:0; color:#2d1b20; font-size:1.05rem; }.community-admin-toolbar p { margin:.25rem 0 0; color:var(--muted); font-size:.76rem; }
-    .community-admin-search { position:relative; flex:0 1 430px; }.community-admin-search input { width:100%; min-height:44px; padding:.65rem .85rem .65rem 2.35rem; border:1px solid #ccb9b2; border-radius:999px; background:#fff; font:inherit; }.community-admin-search::before { content:'⌕'; position:absolute; left:.85rem; top:50%; transform:translateY(-52%); color:var(--brand1); font-size:1.15rem; }
+    #community-tab.active { display:block; }
+    .community-admin-hero { position:relative; overflow:hidden; display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,430px); align-items:end; gap:1.5rem; padding:1.5rem; border-radius:18px; color:#fff; background:radial-gradient(circle at 88% 8%,rgba(240,218,161,.3),transparent 30%),linear-gradient(135deg,#321c22,#6b2228 68%,#98584d); box-shadow:0 16px 34px rgba(50,28,34,.16); }
+    .community-admin-hero h2 { margin:0; font-size:1.45rem; }.community-admin-hero p { max-width:650px; margin:.45rem 0 0; color:#ead8d3; font-size:.82rem; line-height:1.6; }.community-admin-hero a { display:inline-flex; margin-top:.8rem; color:#f0daa1; font-size:.76rem; font-weight:800; text-decoration:none; }
+    .community-admin-search { position:relative; }.community-admin-search input { width:100%; min-height:48px; padding:.7rem .95rem .7rem 2.5rem; border:1px solid rgba(255,255,255,.4); border-radius:14px; outline:0; color:#2d1b20; background:rgba(255,255,255,.96); font:inherit; box-shadow:0 8px 24px rgba(30,14,16,.15); }.community-admin-search input:focus { border-color:#f0daa1; box-shadow:0 0 0 4px rgba(240,218,161,.2),0 8px 24px rgba(30,14,16,.15); }.community-admin-search::before { content:'⌕'; position:absolute; left:.9rem; top:50%; z-index:1; transform:translateY(-52%); color:var(--brand1); font-size:1.2rem; }
+    .community-admin-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem; margin:1rem 0; }.community-admin-stat { display:flex; align-items:center; gap:.8rem; padding:1rem; border:1px solid var(--border); border-radius:14px; background:#fff; box-shadow:0 7px 20px rgba(50,28,34,.05); }.community-admin-stat > span { width:42px; height:42px; flex:0 0 auto; display:grid; place-items:center; border-radius:12px; color:var(--brand1); background:#f7ece8; font-size:1.15rem; font-weight:900; }.community-admin-stat strong,.community-admin-stat small { display:block; }.community-admin-stat strong { color:#2d1b20; font-size:1.2rem; }.community-admin-stat small { margin-top:.12rem; color:var(--muted); font-size:.7rem; }
+    .community-admin-grid { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr); gap:1rem; align-items:start; }.community-admin-card { overflow:hidden; border:1px solid var(--border); border-radius:16px; background:#fff; box-shadow:0 8px 24px rgba(50,28,34,.055); }.community-admin-card.wide { grid-column:1/-1; }.community-admin-card-head { display:flex; align-items:flex-start; gap:.75rem; padding:1rem 1.1rem; border-bottom:1px solid var(--border); background:linear-gradient(135deg,#fff,#faf7f5); }.community-admin-card-head > span { width:38px; height:38px; flex:0 0 auto; display:grid; place-items:center; border-radius:11px; color:#fff; background:linear-gradient(135deg,var(--brand1),var(--brand2)); font-weight:900; }.community-admin-card-head h3 { margin:0; color:#2d1b20; font-size:.98rem; }.community-admin-card-head p { margin:.25rem 0 0; color:var(--muted); font-size:.72rem; line-height:1.5; }.community-admin-card-body { padding:1rem 1.1rem; }.community-spaces-note { margin:0 0 .85rem; padding:.7rem .8rem; border-radius:10px; color:#475569; background:#f8fafc; font-size:.74rem; line-height:1.55; }
     .community-question-form { padding-bottom:1rem; margin-bottom:1rem; border-bottom:1px solid var(--border); }.community-question-form textarea { min-height:84px; }
     .community-status.denied { color:#991b1b; background:#fee2e2; }
-    #community-tab > details:last-child { grid-column:1/-1; }
     .access-badge { display:inline-flex; align-items:center; gap:.4rem; padding:.38rem .7rem; border:1px solid rgba(255,255,255,.45); border-radius:999px; background:rgba(255,255,255,.14); font-size:.75rem; font-weight:800; }
     .access-card { margin:.8rem; padding:.9rem; border-radius:12px; color:#f8fafc; background:linear-gradient(145deg,#321c22,#6b2228); }.access-card strong,.access-card span { display:block; }.access-card strong { font-size:.86rem; }.access-card span { margin-top:.25rem; color:#ead7cf; font-size:.72rem; overflow-wrap:anywhere; }
     .role-read-only form,.role-read-only .edit-btn,.role-read-only .delete-btn,.role-read-only .submit-btn,.role-read-only button[onclick] { display:none!important; }
@@ -75,11 +77,11 @@
     .permission-matrix { display:grid; gap:.55rem; margin:1rem 0; }.permission-row { display:grid; grid-template-columns:minmax(0,1fr) 150px; gap:.75rem; align-items:center; padding:.7rem; border:1px solid var(--border); border-radius:10px; background:#fafafa; }.permission-row strong,.permission-row small { display:block; }.permission-row small { margin-top:.2rem; color:var(--muted); font-size:.7rem; }.permission-row select { width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; background:#fff; font:inherit; }
     .role-list,.assignment-list { display:grid; gap:.6rem; margin-top:.75rem; }.role-item,.assignment-item { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; padding:.85rem; border:1px solid var(--border); border-radius:10px; background:#fff; }.role-item h4,.assignment-item strong { margin:0; color:#263244; }.role-item p,.assignment-item small { display:block; margin:.25rem 0 0; color:var(--muted); font-size:.72rem; }.role-item-actions { display:flex; gap:.35rem; flex-wrap:wrap; justify-content:flex-end; }.role-item-actions button { border:1px solid var(--border); border-radius:7px; background:#fff; padding:.35rem .55rem; cursor:pointer; font:inherit; font-size:.7rem; font-weight:800; }.role-item-actions button.danger { color:#b91c1c; border-color:#fecaca; }
     .role-form-actions { display:flex; gap:.5rem; }.role-form-actions button { flex:1; }.assignment-form { display:grid; grid-template-columns:minmax(0,1fr) 180px auto; gap:.55rem; align-items:end; }.assignment-form .form-group { margin:0; }
-    .tab-content:not(#settings-tab):not(#roles-tab).active { display:grid; grid-template-columns:minmax(250px,330px) minmax(0,1fr); gap:1rem; align-items:start; }
-    .tab-content:not(#settings-tab):not(#roles-tab).active > details { margin:0; }
-    .tab-content:not(#settings-tab):not(#roles-tab).active > details:first-child { position:sticky; top:1.25rem; max-height:calc(100vh - 2.5rem); overflow:auto; }
-    .tab-content:not(#settings-tab):not(#roles-tab).active > details > summary { background:#f8fafc; }
-    .tab-content:not(#settings-tab):not(#roles-tab) .accordion-body.panel { box-shadow:none; border-radius:0; }
+    .tab-content:not(#settings-tab):not(#roles-tab):not(#community-tab).active { display:grid; grid-template-columns:minmax(250px,330px) minmax(0,1fr); gap:1rem; align-items:start; }
+    .tab-content:not(#settings-tab):not(#roles-tab):not(#community-tab).active > details { margin:0; }
+    .tab-content:not(#settings-tab):not(#roles-tab):not(#community-tab).active > details:first-child { position:sticky; top:1.25rem; max-height:calc(100vh - 2.5rem); overflow:auto; }
+    .tab-content:not(#settings-tab):not(#roles-tab):not(#community-tab).active > details > summary { background:#f8fafc; }
+    .tab-content:not(#settings-tab):not(#roles-tab):not(#community-tab) .accordion-body.panel { box-shadow:none; border-radius:0; }
     .rich-editor-toolbar { display:flex; flex-wrap:wrap; gap:.35rem; padding:.5rem; border:1px solid #d9e1ef; border-bottom:0; border-radius:8px 8px 0 0; background:#f7f9fc; }
     .rich-editor-toolbar button { border:1px solid #cbd5e1; background:#fff; border-radius:5px; padding:.35rem .6rem; cursor:pointer; }
     .rich-editor { min-height:260px; padding:1rem; border:1px solid #d9e1ef; border-radius:0 0 8px 8px; background:#fff; line-height:1.7; }
@@ -148,12 +150,11 @@
       .dashboard { grid-template-columns: 1fr; }
       .sidebar { position: static; height: auto; }
       .two-col,.role-grid,.role-stats,.assignment-form { grid-template-columns: 1fr; }
-      .tab-content:not(#settings-tab):not(#roles-tab).active { grid-template-columns:1fr; }
-      .tab-content:not(#settings-tab):not(#roles-tab).active > details:first-child { position:static; max-height:none; }
+      .tab-content:not(#settings-tab):not(#roles-tab):not(#community-tab).active { grid-template-columns:1fr; }
+      .tab-content:not(#settings-tab):not(#roles-tab):not(#community-tab).active > details:first-child { position:static; max-height:none; }
       .firestore-grid { grid-template-columns:1fr; }
-      .community-admin-toolbar { align-items:stretch; flex-direction:column; }.community-admin-search { flex-basis:auto; width:100%; }
+      .community-admin-hero { grid-template-columns:1fr; }.community-admin-stats,.community-admin-grid { grid-template-columns:1fr; }.community-admin-card.wide { grid-column:auto; }
       .community-review-row { grid-template-columns:1fr; }.community-review-actions { justify-content:flex-start; }
-      #community-tab > details:last-child { grid-column:auto; }
     }
   </style>
 </head>
@@ -343,10 +344,13 @@
 
       <!-- Community management -->
       <section id="community-tab" class="tab-content">
-        <div class="community-admin-toolbar"><div><h2>Community management</h2><p>Approve submitted projects, manage sub-communities, and choose the weekly question.</p></div><label class="community-admin-search"><span class="sr-only">Search Community management</span><input id="communityAdminSearch" type="search" autocomplete="off" placeholder="Search projects, spaces, or questions"></label></div>
-        <details class="accordion" open><summary>Submitted project approvals</summary><div class="accordion-body panel"><p style="color:#4a5568;margin-bottom:1rem">Review only projects that members submitted for the Selected Projects page.</p><div id="communityAdminList"><p>Loading project requests…</p></div></div></details>
-        <details class="accordion" open><summary>Sub-communities</summary><div class="accordion-body panel"><p style="color:#4a5568;margin-bottom:1rem">Create and manage the Firebase-backed spaces available under a/{handle}.</p><form id="communitySpaceForm"><div class="two-col"><div class="form-group"><label for="communitySpaceSlug">Unique handle</label><input id="communitySpaceSlug" required minlength="3" maxlength="32" pattern="[a-z0-9-]{3,32}" placeholder="studio-crit"></div><div class="form-group"><label for="communitySpaceName">Display name</label><input id="communitySpaceName" required maxlength="80" placeholder="Studio Crit"></div></div><div class="two-col"><div class="form-group"><label for="communitySpaceSymbol">Symbol</label><input id="communitySpaceSymbol" required maxlength="3" placeholder="SC"></div><div class="form-group"><label for="communitySpaceDescription">Description</label><input id="communitySpaceDescription" required maxlength="360"></div></div><button class="submit-btn" type="submit">Save sub-community</button><p id="communitySpaceStatus" style="margin-top:.75rem" aria-live="polite"></p></form><div id="communitySpacesAdmin" style="margin-top:1.25rem"><p>Loading sub-communities…</p></div></div></details>
-        <details class="accordion" open><summary>Question of the Week</summary><div class="accordion-body panel"><p style="color:#4a5568;margin-bottom:1rem">Publish a new weekly question or select one already submitted by a community member.</p><form id="weeklyQuestionForm" class="community-question-form"><div class="form-group"><label for="weeklyQuestionTitle">Question</label><input id="weeklyQuestionTitle" required maxlength="160" placeholder="What should our community discuss this week?"></div><div class="form-group"><label for="weeklyQuestionContext">Helpful context</label><textarea id="weeklyQuestionContext" required maxlength="2000" placeholder="Add context that helps members give useful answers."></textarea></div><button class="submit-btn" type="submit">Publish as Question of the Week</button><p id="weeklyQuestionStatus" style="margin-top:.75rem" aria-live="polite"></p></form><div id="communityPromptAdmin"><p>Loading community questions…</p></div></div></details>
+        <header class="community-admin-hero"><div><h2>Community management</h2><p>Review featured-project requests, manage existing member spaces, and keep the Question of the Week current.</p><a href="community.html" target="_blank" rel="noopener">Open the community ↗</a></div><label class="community-admin-search"><span class="sr-only">Search Community management</span><input id="communityAdminSearch" type="search" autocomplete="off" placeholder="Search projects, spaces, or questions"></label></header>
+        <div class="community-admin-stats" aria-label="Community overview"><article class="community-admin-stat"><span>✓</span><div><strong id="communityPendingCount">—</strong><small>Pending project requests</small></div></article><article class="community-admin-stat"><span>#</span><div><strong id="communitySpacesCount">—</strong><small>Active member spaces</small></div></article><article class="community-admin-stat"><span>?</span><div><strong id="communityQuestionState">—</strong><small>Question of the Week</small></div></article></div>
+        <div class="community-admin-grid">
+          <section class="community-admin-card"><header class="community-admin-card-head"><span>✓</span><div><h3>Submitted project approvals</h3><p>Review projects members requested for the Selected Projects page.</p></div></header><div class="community-admin-card-body"><div id="communityAdminList"><p>Loading project requests…</p></div></div></section>
+          <section class="community-admin-card"><header class="community-admin-card-head"><span>#</span><div><h3>Manage community spaces</h3><p>Open, archive, or restore spaces created by members.</p></div></header><div class="community-admin-card-body"><p class="community-spaces-note">New spaces are created by members from the Community page. This dashboard only manages existing spaces.</p><div id="communitySpacesAdmin"><p>Loading community spaces…</p></div></div></section>
+          <section class="community-admin-card wide"><header class="community-admin-card-head"><span>?</span><div><h3>Question of the Week</h3><p>Publish a new weekly question or select one already submitted by a community member.</p></div></header><div class="community-admin-card-body"><form id="weeklyQuestionForm" class="community-question-form"><div class="form-group"><label for="weeklyQuestionTitle">Question</label><input id="weeklyQuestionTitle" required maxlength="160" placeholder="What should our community discuss this week?"></div><div class="form-group"><label for="weeklyQuestionContext">Helpful context</label><textarea id="weeklyQuestionContext" required maxlength="2000" placeholder="Add context that helps members give useful answers."></textarea></div><button class="submit-btn" type="submit">Publish as Question of the Week</button><p id="weeklyQuestionStatus" style="margin-top:.75rem" aria-live="polite"></p></form><div id="communityPromptAdmin"><p>Loading community questions…</p></div></div></section>
+        </div>
       </section>
 
       <!-- Library -->
@@ -616,7 +620,7 @@
      *************************************************/
     import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, getDocs, collection, addDoc, setDoc, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, getDocs, collection, addDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import FirestoreAPI from "./js/firestore-api.js?v=20260811-settings";
     import categoriesLoader from "./js/categories-loader.js";
     import { toBase64, uploadFileChunks, createDocumentId } from "./js/file-chunks.js";
@@ -954,12 +958,16 @@
         const selectedId = results[1].exists() ? results[1].data().promptPostId || '' : '';
         const questions = allQuestions.filter(post => !communityAdminQuery || [post.title, post.summary, post.content, post.authorUsername, post.authorName].join(' ').toLowerCase().includes(communityAdminQuery));
         const selected = allQuestions.find(post => post.id === selectedId);
+        const questionState = document.getElementById('communityQuestionState');
+        if (questionState) questionState.textContent = selected ? 'Selected' : 'Not set';
         const current = selected ? `<div style="margin-bottom:.9rem;padding:.75rem;border-radius:9px;background:#f0fff4"><strong>Current Question of the Week</strong><div class="community-review-title" style="margin-top:.3rem">${communityEscape(selected.title)}</div><a class="community-preview-btn" style="margin-top:.55rem" href="community.html?post=${encodeURIComponent(selected.id)}" target="_blank" rel="noopener">Open question</a></div>` : '<p class="notice">No Question of the Week is selected.</p>';
         const list = questions.length ? `<div class="community-review-list">${questions.slice(0,20).map(post => `<article class="community-review-row"><div><div class="community-review-title">${communityEscape(post.title)}</div><div class="community-review-meta">@${communityEscape(post.authorUsername || post.authorName || 'member')}${post.id === selectedId ? ' · <span class="community-status featured">current</span>' : ''}</div></div><div class="community-review-actions"><a class="community-preview-btn" href="community.html?post=${encodeURIComponent(post.id)}" target="_blank" rel="noopener">Open</a>${post.id === selectedId ? '' : `<button class="btn edit-btn" type="button" data-set-weekly-question="${post.id}" ${canManage(currentAccess, 'community') ? '' : 'disabled'}>Set for this week</button>`}</div></article>`).join('')}</div>` : `<p>${communityAdminQuery ? 'No questions match the Community search.' : 'No community questions have been posted yet.'}</p>`;
         box.innerHTML = current + '<h3 style="margin:.2rem 0 .55rem">Available questions</h3>' + list + '<p id="promptAdminStatus" style="margin-top:.75rem" aria-live="polite"></p>';
         box.querySelectorAll('[data-set-weekly-question]').forEach(button => button.addEventListener('click', () => setQuestionOfWeek(button.dataset.setWeeklyQuestion, document.getElementById('promptAdminStatus'))));
       } catch (error) {
         console.error('[CommunityAdmin] prompt load failed', error);
+        const questionState = document.getElementById('communityQuestionState');
+        if (questionState) questionState.textContent = 'Unavailable';
         box.innerHTML = '<p style="color:red">Could not load community questions.</p>';
       }
     }
@@ -1019,8 +1027,10 @@
       try {
         const snapshot = await getDocs(collection(db, 'communitySpaces'));
         const allSpaces = snapshot.docs.map(item => ({slug:item.id, ...item.data()})).sort((a,b) => (a.name || a.slug).localeCompare(b.name || b.slug));
+        const spacesCount = document.getElementById('communitySpacesCount');
+        if (spacesCount) spacesCount.textContent = allSpaces.filter(space => space.active !== false).length.toLocaleString();
         const spaces = allSpaces.filter(space => !communityAdminQuery || [space.slug, space.name, space.description].join(' ').toLowerCase().includes(communityAdminQuery));
-        if (!spaces.length) { box.innerHTML = `<p>${communityAdminQuery ? 'No sub-communities match the Community search.' : 'No sub-communities have been created yet.'}</p>`; return; }
+        if (!spaces.length) { box.innerHTML = `<p>${communityAdminQuery ? 'No community spaces match this search.' : 'No member-created spaces are available yet.'}</p>`; return; }
         box.innerHTML = '<div class="community-review-list">' + spaces.map(space => '<article class="community-review-row"><div><div class="community-review-title">a/' + communityEscape(space.slug) + ' · ' + communityEscape(space.name) + '</div><div class="community-review-meta">' + communityEscape(space.description || '') + ' · <span class="community-status ' + (space.active === false ? 'none' : 'featured') + '">' + (space.active === false ? 'archived' : 'active') + '</span></div></div><div class="community-review-actions"><a class="community-preview-btn" href="/a/' + encodeURIComponent(space.slug) + '" target="_blank" rel="noopener">Open</a><button class="btn ' + (space.active === false ? 'edit-btn' : 'delete-btn') + '" data-toggle-space="' + communityEscape(space.slug) + '" data-active="' + (space.active === false ? 'false' : 'true') + '" ' + (canManage(currentAccess, 'community') ? '' : 'disabled') + '>' + (space.active === false ? 'Restore' : 'Archive') + '</button></div></article>').join('') + '</div>';
         box.querySelectorAll('[data-toggle-space]').forEach(button => button.addEventListener('click', async () => {
           await setDoc(doc(db, 'communitySpaces', button.dataset.toggleSpace), {active:button.dataset.active !== 'true', updatedAt:serverTimestamp(), updatedBy:currentAdminUser?.email || ''}, {merge:true});
@@ -1028,51 +1038,20 @@
         }));
       } catch (error) {
         console.error('[CommunityAdmin] spaces load failed', error);
-        box.innerHTML = '<p style="color:red">Could not load sub-communities.</p>';
+        const spacesCount = document.getElementById('communitySpacesCount');
+        if (spacesCount) spacesCount.textContent = 'Unavailable';
+        box.innerHTML = '<p style="color:red">Could not load community spaces.</p>';
       }
     }
 
-    let communitySpaceCheckTimer;
-    let communitySpaceCheckSequence = 0;
-    document.getElementById('communitySpaceSlug')?.addEventListener('input', event => {
-      event.target.value = event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
-      const sequence = ++communitySpaceCheckSequence;
-      clearTimeout(communitySpaceCheckTimer);
-      communitySpaceCheckTimer = setTimeout(async () => {
-        const status = document.getElementById('communitySpaceStatus');
-        const slug = event.target.value;
-        if (slug === 'main' || !/^[a-z0-9-]{3,32}$/.test(slug)) { event.target.setCustomValidity(slug === 'main' ? 'The main handle is reserved.' : 'Use 3–32 lowercase letters, numbers, or hyphens.'); status.style.color='#b91c1c'; status.textContent=slug === 'main' ? 'a/main is reserved for the main thread.' : 'Enter a valid a/ handle.'; return; }
-        const snapshot = await getDoc(doc(db, 'communitySpaces', slug));
-        if (sequence !== communitySpaceCheckSequence || event.target.value !== slug) return;
-        event.target.setCustomValidity(snapshot.exists() ? 'That community handle already exists.' : '');
-        status.style.color = snapshot.exists() ? '#b45309' : '#15803d';
-        status.textContent = snapshot.exists() ? 'a/' + slug + ' already exists. Choose another unique handle.' : 'a/' + slug + ' is available.';
-      }, 250);
-    });
-    document.getElementById('communitySpaceForm')?.addEventListener('submit', async event => {
-      event.preventDefault();
-      const status = document.getElementById('communitySpaceStatus');
-      const slug = document.getElementById('communitySpaceSlug').value.trim();
-      try {
-        if (!canManage(currentAccess, 'community')) throw new Error('You do not have permission to manage sub-communities.');
-        if (slug === 'main') throw new Error('a/main is reserved for the main thread.');
-        const spaceRef = doc(db, 'communitySpaces', slug);
-        await runTransaction(db, async transaction => {
-          const existing = await transaction.get(spaceRef);
-          if (existing.exists()) throw new Error('That unique community handle is already in use.');
-          transaction.set(spaceRef, {name:document.getElementById('communitySpaceName').value.trim(), symbol:document.getElementById('communitySpaceSymbol').value.trim().toUpperCase(), description:document.getElementById('communitySpaceDescription').value.trim(), active:true, updatedAt:serverTimestamp(), updatedBy:currentAdminUser?.email || ''});
-        });
-        status.style.color = '#15803d'; status.textContent = 'Sub-community saved to Firebase.';
-        event.target.reset();
-        loadCommunitySpacesAdmin();
-      } catch (error) { status.style.color = '#b91c1c'; status.textContent = error.message || 'Could not save this sub-community.'; }
-    });
     window.loadCommunityAdminPosts = async function() {
       const box = document.getElementById('communityAdminList');
       if (!box) return;
       box.innerHTML = '<p>Loading community posts…</p>';
       try {
         const allPosts = (await getDocs(collection(db, 'communityPosts'))).docs.map(item => ({ id:item.id, ...item.data() })).filter(post => post.type === 'behance' && post.featureRequest === true).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        const pendingCount = document.getElementById('communityPendingCount');
+        if (pendingCount) pendingCount.textContent = allPosts.filter(post => !post.featured && post.featureStatus !== 'approved' && post.featureStatus !== 'denied').length.toLocaleString();
         const filtered = allPosts.filter(post => {
           const status = post.featured || post.featureStatus === 'approved' ? 'approved' : (post.featureStatus === 'denied' ? 'denied' : 'pending');
           return (!communityAdminQuery || [post.title, post.summary, post.authorName, post.authorUsername].join(' ').toLowerCase().includes(communityAdminQuery)) && (communityReviewState.status === 'all' || status === communityReviewState.status);
@@ -1085,7 +1064,7 @@
         document.getElementById('communityReviewStatus').addEventListener('change', event => { communityReviewState.status = event.target.value; communityReviewState.page = 0; loadCommunityAdminPosts(); });
         document.getElementById('communityPrev').addEventListener('click', () => { communityReviewState.page--; loadCommunityAdminPosts(); });
         document.getElementById('communityNext').addEventListener('click', () => { communityReviewState.page++; loadCommunityAdminPosts(); });
-      } catch (error) { console.error('[CommunityAdmin] load failed', error); box.innerHTML = '<p style="color:red">Could not load community posts.</p>'; }
+      } catch (error) { console.error('[CommunityAdmin] load failed', error); const pendingCount = document.getElementById('communityPendingCount'); if (pendingCount) pendingCount.textContent = 'Unavailable'; box.innerHTML = '<p style="color:red">Could not load community posts.</p>'; }
     };
 
     window.reviewCommunityPost = async function(id, action) {
