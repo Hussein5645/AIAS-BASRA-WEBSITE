@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/community.css?v=20260811-projects">
+  <link rel="stylesheet" href="css/community.css?v=20260811-profile-media">
 </head>
 <body>
   <header class="community-topbar">
@@ -104,6 +104,20 @@
         <div id="posts" class="post-list" aria-busy="true">
           <div class="post-skeleton"></div><div class="post-skeleton short"></div>
         </div>
+      </section>
+
+      <section id="spacesView" class="view" hidden>
+        <header class="section-heading space-directory-heading">
+          <a href="community.html" data-route="home" aria-label="Back to community">←</a>
+          <div><span class="eyebrow"><i></i> <span data-en="FIND YOUR PEOPLE" data-ar="اعثر على مجتمعك">FIND YOUR PEOPLE</span></span><h1 data-en="Explore spaces" data-ar="استكشف المساحات">Explore spaces</h1><p data-en="Search member-created spaces, discover active conversations, or find what is new." data-ar="ابحث في مساحات الأعضاء واكتشف النقاشات النشطة أو تعرّف على المساحات الجديدة.">Search member-created spaces, discover active conversations, or find what is new.</p></div>
+          <a class="space-directory-create" href="community.html?view=space" data-route="space"><span data-en="New space" data-ar="مساحة جديدة">New space</span> <b aria-hidden="true">+</b></a>
+        </header>
+        <section class="space-directory-tools" aria-label="Find community spaces" data-aria-en="Find community spaces" data-aria-ar="البحث عن مساحات المجتمع">
+          <label class="space-directory-search" for="spaceDirectorySearch"><span aria-hidden="true">⌕</span><input id="spaceDirectorySearch" type="search" autocomplete="off" placeholder="Search by space name, handle, or topic" data-en="Search by space name, handle, or topic" data-ar="ابحث باسم المساحة أو المعرّف أو الموضوع"></label>
+          <div class="space-directory-sort" role="group" aria-label="Sort spaces" data-aria-en="Sort spaces" data-aria-ar="ترتيب المساحات"><button class="active" type="button" data-space-sort="popular" data-en="Popular" data-ar="الرائجة">Popular</button><button type="button" data-space-sort="new" data-en="New" data-ar="الجديدة">New</button></div>
+        </section>
+        <div class="space-directory-meta"><strong id="spaceDirectoryCount"></strong><span data-en="Open a space to see its posts and questions." data-ar="افتح مساحة لعرض منشوراتها وأسئلتها.">Open a space to see its posts and questions.</span></div>
+        <section id="spaceDirectoryGrid" class="space-directory-grid" aria-live="polite"><div class="post-skeleton"></div><div class="post-skeleton short"></div></section>
       </section>
 
       <section id="postView" class="view" hidden>
@@ -217,7 +231,7 @@
 
   <nav class="mobile-nav" aria-label="Mobile community navigation">
     <a class="active" href="community.html" data-route="home"><span aria-hidden="true">⌂</span><small data-en="Home" data-ar="الرئيسية">Home</small></a>
-    <a href="community.html" id="mobileSpacesLink"><span aria-hidden="true">◇</span><small data-en="Spaces" data-ar="المساحات">Spaces</small></a>
+    <a href="community.html?view=spaces" id="mobileSpacesLink" data-route="spaces"><span aria-hidden="true">◇</span><small data-en="Spaces" data-ar="المساحات">Spaces</small></a>
     <a class="mobile-create" href="community.html?view=post" data-route="post"><span aria-hidden="true">+</span><small data-en="Create" data-ar="إنشاء">Create</small></a>
     <a href="community.html?view=profile" data-route="profile"><span aria-hidden="true">◉</span><small data-en="Profile" data-ar="الملف">Profile</small></a>
     <a href="index.html"><span aria-hidden="true">←</span><small data-en="Website" data-ar="الموقع">Website</small></a>
@@ -243,6 +257,6 @@
   </dialog>
   <div id="communityToast" class="community-toast" role="status" aria-live="polite"></div>
 
-  <script type="module" src="js/community.js?v=20260811-profile-media"></script>
+  <script type="module" src="js/community.js?v=20260811-space-directory"></script>
 </body>
 </html>

@@ -37,6 +37,8 @@ let communitySearchActiveIndex = -1;
 let profilePostFilter = 'all';
 let activeProfilePosts = [];
 let activeEditPostId = null;
+let spaceDirectorySort = 'popular';
+let spaceDirectoryItems = [];
 
 const $ = id => document.getElementById(id);
 const escapeHtml = value => String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -71,6 +73,10 @@ function setCommunityLanguage(language, rerender = true) {
   $('communityLanguageLabel').textContent = isArabic() ? 'EN' : 'العربية';
   $('communityLanguageToggle').setAttribute('aria-label', isArabic() ? 'Switch to English' : 'التبديل إلى العربية');
   applyCommunityTranslations();
+  if (activeEditPostId) {
+    const editedPost = activeProfilePosts.find(item => item.id === activeEditPostId);
+    if (editedPost) $('postEditBodyLabel').textContent = isProject(editedPost) ? tr('Project description','وصف المشروع') : tr('Content','المحتوى');
+  }
   if (!rerender) return;
   renderCommunitySpaces();
   loadPromptOfTheWeek();
@@ -197,7 +203,63 @@ function renderCommunitySpaces() {
     ? spaces.slice(0, 4).map(([slug, area]) => '<a href="' + areaUrl(slug) + '"><span class="space-avatar">' + escapeHtml(area.symbol || initials(area.name)) + '</span><span><strong>a/' + escapeHtml(slug) + '</strong><small>' + escapeHtml(area.description || area.name) + '</small></span><b>›</b></a>').join('')
     : '<span class="spaces-loading">' + tr('Community spaces will appear here.','ستظهر مساحات المجتمع هنا.') + '</span>';
   $('communityHandles').innerHTML = '<option value="main">' + tr('Main thread','المسار الرئيسي') + '</option>' + spaces.map(([slug, area]) => '<option value="a/' + escapeHtml(slug) + '">' + escapeHtml(area.name || slug) + '</option>').join('');
-  $('mobileSpacesLink').href = spaces.length ? areaUrl(spaces[0][0]) : '/community.html';
+  $('mobileSpacesLink').href = '/community.html?view=spaces';
+}
+
+function spaceTimestamp(value) {
+  return value?.seconds || (value?.toMillis ? Math.floor(value.toMillis() / 1000) : 0);
+}
+
+function renderSpaceDirectory() {
+  const queryText = $('spaceDirectorySearch').value.trim().toLowerCase();
+  const items = spaceDirectoryItems
+    .filter(item => !queryText || [item.slug,item.name,item.description,item.creatorUsername].join(' ').toLowerCase().includes(queryText))
+    .sort((a,b) => spaceDirectorySort === 'new'
+      ? b.createdAt - a.createdAt || a.name.localeCompare(b.name)
+      : b.postCount - a.postCount || b.lastActivity - a.lastActivity || a.name.localeCompare(b.name));
+  document.querySelectorAll('[data-space-sort]').forEach(button => button.classList.toggle('active', button.dataset.spaceSort === spaceDirectorySort));
+  $('spaceDirectoryCount').textContent = isArabic()
+    ? items.length.toLocaleString('ar-IQ') + ' ' + (items.length === 1 ? 'مساحة' : 'مساحات')
+    : items.length + (items.length === 1 ? ' space' : ' spaces');
+  if (!items.length) {
+    $('spaceDirectoryGrid').innerHTML = '<div class="space-directory-empty"><span>A</span><h2>' + tr('No spaces found','لم يتم العثور على مساحات') + '</h2><p>' + tr('Try another search or create a new member space.','جرّب بحثاً آخر أو أنشئ مساحة جديدة للأعضاء.') + '</p><a href="community.html?view=space">' + tr('Create a space','إنشاء مساحة') + ' <b aria-hidden="true">+</b></a></div>';
+    return;
+  }
+  $('spaceDirectoryGrid').innerHTML = items.map((item,index) => {
+    const newSpace = item.createdAt && Date.now() / 1000 - item.createdAt < 60 * 60 * 24 * 30;
+    const badge = spaceDirectorySort === 'new' && newSpace ? tr('New','جديدة') : item.postCount > 0 ? tr('Active','نشطة') : tr('Open','مفتوحة');
+    return '<a class="space-directory-card" href="' + areaUrl(item.slug) + '" style="--space-index:' + index + '"><div class="space-directory-card-head"><span class="space-directory-symbol">' + escapeHtml(item.symbol || initials(item.name)) + '</span><span class="space-directory-badge">' + badge + '</span></div><span class="mini-kicker">a/' + escapeHtml(item.slug) + '</span><h2>' + escapeHtml(item.name) + '</h2><p>' + escapeHtml(item.description || tr('A member space for community conversation.','مساحة للأعضاء وحوارات المجتمع.')) + '</p><footer><span>' + (isArabic() ? item.postCount.toLocaleString('ar-IQ') : item.postCount.toLocaleString()) + ' ' + tr(item.postCount === 1 ? 'post' : 'posts','منشور') + '</span><b aria-hidden="true">' + (isArabic() ? '←' : '→') + '</b></footer></a>';
+  }).join('');
+}
+
+async function loadSpaceDirectory() {
+  $('spaceDirectoryGrid').innerHTML = '<div class="post-skeleton"></div><div class="post-skeleton short"></div>';
+  try {
+    const postsSnapshot = await getDocs(collection(db, 'communityPosts'));
+    const stats = new Map();
+    postsSnapshot.docs.forEach(item => {
+      const post = item.data();
+      if (post.published === false || !post.communitySlug || post.communitySlug === 'main') return;
+      const current = stats.get(post.communitySlug) || {postCount:0,lastActivity:0};
+      current.postCount += 1;
+      current.lastActivity = Math.max(current.lastActivity, spaceTimestamp(post.createdAt));
+      stats.set(post.communitySlug, current);
+    });
+    spaceDirectoryItems = Object.entries(communityAreas).map(([slug,area]) => ({
+      slug,
+      name:area.name || slug,
+      description:area.description || '',
+      symbol:area.symbol || initials(area.name || slug),
+      creatorUsername:area.creatorUsername || '',
+      createdAt:spaceTimestamp(area.createdAt),
+      postCount:stats.get(slug)?.postCount || 0,
+      lastActivity:stats.get(slug)?.lastActivity || 0
+    }));
+    renderSpaceDirectory();
+  } catch (error) {
+    console.error(error);
+    $('spaceDirectoryGrid').innerHTML = '<p class="notice error">' + tr('Spaces are unavailable right now.','المساحات غير متاحة حالياً.') + '</p>';
+  }
 }
 
 function renderSpaceSuggestions(value = '') {
@@ -480,7 +542,7 @@ async function loadCommunitySearchIndex(force = false) {
         searchText:[member.username, member.displayName, member.school, member.city, member.bio, member.interests].join(' '),
         url:profileUrl(member.id, member.username),
         icon:initials(member.displayName || member.username),
-        photo:member.photoURL || '',
+        photo:member.photoBase64 || member.photoURL || '',
         sortTime:member.updatedAt?.seconds || 0
       }));
     communitySearchIndex = [...spaces, ...posts, ...members];
@@ -715,7 +777,7 @@ async function handleRoute(scrollToTop) {
   const publicProfileRoute = pathRoute.profile || params.get('user');
   const requestedArea = pathRoute.area || params.get('area');
   activeAreaSlug = requestedArea && communityAreas[requestedArea] ? requestedArea : null;
-  const view = publicProfileRoute || requestedView === 'profile' ? 'profile' : requestedView === 'post' ? 'post' : requestedView === 'space' ? 'space' : 'home';
+  const view = publicProfileRoute || requestedView === 'profile' ? 'profile' : requestedView === 'spaces' ? 'spaces' : requestedView === 'post' ? 'post' : requestedView === 'space' ? 'space' : 'home';
   if (!params.has('comments')) closeCommentsUi();
   showView(view);
   if (scrollToTop) window.scrollTo({top:0, behavior:'smooth'});
@@ -741,6 +803,9 @@ async function handleRoute(scrollToTop) {
     await loadPosts();
     if (sequence !== routeSequence) return;
     if (selectedPostId && params.get('comments') === '1') openComments(selectedPostId, false);
+  } else if (view === 'spaces') {
+    document.title = tr('Explore Spaces — AIAS Basra Community','استكشف المساحات — مجتمع AIAS البصرة');
+    await loadSpaceDirectory();
   } else if (view === 'profile') {
     const profileId = publicProfileRoute ? await resolveProfileId(publicProfileRoute) : currentUser?.uid || null;
     await loadProfile(profileId, Boolean(publicProfileRoute));
@@ -784,7 +849,7 @@ function renderPostCard(post, index, detail) {
       '<div class="post-context">' + communityContext + '<span>·</span><span>' + postLabel(post) + '</span></div>',
       '<div class="post-head">',
         '<a class="post-author" href="' + authorProfileUrl + '">',
-          avatarMarkup(authorName, meta.profile.photoURL, 'avatar'),
+          avatarMarkup(authorName, meta.profile.photoBase64 || meta.profile.photoURL, 'avatar'),
           '<span class="author-copy"><strong>' + escapeHtml(authorName) + '</strong><span>' + escapeHtml(school) + ' · ' + escapeHtml(formatDate(post.createdAt)) + selected + '</span></span>',
         '</a>',
         '<span class="post-kind' + (isProject(post) ? ' project' : isQuestion(post) ? ' question' : '') + '">' + postLabel(post) + '</span>',
@@ -1202,12 +1267,14 @@ async function loadProfile(uid, routedProfile) {
     const profile = await getProfile(uid);
     const owner = currentUser?.uid === uid;
     const displayName = profile.displayName || (owner ? currentUser?.displayName : '') || tr('Community member','عضو في المجتمع');
-    const photo = profile.photoURL || (owner ? currentUser?.photoURL : '') || '';
+    const photo = profile.photoBase64 || profile.photoURL || (owner ? currentUser?.photoURL : '') || '';
+    const banner = profile.bannerBase64 || '';
     const locationLine = [profile.school, profile.city].filter(Boolean).join(' · ') || tr('AIAS Basra community','مجتمع AIAS البصرة');
     const interests = String(profile.interests || '').split(',').map(item => item.trim()).filter(Boolean);
     document.title = (profile.username ? 'p/' + profile.username : displayName) + tr(' — AIAS Basra Community',' — مجتمع AIAS البصرة');
     target.className = 'profile-hero';
     target.innerHTML = [
+      '<div class="profile-banner-media">' + (banner ? '<img src="' + escapeHtml(banner) + '" alt="">' : '') + '</div>',
       '<div class="profile-top">',
         avatarMarkup(displayName, photo, 'profile-avatar'),
         '<div class="profile-title"><h2>' + escapeHtml(displayName) + '</h2><span class="profile-handle">' + (profile.username ? '@' + escapeHtml(profile.username) : tr('No username claimed','لم يتم اختيار اسم مستخدم')) + '</span><p>' + escapeHtml(locationLine) + '</p></div>',
@@ -1217,6 +1284,10 @@ async function loadProfile(uid, routedProfile) {
       interests.length ? '<div class="interest-row">' + interests.map(item => '<span>' + escapeHtml(item) + '</span>').join('') + '</div>' : '',
       owner ? [
         '<form id="profileForm" class="profile-form" hidden>',
+          '<div class="profile-media-grid">',
+            '<section class="profile-media-field"><span>' + tr('Profile image','صورة الملف الشخصي') + '</span><div id="profilePhotoPreview" class="profile-media-preview avatar">' + (photo ? '<img src="' + escapeHtml(photo) + '" alt="">' : tr('No image','لا توجد صورة')) + '</div><input id="profilePhotoFile" type="file" accept="image/*"><div class="profile-media-actions"><small id="profilePhotoStatus">' + tr('Square image recommended','يُفضّل استخدام صورة مربعة') + '</small><button id="removeProfilePhoto" class="profile-media-remove" type="button">' + tr('Remove','إزالة') + '</button></div></section>',
+            '<section class="profile-media-field"><span>' + tr('Profile banner','غلاف الملف الشخصي') + '</span><div id="profileBannerPreview" class="profile-media-preview banner">' + (banner ? '<img src="' + escapeHtml(banner) + '" alt="">' : tr('No banner','لا يوجد غلاف')) + '</div><input id="profileBannerFile" type="file" accept="image/*"><div class="profile-media-actions"><small id="profileBannerStatus">' + tr('Wide image recommended','يُفضّل استخدام صورة عريضة') + '</small><button id="removeProfileBanner" class="profile-media-remove" type="button">' + tr('Remove','إزالة') + '</button></div></section>',
+          '</div>',
           '<div class="form-grid"><div class="form-group"><label for="profileName">' + tr('Name','الاسم') + '</label><input id="profileName" required value="' + escapeHtml(displayName) + '"></div><div class="form-group"><label for="profileUsername">' + tr('Unique username','اسم مستخدم فريد') + '</label><input id="profileUsername" required minlength="3" maxlength="24" pattern="[a-z0-9_]{3,24}" value="' + escapeHtml(profile.username || '') + '" ' + (profile.username ? 'readonly' : '') + ' placeholder="your_handle"><small id="profileUsernameStatus" class="username-check ' + (profile.username ? 'valid' : '') + '">' + (profile.username ? tr('Your permanent profile address is ','عنوان ملفك الدائم هو ') + 'p/' + escapeHtml(profile.username) : tr('Availability will be checked as you type.','سيتم التحقق من التوفر أثناء الكتابة.')) + '</small></div></div>',
           '<div class="form-group"><label for="profileSchool">' + tr('School / organization','الجامعة / المؤسسة') + '</label><input id="profileSchool" required value="' + escapeHtml(profile.school || '') + '"></div>',
           '<div class="form-grid"><div class="form-group"><label for="profileCity">' + tr('City','المدينة') + '</label><input id="profileCity" required value="' + escapeHtml(profile.city || '') + '"></div><div class="form-group"><label for="profileInterests">' + tr('Interests','الاهتمامات') + '</label><input id="profileInterests" value="' + escapeHtml(profile.interests || '') + '" placeholder="' + tr('Urbanism, interiors, sketching','العمران، التصميم الداخلي، الرسم') + '"></div></div>',
@@ -1226,6 +1297,47 @@ async function loadProfile(uid, routedProfile) {
       ].join('') : ''
     ].join('');
     if (owner) {
+      let nextPhotoBase64 = profile.photoBase64 || '';
+      let nextBannerBase64 = profile.bannerBase64 || '';
+      let profileMediaBusy = 0;
+      const updateMediaPreview = (targetId, value, emptyCopy) => {
+        $(targetId).innerHTML = value ? '<img src="' + escapeHtml(value) + '" alt="">' : emptyCopy;
+      };
+      const bindMediaUpload = (inputId, statusId, previewId, kind) => {
+        $(inputId).addEventListener('change', async event => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          profileMediaBusy += 1;
+          $(statusId).textContent = tr('Preparing image…','جارٍ تجهيز الصورة…');
+          try {
+            const value = await prepareProfileImage(file, kind);
+            if (kind === 'avatar') nextPhotoBase64 = value;
+            else nextBannerBase64 = value;
+            updateMediaPreview(previewId, value, '');
+            $(statusId).textContent = tr('Ready to save','جاهزة للحفظ');
+          } catch (error) {
+            console.error(error);
+            $(statusId).textContent = error.message || tr('Image could not be prepared.','تعذر تجهيز الصورة.');
+            event.target.value = '';
+          } finally {
+            profileMediaBusy -= 1;
+          }
+        });
+      };
+      bindMediaUpload('profilePhotoFile', 'profilePhotoStatus', 'profilePhotoPreview', 'avatar');
+      bindMediaUpload('profileBannerFile', 'profileBannerStatus', 'profileBannerPreview', 'banner');
+      $('removeProfilePhoto').addEventListener('click', () => {
+        nextPhotoBase64 = '';
+        $('profilePhotoFile').value = '';
+        updateMediaPreview('profilePhotoPreview', '', tr('No image','لا توجد صورة'));
+        $('profilePhotoStatus').textContent = tr('Image will be removed when saved','ستُزال الصورة عند الحفظ');
+      });
+      $('removeProfileBanner').addEventListener('click', () => {
+        nextBannerBase64 = '';
+        $('profileBannerFile').value = '';
+        updateMediaPreview('profileBannerPreview', '', tr('No banner','لا يوجد غلاف'));
+        $('profileBannerStatus').textContent = tr('Banner will be removed when saved','سيُزال الغلاف عند الحفظ');
+      });
       if (!profile.username) {
         let usernameTimer;
         $('profileUsername').addEventListener('input', () => {
@@ -1242,6 +1354,7 @@ async function loadProfile(uid, routedProfile) {
         const button = event.submitter;
         button.disabled = true;
         try {
+          if (profileMediaBusy) throw new Error(tr('Wait for the images to finish preparing.','انتظر حتى يكتمل تجهيز الصور.'));
           if (!profile.username) {
             const available = await checkUsernameAvailability($('profileUsername'), $('profileUsernameStatus'), uid);
             if (!available) throw new Error(tr('Choose an available username before saving your profile.','اختر اسم مستخدم متاحاً قبل حفظ ملفك.'));
@@ -1254,12 +1367,18 @@ async function loadProfile(uid, routedProfile) {
             city: $('profileCity').value.trim(),
             interests: $('profileInterests').value.trim(),
             bio: $('profileBio').value.trim(),
+            photoBase64: nextPhotoBase64,
+            bannerBase64: nextBannerBase64,
             profileComplete: true,
             updatedAt: serverTimestamp()
           }, {merge:true});
           invalidateCommunitySearchIndex();
           profileCache.delete(uid);
           currentProfile = await getProfile(uid);
+          const savedPhoto = currentProfile.photoBase64 || currentProfile.photoURL || currentUser.photoURL || '';
+          const savedName = currentProfile.displayName || currentUser.displayName || tr('Member','عضو');
+          $('memberAction').innerHTML = savedPhoto ? '<img src="' + escapeHtml(savedPhoto) + '" alt="' + escapeHtml(savedName) + '">' : '<span>' + escapeHtml(initials(savedName)) + '</span>';
+          $('quickAvatar').innerHTML = savedPhoto ? '<img src="' + escapeHtml(savedPhoto) + '" alt="">' : escapeHtml(initials(savedName));
           showToast(tr('Profile updated.','تم تحديث الملف الشخصي.'));
           history.replaceState({}, '', profileUrl(uid, username));
           await loadProfile(uid);
@@ -1276,6 +1395,15 @@ async function loadProfile(uid, routedProfile) {
     target.innerHTML = '<p class="notice error">' + tr('This profile is unavailable right now.','هذا الملف الشخصي غير متاح حالياً.') + '</p>';
   }
 }
+
+document.addEventListener('click', event => {
+  const link = event.target.closest('a[href]');
+  if (!link || link.hasAttribute('data-route') || link.target || link.hasAttribute('download') || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  const destination = new URL(link.href, location.href);
+  if (destination.origin !== location.origin || !/^\/(a|p)\/[^/]+\/?$/.test(destination.pathname)) return;
+  event.preventDefault();
+  navigateTo(destination.href, false);
+});
 
 document.querySelectorAll('[data-route]').forEach(link => link.addEventListener('click', event => {
   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -1296,6 +1424,26 @@ document.addEventListener('keydown', event => {
     $('communitySearch').focus();
   }
 });
+function syncCommentKeyboardOffset() {
+  const active = document.activeElement;
+  const editingComment = active?.matches?.('.comment-form input, .reply-form textarea');
+  const viewport = window.visualViewport;
+  const offset = editingComment && viewport ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop) : 0;
+  document.documentElement.style.setProperty('--community-keyboard-offset', Math.round(offset) + 'px');
+}
+window.visualViewport?.addEventListener('resize', syncCommentKeyboardOffset);
+window.visualViewport?.addEventListener('scroll', syncCommentKeyboardOffset);
+document.addEventListener('focusin', event => {
+  if (!event.target.matches('.comment-form input, .reply-form textarea')) return;
+  syncCommentKeyboardOffset();
+  setTimeout(() => {
+    syncCommentKeyboardOffset();
+    event.target.scrollIntoView({block:'center', behavior:'smooth'});
+  }, 160);
+});
+document.addEventListener('focusout', event => {
+  if (event.target.matches('.comment-form input, .reply-form textarea')) setTimeout(syncCommentKeyboardOffset, 120);
+});
 window.addEventListener('popstate', () => { closeCommunitySearch(); handleRoute(false); });
 
 document.querySelectorAll('.filter-pill').forEach(button => button.addEventListener('click', () => {
@@ -1314,6 +1462,11 @@ document.querySelectorAll('.filter-pill').forEach(button => button.addEventListe
 document.querySelectorAll('[data-profile-filter]').forEach(button => button.addEventListener('click', () => {
   profilePostFilter = button.dataset.profileFilter;
   renderProfilePosts();
+}));
+$('spaceDirectorySearch').addEventListener('input', renderSpaceDirectory);
+document.querySelectorAll('[data-space-sort]').forEach(button => button.addEventListener('click', () => {
+  spaceDirectorySort = button.dataset.spaceSort;
+  renderSpaceDirectory();
 }));
 
 $('profilePosts').addEventListener('click', event => {
@@ -1563,7 +1716,7 @@ onAuthStateChanged(auth, async user => {
       catch (error) { console.warn('[Community] Existing username index could not be repaired.', error); }
     }
     const displayName = currentProfile.displayName || user.displayName || tr('Member','عضو');
-    const photo = currentProfile.photoURL || user.photoURL || '';
+    const photo = currentProfile.photoBase64 || currentProfile.photoURL || user.photoURL || '';
     $('memberAction').href = profileUrl(user.uid, currentProfile.username);
     document.querySelectorAll('[data-route="profile"]').forEach(link => { link.href = profileUrl(user.uid, currentProfile.username); });
     $('memberAction').setAttribute('aria-label', tr('Open your community profile','افتح ملفك المجتمعي'));

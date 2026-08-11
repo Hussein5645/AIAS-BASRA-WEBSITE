@@ -7,7 +7,7 @@
   <title>Community Project — AIAS Basra</title>
   <link rel="icon" type="image/png" href="static/images/branding/LOGO.png">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/community.css?v=20260811-projects">
+  <link rel="stylesheet" href="css/community.css?v=20260811-profile-media">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -188,7 +188,7 @@
         document.getElementById('mobileProfile').href = profileHref;
         document.getElementById('memberAction').setAttribute('aria-label', tr('Open your community profile','افتح ملفك المجتمعي'));
         const displayName = profile?.displayName || user.displayName || tr('Member','عضو');
-        const photo = profile?.photoURL || user.photoURL || '';
+        const photo = profile?.photoBase64 || profile?.photoURL || user.photoURL || '';
         document.getElementById('memberAction').innerHTML = photo ? '<img src="'+escapeHtml(photo)+'" alt="">' : '<span>'+escapeHtml(displayName.slice(0,2).toUpperCase())+'</span>';
       } else {
         profile = null;

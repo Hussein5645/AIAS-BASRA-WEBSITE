@@ -3,6 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        (() => {
+            const path = window.location.pathname;
+            const area = path.match(/^\/a\/([a-z0-9-]+)\/?$/i);
+            const profile = path.match(/^\/p\/([a-z0-9_]+)\/?$/i);
+            if (!area && !profile) return;
+            document.documentElement.style.visibility = 'hidden';
+            const target = area
+                ? '/community.html?area=' + encodeURIComponent(area[1].toLowerCase())
+                : '/community.html?user=' + encodeURIComponent(profile[1].toLowerCase());
+            window.location.replace(target);
+        })();
+    </script>
     <title>Page Not Found - AIAS Basra</title>
     <link rel="icon" type="image/png" href="static/images/branding/LOGO.png">
     <script type="module" src="js/auth.js"></script>

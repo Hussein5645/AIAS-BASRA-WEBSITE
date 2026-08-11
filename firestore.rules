@@ -60,7 +60,17 @@ service cloud.firestore {
       allow create, update: if isAuthenticated()
         && request.auth.uid == userId
         && (!('username' in request.resource.data)
-          || getAfter(/databases/$(database)/documents/usernames/$(request.resource.data.username)).data.userId == userId);
+          || getAfter(/databases/$(database)/documents/usernames/$(request.resource.data.username)).data.userId == userId)
+        && (!('photoBase64' in request.resource.data)
+          || (request.resource.data.photoBase64 is string
+            && request.resource.data.photoBase64.size() <= 180000
+            && (request.resource.data.photoBase64 == ''
+              || request.resource.data.photoBase64.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$'))))
+        && (!('bannerBase64' in request.resource.data)
+          || (request.resource.data.bannerBase64 is string
+            && request.resource.data.bannerBase64.size() <= 520000
+            && (request.resource.data.bannerBase64 == ''
+              || request.resource.data.bannerBase64.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$'))));
     }
 
     // Public usernames are immutable reservations. The document ID is the
@@ -161,7 +171,10 @@ service cloud.firestore {
         && request.auth.uid == userId
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.value in [-1, 0, 1];
-      allow delete: if hasPermission('manage_community') || (isAuthenticated() && request.auth.uid == userId);
+      allow delete: if hasPermission('manage_community')
+        || (isAuthenticated() && request.auth.uid == userId)
+        || (isAuthenticated()
+          && get(/databases/$(database)/documents/communityPosts/$(postId)).data.userId == request.auth.uid);
     }
 
     match /communityPosts/{postId}/comments/{commentId} {
@@ -172,7 +185,10 @@ service cloud.firestore {
         && request.resource.data.text.size() > 0
         && request.resource.data.text.size() <= 2000
         && (request.resource.data.parentId == null || request.resource.data.parentId is string);
-      allow delete: if hasPermission('manage_community') || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow delete: if hasPermission('manage_community')
+        || (isAuthenticated() && resource.data.userId == request.auth.uid)
+        || (isAuthenticated()
+          && get(/databases/$(database)/documents/communityPosts/$(postId)).data.userId == request.auth.uid);
     }
 
     // Role definitions and assignments contain account emails and are visible
