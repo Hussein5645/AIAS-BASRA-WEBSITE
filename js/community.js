@@ -58,6 +58,7 @@ let activeAreaConnection = false;
 let unsubscribeNotifications = null;
 let notificationItems = [];
 let notificationSnapshotReady = false;
+let notificationServiceWorkerReady = null;
 let connectionDirectoryType = 'people';
 let connectionPeopleItems = [];
 let connectionSpaceItems = [];
@@ -330,21 +331,37 @@ function playNotificationTone() {
   } catch {}
 }
 
-function showBrowserNotification(item) {
+function registerNotificationServiceWorker() {
+  if (!('serviceWorker' in navigator) || !window.isSecureContext) return Promise.resolve(null);
+  if (!notificationServiceWorkerReady) {
+    notificationServiceWorkerReady = navigator.serviceWorker.register('/community-notifications-sw.js')
+      .then(registration => navigator.serviceWorker.ready.then(() => registration))
+      .catch(error => { console.warn('[Community] Native notification service is unavailable.', error); return null; });
+  }
+  return notificationServiceWorkerReady;
+}
+
+async function showBrowserNotification(item) {
   if (!item || item.read || !('Notification' in window) || Notification.permission !== 'granted') return;
-  const notification = new Notification('AIAS Basra Community', {
+  const target = item.type === 'connection' ? profileUrl(item.actorId, item.actorUsername) : item.type === 'space_connection' || item.type === 'space_request' ? areaUrl(item.detailId) : '/community.html?post=' + encodeURIComponent(item.postId) + '&comments=1';
+  const options = {
     body:(item.actorName || tr('Member','عضو')) + notificationCopy(item) + ' · ' + (item.postTitle || ''),
     icon:'/LOGO.png',
     tag:item.id,
     renotify:true,
-    silent:false
-  });
-  notification.onclick = () => {
-    window.focus();
-    const target = item.type === 'connection' ? profileUrl(item.actorId, item.actorUsername) : item.type === 'space_connection' || item.type === 'space_request' ? areaUrl(item.detailId) : '/community.html?post=' + encodeURIComponent(item.postId) + '&comments=1';
-    navigateTo(target, false);
-    notification.close();
+    silent:false,
+    data:{url:target}
   };
+  try {
+    const registration = await registerNotificationServiceWorker();
+    if (registration?.showNotification) await registration.showNotification('AIAS Basra Community', options);
+    else {
+      const notification = new Notification('AIAS Basra Community', options);
+      notification.onclick = () => { window.focus(); navigateTo(target, false); notification.close(); };
+    }
+  } catch (error) {
+    console.warn('[Community] Browser notification could not be shown.', error);
+  }
   playNotificationTone();
 }
 
@@ -353,6 +370,7 @@ function startNotificationInbox() {
   if (!currentUser) return stopNotificationInbox();
   notificationSnapshotReady = false;
   $('notificationBell').hidden = false;
+  if ('Notification' in window && Notification.permission === 'granted') registerNotificationServiceWorker();
   const inboxQuery = query(collection(db, 'users', currentUser.uid, 'notifications'), orderBy('createdAt', 'desc'), limit(40));
   unsubscribeNotifications = onSnapshot(inboxQuery, snapshot => {
     notificationItems = snapshot.docs.map(item => ({id:item.id, ...item.data()}));
@@ -2517,7 +2535,15 @@ $('privateSpaceRequest')?.addEventListener('click', async event => {
 });
 $('notificationBell').addEventListener('click', async () => {
   if ('Notification' in window && Notification.permission === 'default') {
-    try { await Notification.requestPermission(); } catch {}
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        await registerNotificationServiceWorker();
+        showToast(tr('Browser notifications are enabled.','تم تفعيل إشعارات المتصفح.'));
+      } else showToast(tr('Browser notifications are blocked. Enable them in your browser settings.','إشعارات المتصفح محظورة. فعّلها من إعدادات المتصفح.'));
+    } catch {}
+  } else if ('Notification' in window && Notification.permission === 'granted') {
+    await registerNotificationServiceWorker();
   }
   $('notificationPanel').hidden = !$('notificationPanel').hidden;
 });
