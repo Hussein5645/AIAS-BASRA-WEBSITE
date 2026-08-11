@@ -1631,7 +1631,7 @@ function renderProfilePosts() {
       return [
         '<article class="profile-post-tile' + (isProject(post) ? ' project' : '') + '">',
           '<a class="profile-post-main" href="' + href + '">',
-          '<div><small>' + postLabel(post).toUpperCase() + '</small><strong>' + escapeHtml(post.title) + '</strong><p>' + escapeHtml(isProject(post) ? post.summary : plainPostText(post)) + '</p></div>',
+          '<div class="profile-post-content"><span class="profile-post-kind">' + postLabel(post).toUpperCase() + '</span><strong class="profile-post-title">' + escapeHtml(post.title) + '</strong><p>' + escapeHtml(isProject(post) ? post.summary : plainPostText(post)) + '</p></div>',
           '<span class="tile-stats"><span>✦ ' + post.meta.score + '</span><span>◯ ' + post.meta.commentsCount + '</span></span>',
           '</a>',
           owner ? '<div class="profile-post-actions"><button type="button" data-edit-profile-post="' + escapeHtml(post.id) + '">' + tr('Edit','تعديل') + '</button><button type="button" data-delete-profile-post="' + escapeHtml(post.id) + '">' + tr('Delete','حذف') + '</button></div>' : '',
