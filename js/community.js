@@ -66,8 +66,8 @@ let connectionDirectoryType = 'people';
 let connectionPeopleItems = [];
 let connectionSpaceItems = [];
 let activeImagePost = null;
-let postImageDataUrl = '';
-let postImageMimeType = '';
+let activeImageIndex = 0;
+let postImages = [];
 let communitySplashDismissed = false;
 let mentionMenu = null;
 let mentionMenuInput = null;
@@ -77,6 +77,8 @@ let mentionMenuIndex = 0;
 let mentionMenuSequence = 0;
 const POST_IMAGE_MAX_BYTES = 10 * 1024 * 1024;
 const POST_IMAGE_CHUNK_SIZE = 700000;
+const POST_IMAGE_MAX_COUNT = 6;
+const POST_IMAGE_MAX_CHUNKS = 72;
 
 const $ = id => document.getElementById(id);
 const escapeHtml = value => String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -1782,8 +1784,10 @@ function renderPostCard(post, index, detail) {
   const projectPreview = isProject(post) && post.behanceSrc
     ? '<div class="project-preview"><iframe title="' + escapeHtml(post.title) + '" src="' + escapeHtml(post.behanceSrc) + '" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe><a class="project-preview-link" href="' + destination + '">' + tr('Open project','فتح المشروع') + ' <span aria-hidden="true">↗</span></a></div>'
     : '';
-  const imagePreview = post.type === 'text' && post.imageDataUrl
-    ? '<figure class="post-image"><img src="' + escapeHtml(post.imageDataUrl) + '" alt="' + escapeHtml(post.title) + '" loading="lazy"></figure>'
+  const imageUrls = post.type === 'text' ? postImageUrls(post) : [];
+  const visibleImages = imageUrls.slice(0, 4);
+  const imagePreview = visibleImages.length
+    ? '<div class="post-image-gallery count-' + Math.min(visibleImages.length, 4) + '">' + visibleImages.map((url, imageIndex) => '<button type="button" data-open-image="' + imageIndex + '" aria-label="' + escapeHtml(tr('Open image ','فتح الصورة ') + (imageIndex + 1)) + '"><img src="' + escapeHtml(url) + '" alt="' + escapeHtml(post.title) + '" loading="lazy">' + (imageIndex === 3 && imageUrls.length > 4 ? '<span>+' + (imageUrls.length - 4) + '</span>' : '') + '</button>').join('') + '</div>'
     : '';
   const requestStatus = post.featureStatus === 'denied' ? tr('not selected','لم يُختر') : tr('pending','قيد المراجعة');
   const request = currentUser?.uid === post.userId && isProject(post) && !post.featured && post.featureRequest
@@ -1879,12 +1883,12 @@ function bindPostActions(target, posts) {
     card.addEventListener('click', open);
     card.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(event); } });
   });
-  target.querySelectorAll('.post-image img').forEach(image => image.addEventListener('click', event => {
+  target.querySelectorAll('[data-open-image]').forEach(image => image.addEventListener('click', event => {
     event.preventDefault();
     event.stopPropagation();
     const card = image.closest('[data-open-post], .post-card');
     const post = byId.get(card?.dataset.openPost) || posts.find(item => item.id === card?.querySelector('[data-open-comments]')?.dataset.openComments);
-    if (post) openImageViewer(post);
+    if (post) openImageViewer(post, Number(image.dataset.openImage) || 0);
   }));
   target.querySelectorAll('[data-share]').forEach(button => button.addEventListener('click', async () => {
     const post = byId.get(button.dataset.share);
@@ -1909,11 +1913,29 @@ function renderImageViewerActions() {
   $('imageViewerActions').innerHTML = '<button type="button" data-image-vote="1" class="' + (meta.mine === 1 ? 'active' : '') + '" aria-label="' + tr('Applaud','التصفيق') + '">↑</button><b>' + (meta.score || 0) + '</b><button type="button" data-image-vote="-1" class="' + (meta.mine === -1 ? 'active' : '') + '" aria-label="' + tr('Show less','عرض أقل') + '">↓</button><button type="button" class="image-comment-button" data-image-comments><span aria-hidden="true">◯</span><span>' + (meta.commentsCount || 0) + '</span></button>';
 }
 
-function openImageViewer(post) {
-  if (!post?.imageDataUrl) return;
+function syncImageViewer() {
+  const urls = postImageUrls(activeImagePost);
+  if (!urls.length) return;
+  activeImageIndex = Math.max(0, Math.min(activeImageIndex, urls.length - 1));
+  $('imageViewerImage').src = urls[activeImageIndex];
+  $('imageViewerImage').alt = (activeImagePost.title || tr('Post image','صورة المنشور')) + ' ' + (activeImageIndex + 1);
+  $('imageViewerCount').textContent = urls.length > 1 ? (activeImageIndex + 1) + ' / ' + urls.length : '';
+  $('imageViewerPrevious').hidden = urls.length < 2;
+  $('imageViewerNext').hidden = urls.length < 2;
+}
+
+function stepImageViewer(direction) {
+  const urls = postImageUrls(activeImagePost);
+  if (urls.length < 2) return;
+  activeImageIndex = (activeImageIndex + direction + urls.length) % urls.length;
+  syncImageViewer();
+}
+
+function openImageViewer(post, imageIndex = 0) {
+  if (!postImageUrls(post).length) return;
   activeImagePost = post;
-  $('imageViewerImage').src = post.imageDataUrl;
-  $('imageViewerImage').alt = post.title || tr('Post image','صورة المنشور');
+  activeImageIndex = imageIndex;
+  syncImageViewer();
   renderImageViewerActions();
   $('imageViewer').hidden = false;
   document.body.classList.add('image-viewer-open');
@@ -1921,8 +1943,10 @@ function openImageViewer(post) {
 
 function closeImageViewer() {
   activeImagePost = null;
+  activeImageIndex = 0;
   $('imageViewer').hidden = true;
   $('imageViewerImage').src = '';
+  $('imageViewerCount').textContent = '';
   document.body.classList.remove('image-viewer-open');
 }
 
@@ -2009,7 +2033,7 @@ function renderThread(comment, byParent) {
   const children = byParent.get(comment.id) || [];
   return [
     '<article class="comment">',
-      '<div class="comment-head"><strong>' + escapeHtml(comment.userName || tr('Member','عضو')) + '</strong><span class="comment-time">' + escapeHtml(formatDate(comment.createdAt)) + '</span></div>',
+      '<div class="comment-head"><a class="comment-author" href="' + profileUrl(comment.userId, '') + '"><strong>' + escapeHtml(comment.userName || tr('Member','عضو')) + '</strong></a><span class="comment-time">' + escapeHtml(formatDate(comment.createdAt)) + '</span></div>',
       '<div class="comment-text">' + renderMentionedText(comment.text) + '</div>',
       '<div class="comment-actions">',
         currentUser ? '<button class="comment-action" type="button" data-reply="' + comment.id + '" data-user="' + escapeHtml(comment.userId) + '" data-name="' + escapeHtml(comment.userName || tr('Member','عضو')) + '">' + tr('Reply','رد') + '</button>' : '',
@@ -2103,6 +2127,7 @@ function bindCommentActions(postId, post) {
     });
   }));
   target.querySelectorAll('[data-delete-comment]').forEach(button => button.addEventListener('click', async () => {
+    if (!confirm(tr('Delete this comment permanently?','هل تريد حذف هذا التعليق نهائياً؟'))) return;
     await deleteDoc(doc(db, 'communityPosts', postId, 'comments', button.dataset.deleteComment));
     await openComments(postId, false);
   }));
@@ -2171,25 +2196,69 @@ async function preparePostImage(file) {
   });
 }
 
-async function savePostImageChunks(postId, dataUrl) {
-  if (!dataUrl) return 0;
-  const separator = dataUrl.indexOf(',');
-  const payload = separator >= 0 ? dataUrl.slice(separator + 1) : dataUrl;
-  const chunks = Array.from({length:Math.ceil(payload.length / POST_IMAGE_CHUNK_SIZE)}, (_, index) => payload.slice(index * POST_IMAGE_CHUNK_SIZE, (index + 1) * POST_IMAGE_CHUNK_SIZE));
-  for (let index = 0; index < chunks.length; index += 1) {
-    await setDoc(doc(db, 'communityPosts', postId, 'images', String(index).padStart(3, '0')), {index, data:chunks[index], createdAt:serverTimestamp()});
+function imageChunkCount(dataUrl) {
+  const separator = String(dataUrl || '').indexOf(',');
+  const payload = separator >= 0 ? dataUrl.slice(separator + 1) : String(dataUrl || '');
+  return payload ? Math.ceil(payload.length / POST_IMAGE_CHUNK_SIZE) : 0;
+}
+
+async function savePostImageChunks(postId, images) {
+  let total = 0;
+  for (let imageIndex = 0; imageIndex < images.length; imageIndex += 1) {
+    const dataUrl = images[imageIndex].dataUrl;
+    const separator = dataUrl.indexOf(',');
+    const payload = separator >= 0 ? dataUrl.slice(separator + 1) : dataUrl;
+    const chunks = Array.from({length:imageChunkCount(dataUrl)}, (_, index) => payload.slice(index * POST_IMAGE_CHUNK_SIZE, (index + 1) * POST_IMAGE_CHUNK_SIZE));
+    for (let index = 0; index < chunks.length; index += 1) {
+      const chunkId = String(imageIndex).padStart(3, '0') + '-' + String(index).padStart(3, '0');
+      await setDoc(doc(db, 'communityPosts', postId, 'images', chunkId), {imageIndex, index, data:chunks[index], createdAt:serverTimestamp()});
+      total += 1;
+    }
   }
-  return chunks.length;
+  return total;
+}
+
+function postImageUrls(post) {
+  if (Array.isArray(post?.imageDataUrls) && post.imageDataUrls.length) return post.imageDataUrls;
+  return post?.imageDataUrl ? [post.imageDataUrl] : [];
 }
 
 async function loadPostImage(post) {
-  if (!post.imageChunkCount || post.imageChunkCount < 1 || post.imageDataUrl) return post;
+  if (!post.imageChunkCount || post.imageChunkCount < 1 || postImageUrls(post).length) return post;
   try {
-    const chunks = (await getDocs(collection(db, 'communityPosts', post.id, 'images'))).docs.map(item => item.data()).sort((a,b) => a.index - b.index);
-    if (chunks.length !== post.imageChunkCount || chunks.some((chunk, index) => chunk.index !== index)) return post;
-    const payload = chunks.map(chunk => chunk.data).join('');
-    return {...post, imageDataUrl:'data:' + post.imageMimeType + ';base64,' + payload};
+    const chunks = (await getDocs(collection(db, 'communityPosts', post.id, 'images'))).docs.map(item => item.data());
+    if (chunks.length !== post.imageChunkCount) return post;
+    const counts = Array.isArray(post.imageChunkCounts) ? post.imageChunkCounts : null;
+    const mimeTypes = Array.isArray(post.imageMimeTypes) ? post.imageMimeTypes : null;
+    if (counts?.length && counts.length === mimeTypes?.length) {
+      const urls = counts.map((count, imageIndex) => {
+        const imageChunks = chunks.filter(chunk => chunk.imageIndex === imageIndex).sort((a,b) => a.index - b.index);
+        if (imageChunks.length !== count || imageChunks.some((chunk, index) => chunk.index !== index)) return '';
+        return 'data:' + mimeTypes[imageIndex] + ';base64,' + imageChunks.map(chunk => chunk.data).join('');
+      });
+      if (urls.some(url => !url)) return post;
+      return {...post, imageDataUrls:urls, imageDataUrl:urls[0] || ''};
+    }
+    const legacyChunks = chunks.sort((a,b) => a.index - b.index);
+    if (legacyChunks.some((chunk, index) => chunk.index !== index)) return post;
+    const dataUrl = 'data:' + post.imageMimeType + ';base64,' + legacyChunks.map(chunk => chunk.data).join('');
+    return {...post, imageDataUrls:[dataUrl], imageDataUrl:dataUrl};
   } catch (error) { console.warn('[Community] Post image could not be loaded.', error); return post; }
+}
+
+function renderPostImageComposer() {
+  const preview = $('postImagePreview');
+  $('postImageCount').textContent = postImages.length + ' / ' + POST_IMAGE_MAX_COUNT;
+  preview.hidden = postImages.length === 0;
+  $('removePostImage').hidden = postImages.length === 0;
+  preview.innerHTML = postImages.map((image, index) => '<article><img src="' + escapeHtml(image.dataUrl) + '" alt=""><span>' + (index + 1) + '</span><button type="button" data-remove-gallery-image="' + escapeHtml(image.id) + '" aria-label="' + escapeHtml(tr('Remove image ','إزالة الصورة ') + (index + 1)) + '">×</button></article>').join('');
+}
+
+function clearPostImageComposer() {
+  postImages = [];
+  $('postImageFile').value = '';
+  renderPostImageComposer();
+  $('postImageStatus').textContent = tr('Maximum 10 MB per image. You can add more images in another selection.','الحد الأقصى 10 ميغابايت لكل صورة. يمكنك إضافة صور أخرى باختيار جديد.');
 }
 
 function renderPostGate() {
@@ -2239,11 +2308,17 @@ function renderProfilePosts() {
   target.innerHTML = posts.map(post => {
       const href = isProject(post) ? 'project.html?communityPost=' + encodeURIComponent(post.id) : 'community.html?post=' + encodeURIComponent(post.id);
       const owner = currentUser?.uid === post.userId;
+      const profileImage = postImageUrls(post)[0] || '';
+      const media = isProject(post) && post.behanceSrc
+        ? '<iframe src="' + escapeHtml(post.behanceSrc) + '" title="' + escapeHtml(post.title) + '" loading="lazy" tabindex="-1"></iframe>'
+        : profileImage
+          ? '<img src="' + escapeHtml(profileImage) + '" alt="' + escapeHtml(post.title) + '" loading="lazy">'
+          : '<div class="profile-post-placeholder"><span>' + escapeHtml(postLabel(post)) + '</span><b>' + escapeHtml(initials(post.title)) + '</b></div>';
       return [
-        '<article class="profile-post-tile' + (isProject(post) ? ' project' : '') + '">',
+        '<article class="profile-post-tile' + (isProject(post) ? ' project' : '') + (profileImage ? ' has-image' : '') + '">',
           '<a class="profile-post-main" href="' + href + '">',
-          '<div class="profile-post-content"><span class="profile-post-kind">' + postLabel(post).toUpperCase() + '</span>' + (communityAreas[post.communitySlug]?.isPrivate ? '<span class="profile-private-post">' + tr('Private space','مساحة خاصة') + '</span>' : '') + '<strong class="profile-post-title">' + escapeHtml(post.title) + '</strong><p>' + escapeHtml(isProject(post) ? post.summary : plainPostText(post)) + '</p></div>',
-          '<span class="tile-stats"><span>✦ ' + post.meta.score + '</span><span>◯ ' + post.meta.commentsCount + '</span></span>',
+          '<div class="profile-post-media">' + media + '</div>',
+          '<div class="profile-post-overlay"><div><span class="profile-post-kind">' + postLabel(post).toUpperCase() + '</span>' + (communityAreas[post.communitySlug]?.isPrivate ? '<span class="profile-private-post">' + tr('Private space','مساحة خاصة') + '</span>' : '') + '</div><strong class="profile-post-title">' + escapeHtml(post.title) + '</strong><span class="tile-stats"><span>✦ ' + post.meta.score + '</span><span>◯ ' + post.meta.commentsCount + '</span>' + (postImageUrls(post).length > 1 ? '<span>▧ ' + postImageUrls(post).length + '</span>' : '') + '</span></div>',
           '</a>',
           owner ? '<div class="profile-post-actions"><button type="button" data-edit-profile-post="' + escapeHtml(post.id) + '">' + tr('Edit','تعديل') + '</button><button type="button" data-delete-profile-post="' + escapeHtml(post.id) + '">' + tr('Delete','حذف') + '</button></div>' : '',
         '</article>'
@@ -2277,13 +2352,15 @@ async function deleteOwnedPost(postId) {
   if (!post || currentUser?.uid !== post.userId) return;
   if (!confirm(tr('Delete this post permanently? This cannot be undone.','هل تريد حذف هذا المنشور نهائياً؟ لا يمكن التراجع عن ذلك.'))) return;
   try {
-    const [votes, comments] = await Promise.all([
+    const [votes, comments, images] = await Promise.all([
       getDocs(collection(db, 'communityPosts', postId, 'votes')),
-      getDocs(collection(db, 'communityPosts', postId, 'comments'))
+      getDocs(collection(db, 'communityPosts', postId, 'comments')),
+      getDocs(collection(db, 'communityPosts', postId, 'images'))
     ]);
     await Promise.all([
       ...votes.docs.map(item => deleteDoc(item.ref)),
-      ...comments.docs.map(item => deleteDoc(item.ref))
+      ...comments.docs.map(item => deleteDoc(item.ref)),
+      ...images.docs.map(item => deleteDoc(item.ref))
     ]);
     await deleteDoc(doc(db, 'communityPosts', postId));
     activeProfilePosts = activeProfilePosts.filter(item => item.id !== postId);
@@ -2305,7 +2382,10 @@ async function loadProfilePosts(uid, owner) {
       .filter(post => post.published !== false && post.userId === uid)
       .filter(post => owner || !communityAreas[post.communitySlug]?.isPrivate)
       .sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-    activeProfilePosts = await Promise.all(posts.map(async post => ({...post, meta:await getPostMeta(post)})));
+    activeProfilePosts = await Promise.all(posts.map(async post => {
+      const hydrated = post.type === 'text' ? await loadPostImage(post) : post;
+      return {...hydrated, meta:await getPostMeta(post)};
+    }));
     renderProfilePosts();
   } catch (error) {
     console.error(error);
@@ -2717,6 +2797,8 @@ document.addEventListener('pointerdown', event => {
 });
 $('imageViewerBackdrop').addEventListener('click', closeImageViewer);
 $('imageViewerClose').addEventListener('click', closeImageViewer);
+$('imageViewerPrevious').addEventListener('click', () => stepImageViewer(-1));
+$('imageViewerNext').addEventListener('click', () => stepImageViewer(1));
 $('imageViewerActions').addEventListener('click', async event => {
   const vote = event.target.closest('[data-image-vote]');
   if (vote) { await voteFromImageViewer(Number(vote.dataset.imageVote)); return; }
@@ -2726,7 +2808,12 @@ $('imageViewerActions').addEventListener('click', async event => {
     await openComments(postId, true);
   }
 });
-document.addEventListener('keydown', event => { if (event.key === 'Escape' && !$('imageViewer').hidden) closeImageViewer(); });
+document.addEventListener('keydown', event => {
+  if ($('imageViewer').hidden) return;
+  if (event.key === 'Escape') closeImageViewer();
+  if (event.key === 'ArrowLeft') stepImageViewer(isArabic() ? 1 : -1);
+  if (event.key === 'ArrowRight') stepImageViewer(isArabic() ? -1 : 1);
+});
 
 $('quickComposer').addEventListener('click', () => navigateTo(composerUrl(), false));
 $('railSpacesExpand').addEventListener('click', () => { railSpacesExpanded = !railSpacesExpanded; renderCommunitySpaces(); });
@@ -2892,32 +2979,33 @@ document.querySelectorAll('input[name="postTypeChoice"]').forEach(input => input
 renderPostTypeFields();
 
 $('postImageFile').addEventListener('change', async event => {
-  const file = event.target.files?.[0];
-  if (!file) return;
-  $('postImageStatus').textContent = tr('Preparing image…','جارٍ تجهيز الصورة…');
-  try {
-    postImageDataUrl = await preparePostImage(file);
-    postImageMimeType = file.type;
-    $('postImagePreview').innerHTML = '<img src="' + escapeHtml(postImageDataUrl) + '" alt="">';
-    $('postImagePreview').hidden = false;
-    $('removePostImage').hidden = false;
-    $('postImageStatus').textContent = tr('Image ready to publish.','الصورة جاهزة للنشر.');
-  } catch (error) {
-    event.target.value = '';
-    postImageDataUrl = '';
-    postImageMimeType = '';
-    $('postImageStatus').textContent = error.message;
+  const files = [...(event.target.files || [])].slice(0, Math.max(0, POST_IMAGE_MAX_COUNT - postImages.length));
+  event.target.value = '';
+  if (!files.length) {
+    $('postImageStatus').textContent = postImages.length >= POST_IMAGE_MAX_COUNT ? tr('The gallery already has 6 images.','يحتوي المعرض بالفعل على 6 صور.') : '';
+    return;
   }
+  $('postImageStatus').textContent = tr('Preparing images…','جارٍ تجهيز الصور…');
+  const errors = [];
+  for (const file of files) {
+    try {
+      const dataUrl = await preparePostImage(file);
+      const candidate = [...postImages, {id:(crypto.randomUUID?.() || Date.now() + '-' + Math.random()), dataUrl, mimeType:file.type, name:file.name, chunkCount:imageChunkCount(dataUrl)}];
+      if (candidate.reduce((total, image) => total + image.chunkCount, 0) > POST_IMAGE_MAX_CHUNKS) throw new Error(tr('The gallery is too large. Remove an image or choose smaller files.','المعرض كبير جداً. أزل صورة أو اختر ملفات أصغر.'));
+      postImages = candidate;
+    } catch (error) { errors.push(error.message); }
+  }
+  renderPostImageComposer();
+  $('postImageStatus').textContent = errors[0] || tr(postImages.length + (postImages.length === 1 ? ' image ready.' : ' images ready.'), postImages.length + ' صورة جاهزة.');
 });
-$('removePostImage').addEventListener('click', () => {
-  postImageDataUrl = '';
-  postImageMimeType = '';
-  $('postImageFile').value = '';
-  $('postImagePreview').innerHTML = '';
-  $('postImagePreview').hidden = true;
-  $('removePostImage').hidden = true;
-  $('postImageStatus').textContent = tr('Images are saved securely in chunks. Maximum file size: 10 MB.','تُحفظ الصور بأجزاء آمنة. الحد الأقصى لحجم الملف: 10 ميغابايت.');
+$('postImagePreview').addEventListener('click', event => {
+  const button = event.target.closest('[data-remove-gallery-image]');
+  if (!button) return;
+  postImages = postImages.filter(image => image.id !== button.dataset.removeGalleryImage);
+  renderPostImageComposer();
+  $('postImageStatus').textContent = tr(postImages.length + (postImages.length === 1 ? ' image ready.' : ' images ready.'), postImages.length + ' صورة جاهزة.');
 });
+$('removePostImage').addEventListener('click', clearPostImageComposer);
 
 $('communityLanguageToggle').addEventListener('click', () => {
   setCommunityLanguage(isArabic() ? 'en' : 'ar');
@@ -2942,8 +3030,10 @@ $('postForm').addEventListener('submit', async event => {
   const title = $('postTitle').value.trim();
   const content = $('postContent').value.trim();
   const behanceSrc = type === 'behance' ? extractBehanceEmbed($('postBehanceEmbed').value) : '';
-  const imageDataUrl = type === 'text' ? postImageDataUrl : '';
-  const imageChunkCount = imageDataUrl ? Math.ceil((imageDataUrl.slice(imageDataUrl.indexOf(',') + 1).length) / POST_IMAGE_CHUNK_SIZE) : 0;
+  const galleryImages = type === 'text' ? [...postImages] : [];
+  const imageChunkCounts = galleryImages.map(image => image.chunkCount);
+  const imageChunkCount = imageChunkCounts.reduce((total, count) => total + count, 0);
+  const imageMimeTypes = galleryImages.map(image => image.mimeType);
   $('postStatus').classList.remove('success');
   if (!content) {
     $('postStatus').textContent = tr('Write something before publishing.','اكتب شيئاً قبل النشر.');
@@ -2973,17 +3063,19 @@ $('postForm').addEventListener('submit', async event => {
       userId: currentUser.uid,
       authorName: currentProfile.displayName || currentUser.displayName || tr('Member','عضو'),
       authorUsername: currentProfile.username,
-      published: !imageDataUrl,
+      published: galleryImages.length === 0,
       imageChunkCount,
-      imageMimeType: imageDataUrl ? postImageMimeType : '',
+      imageMimeType: imageMimeTypes[0] || '',
+      imageChunkCounts,
+      imageMimeTypes,
       featureRequest: false,
       featureStatus: 'none',
       featured: false,
       createdAt: serverTimestamp()
     });
-    if (imageDataUrl) {
-      $('postStatus').textContent = tr('Uploading image…','جارٍ رفع الصورة…');
-      await savePostImageChunks(postRef.id, imageDataUrl);
+    if (galleryImages.length) {
+      $('postStatus').textContent = tr('Uploading gallery…','جارٍ رفع المعرض…');
+      await savePostImageChunks(postRef.id, galleryImages);
       await setDoc(postRef, {published:true}, {merge:true});
     }
     const publishedPost = {id:postRef.id, type, title, content, summary:content.slice(0, 360), communitySlug};
@@ -2994,12 +3086,7 @@ $('postForm').addEventListener('submit', async event => {
     ]);
     invalidateCommunitySearchIndex();
     $('postForm').reset();
-    postImageDataUrl = '';
-    postImageMimeType = '';
-    $('postImagePreview').innerHTML = '';
-    $('postImagePreview').hidden = true;
-    $('removePostImage').hidden = true;
-    $('postImageStatus').textContent = tr('Images are saved securely in chunks. Maximum file size: 10 MB.','تُحفظ الصور بأجزاء آمنة. الحد الأقصى لحجم الملف: 10 ميغابايت.');
+    clearPostImageComposer();
     $('postType').value = 'text';
     document.querySelector('input[name="postTypeChoice"][value="text"]').checked = true;
     renderPostTypeFields();

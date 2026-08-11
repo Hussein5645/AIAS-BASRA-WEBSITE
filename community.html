@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/community.css?v=20260811-community-splash-v12">
+  <link rel="stylesheet" href="css/community.css?v=20260811-community-gallery-v13">
 </head>
 <body class="community-booting">
   <div id="communitySplash" class="community-splash" role="status" aria-live="polite" aria-label="Loading the AIAS Basra community" data-aria-en="Loading the AIAS Basra community" data-aria-ar="جارٍ تحميل مجتمع AIAS البصرة">
@@ -212,11 +212,12 @@
               <textarea id="postContent" class="mention-input" maxlength="2000" autocomplete="off" placeholder="Share context, a fresh perspective, or invite feedback…" data-en="Share context, a fresh perspective, or invite feedback…" data-ar="شارك السياق أو منظوراً جديداً أو اطلب آراء الأعضاء…" aria-autocomplete="list"></textarea>
             </div>
             <div id="postImageGroup" class="form-group">
-              <label for="postImageFile" data-en="Add an image (optional)" data-ar="أضف صورة (اختياري)">Add an image (optional)</label>
-              <input id="postImageFile" type="file" accept="image/jpeg,image/png,image/webp">
-              <small id="postImageStatus" aria-live="polite" data-en="Images are saved securely in chunks. Maximum file size: 10 MB." data-ar="تُحفظ الصور بأجزاء آمنة. الحد الأقصى لحجم الملف: 10 ميغابايت.">Images are saved securely in chunks. Maximum file size: 10 MB.</small>
-              <div id="postImagePreview" class="post-image-preview" hidden></div>
-              <button id="removePostImage" class="profile-media-remove" type="button" hidden data-en="Remove image" data-ar="إزالة الصورة">Remove image</button>
+              <div class="label-line"><label data-en="Image gallery (optional)" data-ar="معرض الصور (اختياري)">Image gallery (optional)</label><span id="postImageCount">0 / 6</span></div>
+              <label class="post-image-dropzone" for="postImageFile"><span class="post-image-dropzone-icon" aria-hidden="true">+</span><span><strong data-en="Choose images" data-ar="اختر الصور">Choose images</strong><small data-en="Add up to 6 JPEG, PNG, or WebP images" data-ar="أضف حتى 6 صور بصيغة JPEG أو PNG أو WebP">Add up to 6 JPEG, PNG, or WebP images</small></span></label>
+              <input id="postImageFile" class="post-image-file" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+              <small id="postImageStatus" aria-live="polite" data-en="Maximum 10 MB per image. You can add more images in another selection." data-ar="الحد الأقصى 10 ميغابايت لكل صورة. يمكنك إضافة صور أخرى باختيار جديد.">Maximum 10 MB per image. You can add more images in another selection.</small>
+              <div id="postImagePreview" class="post-image-preview-grid" hidden></div>
+              <button id="removePostImage" class="profile-media-remove clear-gallery-button" type="button" hidden data-en="Clear gallery" data-ar="مسح المعرض">Clear gallery</button>
             </div>
             <footer class="composer-footer"><p id="postStatus" class="form-status" aria-live="polite"></p><button class="primary-button" type="submit"><span data-en="Publish post" data-ar="نشر المنشور">Publish post</span><b aria-hidden="true">→</b></button></footer>
           </form>
@@ -338,6 +339,9 @@
   <div id="imageViewer" class="image-viewer" hidden role="dialog" aria-modal="true" aria-label="Post image viewer">
     <button id="imageViewerBackdrop" class="image-viewer-backdrop" type="button" aria-label="Close image"></button>
     <img id="imageViewerImage" alt="">
+    <button id="imageViewerPrevious" class="image-viewer-step previous" type="button" aria-label="Previous image" data-aria-en="Previous image" data-aria-ar="الصورة السابقة">‹</button>
+    <button id="imageViewerNext" class="image-viewer-step next" type="button" aria-label="Next image" data-aria-en="Next image" data-aria-ar="الصورة التالية">›</button>
+    <span id="imageViewerCount" class="image-viewer-count"></span>
     <button id="imageViewerClose" class="image-viewer-close" type="button" aria-label="Close image">×</button>
     <div id="imageViewerActions" class="image-viewer-actions"></div>
   </div>
@@ -376,6 +380,6 @@
   <div id="communityToast" class="community-toast" role="status" aria-live="polite"></div>
 
   <script src="/js/app-open-prompt.js?v=20260811" defer></script>
-  <script type="module" src="js/community.js?v=20260811-community-splash-v17"></script>
+  <script type="module" src="js/community.js?v=20260811-community-gallery-v18"></script>
 </body>
 </html>

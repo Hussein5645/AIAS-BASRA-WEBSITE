@@ -385,9 +385,19 @@ service cloud.firestore {
         && request.resource.data.content.size() <= 2000
         && request.resource.data.imageChunkCount is int
         && request.resource.data.imageChunkCount >= 0
-        && request.resource.data.imageChunkCount <= 24
+        && request.resource.data.imageChunkCount <= 72
         && request.resource.data.imageMimeType is string
-        && (request.resource.data.imageChunkCount == 0 || (request.resource.data.type == 'text' && request.resource.data.imageMimeType in ['image/jpeg', 'image/png', 'image/webp'])));
+        && request.resource.data.imageChunkCounts is list
+        && request.resource.data.imageMimeTypes is list
+        && request.resource.data.imageChunkCounts.size() == request.resource.data.imageMimeTypes.size()
+        && request.resource.data.imageMimeTypes.size() <= 6
+        && request.resource.data.imageMimeTypes.hasOnly(['image/jpeg', 'image/png', 'image/webp'])
+        && ((request.resource.data.imageChunkCount == 0
+            && request.resource.data.imageMimeType == ''
+            && request.resource.data.imageMimeTypes.size() == 0)
+          || (request.resource.data.type == 'text'
+            && request.resource.data.imageMimeType in ['image/jpeg', 'image/png', 'image/webp']
+            && request.resource.data.imageMimeTypes.size() > 0)));
       allow update: if hasPermission('manage_community') || (isAuthenticated()
         && resource.data.userId == request.auth.uid
         && request.resource.data.userId == resource.data.userId
@@ -414,10 +424,15 @@ service cloud.firestore {
       allow create: if isAuthenticated()
         && get(/databases/$(database)/documents/communityPosts/$(postId)).data.userId == request.auth.uid
         && get(/databases/$(database)/documents/communityPosts/$(postId)).data.type == 'text'
-        && chunkId.matches('^[0-9]{3}$')
+        && (chunkId.matches('^[0-9]{3}$') || chunkId.matches('^[0-9]{3}-[0-9]{3}$'))
         && request.resource.data.index is int
         && request.resource.data.index >= 0
         && request.resource.data.index < 24
+        && ((chunkId.matches('^[0-9]{3}$') && !('imageIndex' in request.resource.data))
+          || (chunkId.matches('^[0-9]{3}-[0-9]{3}$')
+            && request.resource.data.imageIndex is int
+            && request.resource.data.imageIndex >= 0
+            && request.resource.data.imageIndex < 6))
         && request.resource.data.data is string
         && request.resource.data.data.size() > 0
         && request.resource.data.data.size() <= 700000
