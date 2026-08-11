@@ -547,7 +547,9 @@ function renderSpaceDirectory() {
   $('spaceDirectoryGrid').innerHTML = items.map((item,index) => {
     const newSpace = item.createdAt && Date.now() / 1000 - item.createdAt < 60 * 60 * 24 * 30;
     const badge = spaceDirectorySort === 'new' && newSpace ? tr('New','جديدة') : item.postCount > 0 ? tr('Active','نشطة') : tr('Open','مفتوحة');
-    return '<a class="space-directory-card" href="' + areaUrl(item.slug) + '" style="--space-index:' + index + ';' + (item.bannerBase64 ? '--space-banner:url(&quot;' + escapeHtml(item.bannerBase64) + '&quot;)' : '') + '"><div class="space-directory-card-head">' + spaceVisual(item, 'space-directory-symbol') + '<span class="space-directory-badge">' + badge + '</span></div><span class="mini-kicker">a/' + escapeHtml(item.slug) + '</span><h2>' + escapeHtml(item.name) + '</h2><p>' + escapeHtml(item.description || tr('A member space for community conversation.','مساحة للأعضاء وحوارات المجتمع.')) + '</p><footer><span>' + (isArabic() ? item.postCount.toLocaleString('ar-IQ') : item.postCount.toLocaleString()) + ' ' + tr(item.postCount === 1 ? 'post' : 'posts','منشور') + '</span><b aria-hidden="true">' + (isArabic() ? '←' : '→') + '</b></footer></a>';
+    const accessStatus = item.isPrivate ? tr('Private','خاصة') : tr('Public','عامة');
+    const feedStatus = item.isPrivate || item.showInMainThread === false ? tr('Space only','المساحة فقط') : tr('Main thread','المسار الرئيسي');
+    return '<a class="space-directory-card" href="' + areaUrl(item.slug) + '" style="--space-index:' + index + ';' + (item.bannerBase64 ? '--space-banner:url(&quot;' + escapeHtml(item.bannerBase64) + '&quot;)' : '') + '"><div class="space-directory-card-head">' + spaceVisual(item, 'space-directory-symbol') + '<span class="space-directory-badge">' + badge + '</span></div><span class="mini-kicker">a/' + escapeHtml(item.slug) + '</span><h2>' + escapeHtml(item.name) + '</h2><p>' + escapeHtml(item.description || tr('A member space for community conversation.','مساحة للأعضاء وحوارات المجتمع.')) + '</p><div class="space-card-statuses"><span class="' + (item.isPrivate ? 'private' : 'public') + '">' + accessStatus + '</span><span class="' + (item.isPrivate || item.showInMainThread === false ? 'space-only' : 'main-thread') + '">' + feedStatus + '</span></div><footer><span>' + (isArabic() ? item.postCount.toLocaleString('ar-IQ') : item.postCount.toLocaleString()) + ' ' + tr(item.postCount === 1 ? 'post' : 'posts','منشور') + '</span><b aria-hidden="true">' + (isArabic() ? '←' : '→') + '</b></footer></a>';
   }).join('');
 }
 
@@ -573,6 +575,8 @@ async function loadSpaceDirectory() {
       imageBase64:area.imageBase64 || '',
       bannerBase64:area.bannerBase64 || '',
       creatorUsername:area.creatorUsername || '',
+      isPrivate:Boolean(area.isPrivate),
+      showInMainThread:area.showInMainThread !== false,
       createdAt:spaceTimestamp(area.createdAt),
       postCount:stats.get(slug)?.postCount || 0,
       lastActivity:stats.get(slug)?.lastActivity || 0
@@ -750,7 +754,10 @@ async function loadManageSpaces() {
     let requests = [];
     try { requests = (await getDocs(query(collection(db, 'communitySpaces', slug, 'connectionRequests'), where('status', '==', 'pending')))).docs.map(item => ({id:item.id, ...item.data()})); } catch (error) { console.warn('[Community] Requests unavailable.', error); }
     const requestRows = requests.length ? '<div class="space-request-list">' + (await Promise.all(requests.map(async request => { const profile = await getProfile(request.userId); return '<div><span>' + escapeHtml(profile.displayName || profile.username || tr('Member','عضو')) + '</span><button type="button" data-approve-request="' + escapeHtml(slug) + '|' + escapeHtml(request.userId) + '">' + tr('Approve','موافقة') + '</button><button type="button" data-deny-request="' + escapeHtml(slug) + '|' + escapeHtml(request.userId) + '">' + tr('Deny','رفض') + '</button></div>'; }))).join('') + '</div>' : '<p class="space-request-empty">' + tr('No pending requests.','لا توجد طلبات معلقة.') + '</p>';
-    return '<article class="manage-space-card"><div><span class="mini-kicker">a/' + escapeHtml(slug) + '</span><h2>' + escapeHtml(area.name || slug) + '</h2><p>' + escapeHtml(area.description || '') + '</p><p><strong>' + (area.isPrivate ? tr('Private','خاصة') : tr('Public','عامة')) + '</strong> · ' + (area.showInMainThread !== false && !area.isPrivate ? tr('Posts appear in the main thread','تظهر المنشورات في المسار الرئيسي') : tr('Posts stay out of the main thread','المنشورات لا تظهر في المسار الرئيسي')) + '</p></div><button type="button" data-manage-edit="' + escapeHtml(slug) + '">' + tr('Edit settings','تعديل الإعدادات') + '</button><section><strong>' + tr('Membership requests','طلبات العضوية') + ' (' + requests.length + ')</strong>' + requestRows + '</section></article>';
+    const settingToggles = '<div class="manage-space-toggles">'
+      + '<label class="space-setting-toggle compact"><span class="space-setting-icon" aria-hidden="true">◐</span><span class="space-setting-copy"><strong>' + tr('Private space','مساحة خاصة') + '</strong><small>' + tr('Require approval to connect','تتطلب الموافقة للاتصال') + '</small></span><span class="toggle-control"><input type="checkbox" data-manage-space-setting="' + escapeHtml(slug) + '|isPrivate"' + (area.isPrivate ? ' checked' : '') + '><i aria-hidden="true"></i></span></label>'
+      + '<label class="space-setting-toggle compact' + (area.isPrivate ? ' is-disabled' : '') + '"><span class="space-setting-icon" aria-hidden="true">⌁</span><span class="space-setting-copy"><strong>' + tr('Main-thread posts','منشورات المسار الرئيسي') + '</strong><small>' + tr('Show posts outside this space','إظهار المنشورات خارج المساحة') + '</small></span><span class="toggle-control"><input type="checkbox" data-manage-space-setting="' + escapeHtml(slug) + '|showInMainThread"' + (area.showInMainThread !== false && !area.isPrivate ? ' checked' : '') + (area.isPrivate ? ' disabled' : '') + '><i aria-hidden="true"></i></span></label></div>';
+    return '<article class="manage-space-card"><div><span class="mini-kicker">a/' + escapeHtml(slug) + '</span><h2>' + escapeHtml(area.name || slug) + '</h2><p>' + escapeHtml(area.description || '') + '</p></div>' + settingToggles + '<button type="button" data-manage-edit="' + escapeHtml(slug) + '">' + tr('Edit name, description & media','تعديل الاسم والوصف والوسائط') + '</button><section><strong>' + tr('Membership requests','طلبات العضوية') + ' (' + requests.length + ')</strong>' + requestRows + '</section></article>';
   }))).join('') + '</div>';
 }
 
@@ -767,6 +774,19 @@ async function reviewSpaceRequest(slug, userId, approved) {
   await batch.commit();
   await loadManageSpaces();
   showToast(approved ? tr('Request approved.','تمت الموافقة على الطلب.') : tr('Request denied.','تم رفض الطلب.'));
+}
+
+async function updateManagedSpaceSetting(slug, setting, enabled) {
+  const area = communityAreas[slug];
+  if (!area || area.creatorId !== currentUser?.uid || !['isPrivate', 'showInMainThread'].includes(setting)) return;
+  const changes = setting === 'isPrivate'
+    ? {isPrivate:enabled, showInMainThread:enabled ? false : area.showInMainThread !== false, updatedAt:serverTimestamp()}
+    : {showInMainThread:enabled, updatedAt:serverTimestamp()};
+  await setDoc(doc(db, 'communitySpaces', slug), changes, {merge:true});
+  communityAreas[slug] = {...area, ...changes};
+  renderCommunitySpaces();
+  await loadManageSpaces();
+  showToast(tr('Space settings saved.','تم حفظ إعدادات المساحة.'));
 }
 
 function updateSpaceMediaPreview(targetId, value, emptyCopy) {
@@ -828,6 +848,17 @@ function closeSpaceEditor() {
   if ($('spaceEditDialog').open) $('spaceEditDialog').close();
 }
 
+function syncSpaceVisibilityToggle() {
+  const privateToggle = $('spaceEditIsPrivate');
+  const mainToggle = $('spaceEditShowInMainThread');
+  const row = mainToggle.closest('.space-setting-toggle');
+  const locked = privateToggle.checked;
+  if (locked) mainToggle.checked = false;
+  mainToggle.disabled = locked;
+  row.classList.toggle('is-disabled', locked);
+  row.setAttribute('aria-disabled', String(locked));
+}
+
 function openSpaceEditor() {
   const area = activeAreaSlug ? communityAreas[activeAreaSlug] : null;
   if (!area || !currentUser || area.creatorId !== currentUser.uid) return;
@@ -840,6 +871,7 @@ function openSpaceEditor() {
   $('spaceEditDescription').value = area.description || '';
   $('spaceEditIsPrivate').checked = Boolean(area.isPrivate);
   $('spaceEditShowInMainThread').checked = area.showInMainThread !== false;
+  syncSpaceVisibilityToggle();
   $('spaceEditNameCount').textContent = $('spaceEditName').value.length.toLocaleString() + ' / 80';
   $('spaceEditDescriptionCount').textContent = $('spaceEditDescription').value.length.toLocaleString() + ' / 360';
   $('spaceEditImageFile').value = '';
@@ -2207,6 +2239,14 @@ $('manageSpacesList').addEventListener('click', async event => {
   try { await reviewSpaceRequest(slug, userId, Boolean(approve)); }
   catch (error) { console.error(error); showToast(tr('The request could not be updated.','تعذر تحديث الطلب.')); control.disabled = false; }
 });
+$('manageSpacesList').addEventListener('change', async event => {
+  const toggle = event.target.closest('[data-manage-space-setting]');
+  if (!toggle) return;
+  const [slug, setting] = toggle.dataset.manageSpaceSetting.split('|');
+  toggle.disabled = true;
+  try { await updateManagedSpaceSetting(slug, setting, toggle.checked); }
+  catch (error) { console.error(error); showToast(tr('The space setting could not be saved.','تعذر حفظ إعداد المساحة.')); await loadManageSpaces(); }
+});
 $('areaConnect').addEventListener('click', async event => {
   if (!currentUser) { location.href = loginUrl(); return; }
   const button = event.currentTarget;
@@ -2425,7 +2465,7 @@ $('removeSpaceEditBanner').addEventListener('click', () => {
 $('spaceEditName').addEventListener('input', event => { $('spaceEditNameCount').textContent = event.target.value.length.toLocaleString() + ' / 80'; });
 $('spaceEditDescription').addEventListener('input', event => { $('spaceEditDescriptionCount').textContent = event.target.value.length.toLocaleString() + ' / 360'; });
 $('spaceIsPrivate').addEventListener('change', event => { if (event.target.checked) $('spaceShowInMainThread').checked = false; });
-$('spaceEditIsPrivate').addEventListener('change', event => { if (event.target.checked) $('spaceEditShowInMainThread').checked = false; });
+$('spaceEditIsPrivate').addEventListener('change', syncSpaceVisibilityToggle);
 $('spaceEditClose').addEventListener('click', closeSpaceEditor);
 $('spaceEditCancel').addEventListener('click', closeSpaceEditor);
 $('spaceEditDialog').addEventListener('cancel', () => { activeEditSpaceSlug = null; });
