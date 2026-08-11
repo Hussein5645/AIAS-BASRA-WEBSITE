@@ -59,9 +59,15 @@
     .delete-btn { background: var(--error); } .delete-btn:hover { filter: brightness(0.95); }
     .edit-btn { background: #3182ce; } .edit-btn:hover { filter: brightness(0.95); }
     .community-review-controls { display:grid; grid-template-columns:1fr 120px; gap:.55rem; margin-bottom:.75rem; }.community-review-controls input,.community-review-controls select { min-width:0; padding:.55rem .65rem; border:1px solid var(--border); border-radius:8px; font:inherit; font-size:.8rem; }.community-review-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.75rem; padding:.8rem 0; border-bottom:1px solid var(--border); }.community-review-row:last-child { border-bottom:0; }.community-review-title { font-weight:800; color:#1f2937; line-height:1.35; }.community-review-meta { color:var(--muted); font-size:.76rem; margin-top:.25rem; }.community-review-actions { display:flex; flex-wrap:wrap; gap:.4rem; justify-content:flex-end; align-content:start; }.community-preview-btn { display:inline-flex; align-items:center; justify-content:center; padding:.45rem .7rem; border-radius:8px; color:#fff!important; background:#334155; text-decoration:none; font-weight:800; font-size:.75rem; box-shadow:0 2px 4px rgba(15,23,42,.2); }.community-preview-btn:hover { background:#0f172a; }.community-status { display:inline-block; border-radius:999px; padding:.14rem .42rem; font-weight:800; font-size:.68rem; }.community-status.pending { color:#92400e; background:#fef3c7; }.community-status.featured { color:#166534; background:#dcfce7; }.community-status.none { color:#475569; background:#e2e8f0; }.community-pagination { display:flex; justify-content:space-between; align-items:center; gap:.5rem; margin-top:.75rem; font-size:.75rem; color:var(--muted); }.community-pagination button { border:1px solid var(--border); background:#fff; border-radius:6px; padding:.35rem .55rem; cursor:pointer; font-weight:700; }.community-pagination button:disabled { opacity:.45; cursor:not-allowed; }
+    .community-admin-toolbar { grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem 1.1rem; border:1px solid #dacac3; border-radius:14px; background:linear-gradient(135deg,#fff,#faf5f2); box-shadow:0 6px 18px rgba(50,28,34,.06); }
+    .community-admin-toolbar h2 { margin:0; color:#2d1b20; font-size:1.05rem; }.community-admin-toolbar p { margin:.25rem 0 0; color:var(--muted); font-size:.76rem; }
+    .community-admin-search { position:relative; flex:0 1 430px; }.community-admin-search input { width:100%; min-height:44px; padding:.65rem .85rem .65rem 2.35rem; border:1px solid #ccb9b2; border-radius:999px; background:#fff; font:inherit; }.community-admin-search::before { content:'⌕'; position:absolute; left:.85rem; top:50%; transform:translateY(-52%); color:var(--brand1); font-size:1.15rem; }
+    .community-question-form { padding-bottom:1rem; margin-bottom:1rem; border-bottom:1px solid var(--border); }.community-question-form textarea { min-height:84px; }
+    .community-status.denied { color:#991b1b; background:#fee2e2; }
+    #community-tab > details:last-child { grid-column:1/-1; }
     .access-badge { display:inline-flex; align-items:center; gap:.4rem; padding:.38rem .7rem; border:1px solid rgba(255,255,255,.45); border-radius:999px; background:rgba(255,255,255,.14); font-size:.75rem; font-weight:800; }
     .access-card { margin:.8rem; padding:.9rem; border-radius:12px; color:#f8fafc; background:linear-gradient(145deg,#321c22,#6b2228); }.access-card strong,.access-card span { display:block; }.access-card strong { font-size:.86rem; }.access-card span { margin-top:.25rem; color:#ead7cf; font-size:.72rem; overflow-wrap:anywhere; }
-    .role-read-only details:has(form),.role-read-only form,.role-read-only .edit-btn,.role-read-only .delete-btn,.role-read-only .submit-btn,.role-read-only button[onclick] { display:none!important; }
+    .role-read-only form,.role-read-only .edit-btn,.role-read-only .delete-btn,.role-read-only .submit-btn,.role-read-only button[onclick] { display:none!important; }
     .role-readonly-note { display:none; margin-bottom:.8rem; padding:.75rem .9rem; border-radius:10px; color:#7c4a03; background:#fff7df; border:1px solid #f1d68a; font-size:.82rem; font-weight:700; }.role-read-only > .role-readonly-note { display:block; }
     .role-hero { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:1rem; padding:1.35rem; color:#fff; border-radius:16px; background:radial-gradient(circle at 85% 15%,rgba(240,218,161,.28),transparent 30%),linear-gradient(135deg,#321c22,#6b2228 65%,#9b5e4d); }.role-hero h2 { margin:0 0 .35rem; font-size:1.35rem; }.role-hero p { max-width:650px; margin:0; color:#eeded8; line-height:1.6; }
     .role-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:.75rem; margin-bottom:1rem; }.role-stat { padding:1rem; border:1px solid var(--border); border-radius:12px; background:#fff; }.role-stat strong { display:block; color:var(--brand1); font-size:1.5rem; }.role-stat span { color:var(--muted); font-size:.75rem; }
@@ -145,6 +151,9 @@
       .tab-content:not(#settings-tab):not(#roles-tab).active { grid-template-columns:1fr; }
       .tab-content:not(#settings-tab):not(#roles-tab).active > details:first-child { position:static; max-height:none; }
       .firestore-grid { grid-template-columns:1fr; }
+      .community-admin-toolbar { align-items:stretch; flex-direction:column; }.community-admin-search { flex-basis:auto; width:100%; }
+      .community-review-row { grid-template-columns:1fr; }.community-review-actions { justify-content:flex-start; }
+      #community-tab > details:last-child { grid-column:auto; }
     }
   </style>
 </head>
@@ -332,12 +341,12 @@
         </details>
       </section>
 
-      <!-- Community project review and direct embeds -->
+      <!-- Community management -->
       <section id="community-tab" class="tab-content">
-        <details class="accordion" open><summary>Prompt of the Week</summary><div class="accordion-body panel"><p style="color:#4a5568;margin-bottom:1rem">Choose one Open Question posted by a community member. The selected question appears in the Community sidebar and opens its full discussion when clicked.</p><div id="communityPromptAdmin"><p>Loading user questions…</p></div></div></details>
-        <details class="accordion" open><summary>Sub-communities</summary><div class="accordion-body panel"><p style="color:#4a5568;margin-bottom:1rem">Create and manage the Firebase-backed spaces available under a/{handle}.</p><form id="communitySpaceForm"><div class="two-col"><div class="form-group"><label for="communitySpaceSlug">Unique handle</label><input id="communitySpaceSlug" required minlength="3" maxlength="32" pattern="[a-z0-9-]{3,32}" placeholder="studio-crit"></div><div class="form-group"><label for="communitySpaceName">Display name</label><input id="communitySpaceName" required maxlength="80" placeholder="Studio Crit"></div></div><div class="two-col"><div class="form-group"><label for="communitySpaceSymbol">Symbol</label><input id="communitySpaceSymbol" required maxlength="3" placeholder="SC"></div><div class="form-group"><label for="communitySpaceDescription">Description</label><input id="communitySpaceDescription" required maxlength="360"></div></div><button class="submit-btn" type="submit">Save sub-community</button><p id="communitySpaceStatus" style="margin-top:.75rem"></p></form><div id="communitySpacesAdmin" style="margin-top:1.25rem"><p>Loading sub-communities…</p></div></div></details>
-        <details class="accordion" open><summary>Project selection requests</summary><div class="accordion-body panel"><p style="color:#4a5568;margin-bottom:1rem">Review Behance projects submitted for the Selected Projects page. Text posts cannot be selected or featured.</p><div id="communityAdminList"><p>Loading project requests…</p></div></div></details>
-        <details class="accordion" open><summary>Add a Behance project directly</summary><div class="accordion-body panel"><p style="color:#4a5568;margin-bottom:1rem">Use the Magazine tab to create a full main-site article. Add a Behance project here to publish it directly to the Community Projects page.</p><form id="adminBehanceForm"><div class="two-col"><div class="form-group"><label for="adminBehanceTitle">Title</label><input id="adminBehanceTitle" required maxlength="160"></div><div class="form-group"><label for="adminBehanceSummary">Summary</label><input id="adminBehanceSummary" required maxlength="360"></div></div><div class="form-group"><label for="adminBehanceEmbed">Behance iframe code</label><textarea id="adminBehanceEmbed" required placeholder="&lt;iframe src=&quot;https://www.behance.net/embed/project/...&quot; ...&gt;&lt;/iframe&gt;"></textarea></div><button class="submit-btn" type="submit">Publish selected project</button><p id="adminBehanceStatus" style="margin-top:.75rem"></p></form></div></details>
+        <div class="community-admin-toolbar"><div><h2>Community management</h2><p>Approve submitted projects, manage sub-communities, and choose the weekly question.</p></div><label class="community-admin-search"><span class="sr-only">Search Community management</span><input id="communityAdminSearch" type="search" autocomplete="off" placeholder="Search projects, spaces, or questions"></label></div>
+        <details class="accordion" open><summary>Submitted project approvals</summary><div class="accordion-body panel"><p style="color:#4a5568;margin-bottom:1rem">Review only projects that members submitted for the Selected Projects page.</p><div id="communityAdminList"><p>Loading project requests…</p></div></div></details>
+        <details class="accordion" open><summary>Sub-communities</summary><div class="accordion-body panel"><p style="color:#4a5568;margin-bottom:1rem">Create and manage the Firebase-backed spaces available under a/{handle}.</p><form id="communitySpaceForm"><div class="two-col"><div class="form-group"><label for="communitySpaceSlug">Unique handle</label><input id="communitySpaceSlug" required minlength="3" maxlength="32" pattern="[a-z0-9-]{3,32}" placeholder="studio-crit"></div><div class="form-group"><label for="communitySpaceName">Display name</label><input id="communitySpaceName" required maxlength="80" placeholder="Studio Crit"></div></div><div class="two-col"><div class="form-group"><label for="communitySpaceSymbol">Symbol</label><input id="communitySpaceSymbol" required maxlength="3" placeholder="SC"></div><div class="form-group"><label for="communitySpaceDescription">Description</label><input id="communitySpaceDescription" required maxlength="360"></div></div><button class="submit-btn" type="submit">Save sub-community</button><p id="communitySpaceStatus" style="margin-top:.75rem" aria-live="polite"></p></form><div id="communitySpacesAdmin" style="margin-top:1.25rem"><p>Loading sub-communities…</p></div></div></details>
+        <details class="accordion" open><summary>Question of the Week</summary><div class="accordion-body panel"><p style="color:#4a5568;margin-bottom:1rem">Publish a new weekly question or select one already submitted by a community member.</p><form id="weeklyQuestionForm" class="community-question-form"><div class="form-group"><label for="weeklyQuestionTitle">Question</label><input id="weeklyQuestionTitle" required maxlength="160" placeholder="What should our community discuss this week?"></div><div class="form-group"><label for="weeklyQuestionContext">Helpful context</label><textarea id="weeklyQuestionContext" required maxlength="2000" placeholder="Add context that helps members give useful answers."></textarea></div><button class="submit-btn" type="submit">Publish as Question of the Week</button><p id="weeklyQuestionStatus" style="margin-top:.75rem" aria-live="polite"></p></form><div id="communityPromptAdmin"><p>Loading community questions…</p></div></div></details>
       </section>
 
       <!-- Library -->
@@ -921,7 +930,16 @@
      * تحميل القوائم
      *************************************************/
     const communityEscape = (value) => String(value || '').replace(/[&<>"']/g, char => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;' })[char]);
-    let communityReviewState = { query:'', status:'all', page:0 };
+    let communityReviewState = { status:'all', page:0 };
+    let communityAdminQuery = '';
+    let communitySearchTimer;
+
+    document.getElementById('communityAdminSearch')?.addEventListener('input', event => {
+      communityAdminQuery = event.target.value.trim().toLowerCase();
+      communityReviewState.page = 0;
+      clearTimeout(communitySearchTimer);
+      communitySearchTimer = setTimeout(loadCommunityAdminData, 180);
+    });
 
     async function loadCommunityAdminData() {
       await Promise.all([loadCommunityAdminPosts(), loadCommunityPromptAdmin(), loadCommunitySpacesAdmin()]);
@@ -932,32 +950,77 @@
       if (!box) return;
       try {
         const results = await Promise.all([getDocs(collection(db, 'communityPosts')), getDoc(doc(db, 'communitySettings', 'main'))]);
-        const questions = results[0].docs.map(item => ({id:item.id, ...item.data()})).filter(post => post.type === 'question' && post.published !== false).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        const allQuestions = results[0].docs.map(item => ({id:item.id, ...item.data()})).filter(post => post.type === 'question' && post.published !== false).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
         const selectedId = results[1].exists() ? results[1].data().promptPostId || '' : '';
-        if (!questions.length) { box.innerHTML = '<p>No Open Questions have been posted yet.</p>'; return; }
-        const options = questions.map(post => '<option value="' + post.id + '" ' + (post.id === selectedId ? 'selected' : '') + '>' + communityEscape(post.title) + ' — @' + communityEscape(post.authorUsername || post.authorName || 'member') + '</option>').join('');
-        box.innerHTML = '<div class="two-col"><div class="form-group"><label for="promptQuestionSelect">User question</label><select id="promptQuestionSelect">' + options + '</select></div><div class="form-group"><label>Current prompt</label><div style="display:flex;gap:.5rem;align-items:center;min-height:44px">' + (selectedId ? '<a class="community-preview-btn" href="community.html?post=' + encodeURIComponent(selectedId) + '" target="_blank" rel="noopener">Open selected question</a>' : '<span>None selected</span>') + '</div></div></div><button id="savePromptQuestion" class="submit-btn" type="button" ' + (canManage(currentAccess, 'community') ? '' : 'disabled') + '>Set Prompt of the Week</button><p id="promptAdminStatus" style="margin-top:.75rem"></p>';
-        document.getElementById('savePromptQuestion')?.addEventListener('click', async () => {
-          const status = document.getElementById('promptAdminStatus');
-          try {
-            await setDoc(doc(db, 'communitySettings', 'main'), {promptPostId:document.getElementById('promptQuestionSelect').value, updatedAt:serverTimestamp(), updatedBy:currentAdminUser?.email || ''}, {merge:true});
-            status.style.color = '#15803d'; status.textContent = 'Prompt of the Week updated.';
-            loadCommunityPromptAdmin();
-          } catch (error) { status.style.color = '#b91c1c'; status.textContent = error.message || 'Could not update the prompt.'; }
-        });
+        const questions = allQuestions.filter(post => !communityAdminQuery || [post.title, post.summary, post.content, post.authorUsername, post.authorName].join(' ').toLowerCase().includes(communityAdminQuery));
+        const selected = allQuestions.find(post => post.id === selectedId);
+        const current = selected ? `<div style="margin-bottom:.9rem;padding:.75rem;border-radius:9px;background:#f0fff4"><strong>Current Question of the Week</strong><div class="community-review-title" style="margin-top:.3rem">${communityEscape(selected.title)}</div><a class="community-preview-btn" style="margin-top:.55rem" href="community.html?post=${encodeURIComponent(selected.id)}" target="_blank" rel="noopener">Open question</a></div>` : '<p class="notice">No Question of the Week is selected.</p>';
+        const list = questions.length ? `<div class="community-review-list">${questions.slice(0,20).map(post => `<article class="community-review-row"><div><div class="community-review-title">${communityEscape(post.title)}</div><div class="community-review-meta">@${communityEscape(post.authorUsername || post.authorName || 'member')}${post.id === selectedId ? ' · <span class="community-status featured">current</span>' : ''}</div></div><div class="community-review-actions"><a class="community-preview-btn" href="community.html?post=${encodeURIComponent(post.id)}" target="_blank" rel="noopener">Open</a>${post.id === selectedId ? '' : `<button class="btn edit-btn" type="button" data-set-weekly-question="${post.id}" ${canManage(currentAccess, 'community') ? '' : 'disabled'}>Set for this week</button>`}</div></article>`).join('')}</div>` : `<p>${communityAdminQuery ? 'No questions match the Community search.' : 'No community questions have been posted yet.'}</p>`;
+        box.innerHTML = current + '<h3 style="margin:.2rem 0 .55rem">Available questions</h3>' + list + '<p id="promptAdminStatus" style="margin-top:.75rem" aria-live="polite"></p>';
+        box.querySelectorAll('[data-set-weekly-question]').forEach(button => button.addEventListener('click', () => setQuestionOfWeek(button.dataset.setWeeklyQuestion, document.getElementById('promptAdminStatus'))));
       } catch (error) {
         console.error('[CommunityAdmin] prompt load failed', error);
         box.innerHTML = '<p style="color:red">Could not load community questions.</p>';
       }
     }
 
+    async function setQuestionOfWeek(questionId, status) {
+      try {
+        if (!canManage(currentAccess, 'community')) throw new Error('You do not have permission to manage the Question of the Week.');
+        await setDoc(doc(db, 'communitySettings', 'main'), {promptPostId:questionId, updatedAt:serverTimestamp(), updatedBy:currentAdminUser?.email || ''}, {merge:true});
+        if (status) { status.style.color = '#15803d'; status.textContent = 'Question of the Week updated.'; }
+        await loadCommunityPromptAdmin();
+        return true;
+      } catch (error) {
+        if (status) { status.style.color = '#b91c1c'; status.textContent = error.message || 'Could not update the weekly question.'; }
+        else showMessage(error.message || 'Could not update the weekly question.', 'error');
+        return false;
+      }
+    }
+
+    document.getElementById('weeklyQuestionForm')?.addEventListener('submit', async event => {
+      event.preventDefault();
+      const status = document.getElementById('weeklyQuestionStatus');
+      const title = document.getElementById('weeklyQuestionTitle').value.trim();
+      const content = document.getElementById('weeklyQuestionContext').value.trim();
+      const button = event.submitter || event.target.querySelector('button[type="submit"]');
+      try {
+        if (!canManage(currentAccess, 'community')) throw new Error('You do not have permission to publish weekly questions.');
+        button.disabled = true;
+        const question = await addDoc(collection(db, 'communityPosts'), {
+          type:'question',
+          communitySlug:'main',
+          title,
+          summary:content.slice(0,360),
+          content,
+          behanceSrc:'',
+          userId:currentAdminUser?.uid || 'admin',
+          authorName:currentAdminUser?.displayName || currentAdminUser?.email || 'AIAS Basra',
+          authorUsername:'aias-basra',
+          published:true,
+          featureRequest:false,
+          featureStatus:'none',
+          featured:false,
+          createdAt:serverTimestamp()
+        });
+        if (!await setQuestionOfWeek(question.id)) throw new Error('The question was published, but it could not be selected for this week.');
+        event.target.reset();
+        status.style.color = '#15803d';
+        status.textContent = 'The Question of the Week was published and selected.';
+      } catch (error) {
+        status.style.color = '#b91c1c';
+        status.textContent = error.message || 'Could not publish the weekly question.';
+      } finally { button.disabled = false; }
+    });
+
     async function loadCommunitySpacesAdmin() {
       const box = document.getElementById('communitySpacesAdmin');
       if (!box) return;
       try {
         const snapshot = await getDocs(collection(db, 'communitySpaces'));
-        const spaces = snapshot.docs.map(item => ({slug:item.id, ...item.data()})).sort((a,b) => (a.name || a.slug).localeCompare(b.name || b.slug));
-        if (!spaces.length) { box.innerHTML = '<p>No sub-communities have been created yet.</p>'; return; }
+        const allSpaces = snapshot.docs.map(item => ({slug:item.id, ...item.data()})).sort((a,b) => (a.name || a.slug).localeCompare(b.name || b.slug));
+        const spaces = allSpaces.filter(space => !communityAdminQuery || [space.slug, space.name, space.description].join(' ').toLowerCase().includes(communityAdminQuery));
+        if (!spaces.length) { box.innerHTML = `<p>${communityAdminQuery ? 'No sub-communities match the Community search.' : 'No sub-communities have been created yet.'}</p>`; return; }
         box.innerHTML = '<div class="community-review-list">' + spaces.map(space => '<article class="community-review-row"><div><div class="community-review-title">a/' + communityEscape(space.slug) + ' · ' + communityEscape(space.name) + '</div><div class="community-review-meta">' + communityEscape(space.description || '') + ' · <span class="community-status ' + (space.active === false ? 'none' : 'featured') + '">' + (space.active === false ? 'archived' : 'active') + '</span></div></div><div class="community-review-actions"><a class="community-preview-btn" href="/a/' + encodeURIComponent(space.slug) + '" target="_blank" rel="noopener">Open</a><button class="btn ' + (space.active === false ? 'edit-btn' : 'delete-btn') + '" data-toggle-space="' + communityEscape(space.slug) + '" data-active="' + (space.active === false ? 'false' : 'true') + '" ' + (canManage(currentAccess, 'community') ? '' : 'disabled') + '>' + (space.active === false ? 'Restore' : 'Archive') + '</button></div></article>').join('') + '</div>';
         box.querySelectorAll('[data-toggle-space]').forEach(button => button.addEventListener('click', async () => {
           await setDoc(doc(db, 'communitySpaces', button.dataset.toggleSpace), {active:button.dataset.active !== 'true', updatedAt:serverTimestamp(), updatedBy:currentAdminUser?.email || ''}, {merge:true});
@@ -1009,18 +1072,16 @@
       if (!box) return;
       box.innerHTML = '<p>Loading community posts…</p>';
       try {
-        const allPosts = (await getDocs(collection(db, 'communityPosts'))).docs.map(item => ({ id:item.id, ...item.data() })).filter(post => post.type === 'behance').sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-        const query = communityReviewState.query.trim().toLowerCase();
+        const allPosts = (await getDocs(collection(db, 'communityPosts'))).docs.map(item => ({ id:item.id, ...item.data() })).filter(post => post.type === 'behance' && post.featureRequest === true).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
         const filtered = allPosts.filter(post => {
-          const status = post.featured ? 'featured' : (post.featureRequest ? (post.featureStatus || 'pending') : 'none');
-          return (!query || [post.title, post.authorName, post.type].join(' ').toLowerCase().includes(query)) && (communityReviewState.status === 'all' || status === communityReviewState.status);
+          const status = post.featured || post.featureStatus === 'approved' ? 'approved' : (post.featureStatus === 'denied' ? 'denied' : 'pending');
+          return (!communityAdminQuery || [post.title, post.summary, post.authorName, post.authorUsername].join(' ').toLowerCase().includes(communityAdminQuery)) && (communityReviewState.status === 'all' || status === communityReviewState.status);
         });
         const pageSize = 10, pages = Math.max(1, Math.ceil(filtered.length / pageSize));
         communityReviewState.page = Math.min(communityReviewState.page, pages - 1);
         const pagePosts = filtered.slice(communityReviewState.page * pageSize, (communityReviewState.page + 1) * pageSize);
-        box.innerHTML = `<div class="community-review-controls"><input id="communityReviewSearch" value="${communityEscape(communityReviewState.query)}" placeholder="Search project or author"><select id="communityReviewStatus"><option value="all">All projects</option><option value="pending">Pending requests</option><option value="featured">Selected projects</option><option value="none">No request</option></select></div><div class="community-review-list">${pagePosts.length ? pagePosts.map(post => { const status = post.featured ? 'featured' : (post.featureRequest ? (post.featureStatus || 'pending') : 'none'); return `<article class="community-review-row"><div><div class="community-review-title">${communityEscape(post.title)}</div><div class="community-review-meta">${communityEscape(post.authorName || 'Member')} · Behance project · <span class="community-status ${status === 'approved' ? 'featured' : status}">${communityEscape(status)}</span></div></div><div class="community-review-actions"><a class="community-preview-btn" href="project.html?communityPost=${encodeURIComponent(post.id)}" target="_blank" rel="noopener">Open project</a><button class="btn edit-btn" onclick="reviewCommunityPost('${post.id}','approve')">Select</button><button class="btn delete-btn" onclick="reviewCommunityPost('${post.id}','deny')">Deny</button>${post.featured ? `<button class="btn" onclick="reviewCommunityPost('${post.id}','remove')">Remove selection</button>` : ''}</div></article>`; }).join('') : '<p>No projects match this review filter.</p>'}</div><div class="community-pagination"><button id="communityPrev" ${communityReviewState.page === 0 ? 'disabled' : ''}>Previous</button><span>${filtered.length} projects · Page ${communityReviewState.page + 1} of ${pages}</span><button id="communityNext" ${communityReviewState.page >= pages - 1 ? 'disabled' : ''}>Next</button></div>`;
+        box.innerHTML = `<div class="community-review-controls"><span class="community-review-meta">${filtered.length} submitted request${filtered.length === 1 ? '' : 's'}</span><select id="communityReviewStatus"><option value="all">All requests</option><option value="pending">Pending approval</option><option value="approved">Approved</option><option value="denied">Denied</option></select></div><div class="community-review-list">${pagePosts.length ? pagePosts.map(post => { const status = post.featured || post.featureStatus === 'approved' ? 'approved' : (post.featureStatus === 'denied' ? 'denied' : 'pending'); return `<article class="community-review-row"><div><div class="community-review-title">${communityEscape(post.title)}</div><div class="community-review-meta">${communityEscape(post.authorName || 'Member')} · Submitted project · <span class="community-status ${status === 'approved' ? 'featured' : status}">${communityEscape(status)}</span></div></div><div class="community-review-actions"><a class="community-preview-btn" href="project.html?communityPost=${encodeURIComponent(post.id)}" target="_blank" rel="noopener">Open project</a>${status !== 'approved' ? `<button class="btn edit-btn" onclick="reviewCommunityPost('${post.id}','approve')">Approve</button>` : `<button class="btn" onclick="reviewCommunityPost('${post.id}','revoke')">Revoke</button>`}${status !== 'denied' ? `<button class="btn delete-btn" onclick="reviewCommunityPost('${post.id}','deny')">Deny</button>` : ''}</div></article>`; }).join('') : '<p>No submitted projects match this review filter.</p>'}</div><div class="community-pagination"><button id="communityPrev" ${communityReviewState.page === 0 ? 'disabled' : ''}>Previous</button><span>${filtered.length} requests · Page ${communityReviewState.page + 1} of ${pages}</span><button id="communityNext" ${communityReviewState.page >= pages - 1 ? 'disabled' : ''}>Next</button></div>`;
         document.getElementById('communityReviewStatus').value = communityReviewState.status;
-        document.getElementById('communityReviewSearch').addEventListener('input', event => { communityReviewState.query = event.target.value; communityReviewState.page = 0; loadCommunityAdminPosts(); });
         document.getElementById('communityReviewStatus').addEventListener('change', event => { communityReviewState.status = event.target.value; communityReviewState.page = 0; loadCommunityAdminPosts(); });
         document.getElementById('communityPrev').addEventListener('click', () => { communityReviewState.page--; loadCommunityAdminPosts(); });
         document.getElementById('communityNext').addEventListener('click', () => { communityReviewState.page++; loadCommunityAdminPosts(); });
@@ -1029,29 +1090,15 @@
 
     window.reviewCommunityPost = async function(id, action) {
       const postSnapshot = await getDoc(doc(db, 'communityPosts', id));
-      if (!postSnapshot.exists() || postSnapshot.data().type !== 'behance') { showMessage('Only Behance projects can be selected.', 'error'); return; }
+      if (!postSnapshot.exists() || postSnapshot.data().type !== 'behance' || postSnapshot.data().featureRequest !== true) { showMessage('Only projects submitted by members can be reviewed here.', 'error'); return; }
       const values = action === 'approve'
         ? { featured: true, featureRequest: true, featureStatus: 'approved', featuredAt: serverTimestamp() }
         : action === 'deny'
           ? { featured: false, featureStatus: 'denied' }
-          : { featured: false, featureStatus: 'none' };
-      try { await setDoc(doc(db, 'communityPosts', id), values, { merge: true }); showMessage(action === 'approve' ? 'Project selected for the main website.' : 'Project selection updated.', 'success'); loadCommunityAdminPosts(); }
+          : { featured: false, featureStatus: 'pending' };
+      try { await setDoc(doc(db, 'communityPosts', id), values, { merge: true }); showMessage(action === 'approve' ? 'Submitted project approved for Selected Projects.' : action === 'deny' ? 'Submitted project denied.' : 'Project returned to pending review.', 'success'); loadCommunityAdminPosts(); }
       catch (error) { showMessage(error.message || 'Could not update the project.', 'error'); }
     };
-    document.getElementById('adminBehanceForm')?.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const status = document.getElementById('adminBehanceStatus');
-      const raw = document.getElementById('adminBehanceEmbed').value.trim();
-      const parsed = new DOMParser().parseFromString(raw, 'text/html');
-      const src = parsed.querySelector('iframe')?.getAttribute('src') || '';
-      if (!/^https:\/\/(www\.)?behance\.net\/embed\/project\//i.test(src)) { status.textContent = 'Enter a valid Behance project iframe.'; status.style.color = '#b91c1c'; return; }
-      const button = event.submitter; button.disabled = true;
-      try {
-        await addDoc(collection(db, 'communityPosts'), { type: 'behance', title: document.getElementById('adminBehanceTitle').value.trim(), summary: document.getElementById('adminBehanceSummary').value.trim(), content: '', behanceSrc: src, userId: auth.currentUser?.uid || 'admin', authorName: auth.currentUser?.displayName || auth.currentUser?.email || 'AIAS Basra', published: true, featureRequest: false, featureStatus: 'approved', featured: true, createdAt: serverTimestamp(), featuredAt: serverTimestamp() });
-        event.target.reset(); status.textContent = 'Behance project published and selected.'; status.style.color = '#15803d'; loadCommunityAdminPosts();
-      } catch (error) { status.textContent = error.message || 'Could not publish this project.'; status.style.color = '#b91c1c'; }
-      finally { button.disabled = false; }
-    });
 
     window.loadExistingEvents = async function() {
       const box = document.getElementById('existingEventsList');
