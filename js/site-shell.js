@@ -777,6 +777,12 @@
         setupSearch();
         markActiveLinks();
         setupShellLanguage();
+        if (!document.querySelector('script[data-aias-app-prompt]')) {
+            const appPromptScript = document.createElement('script');
+            appPromptScript.src = '/js/app-open-prompt.js?v=20260811';
+            appPromptScript.dataset.aiasAppPrompt = 'true';
+            document.head.appendChild(appPromptScript);
+        }
         window.dispatchEvent(new CustomEvent('aias-site-shell-ready'));
     }
 
