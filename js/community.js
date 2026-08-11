@@ -344,6 +344,14 @@ function registerNotificationServiceWorker() {
   return notificationServiceWorkerReady;
 }
 
+function notificationPermissionHelp() {
+  const appleMobile = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const safari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  if (appleMobile) return tr('On iPhone or iPad, add this website to the Home Screen, open it from its icon, then tap the bell again.','على iPhone أو iPad، أضف الموقع إلى الشاشة الرئيسية، وافتحه من الأيقونة ثم اضغط الجرس مرة أخرى.');
+  if (safari) return tr('Allow this website in Safari → Settings → Websites → Notifications.','اسمح للموقع من Safari ← الإعدادات ← مواقع الويب ← الإشعارات.');
+  return tr('Browser notifications are blocked. Enable them in your browser site settings.','إشعارات المتصفح محظورة. فعّلها من إعدادات الموقع في المتصفح.');
+}
+
 async function notificationTokenId(token) {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token));
   return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
@@ -2560,15 +2568,17 @@ $('privateSpaceRequest')?.addEventListener('click', async event => {
   } finally { button.disabled = false; }
 });
 $('notificationBell').addEventListener('click', async () => {
-  if ('Notification' in window && Notification.permission === 'default') {
+  if (!('Notification' in window)) {
+    showToast(notificationPermissionHelp());
+  } else if (Notification.permission !== 'granted') {
     try {
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
         await registerPushSubscription();
         showToast(tr('Browser notifications are enabled.','تم تفعيل إشعارات المتصفح.'));
-      } else showToast(tr('Browser notifications are blocked. Enable them in your browser settings.','إشعارات المتصفح محظورة. فعّلها من إعدادات المتصفح.'));
-    } catch {}
-  } else if ('Notification' in window && Notification.permission === 'granted') {
+      } else showToast(notificationPermissionHelp());
+    } catch { showToast(notificationPermissionHelp()); }
+  } else {
     try { await registerPushSubscription(); }
     catch (error) { console.warn('[Community] Push subscription could not be registered.', error); }
   }
