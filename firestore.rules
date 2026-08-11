@@ -462,6 +462,14 @@ service cloud.firestore {
         && request.resource.data.text.size() > 0
         && request.resource.data.text.size() <= 2000
         && (request.resource.data.parentId == null || request.resource.data.parentId is string);
+      allow update: if isAuthenticated()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'editedAt'])
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 2000
+        && request.resource.data.editedAt == request.time;
       allow delete: if hasPermission('manage_community')
         || (isAuthenticated() && resource.data.userId == request.auth.uid)
         || (isAuthenticated()

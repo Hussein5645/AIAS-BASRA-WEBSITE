@@ -1,6 +1,6 @@
 import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc, query, where, limit, orderBy, onSnapshot, writeBatch, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, limit, orderBy, onSnapshot, writeBatch, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { getMessaging, getToken, isSupported } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js';
 
 const config = {
@@ -2031,13 +2031,15 @@ async function loadPosts() {
 
 function renderThread(comment, byParent) {
   const children = byParent.get(comment.id) || [];
+  const editedMarker = comment.editedAt ? '<span class="comment-edited">' + tr('Edited','تم التعديل') + '</span>' : '';
   return [
     '<article class="comment">',
-      '<div class="comment-head"><a class="comment-author" href="' + profileUrl(comment.userId, '') + '"><strong>' + escapeHtml(comment.userName || tr('Member','عضو')) + '</strong></a><span class="comment-time">' + escapeHtml(formatDate(comment.createdAt)) + '</span></div>',
+      '<div class="comment-head"><a class="comment-author" href="' + profileUrl(comment.userId, '') + '"><strong>' + escapeHtml(comment.userName || tr('Member','عضو')) + '</strong></a><span class="comment-time">' + escapeHtml(formatDate(comment.createdAt)) + editedMarker + '</span></div>',
       '<div class="comment-text">' + renderMentionedText(comment.text) + '</div>',
       '<div class="comment-actions">',
         currentUser ? '<button class="comment-action" type="button" data-reply="' + comment.id + '" data-user="' + escapeHtml(comment.userId) + '" data-name="' + escapeHtml(comment.userName || tr('Member','عضو')) + '">' + tr('Reply','رد') + '</button>' : '',
         children.length ? '<button class="comment-action" type="button" data-thread="' + comment.id + '" aria-expanded="false">' + (isArabic() ? 'عرض ' + children.length + ' رد' : 'Show ' + children.length + ' ' + (children.length === 1 ? 'reply' : 'replies')) + '</button>' : '',
+        currentUser?.uid === comment.userId ? '<button class="comment-action" type="button" data-edit-comment="' + comment.id + '" data-comment-text="' + escapeHtml(comment.text) + '">' + tr('Edit','تعديل') + '</button>' : '',
         currentUser?.uid === comment.userId ? '<button class="comment-action" type="button" data-delete-comment="' + comment.id + '">' + tr('Delete','حذف') + '</button>' : '',
       '</div>',
       '<div class="reply-slot"></div>',
@@ -2130,6 +2132,31 @@ function bindCommentActions(postId, post) {
     if (!confirm(tr('Delete this comment permanently?','هل تريد حذف هذا التعليق نهائياً؟'))) return;
     await deleteDoc(doc(db, 'communityPosts', postId, 'comments', button.dataset.deleteComment));
     await openComments(postId, false);
+  }));
+  target.querySelectorAll('[data-edit-comment]').forEach(button => button.addEventListener('click', () => {
+    const comment = button.closest('.comment');
+    const textBox = comment.querySelector('.comment-text');
+    const actions = comment.querySelector('.comment-actions');
+    const originalText = button.dataset.commentText || '';
+    textBox.hidden = true;
+    actions.hidden = true;
+    const form = document.createElement('form');
+    form.className = 'comment-edit-form';
+    form.innerHTML = '<textarea class="mention-input" maxlength="2000" required autocomplete="off" aria-autocomplete="list"></textarea><div class="comment-edit-actions"><button class="comment-submit" type="submit">' + tr('Save','حفظ') + '</button><button class="comment-edit-cancel" type="button">' + tr('Cancel','إلغاء') + '</button></div>';
+    const textarea = form.querySelector('textarea');
+    textarea.value = originalText;
+    textBox.after(form);
+    textarea.focus();
+    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    form.querySelector('.comment-edit-cancel').addEventListener('click', () => { form.remove(); textBox.hidden = false; actions.hidden = false; });
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      const text = textarea.value.trim();
+      if (!text || text === originalText.trim()) { form.querySelector('.comment-edit-cancel').click(); return; }
+      form.querySelector('button[type="submit"]').disabled = true;
+      await updateDoc(doc(db, 'communityPosts', postId, 'comments', button.dataset.editComment), {text, editedAt:serverTimestamp()});
+      await openComments(postId, false);
+    });
   }));
   target.querySelectorAll('[data-comment]').forEach(form => form.addEventListener('submit', async event => {
     event.preventDefault();
