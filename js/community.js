@@ -28,7 +28,6 @@ let communityAreas = {};
 let communityDataReady = null;
 let selectedPromptPostId = null;
 let spaceAvailabilitySequence = 0;
-let postSpaceValidationSequence = 0;
 let communitySearchIndex = null;
 let communitySearchIndexLoadedAt = 0;
 let communitySearchIndexPromise = null;
@@ -385,6 +384,20 @@ async function toggleSpaceConnection(slug) {
   if (!currentUser) { location.href = loginUrl(); return false; }
   if (!slug || !communityAreas[slug]) return false;
   const next = !connectedSpaceSlugs.has(slug);
+  if (!next) {
+    const postsSnapshot = await getDocs(query(collection(db, 'communityPosts'), where('userId', '==', currentUser.uid)));
+    const spacePosts = postsSnapshot.docs.filter(item => item.data().communitySlug === slug);
+    const warning = tr(
+      'Disconnect from a/' + slug + '? All of your posts in this space (' + spacePosts.length.toLocaleString() + ') will be permanently deleted. This cannot be undone.',
+      'هل تريد إلغاء الاتصال من a/' + slug + '؟ سيتم حذف جميع منشوراتك في هذه المساحة (' + spacePosts.length.toLocaleString('ar-IQ') + ') نهائياً. لا يمكن التراجع عن ذلك.'
+    );
+    if (!confirm(warning)) return null;
+    for (let index = 0; index < spacePosts.length; index += 450) {
+      const deleteBatch = writeBatch(db);
+      spacePosts.slice(index, index + 450).forEach(item => deleteBatch.delete(item.ref));
+      await deleteBatch.commit();
+    }
+  }
   const batch = writeBatch(db);
   const connectionRef = doc(db, 'users', currentUser.uid, 'connectedSpaces', slug);
   const memberRef = doc(db, 'communitySpaces', slug, 'connections', currentUser.uid);
@@ -398,6 +411,8 @@ async function toggleSpaceConnection(slug) {
   }
   await batch.commit();
   if (next) connectedSpaceSlugs.add(slug); else connectedSpaceSlugs.delete(slug);
+  renderCommunitySpaces();
+  if (!next) invalidateCommunitySearchIndex();
   const space = communityAreas[slug];
   await updateConnectionNotification(space.creatorId, 'space_connection', slug, space.name || 'a/' + slug, next);
   return next;
@@ -460,6 +475,12 @@ function spaceVisual(area, className, tag = 'span') {
     : escapeHtml(area?.symbol || initials(area?.name || 'A'))) + '</' + tag + '>';
 }
 
+function canPostToSpace(slug) {
+  if (slug === 'main') return true;
+  const area = communityAreas[slug];
+  return Boolean(currentUser && area && (area.creatorId === currentUser.uid || connectedSpaceSlugs.has(slug)));
+}
+
 function renderCommunitySpaces() {
   const spaces = Object.entries(communityAreas).sort((a,b) => (a[1].name || a[0]).localeCompare(b[1].name || b[0]));
   const ownedSpaces = currentUser
@@ -482,7 +503,8 @@ function renderCommunitySpaces() {
   $('sideSpacesList').innerHTML = popularSpaces.length
     ? popularSpaces.map(([slug, area]) => '<a href="' + areaUrl(slug) + '">' + spaceVisual(area, 'space-avatar') + '<span><strong>a/' + escapeHtml(slug) + '</strong><small>' + escapeHtml(area.description || area.name) + '</small></span><b>›</b></a>').join('')
     : '<span class="spaces-loading">' + tr('Community spaces will appear here.','ستظهر مساحات المجتمع هنا.') + '</span>';
-  $('communityHandles').innerHTML = '<option value="main">' + tr('Main thread','المسار الرئيسي') + '</option>' + spaces.map(([slug, area]) => '<option value="a/' + escapeHtml(slug) + '">' + escapeHtml(area.name || slug) + '</option>').join('');
+  const postingSpaces = spaces.filter(([slug]) => canPostToSpace(slug));
+  $('communityHandles').innerHTML = '<option value="main">' + tr('Main thread','المسار الرئيسي') + '</option>' + postingSpaces.map(([slug, area]) => '<option value="a/' + escapeHtml(slug) + '">' + escapeHtml(area.name || slug) + '</option>').join('');
   $('mobileSpacesLink').href = '/community.html?view=spaces';
 }
 
@@ -577,6 +599,7 @@ function renderSpaceSuggestions(value = '') {
   const target = $('spaceSuggestions');
   const term = normalizeCommunityHandle(value);
   const matches = Object.entries(communityAreas)
+    .filter(([slug]) => canPostToSpace(slug))
     .filter(([slug, area]) => !term || slug.includes(term) || String(area.name || '').toLowerCase().includes(term))
     .sort((a, b) => (a[1].name || a[0]).localeCompare(b[1].name || b[0]))
     .slice(0, 6);
@@ -614,8 +637,8 @@ async function loadCommunitySpaces() {
 function validateCommunityHandle(showMessage) {
   const raw = $('postCommunity').value;
   const slug = normalizeCommunityHandle(raw);
-  const valid = slug === 'main' || Boolean(communityAreas[slug]);
-  $('postCommunity').setCustomValidity(valid ? '' : tr('Choose an existing Firebase community handle.','اختر معرّف مساحة موجوداً في Firebase.'));
+  const valid = canPostToSpace(slug);
+  $('postCommunity').setCustomValidity(valid ? '' : tr('Connect to this space or choose a space you own.','اتصل بهذه المساحة أو اختر مساحة تملكها.'));
   if (showMessage) {
     const status = $('postCommunityStatus');
     status.className = valid ? 'valid' : 'invalid';
@@ -623,29 +646,11 @@ function validateCommunityHandle(showMessage) {
       ? (slug === 'main' ? tr('Posting to the main thread.','سيُنشر في المسار الرئيسي.') : tr('Posting to a/','سيُنشر في a/') + slug + tr(' and the main thread.',' وفي المسار الرئيسي.'))
       : tr('No community space exists with that handle.','لا توجد مساحة مجتمعية بهذا المعرّف.');
   }
+  if (showMessage && !valid) $('postCommunityStatus').textContent = tr('You can only post in spaces you own or are connected to.','يمكنك النشر فقط في المساحات التي تملكها أو تتصل بها.');
   return valid ? slug : null;
 }
 
 async function validateCommunityHandleLive(showMessage) {
-  const slug = normalizeCommunityHandle($('postCommunity').value);
-  if (slug === 'main' || communityAreas[slug]) return validateCommunityHandle(showMessage);
-  if (!/^[a-z0-9-]{3,32}$/.test(slug)) return validateCommunityHandle(showMessage);
-  const sequence = ++postSpaceValidationSequence;
-  const status = $('postCommunityStatus');
-  if (showMessage) {
-    status.className = '';
-    status.textContent = tr('Checking a/','جارٍ التحقق من a/') + slug + '…';
-  }
-  try {
-    const snapshot = await getDoc(doc(db, 'communitySpaces', slug));
-    if (sequence !== postSpaceValidationSequence || normalizeCommunityHandle($('postCommunity').value) !== slug) return null;
-    if (snapshot.exists() && snapshot.data().active !== false) {
-      communityAreas[slug] = {slug, ...snapshot.data()};
-      renderCommunitySpaces();
-    }
-  } catch (error) {
-    console.warn('[Community] Could not validate the selected space.', error);
-  }
   return validateCommunityHandle(showMessage);
 }
 
@@ -750,6 +755,9 @@ function renderActiveAreaHeader(area) {
   activeAreaConnection = connectedSpaceSlugs.has(activeAreaSlug);
   $('areaConnect').classList.toggle('connected', activeAreaConnection);
   $('areaConnect').querySelector('span').textContent = activeAreaConnection ? tr('Connected','متصل') : tr('Connect','تواصل');
+  const canPost = Boolean(owner || activeAreaConnection);
+  $('areaCreate').disabled = !canPost;
+  $('areaCreate').title = canPost ? '' : tr('Connect to this space before posting.','اتصل بهذه المساحة قبل النشر.');
   refreshAreaConnectionCount(activeAreaSlug);
 }
 
@@ -1969,7 +1977,10 @@ $('connectionsList').addEventListener('click', async event => {
   button.disabled = true;
   try {
     if (userButton) await toggleUserConnection(userButton.dataset.disconnectUser);
-    else await toggleSpaceConnection(spaceButton.dataset.disconnectSpace);
+    else {
+      const result = await toggleSpaceConnection(spaceButton.dataset.disconnectSpace);
+      if (result === null) { button.disabled = false; return; }
+    }
     await loadConnectionManager();
     showToast(tr('Connection removed.','تمت إزالة التواصل.'));
   } catch (error) {
@@ -2082,10 +2093,12 @@ $('areaConnect').addEventListener('click', async event => {
   const button = event.currentTarget;
   button.disabled = true;
   try {
-    activeAreaConnection = await toggleSpaceConnection(activeAreaSlug);
-    button.classList.toggle('connected', activeAreaConnection);
-    button.querySelector('span').textContent = activeAreaConnection ? tr('Connected','متصل') : tr('Connect','تواصل');
+    const result = await toggleSpaceConnection(activeAreaSlug);
+    if (result === null) return;
+    activeAreaConnection = result;
+    renderActiveAreaHeader(communityAreas[activeAreaSlug]);
     await refreshAreaConnectionCount(activeAreaSlug);
+    if (!activeAreaConnection) await loadPosts();
     showToast(activeAreaConnection ? tr('Space connection added.','تمت إضافة التواصل مع المساحة.') : tr('Space connection removed.','تمت إزالة التواصل مع المساحة.'));
   } catch (error) {
     console.error(error);
@@ -2364,8 +2377,8 @@ onAuthStateChanged(auth, async user => {
     $('quickAvatar').textContent = 'A';
   }
   if (communityDataReady) await communityDataReady;
-  renderCommunitySpaces();
   await loadConnections();
+  renderCommunitySpaces();
   startNotificationInbox();
   renderPostGate();
   renderSpaceGate();

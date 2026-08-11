@@ -257,7 +257,9 @@ service cloud.firestore {
         && request.resource.data.communitySlug is string
         && (request.resource.data.communitySlug == 'main'
           || (exists(/databases/$(database)/documents/communitySpaces/$(request.resource.data.communitySlug))
-            && get(/databases/$(database)/documents/communitySpaces/$(request.resource.data.communitySlug)).data.active == true))
+            && get(/databases/$(database)/documents/communitySpaces/$(request.resource.data.communitySlug)).data.active == true
+            && (get(/databases/$(database)/documents/communitySpaces/$(request.resource.data.communitySlug)).data.creatorId == request.auth.uid
+              || exists(/databases/$(database)/documents/communitySpaces/$(request.resource.data.communitySlug)/connections/$(request.auth.uid)))))
         && request.resource.data.title is string
         && request.resource.data.title.size() > 0
         && request.resource.data.title.size() <= 160
@@ -279,6 +281,7 @@ service cloud.firestore {
         && resource.data.userId == request.auth.uid
         && request.resource.data.userId == resource.data.userId
         && request.resource.data.type == resource.data.type
+        && request.resource.data.communitySlug == resource.data.communitySlug
         && request.resource.data.featured == resource.data.featured
         && (request.resource.data.featureStatus == resource.data.featureStatus
           || (request.resource.data.type == 'behance'
