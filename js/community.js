@@ -1408,6 +1408,9 @@ async function loadCommunitySearchIndex(force = false) {
     getDocs(collection(db, 'communitySpaces')),
     getDocs(collection(db, 'users'))
   ]).then(([postsSnapshot, spacesSnapshot, usersSnapshot]) => {
+    const privateSpaceSlugs = new Set(spacesSnapshot.docs
+      .filter(item => item.data().isPrivate === true)
+      .map(item => item.id));
     const spaces = spacesSnapshot.docs
       .map(item => ({id:item.id, ...item.data()}))
       .filter(space => space.active !== false)
@@ -1424,7 +1427,7 @@ async function loadCommunitySearchIndex(force = false) {
       }));
     const posts = postsSnapshot.docs
       .map(item => ({id:item.id, ...item.data()}))
-      .filter(post => post.published !== false)
+      .filter(post => post.published !== false && !privateSpaceSlugs.has(post.communitySlug))
       .map(post => ({
         kind:'post',
         id:post.id,
