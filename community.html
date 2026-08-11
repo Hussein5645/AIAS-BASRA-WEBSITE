@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/community.css?v=20260811-vote-control">
+  <link rel="stylesheet" href="css/community.css?v=20260811-space-limits">
 </head>
 <body>
   <header class="community-topbar">
@@ -58,6 +58,7 @@
       <div class="rail-spaces">
         <div class="rail-spaces-title"><span data-en="Spaces" data-ar="المساحات">Spaces</span><a href="community.html?view=space" data-route="space" data-en="+ Create" data-ar="+ إنشاء">+ Create</a></div>
         <div id="railSpacesList"><span class="spaces-loading" data-en="Loading spaces…" data-ar="جارٍ تحميل المساحات…">Loading spaces…</span></div>
+        <button id="railSpacesExpand" class="rail-spaces-expand" type="button" aria-expanded="false" hidden></button>
       </div>
       <div class="rail-cta">
         <span class="rail-cta-mark">A</span>
@@ -251,6 +252,7 @@
       <section class="side-card spaces-card">
         <div class="side-card-heading"><span data-en="Popular spaces" data-ar="مساحات رائجة">Popular spaces</span><i aria-hidden="true"></i></div>
         <div id="sideSpacesList"><span class="spaces-loading" data-en="Loading spaces…" data-ar="جارٍ تحميل المساحات…">Loading spaces…</span></div>
+        <a class="spaces-discover-link" href="community.html?view=spaces" data-route="spaces"><span data-en="Discover all spaces" data-ar="اكتشف كل المساحات">Discover all spaces</span><b aria-hidden="true">→</b></a>
       </section>
       <a class="selected-card" href="community.html?view=selected" data-route="selected"><span><small data-en="CURATED BY AIAS BASRA" data-ar="باختيار AIAS البصرة">CURATED BY AIAS BASRA</small><strong data-en="Selected projects" data-ar="المشاريع المختارة">Selected projects</strong></span><b aria-hidden="true">↗</b></a>
     </aside>
@@ -299,6 +301,6 @@
   </dialog>
   <div id="communityToast" class="community-toast" role="status" aria-live="polite"></div>
 
-  <script type="module" src="js/community.js?v=20260811-vote-control"></script>
+  <script type="module" src="js/community.js?v=20260811-space-limits"></script>
 </body>
 </html>

@@ -39,6 +39,8 @@ let activeProfilePosts = [];
 let activeEditPostId = null;
 let spaceDirectorySort = 'popular';
 let spaceDirectoryItems = [];
+let popularSpaceStats = new Map();
+let railSpacesExpanded = false;
 let selectedShellProjects = [];
 let newSpaceImageBase64 = '';
 let newSpaceBannerBase64 = '';
@@ -374,11 +376,25 @@ function spaceVisual(area, className, tag = 'span') {
 
 function renderCommunitySpaces() {
   const spaces = Object.entries(communityAreas).sort((a,b) => (a[1].name || a[0]).localeCompare(b[1].name || b[0]));
-  $('railSpacesList').innerHTML = spaces.length
-    ? spaces.map(([slug, area]) => '<a href="' + areaUrl(slug) + '">' + spaceVisual(area, 'rail-space-image', 'i') + '<span>a/' + escapeHtml(slug) + '</span></a>').join('')
-    : '<span class="spaces-loading">' + tr('No community spaces yet.','لا توجد مساحات مجتمعية بعد.') + '</span>';
-  $('sideSpacesList').innerHTML = spaces.length
-    ? spaces.slice(0, 4).map(([slug, area]) => '<a href="' + areaUrl(slug) + '">' + spaceVisual(area, 'space-avatar') + '<span><strong>a/' + escapeHtml(slug) + '</strong><small>' + escapeHtml(area.description || area.name) + '</small></span><b>›</b></a>').join('')
+  const ownedSpaces = currentUser
+    ? spaces.filter(([,area]) => area.creatorId === currentUser.uid).sort((a,b) => spaceTimestamp(b[1].createdAt) - spaceTimestamp(a[1].createdAt) || (a[1].name || a[0]).localeCompare(b[1].name || b[0]))
+    : [];
+  const visibleOwnedSpaces = railSpacesExpanded ? ownedSpaces : ownedSpaces.slice(0, 3);
+  $('railSpacesList').innerHTML = visibleOwnedSpaces.length
+    ? visibleOwnedSpaces.map(([slug, area]) => '<a href="' + areaUrl(slug) + '">' + spaceVisual(area, 'rail-space-image', 'i') + '<span>a/' + escapeHtml(slug) + '</span></a>').join('')
+    : '<span class="spaces-loading">' + (currentUser ? tr('Your created spaces will appear here.','ستظهر المساحات التي أنشأتها هنا.') : tr('Sign in to see your spaces.','سجّل الدخول لعرض مساحاتك.')) + '</span>';
+  $('railSpacesExpand').hidden = ownedSpaces.length <= 3;
+  $('railSpacesExpand').setAttribute('aria-expanded', String(railSpacesExpanded));
+  $('railSpacesExpand').textContent = railSpacesExpanded
+    ? tr('Show fewer','عرض أقل')
+    : tr('Show ','عرض ') + (ownedSpaces.length - 3).toLocaleString(isArabic() ? 'ar-IQ' : undefined) + tr(' more',' إضافية');
+  const popularSpaces = [...spaces].sort((a,b) => {
+    const aStats = popularSpaceStats.get(a[0]) || {postCount:0,lastActivity:0};
+    const bStats = popularSpaceStats.get(b[0]) || {postCount:0,lastActivity:0};
+    return bStats.postCount - aStats.postCount || bStats.lastActivity - aStats.lastActivity || spaceTimestamp(b[1].createdAt) - spaceTimestamp(a[1].createdAt);
+  }).slice(0, 3);
+  $('sideSpacesList').innerHTML = popularSpaces.length
+    ? popularSpaces.map(([slug, area]) => '<a href="' + areaUrl(slug) + '">' + spaceVisual(area, 'space-avatar') + '<span><strong>a/' + escapeHtml(slug) + '</strong><small>' + escapeHtml(area.description || area.name) + '</small></span><b>›</b></a>').join('')
     : '<span class="spaces-loading">' + tr('Community spaces will appear here.','ستظهر مساحات المجتمع هنا.') + '</span>';
   $('communityHandles').innerHTML = '<option value="main">' + tr('Main thread','المسار الرئيسي') + '</option>' + spaces.map(([slug, area]) => '<option value="a/' + escapeHtml(slug) + '">' + escapeHtml(area.name || slug) + '</option>').join('');
   $('mobileSpacesLink').href = '/community.html?view=spaces';
@@ -423,6 +439,7 @@ async function loadSpaceDirectory() {
       current.lastActivity = Math.max(current.lastActivity, spaceTimestamp(post.createdAt));
       stats.set(post.communitySlug, current);
     });
+    popularSpaceStats = stats;
     spaceDirectoryItems = Object.entries(communityAreas).map(([slug,area]) => ({
       slug,
       name:area.name || slug,
@@ -435,6 +452,7 @@ async function loadSpaceDirectory() {
       postCount:stats.get(slug)?.postCount || 0,
       lastActivity:stats.get(slug)?.lastActivity || 0
     }));
+    renderCommunitySpaces();
     renderSpaceDirectory();
   } catch (error) {
     console.error(error);
@@ -487,6 +505,18 @@ async function loadCommunitySpaces() {
     communityAreas = Object.fromEntries(snapshot.docs
       .map(item => [item.id, {slug:item.id, ...item.data()}])
       .filter(([, area]) => area.active !== false));
+    try {
+      const postsSnapshot = await getDocs(collection(db, 'communityPosts'));
+      popularSpaceStats = new Map();
+      postsSnapshot.docs.forEach(item => {
+        const post = item.data();
+        if (post.published === false || !post.communitySlug || post.communitySlug === 'main') return;
+        const current = popularSpaceStats.get(post.communitySlug) || {postCount:0,lastActivity:0};
+        current.postCount += 1;
+        current.lastActivity = Math.max(current.lastActivity, spaceTimestamp(post.createdAt));
+        popularSpaceStats.set(post.communitySlug, current);
+      });
+    } catch (error) { console.warn('[Community] Space popularity could not be loaded.', error); }
   } catch (error) {
     console.error('[Community] Could not load spaces.', error);
     communityAreas = {};
@@ -1918,6 +1948,7 @@ document.addEventListener('pointerdown', event => {
 });
 
 $('quickComposer').addEventListener('click', () => navigateTo(composerUrl(), false));
+$('railSpacesExpand').addEventListener('click', () => { railSpacesExpanded = !railSpacesExpanded; renderCommunitySpaces(); });
 $('areaCreate').addEventListener('click', () => navigateTo(composerUrl(), false));
 $('areaManage').addEventListener('click', openSpaceEditor);
 $('areaConnect').addEventListener('click', async event => {
@@ -2197,12 +2228,14 @@ onAuthStateChanged(auth, async user => {
     $('quickAvatar').innerHTML = photo ? '<img src="' + escapeHtml(photo) + '" alt="">' : escapeHtml(initials(displayName));
   } else {
     currentProfile = null;
+    railSpacesExpanded = false;
     $('memberAction').href = loginUrl();
     $('memberAction').setAttribute('aria-label', tr('Sign in','تسجيل الدخول'));
     $('memberAction').innerHTML = '<span>?</span>';
     $('quickAvatar').textContent = 'A';
   }
   if (communityDataReady) await communityDataReady;
+  renderCommunitySpaces();
   await loadConnections();
   startNotificationInbox();
   renderPostGate();
