@@ -340,7 +340,7 @@
     <script type="module">
         // Import Firebase modules
         import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAdminAccess, persistAccessSession } from "./js/rbac.js";
 
@@ -374,6 +374,16 @@
             displayName: document.getElementById('profileName'), username: document.getElementById('profileUsername'), school: document.getElementById('profileSchool'),
             city: document.getElementById('profileCity'), bio: document.getElementById('profileBio')
         };
+        const pendingProfileKey = 'aias_pending_google_profile';
+
+        try {
+            const pendingProfile = JSON.parse(sessionStorage.getItem(pendingProfileKey) || '{}');
+            Object.keys(profileFields).forEach((key) => {
+                if (pendingProfile[key]) profileFields[key].value = pendingProfile[key];
+            });
+        } catch (error) {
+            sessionStorage.removeItem(pendingProfileKey);
+        }
 
         function safeNext(fallback) {
             return requestedNext && !requestedNext.includes('..') && /^[A-Za-z0-9_/-]+(?:\.html)?(?:\?[A-Za-z0-9_%=&.-]+)?$/.test(requestedNext)
@@ -437,6 +447,13 @@
             messageDiv.style.display = 'block';
         }
 
+        // Surface errors produced after Google redirects back to this page.
+        getRedirectResult(auth).catch((error) => {
+            console.error('Google redirect sign-up error:', error);
+            googleSignUpBtn.disabled = false;
+            showMessage('Sign-up failed: ' + error.message, 'error');
+        });
+
         // Check if user is already logged in
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -480,55 +497,20 @@
             try {
                 if (!profileSetupForm.reportValidity()) return;
                 googleSignUpBtn.disabled = true;
-                showMessage('Signing up...', 'success');
+                showMessage('Redirecting to Google...', 'success');
+
+                sessionStorage.setItem(pendingProfileKey, JSON.stringify(
+                    Object.fromEntries(Object.entries(profileFields).map(([key, field]) => [key, field.value]))
+                ));
 
                 const provider = new GoogleAuthProvider();
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
-
-                // Check if user already exists in Firestore
-                const userRef = doc(db, 'users', user.uid);
-                const userSnap = await getDoc(userRef);
-
-                if (userSnap.exists() && userSnap.data().profileComplete) {
-                    // User already exists, treat as login
-                    showMessage('Account already exists. Logging you in...', 'success');
-                    await setDoc(userRef, {
-                        lastLogin: new Date().toISOString()
-                    }, { merge: true });
-                } else {
-                    // New account (or an incomplete registration): save all
-                    // required public profile fields before redirecting.
-                    const username = await claimUsername(user.uid);
-                    await setDoc(userRef, {
-                        email: user.email,
-                        username,
-                        displayName: profileFields.displayName.value.trim(),
-                        photoURL: user.photoURL,
-                        school: profileFields.school.value.trim(),
-                        city: profileFields.city.value.trim(),
-                        bio: profileFields.bio.value.trim(),
-                        profileComplete: true,
-                        createdAt: new Date().toISOString(),
-                        lastLogin: new Date().toISOString()
-                    });
-                    showMessage('Account created successfully! Redirecting...', 'success');
-                }
-
-                // Check role and redirect
-                await checkUserRoleAndRedirect(user);
+                provider.setCustomParameters({ prompt: 'select_account' });
+                await signInWithRedirect(auth, provider);
 
             } catch (error) {
-                console.error('Google Sign-Up error:', error);
+                console.error('Could not start Google Sign-Up redirect:', error);
                 googleSignUpBtn.disabled = false;
-                
-                if (error.code === 'auth/popup-closed-by-user') {
-                    showMessage('Sign-up cancelled. Please try again.', 'error');
-                } else if (error.code === 'auth/popup-blocked') {
-                    showMessage('Pop-up blocked. Please allow pop-ups and try again.', 'error');
-                } else {
-                    showMessage('Sign-up failed: ' + error.message, 'error');
-                }
+                showMessage('Sign-up failed: ' + error.message, 'error');
             }
         });
 
@@ -543,6 +525,7 @@
                     school: profileFields.school.value.trim(), city: profileFields.city.value.trim(), bio: profileFields.bio.value.trim(),
                     profileComplete: true, createdAt: new Date().toISOString(), lastLogin: new Date().toISOString()
                 }, { merge: true });
+                sessionStorage.removeItem(pendingProfileKey);
                 await checkUserRoleAndRedirect(user);
             } catch (error) { showMessage('Could not save your profile: ' + error.message, 'error'); }
         });

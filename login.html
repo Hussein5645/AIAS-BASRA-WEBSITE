@@ -332,8 +332,8 @@
     <script type="module">
         // Import Firebase modules
         import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAdminAccess, persistAccessSession } from "./js/rbac.js";
 
         // Firebase configuration
@@ -376,6 +376,13 @@
             messageDiv.className = `message ${type}`;
             messageDiv.style.display = 'block';
         }
+
+        // Surface errors produced after Google redirects back to this page.
+        getRedirectResult(auth).catch((error) => {
+            console.error('Google redirect sign-in error:', error);
+            googleSignInBtn.disabled = false;
+            showMessage('Sign-in failed: ' + error.message, 'error');
+        });
 
         // Check if user is already logged in
         onAuthStateChanged(auth, async (user) => {
@@ -426,60 +433,16 @@
         googleSignInBtn.addEventListener('click', async () => {
             try {
                 googleSignInBtn.disabled = true;
-                showMessage('Signing in...', 'success');
+                showMessage('Redirecting to Google...', 'success');
 
                 const provider = new GoogleAuthProvider();
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
-
-                // Save or update user data in Firestore
-                const userRef = doc(db, 'users', user.uid);
-                const userSnap = await getDoc(userRef);
-
-                if (!userSnap.exists() || !userSnap.data().profileComplete) {
-                    // Registration is only completed from the profile form.
-                    window.location.href = signupDestination();
-                    return;
-                } else {
-                    // Existing user found
-                    const lastLoginData = userSnap.data().lastLogin
-                        ? new Date(userSnap.data().lastLogin).toLocaleString()
-                        : "unknown";
-                
-                    // Ask the user what to do
-                    const usePrevious = confirm(
-                        `Welcome back, ${user.displayName || "User"}!\n` +
-                        `Your last login was on: ${lastLoginData}.\n\n` +
-                        `Do you want to continue with your previous session?\n\n` +
-                        `Click "OK" to continue with previous session.\n` +
-                        `Click "Cancel" to start a new session.`
-                    );
-                
-                    if (!usePrevious) {
-                        // User wants a new session
-                        await setDoc(userRef, {
-                            lastLogin: new Date().toISOString()
-                        }, { merge: true });
-                    }
-                }
-
-
-                showMessage('Login successful! Redirecting...', 'success');
-                
-                // Check role and redirect
-                await checkUserRoleAndRedirect(user);
+                provider.setCustomParameters({ prompt: 'select_account' });
+                await signInWithRedirect(auth, provider);
 
             } catch (error) {
-                console.error('Google Sign-In error:', error);
+                console.error('Could not start Google Sign-In redirect:', error);
                 googleSignInBtn.disabled = false;
-                
-                if (error.code === 'auth/popup-closed-by-user') {
-                    showMessage('Sign-in cancelled. Please try again.', 'error');
-                } else if (error.code === 'auth/popup-blocked') {
-                    showMessage('Pop-up blocked. Please allow pop-ups and try again.', 'error');
-                } else {
-                    showMessage('Sign-in failed: ' + error.message, 'error');
-                }
+                showMessage('Sign-in failed: ' + error.message, 'error');
             }
         });
     </script>
