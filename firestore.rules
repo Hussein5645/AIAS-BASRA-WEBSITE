@@ -94,6 +94,19 @@ service cloud.firestore {
         && request.resource.data.description is string
         && request.resource.data.description.size() > 0
         && request.resource.data.description.size() <= 360
+        && request.resource.data.symbol is string
+        && request.resource.data.symbol.size() > 0
+        && request.resource.data.symbol.size() <= 4
+        && (!('imageBase64' in request.resource.data)
+          || (request.resource.data.imageBase64 is string
+            && request.resource.data.imageBase64.size() <= 180000
+            && (request.resource.data.imageBase64 == ''
+              || request.resource.data.imageBase64.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$'))))
+        && (!('bannerBase64' in request.resource.data)
+          || (request.resource.data.bannerBase64 is string
+            && request.resource.data.bannerBase64.size() <= 520000
+            && (request.resource.data.bannerBase64 == ''
+              || request.resource.data.bannerBase64.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$'))))
         && (hasPermission('manage_community') || (isAuthenticated()
           && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.profileComplete == true
           && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username is string
@@ -101,16 +114,34 @@ service cloud.firestore {
           && request.resource.data.creatorUsername == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username
           && get(/databases/$(database)/documents/usernames/$(request.resource.data.creatorUsername)).data.userId == request.auth.uid
           && request.resource.data.active == true));
-      allow update: if hasPermission('manage_community')
-        && spaceId != 'main'
+      allow update: if spaceId != 'main'
         && spaceId.matches('^[a-z0-9-]{3,32}$')
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
         && request.resource.data.name.size() <= 80
         && request.resource.data.description is string
         && request.resource.data.description.size() > 0
-        && request.resource.data.description.size() <= 360;
-      allow delete: if hasPermission('manage_community');
+        && request.resource.data.description.size() <= 360
+        && request.resource.data.symbol is string
+        && request.resource.data.symbol.size() > 0
+        && request.resource.data.symbol.size() <= 4
+        && (!('imageBase64' in request.resource.data)
+          || (request.resource.data.imageBase64 is string
+            && request.resource.data.imageBase64.size() <= 180000
+            && (request.resource.data.imageBase64 == ''
+              || request.resource.data.imageBase64.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$'))))
+        && (!('bannerBase64' in request.resource.data)
+          || (request.resource.data.bannerBase64 is string
+            && request.resource.data.bannerBase64.size() <= 520000
+            && (request.resource.data.bannerBase64 == ''
+              || request.resource.data.bannerBase64.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$'))))
+        && (hasPermission('manage_community') || (isAuthenticated()
+          && resource.data.creatorId == request.auth.uid
+          && request.resource.data.creatorId == resource.data.creatorId
+          && request.resource.data.creatorUsername == resource.data.creatorUsername
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'description', 'symbol', 'imageBase64', 'bannerBase64', 'updatedAt'])));
+      allow delete: if hasPermission('manage_community')
+        || (isAuthenticated() && resource.data.creatorId == request.auth.uid);
     }
 
     match /communitySettings/{settingId} {

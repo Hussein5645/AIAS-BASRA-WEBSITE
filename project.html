@@ -59,13 +59,13 @@
   <header class="community-topbar">
     <div class="topbar-inner">
       <a class="community-wordmark" href="community.html" aria-label="AIAS Basra Community home"><span class="logo-frame"><img src="static/images/branding/LOGO.png" alt=""></span><span><strong>AIAS Basra</strong><small data-en="Community" data-ar="المجتمع">Community</small></span></a>
-      <nav class="project-header-links" aria-label="Community project navigation"><a href="community.html" data-en="Community feed" data-ar="منشورات المجتمع">Community feed</a><a href="community-projects.html" data-en="Selected projects" data-ar="المشاريع المختارة">Selected projects</a></nav>
+      <nav class="project-header-links" aria-label="Community project navigation"><a href="community.html" data-en="Community feed" data-ar="منشورات المجتمع">Community feed</a><a href="community.html?view=selected" data-en="Selected projects" data-ar="المشاريع المختارة">Selected projects</a></nav>
       <div class="topbar-actions"><button class="community-language-toggle" id="projectLanguageToggle" type="button" aria-label="Switch language"><span id="projectLanguageLabel">العربية</span></button><a class="topbar-avatar" id="memberAction" href="login.html" aria-label="Sign in"><span>?</span></a></div>
     </div>
   </header>
   <div id="projectPage"><div class="empty" data-en="Loading project…" data-ar="جارٍ تحميل المشروع…">Loading project…</div></div>
 
-  <nav class="mobile-nav" aria-label="Community navigation"><a href="community.html"><span aria-hidden="true">⌂</span><small data-en="Home" data-ar="الرئيسية">Home</small></a><a href="community-projects.html"><span aria-hidden="true">◇</span><small data-en="Selected" data-ar="المختارة">Selected</small></a><a class="mobile-create" href="community.html?view=post"><span aria-hidden="true">+</span><small data-en="Create" data-ar="إنشاء">Create</small></a><a id="mobileProfile" href="community.html?view=profile"><span aria-hidden="true">◉</span><small data-en="Profile" data-ar="الملف">Profile</small></a><a href="index.html"><span aria-hidden="true">←</span><small data-en="Website" data-ar="الموقع">Website</small></a></nav>
+  <nav class="mobile-nav" aria-label="Community navigation"><a href="community.html"><span aria-hidden="true">⌂</span><small data-en="Home" data-ar="الرئيسية">Home</small></a><a href="community.html?view=selected"><span aria-hidden="true">◇</span><small data-en="Selected" data-ar="المختارة">Selected</small></a><a class="mobile-create" href="community.html?view=post"><span aria-hidden="true">+</span><small data-en="Create" data-ar="إنشاء">Create</small></a><a id="mobileProfile" href="community.html?view=profile"><span aria-hidden="true">◉</span><small data-en="Profile" data-ar="الملف">Profile</small></a><a href="index.html"><span aria-hidden="true">←</span><small data-en="Website" data-ar="الموقع">Website</small></a></nav>
 
   <script type="module">
     import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
@@ -173,7 +173,7 @@
         if (!snapshot.exists() || snapshot.data().type !== 'behance' || snapshot.data().published === false) throw new Error(tr('Project not found.','المشروع غير موجود.'));
         project = {id:snapshot.id, ...snapshot.data()};
         renderProject();
-      } catch (error) { console.error(error); page.innerHTML = '<main class="error" style="padding-top:10rem"><h1>'+tr('Project unavailable','المشروع غير متاح')+'</h1><p>'+tr('This project could not be found.','تعذر العثور على هذا المشروع.')+'</p><p><a href="community-projects.html">'+tr('Browse community projects','تصفح مشاريع المجتمع')+'</a></p></main>'; }
+      } catch (error) { console.error(error); page.innerHTML = '<main class="error" style="padding-top:10rem"><h1>'+tr('Project unavailable','المشروع غير متاح')+'</h1><p>'+tr('This project could not be found.','تعذر العثور على هذا المشروع.')+'</p><p><a href="community.html?view=selected">'+tr('Browse community projects','تصفح مشاريع المجتمع')+'</a></p></main>'; }
     }
 
     document.getElementById('projectLanguageToggle').addEventListener('click', () => { currentLanguage = currentLanguage === 'ar' ? 'en' : 'ar'; localStorage.setItem('language', currentLanguage); applyLanguage(); });

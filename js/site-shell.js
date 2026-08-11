@@ -13,7 +13,7 @@
     let dynamicSearchData = [];
     SEARCH_DATA.push(
         { title: 'Community', titleAr: 'Community', url: 'community.html', type: 'Page', typeAr: 'Page', description: 'Text posts, profiles, discussions and project submissions', descriptionAr: 'Text posts, profiles, discussions and project submissions', keywords: 'community posts profile discussion behance projects' },
-        { title: 'Selected Projects', titleAr: 'Selected Projects', url: 'community-projects.html', type: 'Page', typeAr: 'Page', description: 'Selected community design work', descriptionAr: 'Selected community design work', keywords: 'community selected projects behance' }
+        { title: 'Selected Projects', titleAr: 'Selected Projects', url: 'community.html?view=selected', type: 'Page', typeAr: 'Page', description: 'Selected community design work', descriptionAr: 'Selected community design work', keywords: 'community selected projects behance' }
     );
 
     function getSearchLanguage() {
@@ -237,7 +237,7 @@
                         <span></span>
                     </button>
                     <ul class="nav-links" id="navLinks">
-                        <li class="nav-item"><a href="#" data-mega-menu="communityMegaMenu" class="shell-link-community" data-en="Community" data-ar="Community">Community</a><div class="mega-menu" id="communityMegaMenu"><div class="mega-menu-content"><div class="mega-menu-section"><h3>Community</h3><a href="community.html" class="mega-menu-link"><div class="mega-menu-icon">Discuss</div><div class="mega-menu-link-content"><div class="mega-menu-link-title">Community Home</div><div class="mega-menu-link-desc">Write text posts and join discussions</div></div></a><a href="community-projects.html" class="mega-menu-link"><div class="mega-menu-icon">Projects</div><div class="mega-menu-link-content"><div class="mega-menu-link-title">Selected Projects</div><div class="mega-menu-link-desc">Curated Behance work from members</div></div></a></div></div></div></li>
+                        <li class="nav-item"><a href="#" data-mega-menu="communityMegaMenu" class="shell-link-community" data-en="Community" data-ar="Community">Community</a><div class="mega-menu" id="communityMegaMenu"><div class="mega-menu-content"><div class="mega-menu-section"><h3>Community</h3><a href="community.html" class="mega-menu-link"><div class="mega-menu-icon">Discuss</div><div class="mega-menu-link-content"><div class="mega-menu-link-title">Community Home</div><div class="mega-menu-link-desc">Write text posts and join discussions</div></div></a><a href="community.html?view=selected" class="mega-menu-link"><div class="mega-menu-icon">Projects</div><div class="mega-menu-link-content"><div class="mega-menu-link-title">Selected Projects</div><div class="mega-menu-link-desc">Curated Behance work from members</div></div></a></div></div></div></li>
                         <li class="nav-item"><a href="index.html" class="shell-link-home" data-en="Home" data-ar="الرئيسية">Home</a></li>
 
                         <li class="nav-item">

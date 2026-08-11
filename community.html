@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/community.css?v=20260811-profile-media">
+  <link rel="stylesheet" href="css/community.css?v=20260811-space-management">
 </head>
 <body>
   <header class="community-topbar">
@@ -32,7 +32,7 @@
         </section>
       </div>
       <div class="topbar-actions">
-        <a class="quiet-link" href="community-projects.html" data-en="Selected work" data-ar="الأعمال المختارة">Selected work</a>
+        <a class="quiet-link" href="community.html?view=selected" data-route="selected" data-en="Selected work" data-ar="الأعمال المختارة">Selected work</a>
         <button class="community-language-toggle" id="communityLanguageToggle" type="button" aria-label="Switch language"><span id="communityLanguageLabel">العربية</span></button>
         <a class="topbar-avatar" id="memberAction" href="login.html" aria-label="Sign in"><span>?</span></a>
       </div>
@@ -46,7 +46,7 @@
         <a class="rail-link" href="community.html?view=post" data-route="post"><span class="rail-icon rail-icon-plus" aria-hidden="true">+</span><span data-en="Create" data-ar="إنشاء">Create</span></a>
         <a class="rail-link" href="community.html?view=space" data-route="space"><span class="rail-icon" aria-hidden="true">#</span><span data-en="New space" data-ar="مساحة جديدة">New space</span></a>
         <a class="rail-link" href="community.html?view=profile" data-route="profile"><span class="rail-icon" aria-hidden="true">◉</span><span data-en="My profile" data-ar="ملفي الشخصي">My profile</span></a>
-        <a class="rail-link" href="community-projects.html"><span class="rail-icon" aria-hidden="true">◇</span><span data-en="Selected projects" data-ar="المشاريع المختارة">Selected projects</span></a>
+        <a class="rail-link" href="community.html?view=selected" data-route="selected"><span class="rail-icon" aria-hidden="true">◇</span><span data-en="Selected projects" data-ar="المشاريع المختارة">Selected projects</span></a>
       </nav>
       <div class="rail-spaces">
         <div class="rail-spaces-title"><span data-en="Spaces" data-ar="المساحات">Spaces</span><a href="community.html?view=space" data-route="space" data-en="+ Create" data-ar="+ إنشاء">+ Create</a></div>
@@ -69,9 +69,10 @@
         </div>
 
         <section id="areaHeader" class="area-header" hidden>
+          <div id="areaBanner" class="area-banner-media"></div>
           <div class="area-symbol" id="areaSymbol">A</div>
-          <div><span class="mini-kicker" id="areaPath">a/community</span><h1 id="areaTitle">Community space</h1><p id="areaDescription"></p></div>
-          <button id="areaCreate" type="button"><span data-en="Create post" data-ar="إنشاء منشور">Create post</span> <span aria-hidden="true">+</span></button>
+          <div class="area-copy"><span class="mini-kicker" id="areaPath">a/community</span><h1 id="areaTitle">Community space</h1><p id="areaDescription"></p></div>
+          <div class="area-header-actions"><button id="areaManage" type="button" hidden><span data-en="Manage space" data-ar="إدارة المساحة">Manage space</span> <span aria-hidden="true">⚙</span></button><button id="areaCreate" type="button"><span data-en="Create post" data-ar="إنشاء منشور">Create post</span> <span aria-hidden="true">+</span></button></div>
         </section>
 
         <section class="welcome-card" aria-labelledby="welcomeTitle">
@@ -118,6 +119,19 @@
         </section>
         <div class="space-directory-meta"><strong id="spaceDirectoryCount"></strong><span data-en="Open a space to see its posts and questions." data-ar="افتح مساحة لعرض منشوراتها وأسئلتها.">Open a space to see its posts and questions.</span></div>
         <section id="spaceDirectoryGrid" class="space-directory-grid" aria-live="polite"><div class="post-skeleton"></div><div class="post-skeleton short"></div></section>
+      </section>
+
+      <section id="selectedView" class="view" hidden>
+        <header class="section-heading selected-shell-heading">
+          <a href="community.html" data-route="home" aria-label="Back to community">←</a>
+          <div><span class="eyebrow"><i></i> <span data-en="CURATED BY AIAS BASRA" data-ar="باختيار AIAS البصرة">CURATED BY AIAS BASRA</span></span><h1 data-en="Selected projects" data-ar="المشاريع المختارة">Selected projects</h1><p data-en="Member projects chosen for craft, clarity, experimentation, and the conversations they inspire." data-ar="مشاريع الأعضاء المختارة لجودة تنفيذها ووضوحها وتجريبها والحوارات التي تلهمها.">Member projects chosen for craft, clarity, experimentation, and the conversations they inspire.</p></div>
+          <a class="space-directory-create" href="community.html?view=post&type=behance" data-route="post"><span data-en="Share project" data-ar="شارك مشروعاً">Share project</span> <b aria-hidden="true">+</b></a>
+        </header>
+        <section class="selected-shell-tools">
+          <label class="space-directory-search" for="selectedShellSearch"><span aria-hidden="true">⌕</span><input id="selectedShellSearch" type="search" autocomplete="off" placeholder="Search projects or members" data-en="Search projects or members" data-ar="ابحث في المشاريع أو الأعضاء"></label>
+          <span id="selectedShellCount"></span>
+        </section>
+        <section id="selectedShellGrid" class="selected-shell-grid" aria-live="polite"><div class="post-skeleton"></div><div class="post-skeleton short"></div></section>
       </section>
 
       <section id="postView" class="view" hidden>
@@ -170,6 +184,10 @@
         <section id="spaceFormCard" class="composer-card" hidden>
           <form id="spaceForm">
             <div id="spaceIdentity" class="post-identity"></div>
+            <div class="profile-media-grid space-media-grid">
+              <section class="profile-media-field"><span data-en="Space image" data-ar="صورة المساحة">Space image</span><div id="spaceImagePreview" class="profile-media-preview avatar"><span data-en="No image" data-ar="لا توجد صورة">No image</span></div><input id="spaceImageFile" type="file" accept="image/*"><div class="profile-media-actions"><small id="spaceImageStatus" data-en="Square image recommended" data-ar="يُفضّل استخدام صورة مربعة">Square image recommended</small><button id="removeSpaceImage" class="profile-media-remove" type="button" data-en="Remove" data-ar="إزالة">Remove</button></div></section>
+              <section class="profile-media-field"><span data-en="Space banner" data-ar="غلاف المساحة">Space banner</span><div id="spaceBannerPreview" class="profile-media-preview banner"><span data-en="No banner" data-ar="لا يوجد غلاف">No banner</span></div><input id="spaceBannerFile" type="file" accept="image/*"><div class="profile-media-actions"><small id="spaceBannerStatus" data-en="Wide image recommended" data-ar="يُفضّل استخدام صورة عريضة">Wide image recommended</small><button id="removeSpaceBanner" class="profile-media-remove" type="button" data-en="Remove" data-ar="إزالة">Remove</button></div></section>
+            </div>
             <div class="form-group">
               <div class="label-line"><label for="spaceName" data-en="Space name" data-ar="اسم المساحة">Space name</label><span id="spaceNameCount">0 / 80</span></div>
               <input id="spaceName" required minlength="3" maxlength="80" placeholder="Example: Urban Sketching" data-en="Example: Urban Sketching" data-ar="مثال: الرسم الحضري">
@@ -225,7 +243,7 @@
         <div class="side-card-heading"><span data-en="Popular spaces" data-ar="مساحات رائجة">Popular spaces</span><i aria-hidden="true"></i></div>
         <div id="sideSpacesList"><span class="spaces-loading" data-en="Loading spaces…" data-ar="جارٍ تحميل المساحات…">Loading spaces…</span></div>
       </section>
-      <a class="selected-card" href="community-projects.html"><span><small data-en="CURATED BY AIAS BASRA" data-ar="باختيار AIAS البصرة">CURATED BY AIAS BASRA</small><strong data-en="Selected projects" data-ar="المشاريع المختارة">Selected projects</strong></span><b aria-hidden="true">↗</b></a>
+      <a class="selected-card" href="community.html?view=selected" data-route="selected"><span><small data-en="CURATED BY AIAS BASRA" data-ar="باختيار AIAS البصرة">CURATED BY AIAS BASRA</small><strong data-en="Selected projects" data-ar="المشاريع المختارة">Selected projects</strong></span><b aria-hidden="true">↗</b></a>
     </aside>
   </main>
 
@@ -255,8 +273,23 @@
       <footer><button id="postEditCancel" class="secondary-button" type="button" data-en="Cancel" data-ar="إلغاء">Cancel</button><button class="primary-button" type="submit"><span data-en="Save changes" data-ar="حفظ التغييرات">Save changes</span><b aria-hidden="true">→</b></button></footer>
     </form>
   </dialog>
+  <dialog id="spaceEditDialog" class="post-edit-dialog space-edit-dialog" aria-labelledby="spaceEditTitle">
+    <form id="spaceEditForm">
+      <header><div><span class="mini-kicker" data-en="MANAGE YOUR SPACE" data-ar="إدارة مساحتك">MANAGE YOUR SPACE</span><h2 id="spaceEditTitle" data-en="Edit space" data-ar="تعديل المساحة">Edit space</h2></div><button id="spaceEditClose" type="button" aria-label="Close editor" data-aria-en="Close editor" data-aria-ar="إغلاق المحرر">×</button></header>
+      <p id="spaceEditHandle" class="post-identity"></p>
+      <div class="profile-media-grid space-media-grid">
+        <section class="profile-media-field"><span data-en="Space image" data-ar="صورة المساحة">Space image</span><div id="spaceEditImagePreview" class="profile-media-preview avatar"></div><input id="spaceEditImageFile" type="file" accept="image/*"><div class="profile-media-actions"><small id="spaceEditImageStatus" data-en="Square image recommended" data-ar="يُفضّل استخدام صورة مربعة">Square image recommended</small><button id="removeSpaceEditImage" class="profile-media-remove" type="button" data-en="Remove" data-ar="إزالة">Remove</button></div></section>
+        <section class="profile-media-field"><span data-en="Space banner" data-ar="غلاف المساحة">Space banner</span><div id="spaceEditBannerPreview" class="profile-media-preview banner"></div><input id="spaceEditBannerFile" type="file" accept="image/*"><div class="profile-media-actions"><small id="spaceEditBannerStatus" data-en="Wide image recommended" data-ar="يُفضّل استخدام صورة عريضة">Wide image recommended</small><button id="removeSpaceEditBanner" class="profile-media-remove" type="button" data-en="Remove" data-ar="إزالة">Remove</button></div></section>
+      </div>
+      <div class="form-group"><div class="label-line"><label for="spaceEditName" data-en="Space name" data-ar="اسم المساحة">Space name</label><span id="spaceEditNameCount">0 / 80</span></div><input id="spaceEditName" required minlength="3" maxlength="80"></div>
+      <div class="form-group"><div class="label-line"><label for="spaceEditDescription" data-en="Description" data-ar="الوصف">Description</label><span id="spaceEditDescriptionCount">0 / 360</span></div><textarea id="spaceEditDescription" required minlength="10" maxlength="360"></textarea></div>
+      <p id="spaceEditStatus" class="form-status" aria-live="polite"></p>
+      <section class="space-danger-zone"><div><strong data-en="Delete this space" data-ar="حذف هذه المساحة">Delete this space</strong><small data-en="Its posts remain safely available in the main community feed." data-ar="ستبقى منشوراتها متاحة بأمان في الخلاصة الرئيسية للمجتمع.">Its posts remain safely available in the main community feed.</small></div><button id="deleteOwnedSpace" type="button" data-en="Delete space" data-ar="حذف المساحة">Delete space</button></section>
+      <footer><button id="spaceEditCancel" class="secondary-button" type="button" data-en="Cancel" data-ar="إلغاء">Cancel</button><button class="primary-button" type="submit"><span data-en="Save space" data-ar="حفظ المساحة">Save space</span><b aria-hidden="true">→</b></button></footer>
+    </form>
+  </dialog>
   <div id="communityToast" class="community-toast" role="status" aria-live="polite"></div>
 
-  <script type="module" src="js/community.js?v=20260811-space-directory"></script>
+  <script type="module" src="js/community.js?v=20260811-space-management"></script>
 </body>
 </html>

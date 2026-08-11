@@ -39,6 +39,14 @@ let activeProfilePosts = [];
 let activeEditPostId = null;
 let spaceDirectorySort = 'popular';
 let spaceDirectoryItems = [];
+let selectedShellProjects = [];
+let newSpaceImageBase64 = '';
+let newSpaceBannerBase64 = '';
+let newSpaceMediaBusy = 0;
+let activeEditSpaceSlug = null;
+let editSpaceImageBase64 = '';
+let editSpaceBannerBase64 = '';
+let editSpaceMediaBusy = 0;
 
 const $ = id => document.getElementById(id);
 const escapeHtml = value => String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -194,13 +202,20 @@ function normalizeCommunityHandle(value) {
   return String(value || '').trim().toLowerCase().replace(/^\/?a\//, '').replace(/[\s_]+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
 }
 
+function spaceVisual(area, className, tag = 'span') {
+  const image = area?.imageBase64 || '';
+  return '<' + tag + ' class="' + className + '">' + (image
+    ? '<img src="' + escapeHtml(image) + '" alt="">'
+    : escapeHtml(area?.symbol || initials(area?.name || 'A'))) + '</' + tag + '>';
+}
+
 function renderCommunitySpaces() {
   const spaces = Object.entries(communityAreas).sort((a,b) => (a[1].name || a[0]).localeCompare(b[1].name || b[0]));
   $('railSpacesList').innerHTML = spaces.length
-    ? spaces.map(([slug, area]) => '<a href="' + areaUrl(slug) + '"><i>' + escapeHtml(area.symbol || initials(area.name)) + '</i><span>a/' + escapeHtml(slug) + '</span></a>').join('')
+    ? spaces.map(([slug, area]) => '<a href="' + areaUrl(slug) + '">' + spaceVisual(area, 'rail-space-image', 'i') + '<span>a/' + escapeHtml(slug) + '</span></a>').join('')
     : '<span class="spaces-loading">' + tr('No community spaces yet.','لا توجد مساحات مجتمعية بعد.') + '</span>';
   $('sideSpacesList').innerHTML = spaces.length
-    ? spaces.slice(0, 4).map(([slug, area]) => '<a href="' + areaUrl(slug) + '"><span class="space-avatar">' + escapeHtml(area.symbol || initials(area.name)) + '</span><span><strong>a/' + escapeHtml(slug) + '</strong><small>' + escapeHtml(area.description || area.name) + '</small></span><b>›</b></a>').join('')
+    ? spaces.slice(0, 4).map(([slug, area]) => '<a href="' + areaUrl(slug) + '">' + spaceVisual(area, 'space-avatar') + '<span><strong>a/' + escapeHtml(slug) + '</strong><small>' + escapeHtml(area.description || area.name) + '</small></span><b>›</b></a>').join('')
     : '<span class="spaces-loading">' + tr('Community spaces will appear here.','ستظهر مساحات المجتمع هنا.') + '</span>';
   $('communityHandles').innerHTML = '<option value="main">' + tr('Main thread','المسار الرئيسي') + '</option>' + spaces.map(([slug, area]) => '<option value="a/' + escapeHtml(slug) + '">' + escapeHtml(area.name || slug) + '</option>').join('');
   $('mobileSpacesLink').href = '/community.html?view=spaces';
@@ -228,7 +243,7 @@ function renderSpaceDirectory() {
   $('spaceDirectoryGrid').innerHTML = items.map((item,index) => {
     const newSpace = item.createdAt && Date.now() / 1000 - item.createdAt < 60 * 60 * 24 * 30;
     const badge = spaceDirectorySort === 'new' && newSpace ? tr('New','جديدة') : item.postCount > 0 ? tr('Active','نشطة') : tr('Open','مفتوحة');
-    return '<a class="space-directory-card" href="' + areaUrl(item.slug) + '" style="--space-index:' + index + '"><div class="space-directory-card-head"><span class="space-directory-symbol">' + escapeHtml(item.symbol || initials(item.name)) + '</span><span class="space-directory-badge">' + badge + '</span></div><span class="mini-kicker">a/' + escapeHtml(item.slug) + '</span><h2>' + escapeHtml(item.name) + '</h2><p>' + escapeHtml(item.description || tr('A member space for community conversation.','مساحة للأعضاء وحوارات المجتمع.')) + '</p><footer><span>' + (isArabic() ? item.postCount.toLocaleString('ar-IQ') : item.postCount.toLocaleString()) + ' ' + tr(item.postCount === 1 ? 'post' : 'posts','منشور') + '</span><b aria-hidden="true">' + (isArabic() ? '←' : '→') + '</b></footer></a>';
+    return '<a class="space-directory-card" href="' + areaUrl(item.slug) + '" style="--space-index:' + index + ';' + (item.bannerBase64 ? '--space-banner:url(&quot;' + escapeHtml(item.bannerBase64) + '&quot;)' : '') + '"><div class="space-directory-card-head">' + spaceVisual(item, 'space-directory-symbol') + '<span class="space-directory-badge">' + badge + '</span></div><span class="mini-kicker">a/' + escapeHtml(item.slug) + '</span><h2>' + escapeHtml(item.name) + '</h2><p>' + escapeHtml(item.description || tr('A member space for community conversation.','مساحة للأعضاء وحوارات المجتمع.')) + '</p><footer><span>' + (isArabic() ? item.postCount.toLocaleString('ar-IQ') : item.postCount.toLocaleString()) + ' ' + tr(item.postCount === 1 ? 'post' : 'posts','منشور') + '</span><b aria-hidden="true">' + (isArabic() ? '←' : '→') + '</b></footer></a>';
   }).join('');
 }
 
@@ -250,6 +265,8 @@ async function loadSpaceDirectory() {
       name:area.name || slug,
       description:area.description || '',
       symbol:area.symbol || initials(area.name || slug),
+      imageBase64:area.imageBase64 || '',
+      bannerBase64:area.bannerBase64 || '',
       creatorUsername:area.creatorUsername || '',
       createdAt:spaceTimestamp(area.createdAt),
       postCount:stats.get(slug)?.postCount || 0,
@@ -259,6 +276,33 @@ async function loadSpaceDirectory() {
   } catch (error) {
     console.error(error);
     $('spaceDirectoryGrid').innerHTML = '<p class="notice error">' + tr('Spaces are unavailable right now.','المساحات غير متاحة حالياً.') + '</p>';
+  }
+}
+
+function renderSelectedShell() {
+  const searchText = $('selectedShellSearch').value.trim().toLowerCase();
+  const projects = selectedShellProjects.filter(project => !searchText || [project.title,project.summary,project.authorName,project.authorUsername].join(' ').toLowerCase().includes(searchText));
+  $('selectedShellCount').textContent = isArabic()
+    ? projects.length.toLocaleString('ar-IQ') + ' ' + (projects.length === 1 ? 'مشروع مختار' : 'مشاريع مختارة')
+    : projects.length + (projects.length === 1 ? ' selected project' : ' selected projects');
+  if (!projects.length) {
+    $('selectedShellGrid').innerHTML = '<div class="selected-shell-empty"><span>A</span><h2>' + tr('No selected projects found','لم يتم العثور على مشاريع مختارة') + '</h2><p>' + tr('Try another search or share a project with the community.','جرّب بحثاً آخر أو شارك مشروعاً مع المجتمع.') + '</p></div>';
+    return;
+  }
+  $('selectedShellGrid').innerHTML = projects.map((project,index) => '<article class="selected-shell-card" style="--selected-index:' + index + '"><a class="selected-shell-preview" href="project.html?communityPost=' + encodeURIComponent(project.id) + '"><iframe title="' + tr('Preview of ','معاينة ') + escapeHtml(project.title) + '" src="' + escapeHtml(project.behanceSrc) + '" loading="lazy"></iframe><span>' + String(index + 1).padStart(2,'0') + '</span></a><div class="selected-shell-content"><div class="selected-shell-meta"><span>' + tr('Selected project','مشروع مختار') + '</span><span>·</span><a href="' + profileUrl(project.userId, project.authorUsername) + '">@' + escapeHtml(project.authorUsername || project.authorName || tr('member','عضو')) + '</a></div><h2>' + escapeHtml(project.title) + '</h2><p>' + escapeHtml(project.summary) + '</p><a class="selected-shell-open" href="project.html?communityPost=' + encodeURIComponent(project.id) + '">' + tr('Open full project →','فتح المشروع كاملاً ←') + '</a></div></article>').join('');
+}
+
+async function loadSelectedShell() {
+  $('selectedShellGrid').innerHTML = '<div class="post-skeleton"></div><div class="post-skeleton short"></div>';
+  try {
+    selectedShellProjects = (await getDocs(collection(db, 'communityPosts'))).docs
+      .map(item => ({id:item.id, ...item.data()}))
+      .filter(project => project.type === 'behance' && project.featured === true && project.published !== false)
+      .sort((a,b) => (b.featuredAt?.seconds || b.createdAt?.seconds || 0) - (a.featuredAt?.seconds || a.createdAt?.seconds || 0));
+    renderSelectedShell();
+  } catch (error) {
+    console.error(error);
+    $('selectedShellGrid').innerHTML = '<p class="notice error">' + tr('Selected projects are unavailable right now.','المشاريع المختارة غير متاحة حالياً.') + '</p>';
   }
 }
 
@@ -361,7 +405,7 @@ async function checkSpaceHandleAvailability(input, status) {
   }
 }
 
-async function createCommunitySpace(name, requestedHandle, description) {
+async function createCommunitySpace(name, requestedHandle, description, imageBase64 = '', bannerBase64 = '') {
   const handle = normalizeCommunityHandle(requestedHandle);
   if (!/^[a-z0-9-]{3,32}$/.test(handle) || handle === 'main') throw new Error(tr('Choose a valid, non-reserved space handle.','اختر معرّف مساحة صالحاً وغير محجوز.'));
   const spaceRef = doc(db, 'communitySpaces', handle);
@@ -372,6 +416,8 @@ async function createCommunitySpace(name, requestedHandle, description) {
     active: true,
     creatorId: currentUser.uid,
     creatorUsername: currentProfile.username,
+    imageBase64,
+    bannerBase64,
     createdAt: serverTimestamp()
   };
   await runTransaction(db, async transaction => {
@@ -383,6 +429,96 @@ async function createCommunitySpace(name, requestedHandle, description) {
   communityAreas[handle] = {...record, slug:handle};
   renderCommunitySpaces();
   return handle;
+}
+
+function updateSpaceMediaPreview(targetId, value, emptyCopy) {
+  $(targetId).innerHTML = value ? '<img src="' + escapeHtml(value) + '" alt="">' : '<span>' + emptyCopy + '</span>';
+}
+
+function bindSpaceMediaInput(inputId, statusId, previewId, kind, setValue, updateBusy) {
+  $(inputId).addEventListener('change', async event => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    updateBusy(1);
+    $(statusId).textContent = tr('Preparing image…','جارٍ تجهيز الصورة…');
+    try {
+      const value = await prepareProfileImage(file, kind);
+      setValue(value);
+      updateSpaceMediaPreview(previewId, value, '');
+      $(statusId).textContent = tr('Ready to save','جاهزة للحفظ');
+    } catch (error) {
+      console.error(error);
+      event.target.value = '';
+      $(statusId).textContent = error.message || tr('Image could not be prepared.','تعذر تجهيز الصورة.');
+    } finally {
+      updateBusy(-1);
+    }
+  });
+}
+
+function renderActiveAreaHeader(area) {
+  $('areaSymbol').innerHTML = area.imageBase64
+    ? '<img src="' + escapeHtml(area.imageBase64) + '" alt="">'
+    : escapeHtml(area.symbol || initials(area.name));
+  $('areaBanner').innerHTML = area.bannerBase64 ? '<img src="' + escapeHtml(area.bannerBase64) + '" alt="">' : '';
+  $('areaHeader').classList.toggle('has-banner', Boolean(area.bannerBase64));
+  $('areaPath').textContent = 'a/' + activeAreaSlug;
+  $('areaTitle').textContent = area.name;
+  $('areaDescription').textContent = area.description;
+  $('areaManage').hidden = !currentUser || area.creatorId !== currentUser.uid;
+}
+
+function closeSpaceEditor() {
+  activeEditSpaceSlug = null;
+  $('spaceEditStatus').textContent = '';
+  if ($('spaceEditDialog').open) $('spaceEditDialog').close();
+}
+
+function openSpaceEditor() {
+  const area = activeAreaSlug ? communityAreas[activeAreaSlug] : null;
+  if (!area || !currentUser || area.creatorId !== currentUser.uid) return;
+  activeEditSpaceSlug = activeAreaSlug;
+  editSpaceImageBase64 = area.imageBase64 || '';
+  editSpaceBannerBase64 = area.bannerBase64 || '';
+  editSpaceMediaBusy = 0;
+  $('spaceEditHandle').innerHTML = tr('Permanent address: ','العنوان الدائم: ') + '<strong>a/' + escapeHtml(activeEditSpaceSlug) + '</strong>';
+  $('spaceEditName').value = area.name || activeEditSpaceSlug;
+  $('spaceEditDescription').value = area.description || '';
+  $('spaceEditNameCount').textContent = $('spaceEditName').value.length.toLocaleString() + ' / 80';
+  $('spaceEditDescriptionCount').textContent = $('spaceEditDescription').value.length.toLocaleString() + ' / 360';
+  $('spaceEditImageFile').value = '';
+  $('spaceEditBannerFile').value = '';
+  $('spaceEditImageStatus').textContent = tr('Square image recommended','يُفضّل استخدام صورة مربعة');
+  $('spaceEditBannerStatus').textContent = tr('Wide image recommended','يُفضّل استخدام صورة عريضة');
+  updateSpaceMediaPreview('spaceEditImagePreview', editSpaceImageBase64, tr('No image','لا توجد صورة'));
+  updateSpaceMediaPreview('spaceEditBannerPreview', editSpaceBannerBase64, tr('No banner','لا يوجد غلاف'));
+  $('spaceEditStatus').textContent = '';
+  $('spaceEditDialog').showModal();
+  $('spaceEditName').focus();
+}
+
+async function deleteOwnedSpace() {
+  const slug = activeEditSpaceSlug;
+  const area = slug ? communityAreas[slug] : null;
+  if (!area || !currentUser || area.creatorId !== currentUser.uid) return;
+  if (!confirm(tr('Delete a/' + slug + '? The space page will be removed, but its existing posts will remain in the main community feed.','هل تريد حذف a/' + slug + '؟ ستُحذف صفحة المساحة، لكن منشوراتها الحالية ستبقى في الخلاصة الرئيسية للمجتمع.'))) return;
+  const button = $('deleteOwnedSpace');
+  button.disabled = true;
+  try {
+    await deleteDoc(doc(db, 'communitySpaces', slug));
+    delete communityAreas[slug];
+    spaceDirectoryItems = spaceDirectoryItems.filter(item => item.slug !== slug);
+    invalidateCommunitySearchIndex();
+    renderCommunitySpaces();
+    closeSpaceEditor();
+    showToast(tr('Space deleted. Its posts remain in the main feed.','تم حذف المساحة. بقيت منشوراتها في الخلاصة الرئيسية.'));
+    navigateTo('/community.html', true);
+  } catch (error) {
+    console.error(error);
+    $('spaceEditStatus').textContent = error.message || tr('This space could not be deleted.','تعذر حذف هذه المساحة.');
+  } finally {
+    button.disabled = false;
+  }
 }
 
 async function loadPromptOfTheWeek() {
@@ -777,7 +913,7 @@ async function handleRoute(scrollToTop) {
   const publicProfileRoute = pathRoute.profile || params.get('user');
   const requestedArea = pathRoute.area || params.get('area');
   activeAreaSlug = requestedArea && communityAreas[requestedArea] ? requestedArea : null;
-  const view = publicProfileRoute || requestedView === 'profile' ? 'profile' : requestedView === 'spaces' ? 'spaces' : requestedView === 'post' ? 'post' : requestedView === 'space' ? 'space' : 'home';
+  const view = publicProfileRoute || requestedView === 'profile' ? 'profile' : requestedView === 'selected' ? 'selected' : requestedView === 'spaces' ? 'spaces' : requestedView === 'post' ? 'post' : requestedView === 'space' ? 'space' : 'home';
   if (!params.has('comments')) closeCommentsUi();
   showView(view);
   if (scrollToTop) window.scrollTo({top:0, behavior:'smooth'});
@@ -790,19 +926,20 @@ async function handleRoute(scrollToTop) {
     document.querySelector('.feed-toolbar').hidden = Boolean(selectedPostId);
     if (activeAreaSlug) {
       const area = communityAreas[activeAreaSlug];
-      $('areaSymbol').textContent = area.symbol;
-      $('areaPath').textContent = 'a/' + activeAreaSlug;
-      $('areaTitle').textContent = area.name;
-      $('areaDescription').textContent = area.description;
+      renderActiveAreaHeader(area);
       document.querySelector('.feed-heading h2').textContent = isArabic() ? 'منشورات ' + area.name : area.name + ' posts';
       document.title = 'a/' + activeAreaSlug + (isArabic() ? ' — مجتمع AIAS البصرة' : ' — AIAS Basra Community');
     } else {
+      $('areaManage').hidden = true;
       document.querySelector('.feed-heading h2').textContent = tr('Community feed','منشورات المجتمع');
       document.title = selectedPostId ? tr('Post — AIAS Basra Community','منشور — مجتمع AIAS البصرة') : tr('Community — AIAS Basra','مجتمع AIAS البصرة');
     }
     await loadPosts();
     if (sequence !== routeSequence) return;
     if (selectedPostId && params.get('comments') === '1') openComments(selectedPostId, false);
+  } else if (view === 'selected') {
+    document.title = tr('Selected Projects — AIAS Basra Community','المشاريع المختارة — مجتمع AIAS البصرة');
+    await loadSelectedShell();
   } else if (view === 'spaces') {
     document.title = tr('Explore Spaces — AIAS Basra Community','استكشف المساحات — مجتمع AIAS البصرة');
     await loadSpaceDirectory();
@@ -1464,6 +1601,7 @@ document.querySelectorAll('[data-profile-filter]').forEach(button => button.addE
   renderProfilePosts();
 }));
 $('spaceDirectorySearch').addEventListener('input', renderSpaceDirectory);
+$('selectedShellSearch').addEventListener('input', renderSelectedShell);
 document.querySelectorAll('[data-space-sort]').forEach(button => button.addEventListener('click', () => {
   spaceDirectorySort = button.dataset.spaceSort;
   renderSpaceDirectory();
@@ -1560,6 +1698,7 @@ document.addEventListener('pointerdown', event => {
 
 $('quickComposer').addEventListener('click', () => navigateTo(composerUrl(), false));
 $('areaCreate').addEventListener('click', () => navigateTo(composerUrl(), false));
+$('areaManage').addEventListener('click', openSpaceEditor);
 $('answerPrompt').addEventListener('click', () => {
   if (selectedPromptPostId) navigateTo('/community.html?post=' + encodeURIComponent(selectedPromptPostId) + '&comments=1', false);
 });
@@ -1658,6 +1797,76 @@ $('postForm').addEventListener('submit', async event => {
 });
 
 let spaceHandleTimer;
+bindSpaceMediaInput('spaceImageFile', 'spaceImageStatus', 'spaceImagePreview', 'avatar', value => { newSpaceImageBase64 = value; }, delta => { newSpaceMediaBusy += delta; });
+bindSpaceMediaInput('spaceBannerFile', 'spaceBannerStatus', 'spaceBannerPreview', 'banner', value => { newSpaceBannerBase64 = value; }, delta => { newSpaceMediaBusy += delta; });
+$('removeSpaceImage').addEventListener('click', () => {
+  newSpaceImageBase64 = '';
+  $('spaceImageFile').value = '';
+  updateSpaceMediaPreview('spaceImagePreview', '', tr('No image','لا توجد صورة'));
+  $('spaceImageStatus').textContent = tr('Image removed','تمت إزالة الصورة');
+});
+$('removeSpaceBanner').addEventListener('click', () => {
+  newSpaceBannerBase64 = '';
+  $('spaceBannerFile').value = '';
+  updateSpaceMediaPreview('spaceBannerPreview', '', tr('No banner','لا يوجد غلاف'));
+  $('spaceBannerStatus').textContent = tr('Banner removed','تمت إزالة الغلاف');
+});
+
+bindSpaceMediaInput('spaceEditImageFile', 'spaceEditImageStatus', 'spaceEditImagePreview', 'avatar', value => { editSpaceImageBase64 = value; }, delta => { editSpaceMediaBusy += delta; });
+bindSpaceMediaInput('spaceEditBannerFile', 'spaceEditBannerStatus', 'spaceEditBannerPreview', 'banner', value => { editSpaceBannerBase64 = value; }, delta => { editSpaceMediaBusy += delta; });
+$('removeSpaceEditImage').addEventListener('click', () => {
+  editSpaceImageBase64 = '';
+  $('spaceEditImageFile').value = '';
+  updateSpaceMediaPreview('spaceEditImagePreview', '', tr('No image','لا توجد صورة'));
+  $('spaceEditImageStatus').textContent = tr('Image will be removed when saved','ستُزال الصورة عند الحفظ');
+});
+$('removeSpaceEditBanner').addEventListener('click', () => {
+  editSpaceBannerBase64 = '';
+  $('spaceEditBannerFile').value = '';
+  updateSpaceMediaPreview('spaceEditBannerPreview', '', tr('No banner','لا يوجد غلاف'));
+  $('spaceEditBannerStatus').textContent = tr('Banner will be removed when saved','سيُزال الغلاف عند الحفظ');
+});
+$('spaceEditName').addEventListener('input', event => { $('spaceEditNameCount').textContent = event.target.value.length.toLocaleString() + ' / 80'; });
+$('spaceEditDescription').addEventListener('input', event => { $('spaceEditDescriptionCount').textContent = event.target.value.length.toLocaleString() + ' / 360'; });
+$('spaceEditClose').addEventListener('click', closeSpaceEditor);
+$('spaceEditCancel').addEventListener('click', closeSpaceEditor);
+$('spaceEditDialog').addEventListener('cancel', () => { activeEditSpaceSlug = null; });
+$('spaceEditDialog').addEventListener('click', event => { if (event.target === $('spaceEditDialog')) closeSpaceEditor(); });
+$('deleteOwnedSpace').addEventListener('click', deleteOwnedSpace);
+$('spaceEditForm').addEventListener('submit', async event => {
+  event.preventDefault();
+  const slug = activeEditSpaceSlug;
+  const area = slug ? communityAreas[slug] : null;
+  if (!area || !currentUser || area.creatorId !== currentUser.uid) return closeSpaceEditor();
+  const button = event.submitter;
+  const name = $('spaceEditName').value.trim();
+  const description = $('spaceEditDescription').value.trim();
+  button.disabled = true;
+  $('spaceEditStatus').textContent = '';
+  try {
+    if (editSpaceMediaBusy) throw new Error(tr('Wait for the images to finish preparing.','انتظر حتى يكتمل تجهيز الصور.'));
+    await setDoc(doc(db, 'communitySpaces', slug), {
+      name,
+      description,
+      symbol:initials(name),
+      imageBase64:editSpaceImageBase64,
+      bannerBase64:editSpaceBannerBase64,
+      updatedAt:serverTimestamp()
+    }, {merge:true});
+    communityAreas[slug] = {...area, name, description, symbol:initials(name), imageBase64:editSpaceImageBase64, bannerBase64:editSpaceBannerBase64};
+    invalidateCommunitySearchIndex();
+    renderCommunitySpaces();
+    renderActiveAreaHeader(communityAreas[slug]);
+    closeSpaceEditor();
+    showToast(tr('Space updated.','تم تحديث المساحة.'));
+  } catch (error) {
+    console.error(error);
+    $('spaceEditStatus').textContent = error.message || tr('This space could not be updated.','تعذر تحديث هذه المساحة.');
+  } finally {
+    button.disabled = false;
+  }
+});
+
 $('spaceName').addEventListener('input', event => {
   $('spaceNameCount').textContent = event.target.value.length.toLocaleString() + ' / 80';
   if (!$('spaceHandle').dataset.manuallyEdited) {
@@ -1683,13 +1892,20 @@ $('spaceForm').addEventListener('submit', async event => {
   $('spaceStatus').textContent = '';
   button.disabled = true;
   try {
+    if (newSpaceMediaBusy) throw new Error(tr('Wait for the images to finish preparing.','انتظر حتى يكتمل تجهيز الصور.'));
     const available = await checkSpaceHandleAvailability($('spaceHandle'), $('spaceHandleStatus'));
     if (!available) {
       $('spaceStatus').textContent = tr('Choose an available space handle before continuing.','اختر معرّف مساحة متاحاً قبل المتابعة.');
       return;
     }
-    const handle = await createCommunitySpace(name, $('spaceHandle').value, description);
+    const handle = await createCommunitySpace(name, $('spaceHandle').value, description, newSpaceImageBase64, newSpaceBannerBase64);
     $('spaceForm').reset();
+    newSpaceImageBase64 = '';
+    newSpaceBannerBase64 = '';
+    updateSpaceMediaPreview('spaceImagePreview', '', tr('No image','لا توجد صورة'));
+    updateSpaceMediaPreview('spaceBannerPreview', '', tr('No banner','لا يوجد غلاف'));
+    $('spaceImageStatus').textContent = tr('Square image recommended','يُفضّل استخدام صورة مربعة');
+    $('spaceBannerStatus').textContent = tr('Wide image recommended','يُفضّل استخدام صورة عريضة');
     delete $('spaceHandle').dataset.manuallyEdited;
     $('spaceNameCount').textContent = '0 / 80';
     $('spaceDescriptionCount').textContent = '0 / 360';
