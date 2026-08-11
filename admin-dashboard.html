@@ -65,7 +65,7 @@
     .community-admin-search { position:relative; }.community-admin-search input { width:100%; min-height:48px; padding:.7rem .95rem .7rem 2.5rem; border:1px solid rgba(255,255,255,.4); border-radius:14px; outline:0; color:#2d1b20; background:rgba(255,255,255,.96); font:inherit; box-shadow:0 8px 24px rgba(30,14,16,.15); }.community-admin-search input:focus { border-color:#f0daa1; box-shadow:0 0 0 4px rgba(240,218,161,.2),0 8px 24px rgba(30,14,16,.15); }.community-admin-search::before { content:'⌕'; position:absolute; left:.9rem; top:50%; z-index:1; transform:translateY(-52%); color:var(--brand1); font-size:1.2rem; }
     .community-admin-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem; margin:1rem 0; }.community-admin-stat { display:flex; align-items:center; gap:.8rem; padding:1rem; border:1px solid var(--border); border-radius:14px; background:#fff; box-shadow:0 7px 20px rgba(50,28,34,.05); }.community-admin-stat > span { width:42px; height:42px; flex:0 0 auto; display:grid; place-items:center; border-radius:12px; color:var(--brand1); background:#f7ece8; font-size:1.15rem; font-weight:900; }.community-admin-stat strong,.community-admin-stat small { display:block; }.community-admin-stat strong { color:#2d1b20; font-size:1.2rem; }.community-admin-stat small { margin-top:.12rem; color:var(--muted); font-size:.7rem; }
     .community-admin-grid { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr); gap:1rem; align-items:start; }.community-admin-card { overflow:hidden; border:1px solid var(--border); border-radius:16px; background:#fff; box-shadow:0 8px 24px rgba(50,28,34,.055); }.community-admin-card.wide { grid-column:1/-1; }.community-admin-card-head { display:flex; align-items:flex-start; gap:.75rem; padding:1rem 1.1rem; border-bottom:1px solid var(--border); background:linear-gradient(135deg,#fff,#faf7f5); }.community-admin-card-head > span { width:38px; height:38px; flex:0 0 auto; display:grid; place-items:center; border-radius:11px; color:#fff; background:linear-gradient(135deg,var(--brand1),var(--brand2)); font-weight:900; }.community-admin-card-head h3 { margin:0; color:#2d1b20; font-size:.98rem; }.community-admin-card-head p { margin:.25rem 0 0; color:var(--muted); font-size:.72rem; line-height:1.5; }.community-admin-card-body { padding:1rem 1.1rem; }.community-spaces-note { margin:0 0 .85rem; padding:.7rem .8rem; border-radius:10px; color:#475569; background:#f8fafc; font-size:.74rem; line-height:1.55; }
-    .community-question-form { padding-bottom:1rem; margin-bottom:1rem; border-bottom:1px solid var(--border); }.community-question-form textarea { min-height:84px; }
+    .community-question-form { padding-bottom:1rem; margin-bottom:1rem; border-bottom:1px solid var(--border); }.community-question-form textarea { min-height:84px; }.community-verification-form { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.6rem; align-items:end; }.community-verification-form .form-group { margin:0; }.community-verification-status { grid-column:1/-1; min-height:1.2em; margin:0; font-size:.75rem; }
     .community-status.denied { color:#991b1b; background:#fee2e2; }
     .access-badge { display:inline-flex; align-items:center; gap:.4rem; padding:.38rem .7rem; border:1px solid rgba(255,255,255,.45); border-radius:999px; background:rgba(255,255,255,.14); font-size:.75rem; font-weight:800; }
     .access-card { margin:.8rem; padding:.9rem; border-radius:12px; color:#f8fafc; background:linear-gradient(145deg,#321c22,#6b2228); }.access-card strong,.access-card span { display:block; }.access-card strong { font-size:.86rem; }.access-card span { margin-top:.25rem; color:#ead7cf; font-size:.72rem; overflow-wrap:anywhere; }
@@ -349,6 +349,7 @@
         <div class="community-admin-grid">
           <section class="community-admin-card"><header class="community-admin-card-head"><span>✓</span><div><h3>Submitted project approvals</h3><p>Review projects members requested for the Selected Projects page.</p></div></header><div class="community-admin-card-body"><div id="communityAdminList"><p>Loading project requests…</p></div></div></section>
           <section class="community-admin-card"><header class="community-admin-card-head"><span>#</span><div><h3>Manage community spaces</h3><p>Open, archive, or restore spaces created by members.</p></div></header><div class="community-admin-card-body"><p class="community-spaces-note">New spaces are created by members from the Community page. This dashboard only manages existing spaces.</p><div id="communitySpacesAdmin"><p>Loading community spaces…</p></div></div></section>
+          <section class="community-admin-card"><header class="community-admin-card-head"><span>✓</span><div><h3>Verify a community account</h3><p>Enter a member’s sign-in email to add the official verification mark to their community identity.</p></div></header><div class="community-admin-card-body"><form id="communityVerificationForm" class="community-verification-form"><div class="form-group"><label for="communityVerificationEmail">Member email</label><input id="communityVerificationEmail" type="email" required autocomplete="email" placeholder="member@example.com"></div><button class="submit-btn" type="submit">Verify account</button><p id="communityVerificationStatus" class="community-verification-status" aria-live="polite"></p></form></div></section>
           <section class="community-admin-card wide"><header class="community-admin-card-head"><span>?</span><div><h3>Question of the Week</h3><p>Publish a new weekly question or select one already submitted by a community member.</p></div></header><div class="community-admin-card-body"><form id="weeklyQuestionForm" class="community-question-form"><div class="form-group"><label for="weeklyQuestionTitle">Question</label><input id="weeklyQuestionTitle" required maxlength="160" placeholder="What should our community discuss this week?"></div><div class="form-group"><label for="weeklyQuestionContext">Helpful context</label><textarea id="weeklyQuestionContext" required maxlength="2000" placeholder="Add context that helps members give useful answers."></textarea></div><button class="submit-btn" type="submit">Publish as Question of the Week</button><p id="weeklyQuestionStatus" style="margin-top:.75rem" aria-live="polite"></p></form><div id="communityPromptAdmin"><p>Loading community questions…</p></div></div></section>
         </div>
       </section>
@@ -620,7 +621,7 @@
      *************************************************/
     import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, getDocs, collection, addDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, getDocs, collection, addDoc, setDoc, serverTimestamp, query, where, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import FirestoreAPI from "./js/firestore-api.js?v=20260811-settings";
     import categoriesLoader from "./js/categories-loader.js";
     import { toBase64, uploadFileChunks, createDocumentId } from "./js/file-chunks.js";
@@ -943,6 +944,29 @@
       communityReviewState.page = 0;
       clearTimeout(communitySearchTimer);
       communitySearchTimer = setTimeout(loadCommunityAdminData, 180);
+    });
+
+    document.getElementById('communityVerificationForm')?.addEventListener('submit', async event => {
+      event.preventDefault();
+      const status = document.getElementById('communityVerificationStatus');
+      const button = event.submitter || event.target.querySelector('button[type="submit"]');
+      const email = normalizeEmail(document.getElementById('communityVerificationEmail').value);
+      try {
+        if (!canManage(currentAccess, 'community')) throw new Error('You do not have permission to verify community accounts.');
+        if (!email) throw new Error('Enter a valid member email address.');
+        button.disabled = true;
+        const matches = await getDocs(query(collection(db, 'users'), where('email', '==', email), limit(2)));
+        if (matches.empty) throw new Error('No community profile was found for this email. The member must finish sign-up first.');
+        if (matches.size > 1) throw new Error('More than one profile uses this email. Contact a super admin.');
+        const member = matches.docs[0];
+        await setDoc(member.ref, {verified:true, verifiedAt:serverTimestamp(), verifiedBy:currentAdminUser?.email || ''}, {merge:true});
+        status.style.color = '#15803d';
+        status.textContent = (member.data().displayName || email) + ' is now verified.';
+        event.target.reset();
+      } catch (error) {
+        status.style.color = '#b91c1c';
+        status.textContent = error.message || 'Could not verify this account.';
+      } finally { button.disabled = false; }
     });
 
     async function loadCommunityAdminData() {

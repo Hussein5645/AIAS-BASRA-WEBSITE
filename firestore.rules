@@ -57,8 +57,11 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if true;
-      allow create, update: if isAuthenticated()
+      allow create: if isAuthenticated()
         && request.auth.uid == userId
+        && (!('verified' in request.resource.data) || request.resource.data.verified == false)
+        && !('verifiedAt' in request.resource.data)
+        && !('verifiedBy' in request.resource.data)
         && (!('username' in request.resource.data)
           || getAfter(/databases/$(database)/documents/usernames/$(request.resource.data.username)).data.userId == userId)
         && (!('photoBase64' in request.resource.data)
@@ -71,6 +74,26 @@ service cloud.firestore {
             && request.resource.data.bannerBase64.size() <= 520000
             && (request.resource.data.bannerBase64 == ''
               || request.resource.data.bannerBase64.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$'))));
+      allow update: if (hasPermission('manage_community')
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['verified', 'verifiedAt', 'verifiedBy'])
+          && request.resource.data.verified is bool
+          && request.resource.data.verifiedAt == request.time
+          && request.resource.data.verifiedBy == signedInEmail())
+        || (isAuthenticated()
+          && request.auth.uid == userId
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['verified', 'verifiedAt', 'verifiedBy'])
+          && (!('username' in request.resource.data)
+            || getAfter(/databases/$(database)/documents/usernames/$(request.resource.data.username)).data.userId == userId)
+          && (!('photoBase64' in request.resource.data)
+            || (request.resource.data.photoBase64 is string
+              && request.resource.data.photoBase64.size() <= 180000
+              && (request.resource.data.photoBase64 == ''
+                || request.resource.data.photoBase64.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$'))))
+          && (!('bannerBase64' in request.resource.data)
+            || (request.resource.data.bannerBase64 is string
+              && request.resource.data.bannerBase64.size() <= 520000
+              && (request.resource.data.bannerBase64 == ''
+                || request.resource.data.bannerBase64.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$')))));
     }
 
     match /users/{userId}/notifications/{notificationId} {

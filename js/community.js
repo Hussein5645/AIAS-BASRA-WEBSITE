@@ -451,7 +451,7 @@ function renderConnectionManager() {
     return;
   }
   $('connectionsList').innerHTML = filtered.map(item => connectionDirectoryType === 'people'
-    ? '<article class="connection-card"><a href="' + escapeHtml(profileUrl(item.uid, item.username)) + '">' + avatarMarkup(item.displayName, item.photo, 'connection-card-avatar') + '<span class="connection-card-copy"><strong>' + escapeHtml(item.displayName) + '</strong><small>' + escapeHtml(item.username ? '@' + item.username : tr('Community member','عضو في المجتمع')) + '</small><p>' + escapeHtml(item.bio || [item.school, item.city].filter(Boolean).join(' · ') || tr('AIAS Basra community','مجتمع AIAS البصرة')) + '</p></span></a><button type="button" data-disconnect-user="' + escapeHtml(item.uid) + '"><span>' + tr('Disconnect','إلغاء التواصل') + '</span><b aria-hidden="true">×</b></button></article>'
+    ? '<article class="connection-card"><a href="' + escapeHtml(profileUrl(item.uid, item.username)) + '">' + avatarMarkup(item.displayName, item.photo, 'connection-card-avatar', item.verified === true) + '<span class="connection-card-copy"><strong>' + escapeHtml(item.displayName) + '</strong><small>' + escapeHtml(item.username ? '@' + item.username : tr('Community member','عضو في المجتمع')) + '</small><p>' + escapeHtml(item.bio || [item.school, item.city].filter(Boolean).join(' · ') || tr('AIAS Basra community','مجتمع AIAS البصرة')) + '</p></span></a><button type="button" data-disconnect-user="' + escapeHtml(item.uid) + '"><span>' + tr('Disconnect','إلغاء التواصل') + '</span><b aria-hidden="true">×</b></button></article>'
     : '<article class="connection-card space"><a href="' + escapeHtml(areaUrl(item.slug)) + '">' + spaceVisual(item.area, 'connection-card-avatar') + '<span class="connection-card-copy"><strong>' + escapeHtml(item.area.name || item.slug) + '</strong><small>a/' + escapeHtml(item.slug) + '</small><p>' + escapeHtml(item.area.description || tr('Community space','مساحة مجتمعية')) + '</p></span></a><button type="button" data-disconnect-space="' + escapeHtml(item.slug) + '"><span>' + tr('Disconnect','إلغاء التواصل') + '</span><b aria-hidden="true">×</b></button></article>'
   ).join('');
 }
@@ -900,7 +900,7 @@ async function loadManageSpaces() {
       members = memberSnapshot.docs.map(item => ({id:item.id, ...item.data()}));
     } catch (error) { console.warn('[Community] Space membership unavailable.', error); }
     const requestRows = requests.length ? '<div class="space-request-list">' + (await Promise.all(requests.map(async request => { const profile = await getProfile(request.userId); return '<div><span>' + escapeHtml(profile.displayName || profile.username || tr('Member','عضو')) + '</span><button type="button" data-approve-request="' + escapeHtml(slug) + '|' + escapeHtml(request.userId) + '">' + tr('Approve','موافقة') + '</button><button type="button" data-deny-request="' + escapeHtml(slug) + '|' + escapeHtml(request.userId) + '">' + tr('Deny','رفض') + '</button></div>'; }))).join('') + '</div>' : '<p class="space-request-empty">' + tr('No pending requests.','لا توجد طلبات معلقة.') + '</p>';
-    const memberRows = members.length ? '<div class="space-member-tools"><label><span aria-hidden="true">⌕</span><input type="search" autocomplete="off" data-space-member-search="' + escapeHtml(slug) + '" placeholder="' + escapeHtml(tr('Search members','ابحث عن الأعضاء')) + '" aria-label="' + escapeHtml(tr('Search space members','البحث في أعضاء المساحة')) + '"></label><small data-space-member-count="' + escapeHtml(slug) + '">' + members.length + ' ' + tr('members','أعضاء') + '</small></div><div class="space-member-list" id="spaceMemberList-' + escapeHtml(slug) + '">' + (await Promise.all(members.map(async member => { const profile = await getProfile(member.userId); const name = profile.displayName || profile.username || tr('Member','عضو'); const searchText = [name, profile.username || '', profile.school || '', profile.city || ''].join(' ').toLowerCase(); return '<article data-space-member="' + escapeHtml(searchText) + '"><a href="' + escapeHtml(profileUrl(member.userId, profile.username)) + '">' + avatarMarkup(name, profile.photoBase64 || profile.photoURL, 'space-member-avatar') + '<span><strong>' + escapeHtml(name) + '</strong><small>' + escapeHtml(profile.username ? '@' + profile.username : tr('Space member','عضو في المساحة')) + '</small></span></a><button type="button" data-remove-space-member="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '">' + tr('Remove access','إزالة الوصول') + '</button></article>'; }))).join('') + '</div>' : '<p class="space-request-empty">' + tr('No connected members yet.','لا يوجد أعضاء متصلون بعد.') + '</p>';
+    const memberRows = members.length ? '<div class="space-member-tools"><label><span aria-hidden="true">⌕</span><input type="search" autocomplete="off" data-space-member-search="' + escapeHtml(slug) + '" placeholder="' + escapeHtml(tr('Search members','ابحث عن الأعضاء')) + '" aria-label="' + escapeHtml(tr('Search space members','البحث في أعضاء المساحة')) + '"></label><small data-space-member-count="' + escapeHtml(slug) + '">' + members.length + ' ' + tr('members','أعضاء') + '</small></div><div class="space-member-list" id="spaceMemberList-' + escapeHtml(slug) + '">' + (await Promise.all(members.map(async member => { const profile = await getProfile(member.userId); const name = profile.displayName || profile.username || tr('Member','عضو'); const searchText = [name, profile.username || '', profile.school || '', profile.city || ''].join(' ').toLowerCase(); return '<article data-space-member="' + escapeHtml(searchText) + '"><a href="' + escapeHtml(profileUrl(member.userId, profile.username)) + '">' + avatarMarkup(name, profile.photoBase64 || profile.photoURL, 'space-member-avatar', profile.verified === true) + '<span><strong>' + escapeHtml(name) + '</strong><small>' + escapeHtml(profile.username ? '@' + profile.username : tr('Space member','عضو في المساحة')) + '</small></span></a><button type="button" data-remove-space-member="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '">' + tr('Remove access','إزالة الوصول') + '</button></article>'; }))).join('') + '</div>' : '<p class="space-request-empty">' + tr('No connected members yet.','لا يوجد أعضاء متصلون بعد.') + '</p>';
     const settingToggles = '<div class="manage-space-toggles">'
       + '<label class="space-setting-toggle compact"><span class="space-setting-icon" aria-hidden="true">◐</span><span class="space-setting-copy"><strong>' + tr('Private space','مساحة خاصة') + '</strong><small>' + tr('Require approval to connect','تتطلب الموافقة للاتصال') + '</small></span><span class="toggle-control"><input type="checkbox" data-manage-space-setting="' + escapeHtml(slug) + '|isPrivate"' + (area.isPrivate ? ' checked' : '') + '><i aria-hidden="true"></i></span></label>'
       + '<label class="space-setting-toggle compact' + (area.isPrivate ? ' is-disabled' : '') + '"><span class="space-setting-icon" aria-hidden="true">⌁</span><span class="space-setting-copy"><strong>' + tr('Main-thread posts','منشورات المسار الرئيسي') + '</strong><small>' + tr('Show posts outside this space','إظهار المنشورات خارج المساحة') + '</small></span><span class="toggle-control"><input type="checkbox" data-manage-space-setting="' + escapeHtml(slug) + '|showInMainThread"' + (area.showInMainThread !== false && !area.isPrivate ? ' checked' : '') + (area.isPrivate ? ' disabled' : '') + '><i aria-hidden="true"></i></span></label></div>';
@@ -1357,12 +1357,13 @@ function followCommunitySearchResult(result) {
   else navigateTo(destination.href, false);
 }
 
-function avatarMarkup(name, photo, className) {
+function avatarMarkup(name, photo, className, verified = false) {
   const safeName = escapeHtml(name || 'Community member');
   const content = photo
     ? '<img src="' + escapeHtml(photo) + '" alt="' + safeName + '">'
     : '<span>' + escapeHtml(initials(name)) + '</span>';
-  return '<span class="' + className + '">' + content + '</span>';
+  const mark = verified ? '<i class="verified-avatar-mark" title="' + escapeHtml(tr('Verified account','حساب موثّق')) + '" aria-label="' + escapeHtml(tr('Verified account','حساب موثّق')) + '">✓</i>' : '';
+  return '<span class="' + className + (verified ? ' is-verified' : '') + '">' + content + mark + '</span>';
 }
 
 function showToast(message) {
@@ -1580,7 +1581,7 @@ function renderPostCard(post, index, detail) {
       '<div class="post-context">' + communityContext + '<span>·</span><span>' + postLabel(post) + '</span></div>',
       '<div class="post-head">',
         '<a class="post-author" href="' + authorProfileUrl + '">',
-          avatarMarkup(authorName, meta.profile.photoBase64 || meta.profile.photoURL, 'avatar'),
+          avatarMarkup(authorName, meta.profile.photoBase64 || meta.profile.photoURL, 'avatar', meta.profile.verified === true),
           '<span class="author-copy"><strong>' + escapeHtml(authorName) + '</strong><span>' + escapeHtml(school) + ' · ' + escapeHtml(formatDate(post.createdAt)) + selected + '</span></span>',
         '</a>',
         '<span class="post-kind' + (isProject(post) ? ' project' : isQuestion(post) ? ' question' : '') + '">' + postLabel(post) + '</span>',
@@ -2126,7 +2127,7 @@ async function loadProfile(uid, routedProfile) {
     target.innerHTML = [
       '<div class="profile-banner-media">' + (banner ? '<img src="' + escapeHtml(banner) + '" alt="">' : '') + '</div>',
       '<div class="profile-top">',
-        avatarMarkup(displayName, photo, 'profile-avatar'),
+        avatarMarkup(displayName, photo, 'profile-avatar', profile.verified === true),
         '<div class="profile-title"><h2>' + escapeHtml(displayName) + '</h2><span class="profile-handle">' + (profile.username ? '@' + escapeHtml(profile.username) : tr('No username claimed','لم يتم اختيار اسم مستخدم')) + '</span><p>' + escapeHtml(locationLine) + '</p></div>',
         owner ? '<button id="editProfile" class="edit-profile-button" type="button">' + tr('Edit profile','تعديل الملف') + '</button>' : '<button id="profileConnect" class="edit-profile-button connect-button ' + (profileConnectionActive ? 'connected' : '') + '" type="button"><span>' + (profileConnectionActive ? tr('Connected','متصل') : tr('Connect','تواصل')) + '</span></button>',
       '</div>',
