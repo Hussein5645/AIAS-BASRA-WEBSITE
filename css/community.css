@@ -67,8 +67,10 @@ body::before {
 html[dir="rtl"] .notification-panel { left:0; right:auto; }html[dir="rtl"] .notification-item { text-align:right; }html[dir="rtl"] .notification-item:hover { transform:translateX(-2px); }
 
 .community-layout { width: min(1460px, 100%); margin: auto; padding: 34px 28px 90px; display: grid; grid-template-columns: 220px minmax(0, 720px) 290px; justify-content: space-between; gap: clamp(24px, 3vw, 50px); }
-.left-rail, .right-rail { position: sticky; top: 110px; align-self: start; }
-.left-rail { height: calc(100vh - 144px); display: flex; flex-direction: column; }
+.left-rail, .right-rail { position: sticky; top: 110px; align-self: start; max-height:calc(100dvh - 130px); overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter:stable; scrollbar-width:thin; scrollbar-color:rgba(102,31,34,.28) transparent; }
+.left-rail { height: calc(100dvh - 130px); display: flex; flex-direction: column; padding-inline-end:6px; }
+.right-rail { padding-inline-end:6px; }
+.left-rail::-webkit-scrollbar,.right-rail::-webkit-scrollbar { width:6px; }.left-rail::-webkit-scrollbar-thumb,.right-rail::-webkit-scrollbar-thumb { border-radius:999px; background:rgba(102,31,34,.24); }.left-rail::-webkit-scrollbar-track,.right-rail::-webkit-scrollbar-track { background:transparent; }
 .rail-nav { display: grid; gap: 7px; }
 .rail-link { min-height: 48px; display: flex; align-items: center; gap: 13px; padding: 0 14px; border-radius: 14px; color: #60575a; font-weight: 700; text-decoration: none; transition: transform .2s ease, background .2s ease, color .2s ease; }
 .rail-link:hover { transform: translateX(3px); color: var(--wine); background: rgba(255, 253, 250, .72); }
