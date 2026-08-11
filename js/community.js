@@ -824,11 +824,22 @@ async function loadPromptOfTheWeek() {
     selectedPromptPostId = postId;
     $('promptTitle').textContent = post.title;
     $('promptAuthor').textContent = tr('Asked by @','سؤال من @') + (post.authorUsername || post.authorName || tr('member','عضو'));
+    $('mobilePromptTitle').textContent = post.title;
+    $('mobilePromptAuthor').textContent = tr('Asked by @','سؤال من @') + (post.authorUsername || post.authorName || tr('member','عضو'));
     $('promptCard').hidden = false;
+    updateMobilePromptVisibility();
   } catch {
     selectedPromptPostId = null;
     $('promptCard').hidden = true;
+    $('mobilePromptCard').hidden = true;
   }
+}
+
+function updateMobilePromptVisibility() {
+  const params = new URLSearchParams(location.search);
+  const pathRoute = getPathRoute();
+  const mainFeed = !params.get('post') && !params.get('view') && !params.get('area') && !pathRoute.profile && !pathRoute.area;
+  $('mobilePromptCard').hidden = !selectedPromptPostId || !mainFeed;
 }
 
 function composerUrl() {
@@ -1210,6 +1221,7 @@ async function handleRoute(scrollToTop) {
   if (view === 'home' && !selectedPostId && !activeAreaSlug) communitySort = feedMode === 'discover' ? 'smart' : 'latest';
   if (!params.has('comments')) closeCommentsUi();
   showView(view);
+  updateMobilePromptVisibility();
   if (scrollToTop) window.scrollTo({top:0, behavior:'smooth'});
 
   if (view === 'home') {
@@ -2102,6 +2114,9 @@ $('feedModeBar').addEventListener('click', event => {
   navigateTo(button.dataset.feedMode === 'discover' ? '/community.html?feed=discover' : '/community.html', false);
 });
 $('answerPrompt').addEventListener('click', () => {
+  if (selectedPromptPostId) navigateTo('/community.html?post=' + encodeURIComponent(selectedPromptPostId) + '&comments=1', false);
+});
+$('mobileAnswerPrompt').addEventListener('click', () => {
   if (selectedPromptPostId) navigateTo('/community.html?post=' + encodeURIComponent(selectedPromptPostId) + '&comments=1', false);
 });
 let postCommunityTimer;
