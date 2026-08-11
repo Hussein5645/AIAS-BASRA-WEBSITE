@@ -59,6 +59,10 @@ let notificationItems = [];
 let connectionDirectoryType = 'people';
 let connectionPeopleItems = [];
 let connectionSpaceItems = [];
+let postImageDataUrl = '';
+let postImageMimeType = '';
+const POST_IMAGE_MAX_BYTES = 10 * 1024 * 1024;
+const POST_IMAGE_CHUNK_SIZE = 700000;
 
 const $ = id => document.getElementById(id);
 const escapeHtml = value => String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -1354,6 +1358,9 @@ function renderPostCard(post, index, detail) {
   const projectPreview = isProject(post) && post.behanceSrc
     ? '<div class="project-preview"><iframe title="' + escapeHtml(post.title) + '" src="' + escapeHtml(post.behanceSrc) + '" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe><a class="project-preview-link" href="' + destination + '">' + tr('Open project','فتح المشروع') + ' <span aria-hidden="true">↗</span></a></div>'
     : '';
+  const imagePreview = post.type === 'text' && post.imageDataUrl
+    ? '<figure class="post-image"><img src="' + escapeHtml(post.imageDataUrl) + '" alt="' + escapeHtml(post.title) + '" loading="lazy"></figure>'
+    : '';
   const requestStatus = post.featureStatus === 'denied' ? tr('not selected','لم يُختر') : tr('pending','قيد المراجعة');
   const request = currentUser?.uid === post.userId && isProject(post) && !post.featured && post.featureRequest
     ? '<div class="project-request">' + tr('Selection request:','طلب اختيار:') + ' <strong>' + escapeHtml(requestStatus) + '</strong></div>'
@@ -1370,6 +1377,7 @@ function renderPostCard(post, index, detail) {
       '</div>',
       '<h2 class="post-title"><a href="' + destination + '">' + escapeHtml(post.title) + '</a></h2>',
       '<div class="post-body">' + escapeHtml(text) + '</div>',
+      imagePreview,
       projectPreview,
       '<div class="post-actions">',
         '<div class="vote-control" role="group" aria-label="' + tr('Post voting','تقييم المنشور') + '">',
@@ -1484,7 +1492,10 @@ async function loadPosts() {
           : post.type === communityType);
       }
     }
-    posts = await Promise.all(posts.map(async post => ({...post, meta:await getPostMeta(post)})));
+    posts = await Promise.all(posts.map(async post => {
+      const hydrated = await loadPostImage(post);
+      return {...hydrated, meta:await getPostMeta(hydrated)};
+    }));
     if (communitySort === 'smart') posts = rankDiscoverPosts(posts);
     else posts.sort((a, b) => communitySort === 'upvoted'
         ? b.meta.score - a.meta.score || (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
@@ -1655,10 +1666,43 @@ function renderPostTypeFields() {
   $('postCommunityGroup').hidden = project;
   $('projectFields').hidden = !project;
   $('postBehanceEmbed').required = project;
+  $('postImageGroup').hidden = question || project;
   $('postContent').required = true;
   document.querySelector('label[for="postContent"]').textContent = project ? tr('Describe your project','صف مشروعك') : question ? tr('Add helpful context','أضف سياقاً مفيداً') : tr('Tell the community more','أخبر المجتمع بالمزيد');
   $('postContent').placeholder = project ? tr('Explain the idea, process, and feedback you would like.','اشرح الفكرة وعملية التصميم والملاحظات التي ترغب بها.') : question ? tr('What have you tried, and what kind of answer would help?','ماذا جرّبت، وما نوع الإجابة التي ستفيدك؟') : tr('Share context, a fresh perspective, or invite feedback…','شارك السياق أو منظوراً جديداً أو اطلب آراء الأعضاء…');
   $('postTitle').placeholder = project ? tr('Give your project a clear title','امنح مشروعك عنواناً واضحاً') : question ? tr('Ask one clear, open question','اطرح سؤالاً مفتوحاً وواضحاً') : tr('Share one clear insight or idea','شارك فكرة أو رؤية واضحة');
+}
+
+async function preparePostImage(file) {
+  if (!file || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new Error(tr('Choose a JPEG, PNG, or WebP image.','اختر صورة JPEG أو PNG أو WebP.'));
+  if (file.size > POST_IMAGE_MAX_BYTES) throw new Error(tr('Choose an image smaller than 10 MB.','اختر صورة أصغر من 10 ميغابايت.'));
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error(tr('This image could not be read.','تعذر قراءة هذه الصورة.')));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function savePostImageChunks(postId, dataUrl) {
+  if (!dataUrl) return 0;
+  const separator = dataUrl.indexOf(',');
+  const payload = separator >= 0 ? dataUrl.slice(separator + 1) : dataUrl;
+  const chunks = Array.from({length:Math.ceil(payload.length / POST_IMAGE_CHUNK_SIZE)}, (_, index) => payload.slice(index * POST_IMAGE_CHUNK_SIZE, (index + 1) * POST_IMAGE_CHUNK_SIZE));
+  for (let index = 0; index < chunks.length; index += 1) {
+    await setDoc(doc(db, 'communityPosts', postId, 'images', String(index).padStart(3, '0')), {index, data:chunks[index], createdAt:serverTimestamp()});
+  }
+  return chunks.length;
+}
+
+async function loadPostImage(post) {
+  if (!post.imageChunkCount || post.imageChunkCount < 1 || post.imageDataUrl) return post;
+  try {
+    const chunks = (await getDocs(collection(db, 'communityPosts', post.id, 'images'))).docs.map(item => item.data()).sort((a,b) => a.index - b.index);
+    if (chunks.length !== post.imageChunkCount || chunks.some((chunk, index) => chunk.index !== index)) return post;
+    const payload = chunks.map(chunk => chunk.data).join('');
+    return {...post, imageDataUrl:'data:' + post.imageMimeType + ';base64,' + payload};
+  } catch (error) { console.warn('[Community] Post image could not be loaded.', error); return post; }
 }
 
 function renderPostGate() {
@@ -2242,6 +2286,34 @@ document.querySelectorAll('input[name="postTypeChoice"]').forEach(input => input
 });
 renderPostTypeFields();
 
+$('postImageFile').addEventListener('change', async event => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  $('postImageStatus').textContent = tr('Preparing image…','جارٍ تجهيز الصورة…');
+  try {
+    postImageDataUrl = await preparePostImage(file);
+    postImageMimeType = file.type;
+    $('postImagePreview').innerHTML = '<img src="' + escapeHtml(postImageDataUrl) + '" alt="">';
+    $('postImagePreview').hidden = false;
+    $('removePostImage').hidden = false;
+    $('postImageStatus').textContent = tr('Image ready to publish.','الصورة جاهزة للنشر.');
+  } catch (error) {
+    event.target.value = '';
+    postImageDataUrl = '';
+    postImageMimeType = '';
+    $('postImageStatus').textContent = error.message;
+  }
+});
+$('removePostImage').addEventListener('click', () => {
+  postImageDataUrl = '';
+  postImageMimeType = '';
+  $('postImageFile').value = '';
+  $('postImagePreview').innerHTML = '';
+  $('postImagePreview').hidden = true;
+  $('removePostImage').hidden = true;
+  $('postImageStatus').textContent = tr('Images are saved securely in chunks. Maximum file size: 10 MB.','تُحفظ الصور بأجزاء آمنة. الحد الأقصى لحجم الملف: 10 ميغابايت.');
+});
+
 $('communityLanguageToggle').addEventListener('click', () => {
   setCommunityLanguage(isArabic() ? 'en' : 'ar');
 });
@@ -2253,6 +2325,8 @@ $('postForm').addEventListener('submit', async event => {
   const title = $('postTitle').value.trim();
   const content = $('postContent').value.trim();
   const behanceSrc = type === 'behance' ? extractBehanceEmbed($('postBehanceEmbed').value) : '';
+  const imageDataUrl = type === 'text' ? postImageDataUrl : '';
+  const imageChunkCount = imageDataUrl ? Math.ceil((imageDataUrl.slice(imageDataUrl.indexOf(',') + 1).length) / POST_IMAGE_CHUNK_SIZE) : 0;
   $('postStatus').classList.remove('success');
   if (!content) {
     $('postStatus').textContent = tr('Write something before publishing.','اكتب شيئاً قبل النشر.');
@@ -2282,14 +2356,27 @@ $('postForm').addEventListener('submit', async event => {
       userId: currentUser.uid,
       authorName: currentProfile.displayName || currentUser.displayName || tr('Member','عضو'),
       authorUsername: currentProfile.username,
-      published: true,
+      published: !imageDataUrl,
+      imageChunkCount,
+      imageMimeType: imageDataUrl ? postImageMimeType : '',
       featureRequest: false,
       featureStatus: 'none',
       featured: false,
       createdAt: serverTimestamp()
     });
+    if (imageDataUrl) {
+      $('postStatus').textContent = tr('Uploading image…','جارٍ رفع الصورة…');
+      await savePostImageChunks(postRef.id, imageDataUrl);
+      await setDoc(postRef, {published:true}, {merge:true});
+    }
     invalidateCommunitySearchIndex();
     $('postForm').reset();
+    postImageDataUrl = '';
+    postImageMimeType = '';
+    $('postImagePreview').innerHTML = '';
+    $('postImagePreview').hidden = true;
+    $('removePostImage').hidden = true;
+    $('postImageStatus').textContent = tr('Images are saved securely in chunks. Maximum file size: 10 MB.','تُحفظ الصور بأجزاء آمنة. الحد الأقصى لحجم الملف: 10 ميغابايت.');
     $('postType').value = 'text';
     document.querySelector('input[name="postTypeChoice"][value="text"]').checked = true;
     renderPostTypeFields();

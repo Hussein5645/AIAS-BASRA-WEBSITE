@@ -189,6 +189,13 @@
               <div class="label-line"><label for="postContent" data-en="Tell the community more" data-ar="أخبر المجتمع بالمزيد">Tell the community more</label><span id="contentCount">0 / 2,000</span></div>
               <textarea id="postContent" maxlength="2000" placeholder="Share context, a fresh perspective, or invite feedback…" data-en="Share context, a fresh perspective, or invite feedback…" data-ar="شارك السياق أو منظوراً جديداً أو اطلب آراء الأعضاء…"></textarea>
             </div>
+            <div id="postImageGroup" class="form-group">
+              <label for="postImageFile" data-en="Add an image (optional)" data-ar="أضف صورة (اختياري)">Add an image (optional)</label>
+              <input id="postImageFile" type="file" accept="image/jpeg,image/png,image/webp">
+              <small id="postImageStatus" aria-live="polite" data-en="Images are saved securely in chunks. Maximum file size: 10 MB." data-ar="تُحفظ الصور بأجزاء آمنة. الحد الأقصى لحجم الملف: 10 ميغابايت.">Images are saved securely in chunks. Maximum file size: 10 MB.</small>
+              <div id="postImagePreview" class="post-image-preview" hidden></div>
+              <button id="removePostImage" class="profile-media-remove" type="button" hidden data-en="Remove image" data-ar="إزالة الصورة">Remove image</button>
+            </div>
             <footer class="composer-footer"><p id="postStatus" class="form-status" aria-live="polite"></p><button class="primary-button" type="submit"><span data-en="Publish post" data-ar="نشر المنشور">Publish post</span><b aria-hidden="true">→</b></button></footer>
           </form>
         </section>

@@ -312,7 +312,12 @@ service cloud.firestore {
         && (request.resource.data.type == 'behance' || request.resource.data.behanceSrc == '')
         && request.resource.data.content is string
         && request.resource.data.content.size() > 0
-        && request.resource.data.content.size() <= 2000);
+        && request.resource.data.content.size() <= 2000
+        && request.resource.data.imageChunkCount is int
+        && request.resource.data.imageChunkCount >= 0
+        && request.resource.data.imageChunkCount <= 24
+        && request.resource.data.imageMimeType is string
+        && (request.resource.data.imageChunkCount == 0 || (request.resource.data.type == 'text' && request.resource.data.imageMimeType in ['image/jpeg', 'image/png', 'image/webp'])));
       allow update: if hasPermission('manage_community') || (isAuthenticated()
         && resource.data.userId == request.auth.uid
         && request.resource.data.userId == resource.data.userId
@@ -326,6 +331,24 @@ service cloud.firestore {
             && request.resource.data.featureStatus == 'pending'))
         && (request.resource.data.type == 'behance' || request.resource.data.featureRequest == false));
       allow delete: if hasPermission('manage_community') || (isAuthenticated() && resource.data.userId == request.auth.uid);
+    }
+
+    match /communityPosts/{postId}/images/{chunkId} {
+      allow read: if true;
+      allow create: if isAuthenticated()
+        && get(/databases/$(database)/documents/communityPosts/$(postId)).data.userId == request.auth.uid
+        && get(/databases/$(database)/documents/communityPosts/$(postId)).data.type == 'text'
+        && chunkId.matches('^[0-9]{3}$')
+        && request.resource.data.index is int
+        && request.resource.data.index >= 0
+        && request.resource.data.index < 24
+        && request.resource.data.data is string
+        && request.resource.data.data.size() > 0
+        && request.resource.data.data.size() <= 700000
+        && request.resource.data.createdAt == request.time;
+      allow update: if false;
+      allow delete: if hasPermission('manage_community') || (isAuthenticated()
+        && get(/databases/$(database)/documents/communityPosts/$(postId)).data.userId == request.auth.uid);
     }
 
     match /communityPosts/{postId}/votes/{userId} {
