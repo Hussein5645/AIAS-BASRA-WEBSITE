@@ -775,12 +775,21 @@ async function loadManageSpaces() {
   }
   $('manageSpacesList').innerHTML = '<div class="manage-spaces-grid">' + (await Promise.all(spaces.map(async ([slug, area]) => {
     let requests = [];
-    try { requests = (await getDocs(query(collection(db, 'communitySpaces', slug, 'connectionRequests'), where('status', '==', 'pending')))).docs.map(item => ({id:item.id, ...item.data()})); } catch (error) { console.warn('[Community] Requests unavailable.', error); }
+    let members = [];
+    try {
+      const [requestSnapshot, memberSnapshot] = await Promise.all([
+        getDocs(query(collection(db, 'communitySpaces', slug, 'connectionRequests'), where('status', '==', 'pending'))),
+        getDocs(collection(db, 'communitySpaces', slug, 'connections'))
+      ]);
+      requests = requestSnapshot.docs.map(item => ({id:item.id, ...item.data()}));
+      members = memberSnapshot.docs.map(item => ({id:item.id, ...item.data()}));
+    } catch (error) { console.warn('[Community] Space membership unavailable.', error); }
     const requestRows = requests.length ? '<div class="space-request-list">' + (await Promise.all(requests.map(async request => { const profile = await getProfile(request.userId); return '<div><span>' + escapeHtml(profile.displayName || profile.username || tr('Member','عضو')) + '</span><button type="button" data-approve-request="' + escapeHtml(slug) + '|' + escapeHtml(request.userId) + '">' + tr('Approve','موافقة') + '</button><button type="button" data-deny-request="' + escapeHtml(slug) + '|' + escapeHtml(request.userId) + '">' + tr('Deny','رفض') + '</button></div>'; }))).join('') + '</div>' : '<p class="space-request-empty">' + tr('No pending requests.','لا توجد طلبات معلقة.') + '</p>';
+    const memberRows = members.length ? '<div class="space-member-list">' + (await Promise.all(members.map(async member => { const profile = await getProfile(member.userId); const name = profile.displayName || profile.username || tr('Member','عضو'); return '<article><a href="' + escapeHtml(profileUrl(member.userId, profile.username)) + '">' + avatarMarkup(name, profile.photoBase64 || profile.photoURL, 'space-member-avatar') + '<span><strong>' + escapeHtml(name) + '</strong><small>' + escapeHtml(profile.username ? '@' + profile.username : tr('Space member','عضو في المساحة')) + '</small></span></a><button type="button" data-remove-space-member="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '">' + tr('Remove access','إزالة الوصول') + '</button></article>'; }))).join('') + '</div>' : '<p class="space-request-empty">' + tr('No connected members yet.','لا يوجد أعضاء متصلون بعد.') + '</p>';
     const settingToggles = '<div class="manage-space-toggles">'
       + '<label class="space-setting-toggle compact"><span class="space-setting-icon" aria-hidden="true">◐</span><span class="space-setting-copy"><strong>' + tr('Private space','مساحة خاصة') + '</strong><small>' + tr('Require approval to connect','تتطلب الموافقة للاتصال') + '</small></span><span class="toggle-control"><input type="checkbox" data-manage-space-setting="' + escapeHtml(slug) + '|isPrivate"' + (area.isPrivate ? ' checked' : '') + '><i aria-hidden="true"></i></span></label>'
       + '<label class="space-setting-toggle compact' + (area.isPrivate ? ' is-disabled' : '') + '"><span class="space-setting-icon" aria-hidden="true">⌁</span><span class="space-setting-copy"><strong>' + tr('Main-thread posts','منشورات المسار الرئيسي') + '</strong><small>' + tr('Show posts outside this space','إظهار المنشورات خارج المساحة') + '</small></span><span class="toggle-control"><input type="checkbox" data-manage-space-setting="' + escapeHtml(slug) + '|showInMainThread"' + (area.showInMainThread !== false && !area.isPrivate ? ' checked' : '') + (area.isPrivate ? ' disabled' : '') + '><i aria-hidden="true"></i></span></label></div>';
-    return '<article class="manage-space-card"><div><span class="mini-kicker">a/' + escapeHtml(slug) + '</span><h2>' + escapeHtml(area.name || slug) + '</h2><p>' + escapeHtml(area.description || '') + '</p></div>' + settingToggles + '<button type="button" data-manage-edit="' + escapeHtml(slug) + '">' + tr('Edit name, description & media','تعديل الاسم والوصف والوسائط') + '</button><section><strong>' + tr('Membership requests','طلبات العضوية') + ' (' + requests.length + ')</strong>' + requestRows + '</section></article>';
+    return '<article class="manage-space-card"><div><span class="mini-kicker">a/' + escapeHtml(slug) + '</span><h2>' + escapeHtml(area.name || slug) + '</h2><p>' + escapeHtml(area.description || '') + '</p></div>' + settingToggles + '<button type="button" data-manage-edit="' + escapeHtml(slug) + '">' + tr('Edit name, description & media','تعديل الاسم والوصف والوسائط') + '</button><section><strong>' + tr('Membership requests','طلبات العضوية') + ' (' + requests.length + ')</strong>' + requestRows + '</section><section><strong>' + tr('Space members','أعضاء المساحة') + ' (' + members.length + ')</strong>' + memberRows + '</section></article>';
   }))).join('') + '</div>';
 }
 
@@ -797,6 +806,21 @@ async function reviewSpaceRequest(slug, userId, approved) {
   await batch.commit();
   await loadManageSpaces();
   showToast(approved ? tr('Request approved.','تمت الموافقة على الطلب.') : tr('Request denied.','تم رفض الطلب.'));
+}
+
+async function removeSpaceMember(slug, userId) {
+  const area = communityAreas[slug];
+  if (!area || area.creatorId !== currentUser?.uid || !userId) return;
+  if (!confirm(tr('Remove this member from a/' + slug + '? They will lose access immediately.','إزالة هذا العضو من a/' + slug + '؟ سيفقد الوصول فوراً.'))) return;
+  const requestRef = doc(db, 'communitySpaces', slug, 'connectionRequests', userId);
+  const requestSnapshot = await getDoc(requestRef);
+  const batch = writeBatch(db);
+  batch.delete(doc(db, 'communitySpaces', slug, 'connections', userId));
+  batch.delete(doc(db, 'users', userId, 'connectedSpaces', slug));
+  if (requestSnapshot.exists()) batch.set(requestRef, {status:'removed', reviewedAt:serverTimestamp(), reviewedBy:currentUser.uid}, {merge:true});
+  await batch.commit();
+  await loadManageSpaces();
+  showToast(tr('Member access removed.','تمت إزالة وصول العضو.'));
 }
 
 async function updateManagedSpaceSetting(slug, setting, enabled) {
@@ -2266,9 +2290,17 @@ $('manageSpacesList').addEventListener('click', async event => {
   const edit = event.target.closest('[data-manage-edit]');
   const approve = event.target.closest('[data-approve-request]');
   const deny = event.target.closest('[data-deny-request]');
+  const removeMember = event.target.closest('[data-remove-space-member]');
   if (edit) {
     activeAreaSlug = edit.dataset.manageEdit;
     openSpaceEditor();
+    return;
+  }
+  if (removeMember) {
+    const [slug, userId] = removeMember.dataset.removeSpaceMember.split('|');
+    removeMember.disabled = true;
+    try { await removeSpaceMember(slug, userId); }
+    catch (error) { console.error(error); showToast(tr('Member access could not be removed.','تعذر إزالة وصول العضو.')); removeMember.disabled = false; }
     return;
   }
   const control = approve || deny;
