@@ -500,13 +500,19 @@ function canAccessPrivateSpace(area) {
 
 function renderPrivateSpaceGate(area) {
   const restricted = Boolean(area?.isPrivate && !canAccessPrivateSpace(area));
-  $('privateSpaceGate').hidden = !restricted;
+  const gate = $('privateSpaceGate');
+  if (!gate) return false;
+  gate.hidden = !restricted;
   if (!restricted) return false;
-  $('privateSpaceDialogTitle').textContent = tr('This space is private','هذه المساحة خاصة');
-  $('privateSpaceDialogCopy').textContent = currentUser
+  const title = $('privateSpaceDialogTitle');
+  const copy = $('privateSpaceDialogCopy');
+  const requestButton = $('privateSpaceRequest');
+  if (!title || !copy || !requestButton) return false;
+  title.textContent = tr('This space is private','هذه المساحة خاصة');
+  copy.textContent = currentUser
     ? tr('a/' + area.slug + ' is available to approved members only. Send a request and the space admin can review it.','مساحة a/' + area.slug + ' متاحة للأعضاء الموافق عليهم فقط. أرسل طلباً ليتمكن مشرف المساحة من مراجعته.')
     : tr('a/' + area.slug + ' is available to approved members only. Sign in to request access from its admin.','مساحة a/' + area.slug + ' متاحة للأعضاء الموافق عليهم فقط. سجّل الدخول لطلب الوصول من مشرفها.');
-  $('privateSpaceRequest').querySelector('span').textContent = currentUser ? tr('Request access','طلب الوصول') : tr('Sign in to request','سجّل الدخول للطلب');
+  requestButton.querySelector('span').textContent = currentUser ? tr('Request access','طلب الوصول') : tr('Sign in to request','سجّل الدخول للطلب');
   return true;
 }
 
@@ -2301,7 +2307,7 @@ $('areaConnect').addEventListener('click', async event => {
     showToast(tr('This space connection could not be updated.','تعذر تحديث التواصل مع هذه المساحة.'));
   } finally { button.disabled = false; }
 });
-$('privateSpaceRequest').addEventListener('click', async event => {
+$('privateSpaceRequest')?.addEventListener('click', async event => {
   if (!currentUser) { location.href = loginUrl(); return; }
   const area = activeAreaSlug ? communityAreas[activeAreaSlug] : null;
   if (!area || !area.isPrivate) return;
