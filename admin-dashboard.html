@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <script type="module" src="js/auth.js"></script>
-  <script type="module" src="js/firestore-api.js?v=20260808-fbd-stats"></script>
+  <script type="module" src="js/firestore-api.js?v=20260811-settings"></script>
   <script src="js/main.js" defer></script>
   <style>
     :root {
@@ -105,12 +105,46 @@
     .editor-mode-banner strong { display:block; font-size:.9rem; }
     .editor-mode-banner small { display:block; margin-top:.15rem; opacity:.85; }
     .editor-mode-new { flex:0 0 auto; border:1px solid currentColor; border-radius:7px; padding:.4rem .65rem; background:transparent; color:inherit; cursor:pointer; font-size:.75rem; font-weight:700; }
+    .firestore-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+    .firestore-card { position:relative; overflow:hidden; padding:1.15rem; border:1px solid var(--border); border-radius:14px; background:linear-gradient(145deg,#fff,#fbfaf9); box-shadow:0 8px 24px rgba(50,28,34,.06); }
+    .firestore-card::before { content:''; position:absolute; inset:0 auto 0 0; width:4px; background:linear-gradient(var(--brand1),var(--brand2)); }
+    .firestore-card h3 { margin:0; color:#2d1b20; font-size:1rem; }
+    .firestore-card p { margin:.35rem 0 0; color:var(--muted); font-size:.8rem; line-height:1.55; }
+    .firestore-status-line { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin:1rem 0; padding:.8rem; border:1px solid var(--border); border-radius:10px; background:#f8fafc; }
+    .firestore-status-main { display:flex; align-items:center; gap:.65rem; min-width:0; }
+    .firestore-status-dot { width:10px; height:10px; flex:0 0 auto; border-radius:50%; background:#94a3b8; box-shadow:0 0 0 4px rgba(148,163,184,.14); }
+    .firestore-status-line.is-success .firestore-status-dot { background:#22c55e; box-shadow:0 0 0 4px rgba(34,197,94,.14); }
+    .firestore-status-line.is-error .firestore-status-dot { background:#ef4444; box-shadow:0 0 0 4px rgba(239,68,68,.14); }
+    .firestore-status-line.is-loading .firestore-status-dot { background:#d97706; animation:firestorePulse 1s ease-in-out infinite; }
+    .firestore-status-main strong,.firestore-status-main small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .firestore-status-main small,.firestore-meta { color:#64748b; font-size:.7rem; }
+    .firestore-checks { display:grid; gap:.45rem; margin:.75rem 0; }
+    .firestore-check { display:flex; justify-content:space-between; gap:1rem; padding:.55rem .65rem; border-radius:8px; background:#f8fafc; color:#475569; font-size:.73rem; }
+    .firestore-check strong { color:#1f2937; }
+    .firestore-check.is-error { color:#b91c1c; background:#fff1f2; }
+    .firestore-actions { display:flex; flex-wrap:wrap; gap:.55rem; margin-top:1rem; }
+    .firestore-button { display:inline-flex; align-items:center; justify-content:center; gap:.45rem; min-height:42px; padding:.65rem .9rem; border:1px solid transparent; border-radius:9px; font:inherit; font-size:.78rem; font-weight:800; cursor:pointer; transition:transform .2s,box-shadow .2s,opacity .2s; }
+    .firestore-button:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 7px 16px rgba(50,28,34,.12); }
+    .firestore-button:disabled { cursor:not-allowed; opacity:.48; }
+    .firestore-button.primary { color:#fff; background:linear-gradient(135deg,var(--brand1),var(--brand2)); }
+    .firestore-button.secondary { color:var(--brand1); border-color:#d8c0b8; background:#fff7f3; }
+    .firestore-button.repair { color:#fff; background:#315e52; }
+    .firestore-results { display:none; margin-top:1rem; padding:.9rem; border:1px solid var(--border); border-radius:10px; background:#f8fafc; }
+    .firestore-results.is-visible { display:block; }
+    .firestore-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem; margin-bottom:.75rem; }
+    .firestore-summary span { padding:.65rem; border-radius:8px; background:#fff; color:#64748b; font-size:.68rem; }
+    .firestore-summary strong { display:block; margin-bottom:.12rem; color:#2d1b20; font-size:1rem; }
+    .firestore-result-list { max-height:220px; overflow:auto; margin:.65rem 0 0; padding:0; list-style:none; }
+    .firestore-result-list li { padding:.4rem 0; border-bottom:1px solid #e2e8f0; color:#475569; font-size:.72rem; overflow-wrap:anywhere; }
+    .firestore-result-list li:last-child { border-bottom:0; }
+    @keyframes firestorePulse { 50% { opacity:.35; transform:scale(.75); } }
     @media (max-width: 900px) {
       .dashboard { grid-template-columns: 1fr; }
       .sidebar { position: static; height: auto; }
       .two-col,.role-grid,.role-stats,.assignment-form { grid-template-columns: 1fr; }
       .tab-content:not(#settings-tab):not(#roles-tab).active { grid-template-columns:1fr; }
       .tab-content:not(#settings-tab):not(#roles-tab).active > details:first-child { position:static; max-height:none; }
+      .firestore-grid { grid-template-columns:1fr; }
     }
   </style>
 </head>
@@ -520,28 +554,28 @@
 
       <!-- Settings -->
       <section id="settings-tab" class="tab-content">
-        <details class="accordion" open>
-          <summary data-en="Connection" data-ar="الاتصال">Connection</summary>
-          <div class="accordion-body panel">
-            <div id="tokenStatus" style="padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem; background:#f8fafc;">
-              <p><strong data-en="Status:" data-ar="الحالة:">Status:</strong> <span id="tokenStatusText">Checking...</span></p>
+        <div class="firestore-grid">
+          <section class="firestore-card" aria-labelledby="firestoreConnectionTitle">
+            <h3 id="firestoreConnectionTitle">Firestore connection</h3>
+            <p>Check the live database and confirm that this administrator can read protected configuration.</p>
+            <div id="tokenStatus" class="firestore-status-line" role="status" aria-live="polite">
+              <div class="firestore-status-main"><span class="firestore-status-dot" aria-hidden="true"></span><span><strong id="tokenStatusText">Not checked</strong><small id="firestoreProjectText">Project: aias-bsr</small></span></div>
+              <span id="firestoreLatency" class="firestore-meta">—</span>
             </div>
-            <p style="color:#4a5568;margin-bottom:1rem" data-en="Content is now stored in Firebase Firestore. No additional configuration needed." data-ar="يتم تخزين المحتوى الآن في Firebase Firestore. لا حاجة لتكوين إضافي.">Content is now stored in Firebase Firestore. No additional configuration needed.</p>
-            <button type="button" class="submit-btn" onclick="testFirestoreConnection()" style="background:#38a169;" data-en="Test Connection" data-ar="اختبار الاتصال">Test Connection</button>
-          </div>
-        </details>
+            <div id="firestoreConnectionDetails" class="firestore-checks"></div>
+            <div class="firestore-actions"><button type="button" id="testFirestoreBtn" class="firestore-button primary">Test connection</button></div>
+          </section>
 
-        <details class="accordion" open>
-          <summary data-en="Firestore Structure" data-ar="بنية Firestore">Firestore Structure</summary>
-          <div class="accordion-body panel">
-            <div id="structureResults" style="display:none;padding:1rem;border-radius:8px;margin-bottom:1rem;max-height:300px;overflow-y:auto;background:#f8fafc;">
-              <h4 data-en="Structure Validation Results:" data-ar="نتائج التحقق من البنية:">Structure Validation Results:</h4>
-              <div id="structureResultsContent"></div>
+          <section class="firestore-card" aria-labelledby="firestoreStructureTitle">
+            <h3 id="firestoreStructureTitle">Content structure</h3>
+            <p>Inspect first, then safely create missing content documents and backfill only absent fields. Existing values are preserved.</p>
+            <div id="structureResults" class="firestore-results" role="status" aria-live="polite"><div id="structureResultsContent"></div></div>
+            <div class="firestore-actions">
+              <button type="button" id="inspectFirestoreBtn" class="firestore-button secondary">Inspect structure</button>
+              <button type="button" id="repairFirestoreBtn" class="firestore-button repair" disabled>Repair detected issues</button>
             </div>
-            <button type="button" class="submit-btn" onclick="fixFirestoreStructure()" style="background:#667eea;" data-en="Fix Firestore Structure" data-ar="إصلاح بنية Firestore">Fix Firestore Structure</button>
-          </div>
-        </details>
-
+          </section>
+        </div>
       </section>
 
       <section id="roles-tab" class="tab-content">
@@ -574,7 +608,7 @@
     import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, getDocs, collection, addDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import FirestoreAPI from "./js/firestore-api.js?v=20260808-fbd-stats";
+    import FirestoreAPI from "./js/firestore-api.js?v=20260811-settings";
     import categoriesLoader from "./js/categories-loader.js";
     import { toBase64, uploadFileChunks, createDocumentId } from "./js/file-chunks.js";
     import { ADMIN_AREAS, DEFAULT_ROLES, canManage, canView, clearAccessSession, ensureRoleConfiguration, getAdminAccess, normalizeEmail, persistAccessSession, saveAssignments, saveRoles } from "./js/rbac.js";
@@ -2263,24 +2297,115 @@
     /*************************************************
      * إعدادات / أدوات الصيانة
      *************************************************/
+    const settingsEscape = value => String(value ?? '').replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
+    let latestFirestoreInspection = null;
+
+    function setFirestoreButtonBusy(button, busy, busyLabel) {
+      if (!button) return;
+      if (!button.dataset.defaultLabel) button.dataset.defaultLabel = button.textContent;
+      button.disabled = busy;
+      button.textContent = busy ? busyLabel : button.dataset.defaultLabel;
+    }
+
+    function renderStructureInspection(inspection, repairResult = null) {
+      const box = document.getElementById('structureResults');
+      const content = document.getElementById('structureResultsContent');
+      box.classList.add('is-visible');
+      const summary = inspection.summary || {};
+      const issues = [...(inspection.issues || []), ...(inspection.errors || [])];
+      const statusColor = inspection.healthy ? '#166534' : inspection.success ? '#92400e' : '#b91c1c';
+      const title = inspection.healthy
+        ? 'Structure is healthy'
+        : inspection.success
+          ? `${inspection.repairableIssues} repairable issue${inspection.repairableIssues === 1 ? '' : 's'} found`
+          : 'Inspection could not finish';
+      const repairVerified = repairResult?.success && inspection.healthy;
+      const changedActions = (repairResult?.actions || []).filter(action => action.startsWith('Created ') || action.startsWith('Backfilled ') || /backfilled [1-9][0-9]*/.test(action));
+      const repairSection = repairResult
+        ? `<div style="margin-bottom:.75rem;padding:.65rem;border-radius:8px;background:${repairVerified ? '#ecfdf5' : '#fff1f2'}"><strong style="color:${repairVerified ? '#166534' : '#b91c1c'}">${repairVerified ? 'Repair finished and verified' : 'Repair finished with remaining issues'}</strong><small style="display:block;margin-top:.2rem;color:#64748b">${settingsEscape(changedActions.join(' · ') || 'No data changes were needed.')}</small></div>`
+        : '';
+      const list = issues.length
+        ? `<ul class="firestore-result-list">${issues.slice(0, 50).map(issue => `<li>${settingsEscape(issue)}</li>`).join('')}${issues.length > 50 ? `<li>And ${issues.length - 50} more…</li>` : ''}</ul>`
+        : '<p style="color:#166534">All required content documents and fields are ready.</p>';
+      content.innerHTML = `${repairSection}<strong style="color:${statusColor}">${settingsEscape(title)}</strong><div class="firestore-summary"><span><strong>${Number(summary.baseDocuments || 0)}</strong>Base documents</span><span><strong>${Number(summary.contentEntries || 0)}</strong>Content entries</span><span><strong>${Number(summary.documentsNeedingRepair || 0)}</strong>Need repair</span></div><small class="firestore-meta">Checked ${settingsEscape(new Date(inspection.checkedAt).toLocaleString())}. Inspection is read-only.</small>${list}`;
+    }
+
     window.testFirestoreConnection = async function() {
-      const el = document.getElementById('tokenStatusText');
-      el.textContent = 'Testing...';
-      const r = await firestoreAPI.testConnection();
-      el.textContent = r.success ? 'Connected' : `Error: ${r.error}`;
-      document.getElementById('tokenStatus').style.background = r.success ? '#f0fff4' : '#fff5f5';
+      const button = document.getElementById('testFirestoreBtn');
+      const status = document.getElementById('tokenStatus');
+      const statusText = document.getElementById('tokenStatusText');
+      const details = document.getElementById('firestoreConnectionDetails');
+      setFirestoreButtonBusy(button, true, 'Testing…');
+      status.className = 'firestore-status-line is-loading';
+      statusText.textContent = 'Checking Firestore…';
+      document.getElementById('firestoreLatency').textContent = '—';
+      details.innerHTML = '';
+      try {
+        const result = await firestoreAPI.testConnection();
+        status.className = `firestore-status-line ${result.success ? 'is-success' : 'is-error'}`;
+        statusText.textContent = result.success ? 'Connected' : 'Connection needs attention';
+        document.getElementById('firestoreProjectText').textContent = `Project: ${result.projectId || 'unknown'}`;
+        document.getElementById('firestoreLatency').textContent = `${result.latencyMs} ms`;
+        details.innerHTML = (result.checks || []).map(check => `<div class="firestore-check ${check.success ? '' : 'is-error'}"><strong>${settingsEscape(check.label)}</strong><span>${settingsEscape(check.detail)}</span></div>`).join('') + `<small class="firestore-meta">Last checked ${settingsEscape(new Date(result.checkedAt).toLocaleString())}</small>`;
+      } catch (error) {
+        status.className = 'firestore-status-line is-error';
+        statusText.textContent = 'Connection test failed';
+        details.innerHTML = `<div class="firestore-check is-error"><strong>Request failed</strong><span>${settingsEscape(error.message)}</span></div>`;
+      } finally {
+        setFirestoreButtonBusy(button, false, 'Testing…');
+      }
+    };
+
+    window.inspectFirestoreStructure = async function() {
+      const inspectButton = document.getElementById('inspectFirestoreBtn');
+      const repairButton = document.getElementById('repairFirestoreBtn');
+      const box = document.getElementById('structureResults');
+      const content = document.getElementById('structureResultsContent');
+      setFirestoreButtonBusy(inspectButton, true, 'Inspecting…');
+      repairButton.disabled = true;
+      box.classList.add('is-visible');
+      content.innerHTML = '<p>Reading content documents and checking required fields…</p>';
+      try {
+        latestFirestoreInspection = await firestoreAPI.inspectStructure();
+        renderStructureInspection(latestFirestoreInspection);
+        repairButton.disabled = !latestFirestoreInspection.success || latestFirestoreInspection.repairableIssues < 1;
+      } catch (error) {
+        latestFirestoreInspection = null;
+        content.innerHTML = `<strong style="color:#b91c1c">Inspection failed</strong><p>${settingsEscape(error.message)}</p>`;
+      } finally {
+        setFirestoreButtonBusy(inspectButton, false, 'Inspecting…');
+      }
     };
 
     window.fixFirestoreStructure = async function() {
-      const box = document.getElementById('structureResults');
+      if (!latestFirestoreInspection?.success || latestFirestoreInspection.repairableIssues < 1) return;
+      const approved = window.confirm(`Repair ${latestFirestoreInspection.repairableIssues} detected structure issue${latestFirestoreInspection.repairableIssues === 1 ? '' : 's'}? Existing field values will not be overwritten.`);
+      if (!approved) return;
+      const inspectButton = document.getElementById('inspectFirestoreBtn');
+      const repairButton = document.getElementById('repairFirestoreBtn');
       const content = document.getElementById('structureResultsContent');
-      box.style.display = 'block';
-      content.innerHTML = '<p>Validating and fixing structure...</p>';
-      const r = await firestoreAPI.validateAndFixStructure();
-      const actions = (r.actions||[]).map(a=>`<li style="color:#2f855a">✓ ${a}</li>`).join('');
-      const errors  = (r.errors ||[]).map(e=>`<li style="color:#c53030">✗ ${e}</li>`).join('');
-      content.innerHTML = `<ul>${actions}${errors}</ul>`;
+      inspectButton.disabled = true;
+      setFirestoreButtonBusy(repairButton, true, 'Repairing…');
+      content.innerHTML = '<p>Repairing missing documents and fields, then verifying the result…</p>';
+      try {
+        const repairResult = await firestoreAPI.validateAndFixStructure();
+        latestFirestoreInspection = await firestoreAPI.inspectStructure();
+        renderStructureInspection(latestFirestoreInspection, repairResult);
+        repairButton.disabled = !latestFirestoreInspection.success || latestFirestoreInspection.repairableIssues < 1;
+        showMessage(repairResult.success && latestFirestoreInspection.healthy ? 'Firestore structure repaired and verified.' : 'Firestore repair finished with issues. Review the details in Settings.', repairResult.success && latestFirestoreInspection.healthy ? 'success' : 'error');
+      } catch (error) {
+        content.innerHTML = `<strong style="color:#b91c1c">Repair failed</strong><p>${settingsEscape(error.message)}</p>`;
+        showMessage('Firestore repair failed. No existing values were removed.', 'error');
+      } finally {
+        inspectButton.disabled = false;
+        setFirestoreButtonBusy(repairButton, false, 'Repairing…');
+        repairButton.disabled = !latestFirestoreInspection?.success || latestFirestoreInspection.repairableIssues < 1;
+      }
     };
+
+    document.getElementById('testFirestoreBtn').addEventListener('click', testFirestoreConnection);
+    document.getElementById('inspectFirestoreBtn').addEventListener('click', inspectFirestoreStructure);
+    document.getElementById('repairFirestoreBtn').addEventListener('click', fixFirestoreStructure);
 
     
       // --- Background Upload Handlers ---

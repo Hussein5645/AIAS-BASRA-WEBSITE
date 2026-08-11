@@ -713,8 +713,29 @@ class FirestoreAPI {
   }
 
   async testConnection() {
-    try { await getDoc(doc(this.db, 'config', 'admins')); return { success: true, message: 'Connection successful' }; }
-    catch (error) { return { success: false, error: error.message }; }
+    const startedAt = performance.now();
+    const checks = await Promise.allSettled([
+      getDoc(doc(this.db, 'content', 'events')),
+      getDoc(doc(this.db, 'config', 'admins'))
+    ]);
+    const labels = ['Firestore database', 'Administrator access'];
+    const details = checks.map((result, index) => ({
+      label: labels[index],
+      success: result.status === 'fulfilled',
+      detail: result.status === 'fulfilled'
+        ? (result.value.exists() ? 'Readable' : 'Reachable (document not created yet)')
+        : (result.reason?.message || 'Request failed')
+    }));
+    const success = details.every(check => check.success);
+    return {
+      success,
+      message: success ? 'Firestore is connected and administrator access is working.' : 'One or more Firestore checks failed.',
+      error: success ? '' : details.filter(check => !check.success).map(check => check.detail).join(' '),
+      projectId: app.options.projectId || '',
+      latencyMs: Math.max(0, Math.round(performance.now() - startedAt)),
+      checkedAt: new Date().toISOString(),
+      checks: details
+    };
   }
 
   // Define the required docs, required fields, and subcollections (no legacy)
@@ -729,12 +750,12 @@ class FirestoreAPI {
         models3d: { createdAt: 0 }
       },
       subcollections: [
-        { parent: ['content', 'events'], name: 'items' },
-        { parent: ['content', 'library'], name: 'items' },
-        { parent: ['content', 'magazine'], name: 'articles' },
-        { parent: ['content', 'education'], name: 'courses' },
-        { parent: ['content', 'fbd'], name: 'events' },
-        { parent: ['content', 'models3d'], name: 'items' }
+        { parent: ['content', 'events'], name: 'items', defaultsKey: 'events' },
+        { parent: ['content', 'library'], name: 'items', defaultsKey: 'library' },
+        { parent: ['content', 'magazine'], name: 'articles', defaultsKey: 'articles' },
+        { parent: ['content', 'education'], name: 'courses', defaultsKey: 'courses' },
+        { parent: ['content', 'fbd'], name: 'events', defaultsKey: 'fbdEvents' },
+        { parent: ['content', 'models3d'], name: 'items', defaultsKey: 'models3d' }
       ],
       // Per-item required/default fields used for backfill
       itemDefaults: {
@@ -746,6 +767,92 @@ class FirestoreAPI {
         models3d: { code: "", name: "", date: "", tags: [] }
       }
     };
+  }
+
+  // Read-only inspection used by the dashboard before it offers a repair.
+  async inspectStructure() {
+    const expected = this.getExpectedStructure();
+    const result = {
+      success: true,
+      healthy: true,
+      projectId: app.options.projectId || '',
+      checkedAt: new Date().toISOString(),
+      documents: [],
+      collections: [],
+      issues: [],
+      errors: [],
+      repairableIssues: 0,
+      summary: { baseDocuments: 0, contentEntries: 0, documentsNeedingRepair: 0, missingFields: 0 }
+    };
+
+    const missingKeys = (data, defaults, prefix = '') => {
+      const missing = [];
+      for (const [key, defaultValue] of Object.entries(defaults)) {
+        const field = prefix ? `${prefix}.${key}` : key;
+        if (data?.[key] === undefined || data?.[key] === null) {
+          missing.push(field);
+        } else if (defaultValue && typeof defaultValue === 'object' && !Array.isArray(defaultValue)) {
+          missing.push(...missingKeys(data[key], defaultValue, field));
+        }
+      }
+      return missing;
+    };
+
+    for (const [docName, defaults] of Object.entries(expected.contentDocs)) {
+      const path = `content/${docName}`;
+      try {
+        const snapshot = await getDoc(this._docRef(['content', docName]));
+        result.summary.baseDocuments += 1;
+        if (!snapshot.exists()) {
+          result.documents.push({ path, status: 'missing', missingFields: Object.keys(defaults) });
+          result.issues.push(`${path} is missing`);
+          result.repairableIssues += 1;
+          result.summary.documentsNeedingRepair += 1;
+          continue;
+        }
+        const missing = missingKeys(snapshot.data() || {}, defaults);
+        result.documents.push({ path, status: missing.length ? 'needs-repair' : 'ready', missingFields: missing });
+        if (missing.length) {
+          result.issues.push(`${path} is missing: ${missing.join(', ')}`);
+          result.repairableIssues += missing.length;
+          result.summary.documentsNeedingRepair += 1;
+          result.summary.missingFields += missing.length;
+        }
+      } catch (error) {
+        result.documents.push({ path, status: 'error', missingFields: [] });
+        result.errors.push(`${path}: ${error.message}`);
+      }
+    }
+
+    for (const definition of expected.subcollections) {
+      const path = `${definition.parent.join('/')}/${definition.name}`;
+      try {
+        const snapshot = await getDocs(this._colRef([...definition.parent, definition.name]));
+        const defaults = expected.itemDefaults[definition.defaultsKey] || {};
+        let affectedDocuments = 0;
+        let missingFields = 0;
+        snapshot.docs.forEach(item => {
+          const missing = missingKeys(item.data() || {}, defaults);
+          if (missing.length) {
+            affectedDocuments += 1;
+            missingFields += missing.length;
+            result.issues.push(`${path}/${item.id} is missing: ${missing.join(', ')}`);
+          }
+        });
+        result.summary.contentEntries += snapshot.size;
+        result.summary.documentsNeedingRepair += affectedDocuments;
+        result.summary.missingFields += missingFields;
+        result.repairableIssues += missingFields;
+        result.collections.push({ path, count: snapshot.size, affectedDocuments, missingFields, status: missingFields ? 'needs-repair' : 'ready' });
+      } catch (error) {
+        result.collections.push({ path, count: 0, affectedDocuments: 0, missingFields: 0, status: 'error' });
+        result.errors.push(`${path}: ${error.message}`);
+      }
+    }
+
+    result.success = result.errors.length === 0;
+    result.healthy = result.success && result.repairableIssues === 0;
+    return result;
   }
 
   // Validate and fix Firestore structure (create/backfill current structure and item fields — no legacy)
