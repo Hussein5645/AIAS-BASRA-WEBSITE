@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AIAS Basra Chapter - Home</title>
+    <script>try{if(localStorage.getItem('language')==='ar'){document.documentElement.lang='ar';document.documentElement.dir='rtl';}}catch{}</script>
+    <title data-en="AIAS Basra Chapter — Home" data-ar="فرع AIAS البصرة — الرئيسية">AIAS Basra Chapter — Home</title>
     <link rel="icon" type="image/png" href="static/images/branding/LOGO.png">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/animations.css">
     <link rel="stylesheet" href="css/intro.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         .home-articles { padding: 5rem 0; background: var(--light-bg); }
         .home-articles-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.5rem; }
@@ -34,6 +35,10 @@
         .home-article-summary { color:var(--text-secondary); line-height:1.6; margin-bottom:1rem; }
         .home-article-link { color:var(--accent-color); font-weight:700; text-decoration:none; }
         .home-article-link:hover { text-decoration:underline; }
+        html[dir="rtl"] body { font-family:'Noto Sans Arabic',Inter,sans-serif; }
+        html[dir="rtl"] .home-article-sort, html[dir="rtl"] .home-view-controls { justify-content:flex-start; }
+        html[dir="rtl"] .home-articles-grid.view-timeline, html[dir="rtl"] .latest-events-grid.view-timeline { padding-left:0; padding-right:2rem; border-left:0; border-right:3px solid var(--accent-color); }
+        html[dir="rtl"] .home-articles-grid.view-timeline > *::before, html[dir="rtl"] .latest-events-grid.view-timeline > *::before { left:auto; right:-2.65rem; }
     </style>
 </head>
 <body>
@@ -41,8 +46,8 @@
     <div class="intro-overlay" id="introOverlay">
         <div class="intro-content">
             <img src="static/images/branding/LOGO.png" alt="AIAS Basra Logo" class="intro-logo">
-            <h1 class="intro-title">AIAS Basra Chapter</h1>
-            <p class="intro-subtitle">Building the Future of Architecture</p>
+            <h1 class="intro-title" data-en="AIAS Basra Chapter" data-ar="فرع AIAS البصرة">AIAS Basra Chapter</h1>
+            <p class="intro-subtitle" data-en="Building the Future of Architecture" data-ar="نبني مستقبل العمارة">Building the Future of Architecture</p>
         </div>
     </div>
 
@@ -63,7 +68,7 @@
                     <span></span>
                 </button>
                 <ul class="nav-links" id="navLinks">
-                    <li><a href="community.html" data-en="Community" data-ar="Community">Community</a></li>
+                    <li><a href="community.html" data-en="Community" data-ar="المجتمع">Community</a></li>
                     <li><a href="index.html" class="active" data-en="Home" data-ar="الرئيسية">Home</a></li>
                     <li><a href="events.html" data-en="Events" data-ar="الفعاليات">Events</a></li>
                     <li><a href="magazine.html" data-en="Magazine" data-ar="المجلة">Magazine</a></li>
@@ -103,7 +108,7 @@
                     Building the Future of Architecture Through Innovation, Education, and Community
                 </p>
                 <div class="hero-buttons fade-in-up delay-2">
-                    <a href="community.html" class="btn btn-secondary" data-en="Community" data-ar="Community">Community</a>
+                    <a href="community.html" class="btn btn-secondary" data-en="Community" data-ar="المجتمع">Community</a>
                     <a href="about.html" class="btn btn-primary" data-en="Learn More" data-ar="اعرف المزيد">Learn More</a>
                     <a href="events.html" class="btn btn-secondary" data-en="Upcoming Events" data-ar="الفعاليات القادمة">Upcoming Events</a>
                 </div>
@@ -121,24 +126,24 @@
                 <h2 class="section-title" data-en="Latest Articles" data-ar="أحدث المقالات">Latest Articles</h2>
                 <p class="section-subtitle" data-en="Ideas, stories, and insights from the AIAS Basra community" data-ar="أفكار وقصص ورؤى من مجتمع AIAS البصرة">Ideas, stories, and insights from the AIAS Basra community</p>
             </div>
-            <div class="home-article-sort" role="group" aria-label="Article ordering">
+            <div class="home-article-sort" role="group" aria-label="Article ordering" data-aria-en="Article ordering" data-aria-ar="ترتيب المقالات">
                 <button type="button" class="home-article-sort-btn active" data-article-sort="latest" data-en="Latest" data-ar="الأحدث">Latest</button>
                 <button type="button" class="home-article-sort-btn" data-article-sort="upvoted" data-en="Most Upvoted" data-ar="الأكثر تصويتاً">Most Upvoted</button>
             </div>
-            <div class="home-view-controls" role="group" aria-label="Article view options">
+            <div class="home-view-controls" role="group" aria-label="Article view options" data-aria-en="Article view options" data-aria-ar="خيارات عرض المقالات">
                 <button type="button" class="active" data-home-view="latestArticlesGrid" data-view-mode="list" data-en="List" data-ar="قائمة">List</button>
                 <button type="button" data-home-view="latestArticlesGrid" data-view-mode="compact" data-en="Compact" data-ar="مضغوط">Compact</button>
                 <button type="button" data-home-view="latestArticlesGrid" data-view-mode="timeline" data-en="Timeline" data-ar="مخطط زمني">Timeline</button>
             </div>
             <div id="latestArticlesGrid" class="home-articles-grid">
-                <div class="loading-container"><p class="loading-text">Loading latest articles...</p></div>
+                <div class="loading-container"><p class="loading-text" data-en="Loading latest articles..." data-ar="جارٍ تحميل أحدث المقالات...">Loading latest articles...</p></div>
             </div>
             <div style="text-align:center;margin-top:2rem;">
                 <a href="magazine.html" class="btn btn-secondary" data-en="View All Articles" data-ar="عرض جميع المقالات">View All Articles</a>
             </div>
         </div>
     </section>
-        <section class="home-articles"><div class="container"><div class="section-header"><h2 class="section-title">Selected Community Projects</h2><p class="section-subtitle">Behance projects submitted by members and selected by AIAS Basra.</p></div><div id="featuredProjectsGrid" class="home-articles-grid"><div class="loading-container"><p class="loading-text">Loading selected projects...</p></div></div><div style="text-align:center;margin-top:2rem;"><a href="community-projects.html" class="btn btn-secondary">View All Projects</a></div></div></section>
+        <section class="home-articles"><div class="container"><div class="section-header"><h2 class="section-title" data-en="Selected Community Projects" data-ar="مشاريع المجتمع المختارة">Selected Community Projects</h2><p class="section-subtitle" data-en="Behance projects submitted by members and selected by AIAS Basra." data-ar="مشاريع Behance التي قدّمها الأعضاء واختارتها AIAS البصرة.">Behance projects submitted by members and selected by AIAS Basra.</p></div><div id="featuredProjectsGrid" class="home-articles-grid"><div class="loading-container"><p class="loading-text" data-en="Loading selected projects..." data-ar="جارٍ تحميل المشاريع المختارة...">Loading selected projects...</p></div></div><div style="text-align:center;margin-top:2rem;"><a href="community-projects.html" class="btn btn-secondary" data-en="View All Projects" data-ar="عرض جميع المشاريع">View All Projects</a></div></div></section>
         <!-- Latest Events Section -->
     <section class="latest-events">
         <div class="container">
@@ -146,7 +151,7 @@
                 <h2 class="section-title" data-en="Latest Events" data-ar="أحدث الفعاليات">Latest Events</h2>
                 <p class="section-subtitle" data-en="Discover our 3 newest events and activities" data-ar="اكتشف أحدث 3 فعاليات وأنشطة لدينا">Discover our 3 newest events and activities</p>
             </div>
-            <div class="home-view-controls" role="group" aria-label="Event view options">
+            <div class="home-view-controls" role="group" aria-label="Event view options" data-aria-en="Event view options" data-aria-ar="خيارات عرض الفعاليات">
                 <button type="button" class="active" data-home-view="latestEventsGrid" data-view-mode="list" data-en="List" data-ar="قائمة">List</button>
                 <button type="button" data-home-view="latestEventsGrid" data-view-mode="compact" data-en="Compact" data-ar="مضغوط">Compact</button>
                 <button type="button" data-home-view="latestEventsGrid" data-view-mode="timeline" data-en="Timeline" data-ar="مخطط زمني">Timeline</button>
@@ -168,7 +173,7 @@
                 <p class="section-subtitle" data-en="Design for social impact and community service" data-ar="التصميم من أجل التأثير الاجتماعي وخدمة المجتمع">Design for social impact and community service</p>
             </div>
             <div style="text-align: center; max-width: 700px; margin: 0 auto 2rem;">
-                <p style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 2rem;" id="fbdIntro">
+                <p style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 2rem;" id="fbdIntro" data-en="Join our Freedom By Design program and use your design skills to make a positive impact in the community" data-ar="انضم إلى برنامج الحرية بالتصميم واستخدم مهاراتك التصميمية لإحداث أثر إيجابي في المجتمع">
                     Join our Freedom By Design program and use your design skills to make a positive impact in the community
                 </p>
                 <a href="fbd.html" class="btn btn-primary" data-en="Learn More About FBD" data-ar="تعرف على المزيد عن برنامج الحرية بالتصميم">Learn More About FBD</a>
@@ -339,6 +344,7 @@
         async function loadLatestEvents() {
             const latestEventsGrid = document.getElementById('latestEventsGrid');
             if (!latestEventsGrid) return;
+            const currentLang = getCurrentLanguage();
 
             try {
                 const result = await dataLoader.getEvents();
@@ -352,21 +358,22 @@
                     latestEventsGrid.innerHTML = `
                         <div class="empty-state">
                             <div class="empty-icon">📅</div>
-                            <h3 class="empty-title">No Events Available</h3>
-                            <p class="empty-message">Check back soon for the latest events.</p>
+                            <h3 class="empty-title">${currentLang === 'ar' ? 'لا توجد فعاليات متاحة' : 'No Events Available'}</h3>
+                            <p class="empty-message">${currentLang === 'ar' ? 'عد قريباً للاطلاع على أحدث الفعاليات.' : 'Check back soon for the latest events.'}</p>
                         </div>
                     `;
                     return;
                 }
 
                 const latestEvents = getLatestEvents(events, 3);
-                const currentLang = getCurrentLanguage();
                 const readMoreText = currentLang === 'ar' ? 'اقرأ المزيد' : 'Read More';
                 const locationLabel = currentLang === 'ar' ? 'الموقع' : 'Location';
 
                 latestEventsGrid.innerHTML = latestEvents.map((event) => {
-                    const dateInfo = dataLoader.formatDate(event.time);
-                    const eventDate = dateInfo ? dateInfo.fullDate : (currentLang === 'ar' ? 'تاريخ غير متوفر' : 'Date not available');
+                    const parsedDate = new Date(event.time);
+                    const eventDate = !Number.isNaN(parsedDate.getTime())
+                        ? new Intl.DateTimeFormat(currentLang === 'ar' ? 'ar-IQ' : 'en', { dateStyle:'long' }).format(parsedDate)
+                        : (currentLang === 'ar' ? 'تاريخ غير متوفر' : 'Date not available');
                     const eventLocation = event.location || (currentLang === 'ar' ? 'غير محدد' : 'TBA');
                     const eventDescription = event.description || (currentLang === 'ar' ? 'لا يوجد وصف متاح.' : 'No description available.');
 
@@ -385,8 +392,8 @@
                 latestEventsGrid.innerHTML = `
                     <div class="error-container">
                         <div class="error-icon">⚠️</div>
-                        <h3 class="error-title">Unable to Load Latest Events</h3>
-                        <p class="error-message">Please try again later.</p>
+                        <h3 class="error-title">${currentLang === 'ar' ? 'تعذر تحميل أحدث الفعاليات' : 'Unable to Load Latest Events'}</h3>
+                        <p class="error-message">${currentLang === 'ar' ? 'يرجى المحاولة لاحقاً.' : 'Please try again later.'}</p>
                     </div>
                 `;
             }
@@ -401,38 +408,40 @@
         async function loadFeaturedProjects() {
             const grid = document.getElementById('featuredProjectsGrid');
             if (!grid) return;
+            const currentLang = getCurrentLanguage();
             try {
                 const projects = (await getDocs(collection(communityDb, 'communityPosts'))).docs.map(item => ({ id:item.id, ...item.data() })).filter(post => post.featured && post.type === 'behance' && post.published !== false).sort((a,b) => (b.featuredAt?.seconds || b.createdAt?.seconds || 0) - (a.featuredAt?.seconds || a.createdAt?.seconds || 0)).slice(0,3);
-                grid.innerHTML = projects.length ? projects.map(project => `<article class="home-article-card reveal"><div class="home-article-image" style="padding:0;overflow:hidden;background:#fff;"><iframe src="${escapeHtml(project.behanceSrc)}" title="${escapeHtml(project.title)}" style="width:100%;height:180px;border:0;" loading="lazy" allowfullscreen></iframe></div><div class="home-article-content"><div class="home-article-date">Selected project · ${escapeHtml(project.authorName || 'Community member')}</div><h3 class="home-article-title">${escapeHtml(project.title)}</h3><p class="home-article-summary">${escapeHtml(project.summary)}</p><a class="home-article-link" href="project.html?communityPost=${encodeURIComponent(project.id)}">View Project →</a></div></article>`).join('') : '<div class="empty-state"><p>No selected community projects yet.</p></div>';
-            } catch (error) { console.error(error); grid.innerHTML = '<div class="empty-state"><p>Selected projects are unavailable right now.</p></div>'; }
+                grid.innerHTML = projects.length ? projects.map(project => `<article class="home-article-card reveal"><div class="home-article-image" style="padding:0;overflow:hidden;background:#fff;"><iframe src="${escapeHtml(project.behanceSrc)}" title="${escapeHtml(project.title)}" style="width:100%;height:180px;border:0;" loading="lazy" allowfullscreen></iframe></div><div class="home-article-content"><div class="home-article-date">${currentLang === 'ar' ? 'مشروع مختار' : 'Selected project'} · ${escapeHtml(project.authorName || (currentLang === 'ar' ? 'عضو في المجتمع' : 'Community member'))}</div><h3 class="home-article-title">${escapeHtml(project.title)}</h3><p class="home-article-summary">${escapeHtml(project.summary)}</p><a class="home-article-link" href="project.html?communityPost=${encodeURIComponent(project.id)}">${currentLang === 'ar' ? 'عرض المشروع ←' : 'View Project →'}</a></div></article>`).join('') : `<div class="empty-state"><p>${currentLang === 'ar' ? 'لا توجد مشاريع مجتمعية مختارة بعد.' : 'No selected community projects yet.'}</p></div>`;
+            } catch (error) { console.error(error); grid.innerHTML = `<div class="empty-state"><p>${currentLang === 'ar' ? 'المشاريع المختارة غير متاحة حالياً.' : 'Selected projects are unavailable right now.'}</p></div>`; }
         }
 
         async function loadLatestArticles() {
             const articlesGrid = document.getElementById('latestArticlesGrid');
             if (!articlesGrid) return;
+            const currentLang = getCurrentLanguage();
             try {
                 const result = await dataLoader.getMagazine();
                 const articles = (result.magazine?.articles || [])
                     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                     .slice(0, 3);
                 if (!articles.length) {
-                    articlesGrid.innerHTML = '<div class="empty-state"><p>No articles available yet.</p></div>';
+                    articlesGrid.innerHTML = `<div class="empty-state"><p>${currentLang === 'ar' ? 'لا توجد مقالات متاحة بعد.' : 'No articles available yet.'}</p></div>`;
                     return;
                 }
                 articlesGrid.innerHTML = articles.map(article => `
                     <article class="home-article-card reveal">
                         <div class="home-article-image" style="${article.imageUrl ? `background-image:url('${escapeHtml(article.imageUrl)}')` : ''}">${article.imageUrl ? '' : '📰'}</div>
                         <div class="home-article-content">
-                            <div class="home-article-date">${escapeHtml(article.date || 'Latest')}</div>
-                            <h3 class="home-article-title">${escapeHtml(article.title || 'Untitled article')}</h3>
+                            <div class="home-article-date">${escapeHtml(article.date || (currentLang === 'ar' ? 'الأحدث' : 'Latest'))}</div>
+                            <h3 class="home-article-title">${escapeHtml(article.title || (currentLang === 'ar' ? 'مقال بلا عنوان' : 'Untitled article'))}</h3>
                             <p class="home-article-summary">${escapeHtml(article.summary || '')}</p>
-                            <a class="home-article-link" href="articles.html?id=${encodeURIComponent(article.id)}">Read Article →</a>
+                            <a class="home-article-link" href="articles.html?id=${encodeURIComponent(article.id)}">${currentLang === 'ar' ? 'اقرأ المقال ←' : 'Read Article →'}</a>
                         </div>
                     </article>
                 `).join('');
             } catch (error) {
                 console.error('[Index] Error loading latest articles:', error);
-                articlesGrid.innerHTML = '<div class="error-container"><p>Unable to load latest articles.</p></div>';
+                articlesGrid.innerHTML = `<div class="error-container"><p>${currentLang === 'ar' ? 'تعذر تحميل أحدث المقالات.' : 'Unable to load latest articles.'}</p></div>`;
             }
         }
 
@@ -492,7 +501,11 @@
                 renderHomeArticleMode();
             });
         });
-        window.addEventListener('aias-language-changed', renderHomeArticleMode);
+        window.addEventListener('aias-language-changed', () => {
+            renderHomeArticleMode();
+            loadLatestEvents();
+            loadFeaturedProjects();
+        });
 
         document.querySelectorAll('[data-home-view]').forEach(button => {
             button.addEventListener('click', () => {
@@ -519,7 +532,7 @@
 
     <script src="js/intro.js"></script>
     <script src="js/three-effects.js"></script>
-    <script src="js/main.js"></script>
+    <script src="js/main.js?v=20260811-i18n"></script>
     <script src="js/site-shell.js"></script>
 </body>
 </html>

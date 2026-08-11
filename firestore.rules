@@ -76,12 +76,29 @@ service cloud.firestore {
 
     match /communitySpaces/{spaceId} {
       allow read: if true;
-      allow create, update: if hasPermission('manage_community')
+      allow create: if spaceId != 'main'
         && spaceId.matches('^[a-z0-9-]{3,32}$')
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
         && request.resource.data.name.size() <= 80
         && request.resource.data.description is string
+        && request.resource.data.description.size() > 0
+        && request.resource.data.description.size() <= 360
+        && (hasPermission('manage_community') || (isAuthenticated()
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.profileComplete == true
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username is string
+          && request.resource.data.creatorId == request.auth.uid
+          && request.resource.data.creatorUsername == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username
+          && get(/databases/$(database)/documents/usernames/$(request.resource.data.creatorUsername)).data.userId == request.auth.uid
+          && request.resource.data.active == true));
+      allow update: if hasPermission('manage_community')
+        && spaceId != 'main'
+        && spaceId.matches('^[a-z0-9-]{3,32}$')
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.description is string
+        && request.resource.data.description.size() > 0
         && request.resource.data.description.size() <= 360;
       allow delete: if hasPermission('manage_community');
     }
@@ -94,15 +111,15 @@ service cloud.firestore {
       allow delete: if hasPermission('manage_community');
     }
 
-    // Community members may publish thoughts, open questions, or Behance projects.
-    // Community managers can review project selections and moderate activity.
+    // Community members publish thoughts or open questions. Community managers
+    // may still publish and curate selected projects through the admin surface.
     match /communityPosts/{postId} {
       allow read: if true;
       allow create: if hasPermission('manage_community') || (isAuthenticated()
         && request.resource.data.userId == request.auth.uid
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.profileComplete == true
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username is string
-        && request.resource.data.type in ['text', 'question', 'behance']
+        && request.resource.data.type in ['text', 'question']
         && request.resource.data.communitySlug is string
         && (request.resource.data.communitySlug == 'main'
           || (exists(/databases/$(database)/documents/communitySpaces/$(request.resource.data.communitySlug))
@@ -114,12 +131,11 @@ service cloud.firestore {
         && request.resource.data.summary.size() > 0
         && request.resource.data.summary.size() <= 360
         && request.resource.data.featured == false
-        && request.resource.data.featureStatus in ['none', 'pending']
-        && (request.resource.data.type == 'behance'
-          || (request.resource.data.featureRequest == false
-            && request.resource.data.content is string
-            && request.resource.data.content.size() > 0
-            && request.resource.data.content.size() <= 2000)));
+        && request.resource.data.featureRequest == false
+        && request.resource.data.featureStatus == 'none'
+        && request.resource.data.content is string
+        && request.resource.data.content.size() > 0
+        && request.resource.data.content.size() <= 2000);
       allow update: if hasPermission('manage_community') || (isAuthenticated()
         && resource.data.userId == request.auth.uid
         && request.resource.data.userId == resource.data.userId

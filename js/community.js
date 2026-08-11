@@ -21,19 +21,64 @@ let currentProfile = null;
 let communitySort = 'latest';
 let communityType = 'both';
 let activeCommentsPostId = null;
-let searchTerm = '';
 let toastTimer = null;
 let routeSequence = 0;
 let activeAreaSlug = null;
 let communityAreas = {};
 let communityDataReady = null;
 let selectedPromptPostId = null;
+let spaceAvailabilitySequence = 0;
+let postSpaceValidationSequence = 0;
+let communitySearchIndex = null;
+let communitySearchIndexLoadedAt = 0;
+let communitySearchIndexPromise = null;
+let communitySearchSequence = 0;
+let communitySearchActiveIndex = -1;
 
 const $ = id => document.getElementById(id);
 const escapeHtml = value => String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+let currentLanguage = localStorage.getItem('language') === 'ar' ? 'ar' : 'en';
+const isArabic = () => currentLanguage === 'ar';
+const tr = (english, arabic) => isArabic() ? arabic : english;
+
+function applyCommunityTranslations(root = document) {
+  const scope = root instanceof Element || root instanceof Document ? root : document;
+  const elements = scope.matches?.('[data-en][data-ar]')
+    ? [scope, ...scope.querySelectorAll('[data-en][data-ar]')]
+    : [...scope.querySelectorAll('[data-en][data-ar]')];
+  elements.forEach(element => {
+    const translation = element.getAttribute('data-' + currentLanguage);
+    if (!translation) return;
+    if (element.matches('input,textarea')) element.placeholder = translation;
+    else if (!element.children.length) element.textContent = translation;
+    else {
+      const textNode = [...element.childNodes].find(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+      if (textNode) textNode.textContent = translation;
+    }
+  });
+  scope.querySelectorAll?.('[data-aria-en][data-aria-ar]').forEach(element => element.setAttribute('aria-label', element.getAttribute('data-aria-' + currentLanguage)));
+}
+
+function setCommunityLanguage(language, rerender = true) {
+  currentLanguage = language === 'ar' ? 'ar' : 'en';
+  localStorage.setItem('language', currentLanguage);
+  document.documentElement.lang = currentLanguage;
+  document.documentElement.dir = isArabic() ? 'rtl' : 'ltr';
+  document.body.dir = isArabic() ? 'rtl' : 'ltr';
+  $('communityLanguageLabel').textContent = isArabic() ? 'EN' : 'العربية';
+  $('communityLanguageToggle').setAttribute('aria-label', isArabic() ? 'Switch to English' : 'التبديل إلى العربية');
+  applyCommunityTranslations();
+  if (!rerender) return;
+  renderCommunitySpaces();
+  loadPromptOfTheWeek();
+  handleRoute(false);
+  if (!$('communitySearchResults').hidden) runCommunitySearch($('communitySearch').value);
+  if (activeCommentsPostId) openComments(activeCommentsPostId, false);
+}
+
 const isProject = post => post.type === 'behance';
 const isQuestion = post => post.type === 'question';
-const postLabel = post => isProject(post) ? 'Project' : isQuestion(post) ? 'Open question' : 'Thought';
+const postLabel = post => isProject(post) ? tr('Project','مشروع') : isQuestion(post) ? tr('Open question','سؤال مفتوح') : tr('Thought','فكرة');
 
 function getPathRoute() {
   const segments = decodeURIComponent(location.pathname).split('/').filter(Boolean);
@@ -72,19 +117,31 @@ async function resolveProfileId(routeValue) {
 }
 
 function normalizeCommunityHandle(value) {
-  return String(value || '').trim().toLowerCase().replace(/^\/?a\//, '').replace(/[^a-z0-9-]/g, '');
+  return String(value || '').trim().toLowerCase().replace(/^\/?a\//, '').replace(/[\s_]+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
 }
 
 function renderCommunitySpaces() {
   const spaces = Object.entries(communityAreas).sort((a,b) => (a[1].name || a[0]).localeCompare(b[1].name || b[0]));
   $('railSpacesList').innerHTML = spaces.length
     ? spaces.map(([slug, area]) => '<a href="' + areaUrl(slug) + '"><i>' + escapeHtml(area.symbol || initials(area.name)) + '</i><span>a/' + escapeHtml(slug) + '</span></a>').join('')
-    : '<span class="spaces-loading">No community spaces yet.</span>';
+    : '<span class="spaces-loading">' + tr('No community spaces yet.','لا توجد مساحات مجتمعية بعد.') + '</span>';
   $('sideSpacesList').innerHTML = spaces.length
     ? spaces.slice(0, 4).map(([slug, area]) => '<a href="' + areaUrl(slug) + '"><span class="space-avatar">' + escapeHtml(area.symbol || initials(area.name)) + '</span><span><strong>a/' + escapeHtml(slug) + '</strong><small>' + escapeHtml(area.description || area.name) + '</small></span><b>›</b></a>').join('')
-    : '<span class="spaces-loading">Spaces created by the community team will appear here.</span>';
-  $('communityHandles').innerHTML = '<option value="main">Main thread</option>' + spaces.map(([slug, area]) => '<option value="a/' + escapeHtml(slug) + '">' + escapeHtml(area.name || slug) + '</option>').join('');
+    : '<span class="spaces-loading">' + tr('Community spaces will appear here.','ستظهر مساحات المجتمع هنا.') + '</span>';
+  $('communityHandles').innerHTML = '<option value="main">' + tr('Main thread','المسار الرئيسي') + '</option>' + spaces.map(([slug, area]) => '<option value="a/' + escapeHtml(slug) + '">' + escapeHtml(area.name || slug) + '</option>').join('');
   $('mobileSpacesLink').href = spaces.length ? areaUrl(spaces[0][0]) : '/community.html';
+}
+
+function renderSpaceSuggestions(value = '') {
+  const target = $('spaceSuggestions');
+  const term = normalizeCommunityHandle(value);
+  const matches = Object.entries(communityAreas)
+    .filter(([slug, area]) => !term || slug.includes(term) || String(area.name || '').toLowerCase().includes(term))
+    .sort((a, b) => (a[1].name || a[0]).localeCompare(b[1].name || b[0]))
+    .slice(0, 6);
+  const options = [['main', {name:tr('Main thread','المسار الرئيسي')}], ...matches];
+  target.innerHTML = options.map(([slug, area]) => '<button type="button" data-space-choice="' + escapeHtml(slug) + '" title="' + escapeHtml(area.name || slug) + '">' + (slug === 'main' ? tr('Main thread','المسار الرئيسي') : 'a/' + escapeHtml(slug)) + '</button>').join('');
+  target.hidden = false;
 }
 
 async function loadCommunitySpaces() {
@@ -105,28 +162,110 @@ function validateCommunityHandle(showMessage) {
   const raw = $('postCommunity').value;
   const slug = normalizeCommunityHandle(raw);
   const valid = slug === 'main' || Boolean(communityAreas[slug]);
-  $('postCommunity').setCustomValidity(valid ? '' : 'Choose an existing Firebase community handle.');
+  $('postCommunity').setCustomValidity(valid ? '' : tr('Choose an existing Firebase community handle.','اختر معرّف مساحة موجوداً في Firebase.'));
   if (showMessage) {
     const status = $('postCommunityStatus');
     status.className = valid ? 'valid' : 'invalid';
     status.textContent = valid
-      ? (slug === 'main' ? 'Posting to the main thread.' : 'Posting to a/' + slug + ' and the main thread.')
-      : 'No Firebase community exists with that handle.';
+      ? (slug === 'main' ? tr('Posting to the main thread.','سيُنشر في المسار الرئيسي.') : tr('Posting to a/','سيُنشر في a/') + slug + tr(' and the main thread.',' وفي المسار الرئيسي.'))
+      : tr('No community space exists with that handle.','لا توجد مساحة مجتمعية بهذا المعرّف.');
   }
   return valid ? slug : null;
+}
+
+async function validateCommunityHandleLive(showMessage) {
+  const slug = normalizeCommunityHandle($('postCommunity').value);
+  if (slug === 'main' || communityAreas[slug]) return validateCommunityHandle(showMessage);
+  if (!/^[a-z0-9-]{3,32}$/.test(slug)) return validateCommunityHandle(showMessage);
+  const sequence = ++postSpaceValidationSequence;
+  const status = $('postCommunityStatus');
+  if (showMessage) {
+    status.className = '';
+    status.textContent = tr('Checking a/','جارٍ التحقق من a/') + slug + '…';
+  }
+  try {
+    const snapshot = await getDoc(doc(db, 'communitySpaces', slug));
+    if (sequence !== postSpaceValidationSequence || normalizeCommunityHandle($('postCommunity').value) !== slug) return null;
+    if (snapshot.exists() && snapshot.data().active !== false) {
+      communityAreas[slug] = {slug, ...snapshot.data()};
+      renderCommunitySpaces();
+    }
+  } catch (error) {
+    console.warn('[Community] Could not validate the selected space.', error);
+  }
+  return validateCommunityHandle(showMessage);
+}
+
+async function checkSpaceHandleAvailability(input, status) {
+  const sequence = ++spaceAvailabilitySequence;
+  const handle = normalizeCommunityHandle(input.value);
+  if (input.value !== handle) input.value = handle;
+  if (handle === 'main') {
+    input.setCustomValidity(tr('The main handle is reserved.','المعرّف main محجوز.'));
+    status.className = 'username-check invalid';
+    status.textContent = tr('a/main is reserved for the main community thread.','المعرّف a/main محجوز للمسار الرئيسي.');
+    return false;
+  }
+  if (!/^[a-z0-9-]{3,32}$/.test(handle)) {
+    input.setCustomValidity(tr('Use 3–32 lowercase letters, numbers, or hyphens.','استخدم من 3 إلى 32 حرفاً إنجليزياً صغيراً أو رقماً أو شرطة.'));
+    status.className = 'username-check invalid';
+    status.textContent = tr('Use 3–32 lowercase letters, numbers, or hyphens.','استخدم من 3 إلى 32 حرفاً إنجليزياً صغيراً أو رقماً أو شرطة.');
+    return false;
+  }
+  status.className = 'username-check';
+  status.textContent = tr('Checking a/','جارٍ التحقق من a/') + handle + '…';
+  try {
+    const snapshot = await getDoc(doc(db, 'communitySpaces', handle));
+    if (sequence !== spaceAvailabilitySequence || normalizeCommunityHandle(input.value) !== handle) return false;
+    const available = !snapshot.exists();
+    input.setCustomValidity(available ? '' : tr('That space handle is already taken.','معرّف المساحة هذا مستخدم بالفعل.'));
+    status.className = 'username-check ' + (available ? 'valid' : 'invalid');
+    status.textContent = available ? 'a/' + handle + tr(' is available.',' متاح.') : 'a/' + handle + tr(' is already taken.',' مستخدم بالفعل.');
+    return available;
+  } catch {
+    if (sequence !== spaceAvailabilitySequence) return false;
+    input.setCustomValidity(tr('Space availability could not be checked.','تعذر التحقق من توفر المساحة.'));
+    status.className = 'username-check invalid';
+    status.textContent = tr('Could not check this handle. Try again.','تعذر التحقق من هذا المعرّف. حاول مجدداً.');
+    return false;
+  }
+}
+
+async function createCommunitySpace(name, requestedHandle, description) {
+  const handle = normalizeCommunityHandle(requestedHandle);
+  if (!/^[a-z0-9-]{3,32}$/.test(handle) || handle === 'main') throw new Error(tr('Choose a valid, non-reserved space handle.','اختر معرّف مساحة صالحاً وغير محجوز.'));
+  const spaceRef = doc(db, 'communitySpaces', handle);
+  const record = {
+    name,
+    description,
+    symbol: initials(name),
+    active: true,
+    creatorId: currentUser.uid,
+    creatorUsername: currentProfile.username,
+    createdAt: serverTimestamp()
+  };
+  await runTransaction(db, async transaction => {
+    const snapshot = await transaction.get(spaceRef);
+    if (snapshot.exists()) throw new Error(tr('That space handle was just taken. Choose another one.','تم حجز معرّف المساحة للتو. اختر معرّفاً آخر.'));
+    transaction.set(spaceRef, record);
+  });
+  invalidateCommunitySearchIndex();
+  communityAreas[handle] = {...record, slug:handle};
+  renderCommunitySpaces();
+  return handle;
 }
 
 async function loadPromptOfTheWeek() {
   try {
     const settingSnapshot = await getDoc(doc(db, 'communitySettings', 'main'));
     const postId = settingSnapshot.exists() ? settingSnapshot.data().promptPostId : null;
-    if (!postId) throw new Error('No prompt selected');
+    if (!postId) throw new Error(tr('No prompt selected','لم يتم اختيار سؤال'));
     const postSnapshot = await getDoc(doc(db, 'communityPosts', postId));
-    if (!postSnapshot.exists() || postSnapshot.data().type !== 'question' || postSnapshot.data().published === false) throw new Error('Selected prompt is unavailable');
+    if (!postSnapshot.exists() || postSnapshot.data().type !== 'question' || postSnapshot.data().published === false) throw new Error(tr('Selected prompt is unavailable','السؤال المختار غير متاح'));
     const post = postSnapshot.data();
     selectedPromptPostId = postId;
     $('promptTitle').textContent = post.title;
-    $('promptAuthor').textContent = 'Asked by @' + (post.authorUsername || post.authorName || 'member');
+    $('promptAuthor').textContent = tr('Asked by @','سؤال من @') + (post.authorUsername || post.authorName || tr('member','عضو'));
     $('promptCard').hidden = false;
   } catch {
     selectedPromptPostId = null;
@@ -149,14 +288,235 @@ function initials(name) {
 }
 
 function formatDate(timestamp) {
-  if (!timestamp?.toDate) return 'Just now';
+  if (!timestamp?.toDate) return tr('Just now','الآن');
   const date = timestamp.toDate();
   const seconds = Math.max(1, Math.round((Date.now() - date.getTime()) / 1000));
-  if (seconds < 60) return 'Just now';
-  if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
-  if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ago';
-  if (seconds < 604800) return Math.floor(seconds / 86400) + 'd ago';
-  return date.toLocaleDateString(undefined, {month:'short', day:'numeric', year:date.getFullYear() === new Date().getFullYear() ? undefined : 'numeric'});
+  if (seconds < 60) return tr('Just now','الآن');
+  if (seconds < 3600) return isArabic() ? 'قبل ' + Math.floor(seconds / 60) + ' د' : Math.floor(seconds / 60) + 'm ago';
+  if (seconds < 86400) return isArabic() ? 'قبل ' + Math.floor(seconds / 3600) + ' س' : Math.floor(seconds / 3600) + 'h ago';
+  if (seconds < 604800) return isArabic() ? 'قبل ' + Math.floor(seconds / 86400) + ' ي' : Math.floor(seconds / 86400) + 'd ago';
+  return date.toLocaleDateString(isArabic() ? 'ar-IQ' : undefined, {month:'short', day:'numeric', year:date.getFullYear() === new Date().getFullYear() ? undefined : 'numeric'});
+}
+
+function invalidateCommunitySearchIndex() {
+  communitySearchIndex = null;
+  communitySearchIndexLoadedAt = 0;
+}
+
+function normalizeSearchText(value) {
+  return String(value || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^\p{L}\p{N}@/#_-]+/gu, ' ').trim();
+}
+
+function oneEditAway(left, right) {
+  if (Math.abs(left.length - right.length) > 1) return false;
+  let i = 0;
+  let j = 0;
+  let edits = 0;
+  while (i < left.length && j < right.length) {
+    if (left[i] === right[j]) { i += 1; j += 1; continue; }
+    edits += 1;
+    if (edits > 1) return false;
+    if (left.length > right.length) i += 1;
+    else if (right.length > left.length) j += 1;
+    else { i += 1; j += 1; }
+  }
+  return edits + Number(i < left.length || j < right.length) <= 1;
+}
+
+function searchResultScore(result, rawQuery) {
+  const normalized = normalizeSearchText(rawQuery);
+  const spaceOnly = normalized.startsWith('a/') || normalized.startsWith('#');
+  const memberOnly = normalized.startsWith('p/') || normalized.startsWith('@');
+  if (spaceOnly && result.kind !== 'space') return -1;
+  if (memberOnly && result.kind !== 'member') return -1;
+  const query = normalized.replace(/^(?:a\/|p\/|@|#)/, '').trim();
+  if (!query) return 1;
+  const terms = query.split(/\s+/).filter(Boolean);
+  const handle = normalizeSearchText(result.handle);
+  const title = normalizeSearchText(result.title);
+  const text = normalizeSearchText(result.searchText);
+  const words = text.split(/\s+/).filter(Boolean);
+  let score = result.kind === 'space' ? 8 : result.kind === 'post' ? 5 : 3;
+  if (handle === query) score += 240;
+  else if (handle.startsWith(query)) score += 150;
+  else if (handle.includes(query)) score += 95;
+  if (title === query) score += 180;
+  else if (title.startsWith(query)) score += 115;
+  else if (title.includes(query)) score += 75;
+  if (text.includes(query)) score += 55;
+  let misses = 0;
+  terms.forEach(term => {
+    if (handle === term) score += 70;
+    else if (handle.startsWith(term)) score += 48;
+    else if (title.split(' ').some(word => word.startsWith(term))) score += 34;
+    else if (text.includes(term)) score += 20;
+    else if (term.length >= 4 && words.some(word => oneEditAway(term, word))) score += 9;
+    else misses += 1;
+  });
+  if (misses === terms.length) return -1;
+  return score - misses * 18;
+}
+
+function searchPostUrl(post) {
+  return isProject(post)
+    ? '/project.html?communityPost=' + encodeURIComponent(post.id)
+    : '/community.html?post=' + encodeURIComponent(post.id);
+}
+
+async function loadCommunitySearchIndex(force = false) {
+  const fresh = communitySearchIndex && Date.now() - communitySearchIndexLoadedAt < 45000;
+  if (!force && fresh) return communitySearchIndex;
+  if (communitySearchIndexPromise) return communitySearchIndexPromise;
+  communitySearchIndexPromise = Promise.all([
+    getDocs(collection(db, 'communityPosts')),
+    getDocs(collection(db, 'communitySpaces')),
+    getDocs(collection(db, 'users'))
+  ]).then(([postsSnapshot, spacesSnapshot, usersSnapshot]) => {
+    const spaces = spacesSnapshot.docs
+      .map(item => ({id:item.id, ...item.data()}))
+      .filter(space => space.active !== false)
+      .map(space => ({
+        kind:'space',
+        id:space.id,
+        title:space.name || 'a/' + space.id,
+        handle:space.id,
+        subtitle:'a/' + space.id + (space.description ? ' · ' + space.description : ''),
+        searchText:[space.id, space.name, space.description, space.creatorUsername].join(' '),
+        url:areaUrl(space.id),
+        icon:space.symbol || initials(space.name),
+        sortTime:space.createdAt?.seconds || 0
+      }));
+    const posts = postsSnapshot.docs
+      .map(item => ({id:item.id, ...item.data()}))
+      .filter(post => post.published !== false)
+      .map(post => ({
+        kind:'post',
+        id:post.id,
+        title:post.title || 'Community post',
+        handle:post.authorUsername || '',
+        subtitle:postLabel(post) + ' · ' + (post.communitySlug && post.communitySlug !== 'main' ? 'a/' + post.communitySlug : tr('Main thread','المسار الرئيسي')) + ' · @' + (post.authorUsername || post.authorName || tr('member','عضو')),
+        searchText:[post.title, plainPostText(post), post.summary, post.authorName, post.authorUsername, post.communitySlug, postLabel(post)].join(' '),
+        url:searchPostUrl(post),
+        icon:isQuestion(post) ? '?' : isProject(post) ? 'P' : 'T',
+        sortTime:post.createdAt?.seconds || 0
+      }));
+    const members = usersSnapshot.docs
+      .map(item => ({id:item.id, ...item.data()}))
+      .filter(member => member.username)
+      .map(member => ({
+        kind:'member',
+        id:member.id,
+        title:member.displayName || '@' + member.username,
+        handle:member.username,
+        subtitle:'p/' + member.username + (member.school ? ' · ' + member.school : member.city ? ' · ' + member.city : ''),
+        searchText:[member.username, member.displayName, member.school, member.city, member.bio, member.interests].join(' '),
+        url:profileUrl(member.id, member.username),
+        icon:initials(member.displayName || member.username),
+        photo:member.photoURL || '',
+        sortTime:member.updatedAt?.seconds || 0
+      }));
+    communitySearchIndex = [...spaces, ...posts, ...members];
+    communitySearchIndexLoadedAt = Date.now();
+    return communitySearchIndex;
+  }).finally(() => { communitySearchIndexPromise = null; });
+  return communitySearchIndexPromise;
+}
+
+function highlightSearchText(value, rawQuery) {
+  const text = String(value || '');
+  const normalizedQuery = normalizeSearchText(rawQuery);
+  const candidates = [normalizedQuery, normalizedQuery.replace(/^(?:a\/|p\/|@|#)/, '')].filter(Boolean).sort((a,b) => b.length - a.length);
+  const lower = text.toLowerCase();
+  const match = candidates.map(needle => ({needle, index:lower.indexOf(needle)})).find(item => item.index >= 0);
+  if (!match) return escapeHtml(text);
+  return escapeHtml(text.slice(0, match.index)) + '<mark>' + escapeHtml(text.slice(match.index, match.index + match.needle.length)) + '</mark>' + escapeHtml(text.slice(match.index + match.needle.length));
+}
+
+function openCommunitySearch() {
+  $('communitySearchResults').hidden = false;
+  $('communitySearch').setAttribute('aria-expanded', 'true');
+}
+
+function closeCommunitySearch() {
+  $('communitySearchResults').hidden = true;
+  $('communitySearch').setAttribute('aria-expanded', 'false');
+  $('communitySearch').removeAttribute('aria-activedescendant');
+  communitySearchActiveIndex = -1;
+}
+
+function renderCommunitySearchState(content) {
+  openCommunitySearch();
+  $('communitySearchResults').innerHTML = '<div class="search-panel-state">' + content + '</div>';
+  communitySearchActiveIndex = -1;
+}
+
+function renderCommunitySearchResults(results, query, heading) {
+  const target = $('communitySearchResults');
+  const groupLabels = {space:tr('Spaces','المساحات'), post:tr('Posts','المنشورات'), member:tr('Members','الأعضاء')};
+  const kindLabels = {space:tr('Space','مساحة'), post:tr('Post','منشور'), member:tr('Profile','ملف')};
+  const groups = ['space','post','member'].map(kind => ({kind, items:results.filter(item => item.kind === kind).slice(0, 6)})).filter(group => group.items.length);
+  if (!groups.length) {
+    renderCommunitySearchState('<strong>' + tr('No community results','لا توجد نتائج في المجتمع') + '</strong><p>' + tr('Try a post title, a/space-handle, or @username.','جرّب عنوان منشور أو a/معرّف-مساحة أو @اسم-مستخدم.') + '</p><div class="search-hint-row"><span>a/ ' + tr('spaces','مساحات') + '</span><span>@ ' + tr('members','أعضاء') + '</span><span>' + tr('questions','أسئلة') + '</span></div>');
+    return;
+  }
+  let optionIndex = 0;
+  const groupsMarkup = groups.map(group => '<section class="search-group" aria-label="' + groupLabels[group.kind] + '"><div class="search-group-title"><strong>' + groupLabels[group.kind] + '</strong><span>' + group.items.length + '</span></div>' + group.items.map(result => {
+    const optionId = 'communitySearchOption' + optionIndex++;
+    const icon = result.photo ? '<img src="' + escapeHtml(result.photo) + '" alt="">' : escapeHtml(result.icon);
+    return '<a id="' + optionId + '" class="search-result ' + result.kind + '" href="' + escapeHtml(result.url) + '" data-search-result role="option" aria-selected="false"><span class="search-result-icon" aria-hidden="true">' + icon + '</span><span class="search-result-copy"><strong>' + highlightSearchText(result.title, query) + '</strong><small>' + highlightSearchText(result.subtitle, query) + '</small></span><span class="search-result-kind">' + kindLabels[result.kind] + '</span></a>';
+  }).join('') + '</section>').join('');
+  target.innerHTML = '<div class="search-panel-head"><span>' + escapeHtml(heading) + '</span><span>' + results.length + (isArabic() ? ' نتيجة' : results.length === 1 ? ' match' : ' matches') + '</span></div>' + groupsMarkup;
+  openCommunitySearch();
+  communitySearchActiveIndex = -1;
+}
+
+async function runCommunitySearch(rawQuery) {
+  const sequence = ++communitySearchSequence;
+  const query = rawQuery.trim();
+  renderCommunitySearchState('<span class="search-spinner" aria-hidden="true"></span><p>' + tr('Searching posts, spaces, and members…','جارٍ البحث في المنشورات والمساحات والأعضاء…') + '</p>');
+  try {
+    const index = await loadCommunitySearchIndex();
+    if (sequence !== communitySearchSequence) return;
+    if (!query) {
+      const spaces = index.filter(item => item.kind === 'space').sort((a,b) => a.title.localeCompare(b.title)).slice(0, 4);
+      const posts = index.filter(item => item.kind === 'post').sort((a,b) => b.sortTime - a.sortTime).slice(0, 4);
+      renderCommunitySearchResults([...spaces, ...posts], '', tr('Explore community','استكشف المجتمع'));
+      return;
+    }
+    const ranked = index
+      .map(result => ({result, score:searchResultScore(result, query)}))
+      .filter(item => item.score > 0)
+      .sort((a,b) => b.score - a.score || b.result.sortTime - a.result.sortTime)
+      .slice(0, 30)
+      .map(item => item.result);
+    renderCommunitySearchResults(ranked, query, tr('Search results','نتائج البحث'));
+  } catch (error) {
+    console.error('[CommunitySearch] Search failed.', error);
+    if (sequence === communitySearchSequence) renderCommunitySearchState('<strong>' + tr('Search is unavailable','البحث غير متاح') + '</strong><p>' + tr('Firebase could not be reached. Please try again in a moment.','تعذر الاتصال بـ Firebase. حاول مرة أخرى بعد قليل.') + '</p>');
+  }
+}
+
+function moveCommunitySearchSelection(direction) {
+  const options = [...$('communitySearchResults').querySelectorAll('[data-search-result]')];
+  if (!options.length) return;
+  communitySearchActiveIndex = (communitySearchActiveIndex + direction + options.length) % options.length;
+  options.forEach((option, index) => {
+    const active = index === communitySearchActiveIndex;
+    option.classList.toggle('is-active', active);
+    option.setAttribute('aria-selected', String(active));
+  });
+  const selected = options[communitySearchActiveIndex];
+  $('communitySearch').setAttribute('aria-activedescendant', selected.id);
+  selected.scrollIntoView({block:'nearest'});
+}
+
+function followCommunitySearchResult(result) {
+  if (!result) return;
+  const destination = new URL(result.href, location.href);
+  $('communitySearch').value = '';
+  closeCommunitySearch();
+  if (destination.pathname.endsWith('/project.html')) location.href = destination.href;
+  else navigateTo(destination.href, false);
 }
 
 function avatarMarkup(name, photo, className) {
@@ -188,27 +548,31 @@ function normalizeUsername(value) {
 }
 
 async function checkUsernameAvailability(input, status, uid) {
+  const sequence = String((Number(status.dataset.checkSequence) || 0) + 1);
+  status.dataset.checkSequence = sequence;
   const username = normalizeUsername(input.value);
   if (input.value !== username) input.value = username;
   if (!/^[a-z0-9_]{3,24}$/.test(username)) {
-    input.setCustomValidity('Use 3–24 lowercase letters, numbers, or underscores.');
+    input.setCustomValidity(tr('Use 3–24 lowercase letters, numbers, or underscores.','استخدم من 3 إلى 24 حرفاً إنجليزياً صغيراً أو رقماً أو شرطة سفلية.'));
     status.className = 'username-check invalid';
-    status.textContent = 'Use 3–24 lowercase letters, numbers, or underscores.';
+    status.textContent = tr('Use 3–24 lowercase letters, numbers, or underscores.','استخدم من 3 إلى 24 حرفاً إنجليزياً صغيراً أو رقماً أو شرطة سفلية.');
     return false;
   }
   status.className = 'username-check';
-  status.textContent = 'Checking p/' + username + '…';
+  status.textContent = tr('Checking p/','جارٍ التحقق من p/') + username + '…';
   try {
     const snapshot = await getDoc(doc(db, 'usernames', username));
+    if (status.dataset.checkSequence !== sequence || normalizeUsername(input.value) !== username) return false;
     const available = !snapshot.exists() || snapshot.data().userId === uid;
-    input.setCustomValidity(available ? '' : 'That username is already taken.');
+    input.setCustomValidity(available ? '' : tr('That username is already taken.','اسم المستخدم هذا مستخدم بالفعل.'));
     status.className = 'username-check ' + (available ? 'valid' : 'invalid');
-    status.textContent = available ? 'p/' + username + ' is available.' : 'p/' + username + ' is already taken.';
+    status.textContent = available ? 'p/' + username + tr(' is available.',' متاح.') : 'p/' + username + tr(' is already taken.',' مستخدم بالفعل.');
     return available;
   } catch {
-    input.setCustomValidity('Username availability could not be checked.');
+    if (status.dataset.checkSequence !== sequence) return false;
+    input.setCustomValidity(tr('Username availability could not be checked.','تعذر التحقق من توفر اسم المستخدم.'));
     status.className = 'username-check invalid';
-    status.textContent = 'Could not check this username. Try again.';
+    status.textContent = tr('Could not check this username. Try again.','تعذر التحقق من اسم المستخدم. حاول مجدداً.');
     return false;
   }
 }
@@ -216,13 +580,13 @@ async function checkUsernameAvailability(input, status, uid) {
 async function claimUsername(uid, requestedUsername) {
   const username = normalizeUsername(requestedUsername);
   if (!/^[a-z0-9_]{3,24}$/.test(username)) {
-    throw new Error('Use 3–24 lowercase letters, numbers, or underscores.');
+    throw new Error(tr('Use 3–24 lowercase letters, numbers, or underscores.','استخدم من 3 إلى 24 حرفاً إنجليزياً صغيراً أو رقماً أو شرطة سفلية.'));
   }
   const usernameRef = doc(db, 'usernames', username);
   await runTransaction(db, async transaction => {
     const snapshot = await transaction.get(usernameRef);
     if (snapshot.exists()) {
-      if (snapshot.data().userId !== uid) throw new Error('That username is already taken.');
+      if (snapshot.data().userId !== uid) throw new Error(tr('That username is already taken.','اسم المستخدم هذا مستخدم بالفعل.'));
       return;
     }
     transaction.set(usernameRef, {userId:uid, username, createdAt:serverTimestamp()});
@@ -283,7 +647,7 @@ async function handleRoute(scrollToTop) {
   const publicProfileRoute = pathRoute.profile || params.get('user');
   const requestedArea = pathRoute.area || params.get('area');
   activeAreaSlug = requestedArea && communityAreas[requestedArea] ? requestedArea : null;
-  const view = publicProfileRoute || requestedView === 'profile' ? 'profile' : requestedView === 'post' ? 'post' : 'home';
+  const view = publicProfileRoute || requestedView === 'profile' ? 'profile' : requestedView === 'post' ? 'post' : requestedView === 'space' ? 'space' : 'home';
   if (!params.has('comments')) closeCommentsUi();
   showView(view);
   if (scrollToTop) window.scrollTo({top:0, behavior:'smooth'});
@@ -300,11 +664,11 @@ async function handleRoute(scrollToTop) {
       $('areaPath').textContent = 'a/' + activeAreaSlug;
       $('areaTitle').textContent = area.name;
       $('areaDescription').textContent = area.description;
-      document.querySelector('.feed-heading h2').textContent = area.name + ' posts';
-      document.title = 'a/' + activeAreaSlug + ' — AIAS Basra Community';
+      document.querySelector('.feed-heading h2').textContent = isArabic() ? 'منشورات ' + area.name : area.name + ' posts';
+      document.title = 'a/' + activeAreaSlug + (isArabic() ? ' — مجتمع AIAS البصرة' : ' — AIAS Basra Community');
     } else {
-      document.querySelector('.feed-heading h2').textContent = 'Community feed';
-      document.title = selectedPostId ? 'Post — AIAS Basra Community' : 'Community — AIAS Basra';
+      document.querySelector('.feed-heading h2').textContent = tr('Community feed','منشورات المجتمع');
+      document.title = selectedPostId ? tr('Post — AIAS Basra Community','منشور — مجتمع AIAS البصرة') : tr('Community — AIAS Basra','مجتمع AIAS البصرة');
     }
     await loadPosts();
     if (sequence !== routeSequence) return;
@@ -312,32 +676,34 @@ async function handleRoute(scrollToTop) {
   } else if (view === 'profile') {
     const profileId = publicProfileRoute ? await resolveProfileId(publicProfileRoute) : currentUser?.uid || null;
     await loadProfile(profileId, Boolean(publicProfileRoute));
-  } else {
+  } else if (view === 'post') {
     $('postCommunity').value = activeAreaSlug ? 'a/' + activeAreaSlug : params.get('area') || 'main';
     validateCommunityHandle(true);
     renderPostGate();
+  } else {
+    renderSpaceGate();
   }
 }
 
 function renderPostCard(post, index, detail) {
   const meta = post.meta;
-  const authorName = post.authorName || meta.profile.displayName || 'Community member';
-  const school = meta.profile.school || (isProject(post) ? 'Project author' : 'Community member');
+  const authorName = post.authorName || meta.profile.displayName || tr('Community member','عضو في المجتمع');
+  const school = meta.profile.school || (isProject(post) ? tr('Project author','صاحب المشروع') : tr('Community member','عضو في المجتمع'));
   const authorProfileUrl = profileUrl(post.userId, meta.profile.username);
   const communitySlug = communityAreas[post.communitySlug] ? post.communitySlug : 'main';
   const communityContext = communitySlug === 'main'
-    ? '<span class="main-thread-label">Main thread</span>'
+    ? '<span class="main-thread-label">' + tr('Main thread','المسار الرئيسي') + '</span>'
     : '<a href="' + areaUrl(communitySlug) + '">a/' + escapeHtml(communitySlug) + '</a>';
   const destination = isProject(post)
     ? 'project.html?communityPost=' + encodeURIComponent(post.id)
     : 'community.html?post=' + encodeURIComponent(post.id);
   const text = isProject(post) ? post.summary : plainPostText(post);
-  const selected = isProject(post) && post.featured ? '<span class="selected-badge">· Selected</span>' : '';
+  const selected = isProject(post) && post.featured ? '<span class="selected-badge">· ' + tr('Selected','مختار') + '</span>' : '';
   const projectPreview = isProject(post) && post.behanceSrc
-    ? '<div class="project-preview"><iframe title="' + escapeHtml(post.title) + '" src="' + escapeHtml(post.behanceSrc) + '" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe><a class="project-preview-link" href="' + destination + '">Open project <span aria-hidden="true">↗</span></a></div>'
+    ? '<div class="project-preview"><iframe title="' + escapeHtml(post.title) + '" src="' + escapeHtml(post.behanceSrc) + '" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe><a class="project-preview-link" href="' + destination + '">' + tr('Open project','فتح المشروع') + ' <span aria-hidden="true">↗</span></a></div>'
     : '';
   const request = currentUser?.uid === post.userId && isProject(post) && !post.featured && post.featureRequest
-    ? '<div class="project-request">Selection request: <strong>' + escapeHtml(post.featureStatus || 'pending') + '</strong></div>'
+    ? '<div class="project-request">' + tr('Selection request:','طلب اختيار:') + ' <strong>' + escapeHtml(post.featureStatus || tr('pending','قيد المراجعة')) + '</strong></div>'
     : '';
   return [
     '<article class="post-card' + (detail ? ' detail' : '') + (isQuestion(post) ? ' question' : '') + '" style="--i:' + index + '">',
@@ -353,10 +719,10 @@ function renderPostCard(post, index, detail) {
       '<div class="post-body">' + escapeHtml(text) + '</div>',
       projectPreview,
       '<div class="post-actions">',
-        '<button class="action-button applaud ' + (meta.mine === 1 ? 'active' : '') + '" type="button" data-vote="1" data-current="' + meta.mine + '" data-id="' + post.id + '" aria-label="Applaud this post"><span class="action-icon" aria-hidden="true">✦</span><span>Applaud</span><b>' + meta.score + '</b></button>',
-        '<button class="action-button down ' + (meta.mine === -1 ? 'active' : '') + '" type="button" data-vote="-1" data-current="' + meta.mine + '" data-id="' + post.id + '" aria-label="Show less like this"><span class="action-icon" aria-hidden="true">⌄</span></button>',
-        '<button class="action-button" type="button" data-open-comments="' + post.id + '"><span class="action-icon" aria-hidden="true">◯</span><span>' + meta.commentsCount + ' ' + (isQuestion(post) ? (meta.commentsCount === 1 ? 'answer' : 'answers') : (meta.commentsCount === 1 ? 'comment' : 'comments')) + '</span></button>',
-        '<button class="action-button share" type="button" data-share="' + post.id + '"><span class="action-icon" aria-hidden="true">↗</span><span>Share</span></button>',
+        '<button class="action-button applaud ' + (meta.mine === 1 ? 'active' : '') + '" type="button" data-vote="1" data-current="' + meta.mine + '" data-id="' + post.id + '" aria-label="' + tr('Applaud this post','التصفيق لهذا المنشور') + '"><span class="action-icon" aria-hidden="true">✦</span><span>' + tr('Applaud','تصفيق') + '</span><b>' + meta.score + '</b></button>',
+        '<button class="action-button down ' + (meta.mine === -1 ? 'active' : '') + '" type="button" data-vote="-1" data-current="' + meta.mine + '" data-id="' + post.id + '" aria-label="' + tr('Show less like this','عرض محتوى أقل من هذا النوع') + '"><span class="action-icon" aria-hidden="true">⌄</span></button>',
+        '<button class="action-button" type="button" data-open-comments="' + post.id + '"><span class="action-icon" aria-hidden="true">◯</span><span>' + meta.commentsCount + ' ' + (isQuestion(post) ? (isArabic() ? 'إجابة' : meta.commentsCount === 1 ? 'answer' : 'answers') : (isArabic() ? 'تعليق' : meta.commentsCount === 1 ? 'comment' : 'comments')) + '</span></button>',
+        '<button class="action-button share" type="button" data-share="' + post.id + '"><span class="action-icon" aria-hidden="true">↗</span><span>' + tr('Share','مشاركة') + '</span></button>',
       '</div>',
       request,
     '</article>'
@@ -365,31 +731,52 @@ function renderPostCard(post, index, detail) {
 
 function bindPostActions(target, posts) {
   const byId = new Map(posts.map(post => [post.id, post]));
-  target.querySelectorAll('[data-vote]').forEach(button => button.addEventListener('click', async () => {
+  target.querySelectorAll('[data-vote]').forEach(button => button.addEventListener('click', async event => {
+    event.preventDefault();
+    event.stopPropagation();
     if (!currentUser) {
-      showToast('Sign in to react to community posts.');
+      showToast(tr('Sign in to react to community posts.','سجّل الدخول للتفاعل مع منشورات المجتمع.'));
       setTimeout(() => { location.href = loginUrl(); }, 650);
       return;
     }
+    const postId = button.dataset.id;
+    const post = byId.get(postId);
+    if (!post || button.disabled) return;
     const requested = Number(button.dataset.vote);
-    const value = Number(button.dataset.current) === requested ? 0 : requested;
-    button.disabled = true;
+    const previousValue = Number(post.meta.mine) || 0;
+    const previousScore = Number(post.meta.score) || 0;
+    const value = previousValue === requested ? 0 : requested;
+    const nextScore = previousScore + value - previousValue;
+    const reactionButtons = [...target.querySelectorAll('[data-vote]')].filter(item => item.dataset.id === postId);
+    const paintReaction = (mine, score) => {
+      reactionButtons.forEach(item => {
+        const vote = Number(item.dataset.vote);
+        item.dataset.current = String(mine);
+        item.classList.toggle('active', vote === mine);
+        if (vote === 1) item.querySelector('b').textContent = String(score);
+      });
+    };
+    reactionButtons.forEach(item => { item.disabled = true; });
+    paintReaction(value, nextScore);
     if (value === 1) {
       button.classList.remove('celebrate');
       void button.offsetWidth;
       button.classList.add('celebrate');
     }
     try {
-      await setDoc(doc(db, 'communityPosts', button.dataset.id, 'votes', currentUser.uid), {
+      await setDoc(doc(db, 'communityPosts', postId, 'votes', currentUser.uid), {
         userId: currentUser.uid,
         value,
         updatedAt: serverTimestamp()
       });
-      await loadPosts();
+      post.meta.mine = value;
+      post.meta.score = nextScore;
     } catch (error) {
       console.error(error);
-      showToast('Your reaction could not be saved.');
-      button.disabled = false;
+      paintReaction(previousValue, previousScore);
+      showToast(tr('Your reaction could not be saved.','تعذر حفظ تفاعلك.'));
+    } finally {
+      reactionButtons.forEach(item => { item.disabled = false; });
     }
   }));
   target.querySelectorAll('[data-open-comments]').forEach(button => button.addEventListener('click', () => openComments(button.dataset.openComments, true)));
@@ -401,10 +788,10 @@ function bindPostActions(target, posts) {
       if (navigator.share) await navigator.share(shareData);
       else {
         await navigator.clipboard.writeText(shareData.url);
-        showToast('Post link copied.');
+        showToast(tr('Post link copied.','تم نسخ رابط المنشور.'));
       }
     } catch (error) {
-      if (error?.name !== 'AbortError') showToast('The post link could not be shared.');
+      if (error?.name !== 'AbortError') showToast(tr('The post link could not be shared.','تعذرت مشاركة رابط المنشور.'));
     }
   }));
 }
@@ -432,24 +819,19 @@ async function loadPosts() {
           ? !isProject(post) && !isQuestion(post)
           : post.type === communityType);
       }
-      if (searchTerm) {
-        posts = posts.filter(post => [post.title, plainPostText(post), post.authorName].join(' ').toLowerCase().includes(searchTerm));
-      }
     }
     posts = await Promise.all(posts.map(async post => ({...post, meta:await getPostMeta(post)})));
     posts.sort((a, b) => communitySort === 'upvoted'
       ? b.meta.score - a.meta.score || (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
       : (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
 
-    $('feedCount').textContent = selectedPostId ? '' : posts.length + (posts.length === 1 ? ' post' : ' posts');
+    $('feedCount').textContent = selectedPostId ? '' : isArabic() ? posts.length + ' منشور' : posts.length + (posts.length === 1 ? ' post' : ' posts');
     if (!posts.length) {
       const copy = selectedPostId
-        ? ['Post unavailable', 'This post may have been removed or the link is incorrect.']
-        : searchTerm
-          ? ['No matches yet', 'Try another name, idea, or project keyword.']
-          : activeAreaSlug
-            ? ['This space is ready', 'Be the first member to post in a/' + activeAreaSlug + '.']
-            : ['A quiet studio — for now', 'Be the first member to start this conversation.'];
+        ? [tr('Post unavailable','المنشور غير متاح'), tr('This post may have been removed or the link is incorrect.','ربما حُذف المنشور أو أن الرابط غير صحيح.')]
+        : activeAreaSlug
+            ? [tr('This space is ready','هذه المساحة جاهزة'), tr('Be the first member to post in a/','كن أول عضو ينشر في a/') + activeAreaSlug + '.']
+            : [tr('A quiet studio — for now','الاستوديو هادئ حالياً'), tr('Be the first member to start this conversation.','كن أول عضو يبدأ هذا الحوار.')];
       target.innerHTML = '<div class="empty-state"><span class="empty-mark">A</span><h3>' + copy[0] + '</h3><p>' + copy[1] + '</p></div>';
     } else {
       target.innerHTML = posts.map((post, index) => renderPostCard(post, index, Boolean(selectedPostId))).join('');
@@ -457,7 +839,7 @@ async function loadPosts() {
     }
   } catch (error) {
     console.error(error);
-    target.innerHTML = '<p class="notice error">The community feed is taking a break. Please try again in a moment.</p>';
+    target.innerHTML = '<p class="notice error">' + tr('The community feed is taking a break. Please try again in a moment.','خلاصة المجتمع غير متاحة مؤقتاً. حاول مرة أخرى بعد قليل.') + '</p>';
   } finally {
     target.setAttribute('aria-busy', 'false');
   }
@@ -467,12 +849,12 @@ function renderThread(comment, byParent) {
   const children = byParent.get(comment.id) || [];
   return [
     '<article class="comment">',
-      '<div class="comment-head"><strong>' + escapeHtml(comment.userName || 'Member') + '</strong><span class="comment-time">' + escapeHtml(formatDate(comment.createdAt)) + '</span></div>',
+      '<div class="comment-head"><strong>' + escapeHtml(comment.userName || tr('Member','عضو')) + '</strong><span class="comment-time">' + escapeHtml(formatDate(comment.createdAt)) + '</span></div>',
       '<div class="comment-text">' + escapeHtml(comment.text) + '</div>',
       '<div class="comment-actions">',
-        currentUser ? '<button class="comment-action" type="button" data-reply="' + comment.id + '" data-name="' + escapeHtml(comment.userName || 'Member') + '">Reply</button>' : '',
-        children.length ? '<button class="comment-action" type="button" data-thread="' + comment.id + '" aria-expanded="false">Show ' + children.length + ' ' + (children.length === 1 ? 'reply' : 'replies') + '</button>' : '',
-        currentUser?.uid === comment.userId ? '<button class="comment-action" type="button" data-delete-comment="' + comment.id + '">Delete</button>' : '',
+        currentUser ? '<button class="comment-action" type="button" data-reply="' + comment.id + '" data-name="' + escapeHtml(comment.userName || tr('Member','عضو')) + '">' + tr('Reply','رد') + '</button>' : '',
+        children.length ? '<button class="comment-action" type="button" data-thread="' + comment.id + '" aria-expanded="false">' + (isArabic() ? 'عرض ' + children.length + ' رد' : 'Show ' + children.length + ' ' + (children.length === 1 ? 'reply' : 'replies')) + '</button>' : '',
+        currentUser?.uid === comment.userId ? '<button class="comment-action" type="button" data-delete-comment="' + comment.id + '">' + tr('Delete','حذف') + '</button>' : '',
       '</div>',
       '<div class="reply-slot"></div>',
       children.length ? '<div class="comment-children" data-children="' + comment.id + '" hidden>' + children.map(child => renderThread(child, byParent)).join('') + '</div>' : '',
@@ -496,7 +878,7 @@ async function openComments(postId, updateRoute) {
       getDoc(doc(db, 'communityPosts', postId)),
       getDocs(collection(db, 'communityPosts', postId, 'comments'))
     ]);
-    if (!postSnapshot.exists()) throw new Error('Post not found');
+    if (!postSnapshot.exists()) throw new Error(tr('Post not found','المنشور غير موجود'));
     const post = postSnapshot.data();
     const comments = commentsSnapshot.docs.map(item => ({id:item.id, ...item.data()}));
     const knownIds = new Set(comments.map(comment => comment.id));
@@ -508,21 +890,21 @@ async function openComments(postId, updateRoute) {
     });
     byParent.forEach(items => items.sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)));
     const roots = byParent.get(null) || [];
-    document.querySelector('.comments-sheet .mini-kicker').textContent = isQuestion(post) ? 'OPEN ANSWERS' : 'DISCUSSION';
-    $('commentsSheetTitle').textContent = post.title || 'Comments';
+    document.querySelector('.comments-sheet .mini-kicker').textContent = isQuestion(post) ? tr('OPEN ANSWERS','إجابات مفتوحة') : tr('DISCUSSION','النقاش');
+    $('commentsSheetTitle').textContent = post.title || tr('Comments','التعليقات');
     $('commentsSheetBody').innerHTML = [
       '<div class="comments">',
-        roots.length ? roots.map(comment => renderThread(comment, byParent)).join('') : '<div class="empty-state"><span class="empty-mark">+</span><h3>' + (isQuestion(post) ? 'Share the first answer' : 'Start the conversation') + '</h3><p>' + (isQuestion(post) ? 'Offer experience, a reference, or a useful direction.' : 'Ask a question or leave thoughtful feedback.') + '</p></div>',
+        roots.length ? roots.map(comment => renderThread(comment, byParent)).join('') : '<div class="empty-state"><span class="empty-mark">+</span><h3>' + (isQuestion(post) ? tr('Share the first answer','شارك أول إجابة') : tr('Start the conversation','ابدأ الحوار')) + '</h3><p>' + (isQuestion(post) ? tr('Offer experience, a reference, or a useful direction.','شارك تجربة أو مرجعاً أو اتجاهاً مفيداً.') : tr('Ask a question or leave thoughtful feedback.','اطرح سؤالاً أو اترك ملاحظة بنّاءة.')) + '</p></div>',
         currentUser
-          ? '<form class="comment-form" data-comment="' + postId + '"><input required maxlength="2000" placeholder="' + (isQuestion(post) ? 'Write an answer…' : 'Add to the conversation…') + '" aria-label="' + (isQuestion(post) ? 'Write an answer' : 'Add a comment') + '"><button class="comment-submit">' + (isQuestion(post) ? 'Answer' : 'Post') + '</button></form>'
-          : '<p class="notice"><a href="' + loginUrl() + '">Sign in</a> to join the discussion.</p>',
+          ? '<form class="comment-form" data-comment="' + postId + '"><input required maxlength="2000" placeholder="' + (isQuestion(post) ? tr('Write an answer…','اكتب إجابة…') : tr('Add to the conversation…','أضف إلى الحوار…')) + '" aria-label="' + (isQuestion(post) ? tr('Write an answer','اكتب إجابة') : tr('Add a comment','أضف تعليقاً')) + '"><button class="comment-submit">' + (isQuestion(post) ? tr('Answer','إجابة') : tr('Post','نشر')) + '</button></form>'
+          : '<p class="notice"><a href="' + loginUrl() + '">' + tr('Sign in','سجّل الدخول') + '</a> ' + tr('to join the discussion.','للانضمام إلى النقاش.') + '</p>',
       '</div>'
     ].join('');
     bindCommentActions(postId);
     $('commentsOverlay').querySelector('.comments-close').focus();
   } catch (error) {
     console.error(error);
-    $('commentsSheetBody').innerHTML = '<p class="notice error">Comments are unavailable right now.</p>';
+    $('commentsSheetBody').innerHTML = '<p class="notice error">' + tr('Comments are unavailable right now.','التعليقات غير متاحة حالياً.') + '</p>';
   }
 }
 
@@ -533,12 +915,12 @@ function bindCommentActions(postId) {
     if (!box) return;
     box.hidden = !box.hidden;
     button.setAttribute('aria-expanded', String(!box.hidden));
-    button.textContent = box.hidden ? 'Show ' + box.children.length + ' ' + (box.children.length === 1 ? 'reply' : 'replies') : 'Hide replies';
+    button.textContent = box.hidden ? (isArabic() ? 'عرض ' + box.children.length + ' رد' : 'Show ' + box.children.length + ' ' + (box.children.length === 1 ? 'reply' : 'replies')) : tr('Hide replies','إخفاء الردود');
   }));
   target.querySelectorAll('[data-reply]').forEach(button => button.addEventListener('click', () => {
     target.querySelectorAll('.reply-slot').forEach(slot => { slot.innerHTML = ''; });
     const slot = button.closest('.comment').querySelector('.reply-slot');
-    slot.innerHTML = '<form class="reply-form"><textarea maxlength="2000" required placeholder="Reply to ' + escapeHtml(button.dataset.name) + '"></textarea><button class="comment-submit">Reply</button></form>';
+    slot.innerHTML = '<form class="reply-form"><textarea maxlength="2000" required placeholder="' + tr('Reply to ','الرد على ') + escapeHtml(button.dataset.name) + '"></textarea><button class="comment-submit">' + tr('Reply','رد') + '</button></form>';
     slot.querySelector('textarea').focus();
     slot.querySelector('form').addEventListener('submit', async event => {
       event.preventDefault();
@@ -546,7 +928,7 @@ function bindCommentActions(postId) {
       if (!text || !currentUser) return;
       await addDoc(collection(db, 'communityPosts', postId, 'comments'), {
         userId: currentUser.uid,
-        userName: currentProfile?.displayName || currentUser.displayName || 'Member',
+        userName: currentProfile?.displayName || currentUser.displayName || tr('Member','عضو'),
         text,
         parentId: button.dataset.reply,
         createdAt: serverTimestamp()
@@ -566,7 +948,7 @@ function bindCommentActions(postId) {
     submit.disabled = true;
     await addDoc(collection(db, 'communityPosts', postId, 'comments'), {
       userId: currentUser.uid,
-      userName: currentProfile?.displayName || currentUser.displayName || 'Member',
+      userName: currentProfile?.displayName || currentUser.displayName || tr('Member','عضو'),
       text: input.value.trim(),
       parentId: null,
       createdAt: serverTimestamp()
@@ -597,33 +979,40 @@ function closeComments() {
 }
 
 function renderPostTypeFields() {
-  const type = $('postType').value;
-  const project = type === 'behance';
-  const question = type === 'question';
-  $('textFields').hidden = project;
-  $('projectFields').hidden = !project;
-  $('postContent').required = !project;
-  $('postSummary').required = project;
-  $('behanceEmbed').required = project;
-  document.querySelector('label[for="postContent"]').textContent = question ? 'Add helpful context' : 'Tell the community more';
-  $('postContent').placeholder = question ? 'What have you tried, and what kind of answer would help?' : 'Share context, a fresh perspective, or invite feedback…';
-  $('postTitle').placeholder = question ? 'Ask one clear, open question' : 'A question, insight, or project name';
-  if (!project) $('featureRequest').checked = false;
+  const question = $('postType').value === 'question';
+  $('postContent').required = true;
+  document.querySelector('label[for="postContent"]').textContent = question ? tr('Add helpful context','أضف سياقاً مفيداً') : tr('Tell the community more','أخبر المجتمع بالمزيد');
+  $('postContent').placeholder = question ? tr('What have you tried, and what kind of answer would help?','ماذا جرّبت، وما نوع الإجابة التي ستفيدك؟') : tr('Share context, a fresh perspective, or invite feedback…','شارك السياق أو منظوراً جديداً أو اطلب آراء الأعضاء…');
+  $('postTitle').placeholder = question ? tr('Ask one clear, open question','اطرح سؤالاً مفتوحاً وواضحاً') : tr('Share one clear insight or idea','شارك فكرة أو رؤية واضحة');
 }
 
 function renderPostGate() {
   const allowed = currentUser && currentProfile?.profileComplete && currentProfile?.username;
   if (allowed) {
     $('postGate').innerHTML = '';
-    $('postIdentity').innerHTML = 'Posting as <strong>@' + escapeHtml(currentProfile.username) + '</strong>';
+    $('postIdentity').innerHTML = tr('Posting as ','تنشر باسم ') + '<strong>@' + escapeHtml(currentProfile.username) + '</strong>';
   } else if (currentUser) {
-    const action = currentProfile?.profileComplete && !currentProfile?.username ? 'Claim a unique username on' : 'Complete';
-    $('postGate').innerHTML = '<p class="notice">' + action + ' your <a href="' + profileUrl(currentUser.uid, currentProfile?.username) + '">community profile</a> before publishing.</p>';
+    const action = currentProfile?.profileComplete && !currentProfile?.username ? tr('Claim a unique username on','اختر اسم مستخدم فريداً في') : tr('Complete','أكمل');
+    $('postGate').innerHTML = '<p class="notice">' + action + ' <a href="' + profileUrl(currentUser.uid, currentProfile?.username) + '">' + tr('your community profile','ملفك المجتمعي') + '</a> ' + tr('before publishing.','قبل النشر.') + '</p>';
   } else {
-    $('postGate').innerHTML = '<p class="notice">You need to <a href="' + loginUrl() + '">sign in</a> before publishing to the community.</p>';
+    $('postGate').innerHTML = '<p class="notice">' + tr('You need to','يجب أن') + ' <a href="' + loginUrl() + '">' + tr('sign in','تسجّل الدخول') + '</a> ' + tr('before publishing to the community.','قبل النشر في المجتمع.') + '</p>';
   }
   if (!allowed) $('postIdentity').innerHTML = '';
   $('postFormCard').hidden = !allowed;
+}
+
+function renderSpaceGate() {
+  const allowed = currentUser && currentProfile?.profileComplete && currentProfile?.username;
+  if (allowed) {
+    $('spaceGate').innerHTML = '';
+    $('spaceIdentity').innerHTML = tr('Creating as ','تنشئ باسم ') + '<strong>@' + escapeHtml(currentProfile.username) + '</strong> · ' + tr('Handles are permanent and unique.','المعرّفات دائمة وفريدة.') ;
+  } else if (currentUser) {
+    const action = currentProfile?.profileComplete && !currentProfile?.username ? tr('Claim a unique username on','اختر اسم مستخدم فريداً في') : tr('Complete','أكمل');
+    $('spaceGate').innerHTML = '<p class="notice">' + action + ' <a href="' + profileUrl(currentUser.uid, currentProfile?.username) + '">' + tr('your community profile','ملفك المجتمعي') + '</a> ' + tr('before creating a space.','قبل إنشاء مساحة.') + '</p>';
+  } else {
+    $('spaceGate').innerHTML = '<p class="notice">' + tr('You need to','يجب أن') + ' <a href="' + loginUrl() + '">' + tr('sign in','تسجّل الدخول') + '</a> ' + tr('before creating a community space.','قبل إنشاء مساحة مجتمعية.') + '</p>';
+  }
+  $('spaceFormCard').hidden = !allowed;
 }
 
 async function loadProfilePosts(uid) {
@@ -635,9 +1024,9 @@ async function loadProfilePosts(uid) {
       .filter(post => post.published !== false && post.userId === uid)
       .sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
     posts = await Promise.all(posts.map(async post => ({...post, meta:await getPostMeta(post)})));
-    $('profilePostCount').textContent = posts.length + (posts.length === 1 ? ' post' : ' posts');
+    $('profilePostCount').textContent = isArabic() ? posts.length.toLocaleString('ar-IQ') + ' ' + (posts.length === 1 ? 'منشور' : 'منشورات') : posts.length + (posts.length === 1 ? ' post' : ' posts');
     if (!posts.length) {
-      target.innerHTML = '<div class="empty-state"><span class="empty-mark">A</span><h3>No posts yet</h3><p>This member is still preparing their first idea.</p></div>';
+      target.innerHTML = '<div class="empty-state"><span class="empty-mark">A</span><h3>' + tr('No posts yet','لا توجد منشورات بعد') + '</h3><p>' + tr('This member is still preparing their first idea.','لا يزال هذا العضو يحضّر فكرته الأولى.') + '</p></div>';
       return;
     }
     target.innerHTML = posts.map(post => {
@@ -651,7 +1040,7 @@ async function loadProfilePosts(uid) {
     }).join('');
   } catch (error) {
     console.error(error);
-    target.innerHTML = '<p class="notice error">Profile posts are unavailable right now.</p>';
+    target.innerHTML = '<p class="notice error">' + tr('Profile posts are unavailable right now.','منشورات الملف الشخصي غير متاحة حالياً.') + '</p>';
   }
 }
 
@@ -660,8 +1049,8 @@ async function loadProfile(uid, routedProfile) {
   if (!uid) {
     target.className = '';
     target.innerHTML = routedProfile
-      ? '<p class="notice error">This profile could not be found. Check the username and try again.</p>'
-      : '<p class="notice">Sign in to create and view your community profile. <a href="' + loginUrl() + '">Sign in</a></p>';
+      ? '<p class="notice error">' + tr('This profile could not be found. Check the username and try again.','تعذر العثور على هذا الملف. تحقق من اسم المستخدم وحاول مجدداً.') + '</p>'
+      : '<p class="notice">' + tr('Sign in to create and view your community profile.','سجّل الدخول لإنشاء ملفك المجتمعي وعرضه.') + ' <a href="' + loginUrl() + '">' + tr('Sign in','تسجيل الدخول') + '</a></p>';
     $('profilePosts').innerHTML = '';
     $('profilePostCount').textContent = '';
     return;
@@ -671,27 +1060,27 @@ async function loadProfile(uid, routedProfile) {
   try {
     const profile = await getProfile(uid);
     const owner = currentUser?.uid === uid;
-    const displayName = profile.displayName || (owner ? currentUser?.displayName : '') || 'Community member';
+    const displayName = profile.displayName || (owner ? currentUser?.displayName : '') || tr('Community member','عضو في المجتمع');
     const photo = profile.photoURL || (owner ? currentUser?.photoURL : '') || '';
-    const locationLine = [profile.school, profile.city].filter(Boolean).join(' · ') || 'AIAS Basra community';
+    const locationLine = [profile.school, profile.city].filter(Boolean).join(' · ') || tr('AIAS Basra community','مجتمع AIAS البصرة');
     const interests = String(profile.interests || '').split(',').map(item => item.trim()).filter(Boolean);
-    document.title = (profile.username ? 'p/' + profile.username : displayName) + ' — AIAS Basra Community';
+    document.title = (profile.username ? 'p/' + profile.username : displayName) + tr(' — AIAS Basra Community',' — مجتمع AIAS البصرة');
     target.className = 'profile-hero';
     target.innerHTML = [
       '<div class="profile-top">',
         avatarMarkup(displayName, photo, 'profile-avatar'),
-        '<div class="profile-title"><h2>' + escapeHtml(displayName) + '</h2><span class="profile-handle">' + (profile.username ? '@' + escapeHtml(profile.username) : 'No username claimed') + '</span><p>' + escapeHtml(locationLine) + '</p></div>',
-        owner ? '<button id="editProfile" class="edit-profile-button" type="button">Edit profile</button>' : '',
+        '<div class="profile-title"><h2>' + escapeHtml(displayName) + '</h2><span class="profile-handle">' + (profile.username ? '@' + escapeHtml(profile.username) : tr('No username claimed','لم يتم اختيار اسم مستخدم')) + '</span><p>' + escapeHtml(locationLine) + '</p></div>',
+        owner ? '<button id="editProfile" class="edit-profile-button" type="button">' + tr('Edit profile','تعديل الملف') + '</button>' : '',
       '</div>',
-      '<p class="profile-bio">' + escapeHtml(profile.bio || 'No bio added yet.') + '</p>',
+      '<p class="profile-bio">' + escapeHtml(profile.bio || tr('No bio added yet.','لم تُضف نبذة بعد.')) + '</p>',
       interests.length ? '<div class="interest-row">' + interests.map(item => '<span>' + escapeHtml(item) + '</span>').join('') + '</div>' : '',
       owner ? [
         '<form id="profileForm" class="profile-form" hidden>',
-          '<div class="form-grid"><div class="form-group"><label for="profileName">Name</label><input id="profileName" required value="' + escapeHtml(displayName) + '"></div><div class="form-group"><label for="profileUsername">Unique username</label><input id="profileUsername" required minlength="3" maxlength="24" pattern="[a-z0-9_]{3,24}" value="' + escapeHtml(profile.username || '') + '" ' + (profile.username ? 'readonly' : '') + ' placeholder="your_handle"><small id="profileUsernameStatus" class="username-check ' + (profile.username ? 'valid' : '') + '">' + (profile.username ? 'Your permanent profile address is p/' + escapeHtml(profile.username) : 'Availability will be checked as you type.') + '</small></div></div>',
-          '<div class="form-group"><label for="profileSchool">School / organization</label><input id="profileSchool" required value="' + escapeHtml(profile.school || '') + '"></div>',
-          '<div class="form-grid"><div class="form-group"><label for="profileCity">City</label><input id="profileCity" required value="' + escapeHtml(profile.city || '') + '"></div><div class="form-group"><label for="profileInterests">Interests</label><input id="profileInterests" value="' + escapeHtml(profile.interests || '') + '" placeholder="Urbanism, interiors, sketching"></div></div>',
-          '<div class="form-group"><label for="profileBio">Bio</label><textarea id="profileBio" required>' + escapeHtml(profile.bio || '') + '</textarea></div>',
-          '<button class="primary-button" type="submit"><span>Save profile</span><b aria-hidden="true">→</b></button>',
+          '<div class="form-grid"><div class="form-group"><label for="profileName">' + tr('Name','الاسم') + '</label><input id="profileName" required value="' + escapeHtml(displayName) + '"></div><div class="form-group"><label for="profileUsername">' + tr('Unique username','اسم مستخدم فريد') + '</label><input id="profileUsername" required minlength="3" maxlength="24" pattern="[a-z0-9_]{3,24}" value="' + escapeHtml(profile.username || '') + '" ' + (profile.username ? 'readonly' : '') + ' placeholder="your_handle"><small id="profileUsernameStatus" class="username-check ' + (profile.username ? 'valid' : '') + '">' + (profile.username ? tr('Your permanent profile address is ','عنوان ملفك الدائم هو ') + 'p/' + escapeHtml(profile.username) : tr('Availability will be checked as you type.','سيتم التحقق من التوفر أثناء الكتابة.')) + '</small></div></div>',
+          '<div class="form-group"><label for="profileSchool">' + tr('School / organization','الجامعة / المؤسسة') + '</label><input id="profileSchool" required value="' + escapeHtml(profile.school || '') + '"></div>',
+          '<div class="form-grid"><div class="form-group"><label for="profileCity">' + tr('City','المدينة') + '</label><input id="profileCity" required value="' + escapeHtml(profile.city || '') + '"></div><div class="form-group"><label for="profileInterests">' + tr('Interests','الاهتمامات') + '</label><input id="profileInterests" value="' + escapeHtml(profile.interests || '') + '" placeholder="' + tr('Urbanism, interiors, sketching','العمران، التصميم الداخلي، الرسم') + '"></div></div>',
+          '<div class="form-group"><label for="profileBio">' + tr('Bio','نبذة') + '</label><textarea id="profileBio" required>' + escapeHtml(profile.bio || '') + '</textarea></div>',
+          '<button class="primary-button" type="submit"><span>' + tr('Save profile','حفظ الملف') + '</span><b aria-hidden="true">→</b></button>',
         '</form>'
       ].join('') : ''
     ].join('');
@@ -712,6 +1101,10 @@ async function loadProfile(uid, routedProfile) {
         const button = event.submitter;
         button.disabled = true;
         try {
+          if (!profile.username) {
+            const available = await checkUsernameAvailability($('profileUsername'), $('profileUsernameStatus'), uid);
+            if (!available) throw new Error(tr('Choose an available username before saving your profile.','اختر اسم مستخدم متاحاً قبل حفظ ملفك.'));
+          }
           const username = profile.username || await claimUsername(uid, $('profileUsername').value);
           await setDoc(doc(db, 'users', uid), {
             username,
@@ -723,13 +1116,14 @@ async function loadProfile(uid, routedProfile) {
             profileComplete: true,
             updatedAt: serverTimestamp()
           }, {merge:true});
+          invalidateCommunitySearchIndex();
           profileCache.delete(uid);
           currentProfile = await getProfile(uid);
-          showToast('Profile updated.');
+          showToast(tr('Profile updated.','تم تحديث الملف الشخصي.'));
           history.replaceState({}, '', profileUrl(uid, username));
           await loadProfile(uid);
         } catch (error) {
-          showToast(error.message || 'Your profile could not be updated.');
+          showToast(error.message || tr('Your profile could not be updated.','تعذر تحديث ملفك الشخصي.'));
           button.disabled = false;
         }
       });
@@ -738,7 +1132,7 @@ async function loadProfile(uid, routedProfile) {
   } catch (error) {
     console.error(error);
     target.className = '';
-    target.innerHTML = '<p class="notice error">This profile is unavailable right now.</p>';
+    target.innerHTML = '<p class="notice error">' + tr('This profile is unavailable right now.','هذا الملف الشخصي غير متاح حالياً.') + '</p>';
   }
 }
 
@@ -751,13 +1145,17 @@ document.querySelectorAll('[data-route]').forEach(link => link.addEventListener(
 document.querySelectorAll('[data-close-comments]').forEach(button => button.addEventListener('click', closeComments));
 document.addEventListener('keydown', event => {
   const tag = document.activeElement?.tagName;
+  if (event.key === 'Escape' && !$('communitySearchResults').hidden) {
+    closeCommunitySearch();
+    return;
+  }
   if (event.key === 'Escape' && activeCommentsPostId) closeComments();
   if (event.key === '/' && !['INPUT','TEXTAREA','SELECT'].includes(tag)) {
     event.preventDefault();
     $('communitySearch').focus();
   }
 });
-window.addEventListener('popstate', () => handleRoute(false));
+window.addEventListener('popstate', () => { closeCommunitySearch(); handleRoute(false); });
 
 document.querySelectorAll('.filter-pill').forEach(button => button.addEventListener('click', () => {
   if (button.dataset.sort) {
@@ -772,13 +1170,48 @@ document.querySelectorAll('.filter-pill').forEach(button => button.addEventListe
 }));
 
 let searchTimer;
+$('communitySearch').addEventListener('focus', event => runCommunitySearch(event.target.value));
 $('communitySearch').addEventListener('input', event => {
-  searchTerm = event.target.value.trim().toLowerCase();
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => {
-    if (new URLSearchParams(location.search).get('post')) navigateTo('/community.html', true);
-    else loadPosts();
-  }, 180);
+  searchTimer = setTimeout(() => runCommunitySearch(event.target.value), 130);
+});
+$('communitySearch').addEventListener('keydown', event => {
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    event.preventDefault();
+    if ($('communitySearchResults').hidden) runCommunitySearch(event.currentTarget.value);
+    else moveCommunitySearchSelection(event.key === 'ArrowDown' ? 1 : -1);
+  } else if (event.key === 'Enter') {
+    const options = [...$('communitySearchResults').querySelectorAll('[data-search-result]')];
+    const selected = options[communitySearchActiveIndex] || options[0];
+    if (selected) {
+      event.preventDefault();
+      followCommunitySearchResult(selected);
+    }
+  } else if (event.key === 'Escape') {
+    event.preventDefault();
+    event.stopPropagation();
+    closeCommunitySearch();
+  }
+});
+$('communitySearchResults').addEventListener('mousemove', event => {
+  const hovered = event.target.closest('[data-search-result]');
+  if (!hovered) return;
+  const options = [...$('communitySearchResults').querySelectorAll('[data-search-result]')];
+  communitySearchActiveIndex = options.indexOf(hovered);
+  options.forEach((option, index) => {
+    const active = index === communitySearchActiveIndex;
+    option.classList.toggle('is-active', active);
+    option.setAttribute('aria-selected', String(active));
+  });
+});
+$('communitySearchResults').addEventListener('click', event => {
+  const result = event.target.closest('[data-search-result]');
+  if (!result || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  followCommunitySearchResult(result);
+});
+document.addEventListener('pointerdown', event => {
+  if (!event.target.closest('.community-search-shell')) closeCommunitySearch();
 });
 
 $('quickComposer').addEventListener('click', () => navigateTo(composerUrl(), false));
@@ -786,7 +1219,24 @@ $('areaCreate').addEventListener('click', () => navigateTo(composerUrl(), false)
 $('answerPrompt').addEventListener('click', () => {
   if (selectedPromptPostId) navigateTo('/community.html?post=' + encodeURIComponent(selectedPromptPostId) + '&comments=1', false);
 });
-$('postCommunity').addEventListener('input', () => validateCommunityHandle(true));
+let postCommunityTimer;
+$('postCommunity').addEventListener('focus', event => renderSpaceSuggestions(event.target.value));
+$('postCommunity').addEventListener('input', event => {
+  validateCommunityHandle(true);
+  renderSpaceSuggestions(event.target.value);
+  clearTimeout(postCommunityTimer);
+  postCommunityTimer = setTimeout(() => validateCommunityHandleLive(true), 220);
+});
+$('postCommunity').addEventListener('blur', () => setTimeout(() => { $('spaceSuggestions').hidden = true; }, 120));
+$('spaceSuggestions').addEventListener('mousedown', event => event.preventDefault());
+$('spaceSuggestions').addEventListener('click', event => {
+  const choice = event.target.closest('[data-space-choice]');
+  if (!choice) return;
+  $('postCommunity').value = choice.dataset.spaceChoice === 'main' ? 'main' : 'a/' + choice.dataset.spaceChoice;
+  $('spaceSuggestions').hidden = true;
+  validateCommunityHandle(true);
+  $('postCommunity').focus();
+});
 
 document.querySelectorAll('input[name="postTypeChoice"]').forEach(input => input.addEventListener('change', event => {
   $('postType').value = event.target.value;
@@ -794,68 +1244,109 @@ document.querySelectorAll('input[name="postTypeChoice"]').forEach(input => input
 }));
 [
   ['postTitle', 'titleCount', 160],
-  ['postContent', 'contentCount', 2000],
-  ['postSummary', 'summaryCount', 360]
+  ['postContent', 'contentCount', 2000]
 ].forEach(([inputId, countId, limit]) => {
   $(inputId).addEventListener('input', event => { $(countId).textContent = event.target.value.length.toLocaleString() + ' / ' + limit.toLocaleString(); });
 });
 renderPostTypeFields();
 
+$('communityLanguageToggle').addEventListener('click', () => {
+  setCommunityLanguage(isArabic() ? 'en' : 'ar');
+});
+setCommunityLanguage(currentLanguage, false);
+
 $('postForm').addEventListener('submit', async event => {
   event.preventDefault();
-  const type = $('postType').value;
+  const type = $('postType').value === 'question' ? 'question' : 'text';
   const title = $('postTitle').value.trim();
   const content = $('postContent').value.trim();
-  const summary = $('postSummary').value.trim();
   $('postStatus').classList.remove('success');
-  let behanceSrc = '';
-  if (type !== 'behance' && !content) {
-    $('postStatus').textContent = 'Write something before publishing.';
+  if (!content) {
+    $('postStatus').textContent = tr('Write something before publishing.','اكتب شيئاً قبل النشر.');
     return;
-  }
-  if (type === 'behance') {
-    const parsed = new DOMParser().parseFromString($('behanceEmbed').value.trim(), 'text/html');
-    behanceSrc = parsed.querySelector('iframe')?.getAttribute('src') || '';
-    if (!/^https:\/\/(www\.)?behance\.net\/embed\/project\//i.test(behanceSrc)) {
-      $('postStatus').textContent = 'Paste a valid Behance project iframe.';
-      return;
-    }
   }
   const button = event.submitter;
   button.disabled = true;
   try {
-    const featureRequest = type === 'behance' && $('featureRequest').checked;
-    const communitySlug = validateCommunityHandle(true);
+    const communitySlug = await validateCommunityHandleLive(true);
     if (!communitySlug) {
-      $('postStatus').textContent = 'Choose an existing community handle before publishing.';
+      $('postStatus').textContent = tr('Choose an existing community handle before publishing.','اختر معرّف مساحة موجوداً قبل النشر.');
       button.disabled = false;
       return;
     }
     const postRef = await addDoc(collection(db, 'communityPosts'), {
       type,
       title,
-      summary: type === 'behance' ? summary : content.slice(0, 360),
-      content: type === 'behance' ? '' : content,
-      behanceSrc,
+      summary: content.slice(0, 360),
+      content,
+      behanceSrc: '',
       communitySlug,
       userId: currentUser.uid,
-      authorName: currentProfile.displayName || currentUser.displayName || 'Member',
+      authorName: currentProfile.displayName || currentUser.displayName || tr('Member','عضو'),
       authorUsername: currentProfile.username,
       published: true,
-      featureRequest,
-      featureStatus: featureRequest ? 'pending' : 'none',
+      featureRequest: false,
+      featureStatus: 'none',
       featured: false,
       createdAt: serverTimestamp()
     });
+    invalidateCommunitySearchIndex();
     $('postForm').reset();
     $('postType').value = 'text';
     renderPostTypeFields();
-    ['postTitle','postContent','postSummary'].forEach(id => $(id).dispatchEvent(new Event('input')));
-    showToast('Your post is live.');
+    ['postTitle','postContent'].forEach(id => $(id).dispatchEvent(new Event('input')));
+    showToast(tr('Your post is live.','تم نشر منشورك.'));
     navigateTo('/community.html?post=' + encodeURIComponent(postRef.id), false);
   } catch (error) {
     console.error(error);
-    $('postStatus').textContent = error.message || 'This post could not be published.';
+    $('postStatus').textContent = error.message || tr('This post could not be published.','تعذر نشر هذا المنشور.');
+  } finally {
+    button.disabled = false;
+  }
+});
+
+let spaceHandleTimer;
+$('spaceName').addEventListener('input', event => {
+  $('spaceNameCount').textContent = event.target.value.length.toLocaleString() + ' / 80';
+  if (!$('spaceHandle').dataset.manuallyEdited) {
+    $('spaceHandle').value = normalizeCommunityHandle(event.target.value);
+    clearTimeout(spaceHandleTimer);
+    spaceHandleTimer = setTimeout(() => checkSpaceHandleAvailability($('spaceHandle'), $('spaceHandleStatus')), 250);
+  }
+});
+$('spaceDescription').addEventListener('input', event => {
+  $('spaceDescriptionCount').textContent = event.target.value.length.toLocaleString() + ' / 360';
+});
+$('spaceHandle').addEventListener('input', event => {
+  event.target.dataset.manuallyEdited = 'true';
+  clearTimeout(spaceHandleTimer);
+  spaceHandleTimer = setTimeout(() => checkSpaceHandleAvailability(event.target, $('spaceHandleStatus')), 250);
+});
+
+$('spaceForm').addEventListener('submit', async event => {
+  event.preventDefault();
+  const button = event.submitter;
+  const name = $('spaceName').value.trim();
+  const description = $('spaceDescription').value.trim();
+  $('spaceStatus').textContent = '';
+  button.disabled = true;
+  try {
+    const available = await checkSpaceHandleAvailability($('spaceHandle'), $('spaceHandleStatus'));
+    if (!available) {
+      $('spaceStatus').textContent = tr('Choose an available space handle before continuing.','اختر معرّف مساحة متاحاً قبل المتابعة.');
+      return;
+    }
+    const handle = await createCommunitySpace(name, $('spaceHandle').value, description);
+    $('spaceForm').reset();
+    delete $('spaceHandle').dataset.manuallyEdited;
+    $('spaceNameCount').textContent = '0 / 80';
+    $('spaceDescriptionCount').textContent = '0 / 360';
+    showToast('a/' + handle + ' ' + tr('is ready. Start its first post.','جاهزة. ابدأ أول منشور فيها.'));
+    navigateTo(areaUrl(handle) + '?view=post', false);
+  } catch (error) {
+    console.error(error);
+    $('spaceStatus').textContent = error.message || tr('This space could not be created.','تعذر إنشاء هذه المساحة.');
+    await checkSpaceHandleAvailability($('spaceHandle'), $('spaceHandleStatus'));
   } finally {
     button.disabled = false;
   }
@@ -872,20 +1363,21 @@ onAuthStateChanged(auth, async user => {
       try { await claimUsername(user.uid, currentProfile.username); }
       catch (error) { console.warn('[Community] Existing username index could not be repaired.', error); }
     }
-    const displayName = currentProfile.displayName || user.displayName || 'Member';
+    const displayName = currentProfile.displayName || user.displayName || tr('Member','عضو');
     const photo = currentProfile.photoURL || user.photoURL || '';
     $('memberAction').href = profileUrl(user.uid, currentProfile.username);
     document.querySelectorAll('[data-route="profile"]').forEach(link => { link.href = profileUrl(user.uid, currentProfile.username); });
-    $('memberAction').setAttribute('aria-label', 'Open your community profile');
+    $('memberAction').setAttribute('aria-label', tr('Open your community profile','افتح ملفك المجتمعي'));
     $('memberAction').innerHTML = photo ? '<img src="' + escapeHtml(photo) + '" alt="' + escapeHtml(displayName) + '">' : '<span>' + escapeHtml(initials(displayName)) + '</span>';
     $('quickAvatar').innerHTML = photo ? '<img src="' + escapeHtml(photo) + '" alt="">' : escapeHtml(initials(displayName));
   } else {
     currentProfile = null;
     $('memberAction').href = loginUrl();
-    $('memberAction').setAttribute('aria-label', 'Sign in');
+    $('memberAction').setAttribute('aria-label', tr('Sign in','تسجيل الدخول'));
     $('memberAction').innerHTML = '<span>?</span>';
     $('quickAvatar').textContent = 'A';
   }
   renderPostGate();
+  renderSpaceGate();
   handleRoute(false);
 });

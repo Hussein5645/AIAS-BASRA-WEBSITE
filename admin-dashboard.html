@@ -607,7 +607,7 @@
      *************************************************/
     import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, getDocs, collection, addDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, getDocs, collection, addDoc, setDoc, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import FirestoreAPI from "./js/firestore-api.js?v=20260811-settings";
     import categoriesLoader from "./js/categories-loader.js";
     import { toBase64, uploadFileChunks, createDocumentId } from "./js/file-chunks.js";
@@ -970,14 +970,17 @@
     }
 
     let communitySpaceCheckTimer;
+    let communitySpaceCheckSequence = 0;
     document.getElementById('communitySpaceSlug')?.addEventListener('input', event => {
       event.target.value = event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+      const sequence = ++communitySpaceCheckSequence;
       clearTimeout(communitySpaceCheckTimer);
       communitySpaceCheckTimer = setTimeout(async () => {
         const status = document.getElementById('communitySpaceStatus');
         const slug = event.target.value;
-        if (!/^[a-z0-9-]{3,32}$/.test(slug)) { event.target.setCustomValidity('Use 3–32 lowercase letters, numbers, or hyphens.'); status.style.color='#b91c1c'; status.textContent='Enter a valid a/ handle.'; return; }
+        if (slug === 'main' || !/^[a-z0-9-]{3,32}$/.test(slug)) { event.target.setCustomValidity(slug === 'main' ? 'The main handle is reserved.' : 'Use 3–32 lowercase letters, numbers, or hyphens.'); status.style.color='#b91c1c'; status.textContent=slug === 'main' ? 'a/main is reserved for the main thread.' : 'Enter a valid a/ handle.'; return; }
         const snapshot = await getDoc(doc(db, 'communitySpaces', slug));
+        if (sequence !== communitySpaceCheckSequence || event.target.value !== slug) return;
         event.target.setCustomValidity(snapshot.exists() ? 'That community handle already exists.' : '');
         status.style.color = snapshot.exists() ? '#b45309' : '#15803d';
         status.textContent = snapshot.exists() ? 'a/' + slug + ' already exists. Choose another unique handle.' : 'a/' + slug + ' is available.';
@@ -989,9 +992,13 @@
       const slug = document.getElementById('communitySpaceSlug').value.trim();
       try {
         if (!canManage(currentAccess, 'community')) throw new Error('You do not have permission to manage sub-communities.');
-        const existing = await getDoc(doc(db, 'communitySpaces', slug));
-        if (existing.exists()) throw new Error('That unique community handle is already in use.');
-        await setDoc(doc(db, 'communitySpaces', slug), {name:document.getElementById('communitySpaceName').value.trim(), symbol:document.getElementById('communitySpaceSymbol').value.trim().toUpperCase(), description:document.getElementById('communitySpaceDescription').value.trim(), active:true, updatedAt:serverTimestamp(), updatedBy:currentAdminUser?.email || ''}, {merge:true});
+        if (slug === 'main') throw new Error('a/main is reserved for the main thread.');
+        const spaceRef = doc(db, 'communitySpaces', slug);
+        await runTransaction(db, async transaction => {
+          const existing = await transaction.get(spaceRef);
+          if (existing.exists()) throw new Error('That unique community handle is already in use.');
+          transaction.set(spaceRef, {name:document.getElementById('communitySpaceName').value.trim(), symbol:document.getElementById('communitySpaceSymbol').value.trim().toUpperCase(), description:document.getElementById('communitySpaceDescription').value.trim(), active:true, updatedAt:serverTimestamp(), updatedBy:currentAdminUser?.email || ''});
+        });
         status.style.color = '#15803d'; status.textContent = 'Sub-community saved to Firebase.';
         event.target.reset();
         loadCommunitySpacesAdmin();

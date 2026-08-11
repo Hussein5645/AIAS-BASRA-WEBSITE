@@ -276,6 +276,8 @@ let currentLanguage = localStorage.getItem('language') || 'en';
 
 function applyElementTranslation(element, lang) {
     const translation = element.getAttribute(`data-${lang}`);
+    const ariaTranslation = element.getAttribute(`data-aria-${lang}`);
+    if (ariaTranslation) element.setAttribute('aria-label', ariaTranslation);
     if (!translation) return;
 
     // Inputs and textareas need their placeholder translated; setting
@@ -300,9 +302,10 @@ function applyTranslations(root = document) {
     const scope = root instanceof Element || root instanceof Document
         ? root
         : document;
-    const elements = scope.matches?.('[data-en][data-ar]')
-        ? [scope, ...scope.querySelectorAll('[data-en][data-ar]')]
-        : scope.querySelectorAll('[data-en][data-ar]');
+    const selector = '[data-en][data-ar], [data-aria-en][data-aria-ar]';
+    const elements = scope.matches?.(selector)
+        ? [scope, ...scope.querySelectorAll(selector)]
+        : scope.querySelectorAll(selector);
     elements.forEach(element => applyElementTranslation(element, currentLanguage));
 }
 
@@ -315,7 +318,7 @@ function setLanguage(lang) {
     document.body.setAttribute('dir', currentLanguage === 'ar' ? 'rtl' : 'ltr');
 
     const langButton = document.getElementById('currentLang');
-    if (langButton) langButton.textContent = currentLanguage === 'ar' ? 'AR' : 'EN';
+    if (langButton) langButton.textContent = currentLanguage === 'ar' ? 'EN' : 'AR';
 
     applyTranslations();
     window.dispatchEvent(new CustomEvent('aias-language-changed', { detail: { language: currentLanguage } }));
