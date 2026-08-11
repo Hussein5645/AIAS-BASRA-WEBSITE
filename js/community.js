@@ -18,8 +18,8 @@ const db = getFirestore(app);
 const profileCache = new Map();
 let currentUser = null;
 let currentProfile = null;
-let communitySort = 'latest';
-let communityType = 'both';
+let communitySort = ['latest','smart','upvoted'].includes(localStorage.getItem('communitySort')) ? localStorage.getItem('communitySort') : 'latest';
+let communityType = ['both','text','question','behance'].includes(localStorage.getItem('communityType')) ? localStorage.getItem('communityType') : 'both';
 let activeCommentsPostId = null;
 let toastTimer = null;
 let routeSequence = 0;
@@ -60,6 +60,7 @@ let notificationItems = [];
 let connectionDirectoryType = 'people';
 let connectionPeopleItems = [];
 let connectionSpaceItems = [];
+let activeImagePost = null;
 let postImageDataUrl = '';
 let postImageMimeType = '';
 const POST_IMAGE_MAX_BYTES = 10 * 1024 * 1024;
@@ -1360,8 +1361,9 @@ async function handleRoute(scrollToTop) {
   const requestedArea = pathRoute.area || params.get('area');
   activeAreaSlug = requestedArea && communityAreas[requestedArea] ? requestedArea : null;
   const view = publicProfileRoute || requestedView === 'profile' ? 'profile' : requestedView === 'connections' ? 'connections' : requestedView === 'manage-spaces' ? 'manage-spaces' : requestedView === 'selected' ? 'selected' : requestedView === 'spaces' ? 'spaces' : requestedView === 'post' ? 'post' : requestedView === 'space' ? 'space' : 'home';
-  feedMode = currentUser ? (params.get('feed') === 'discover' ? 'discover' : 'following') : 'discover';
-  if (view === 'home' && !selectedPostId && !activeAreaSlug) communitySort = feedMode === 'discover' ? 'smart' : 'latest';
+  const savedFeedMode = localStorage.getItem('communityFeedMode');
+  feedMode = currentUser ? (params.has('feed') ? (params.get('feed') === 'discover' ? 'discover' : 'following') : (savedFeedMode === 'discover' ? 'discover' : 'following')) : 'discover';
+  localStorage.setItem('communityFeedMode', feedMode);
   if (!params.has('comments')) closeCommentsUi();
   showView(view);
   updateMobilePromptVisibility();
@@ -1377,6 +1379,7 @@ async function handleRoute(scrollToTop) {
     $('feedModeBar').hidden = Boolean(selectedPostId) || Boolean(activeAreaSlug);
     document.querySelectorAll('[data-feed-mode]').forEach(button => button.classList.toggle('active', button.dataset.feedMode === feedMode));
     document.querySelectorAll('[data-sort]').forEach(button => button.classList.toggle('active', button.dataset.sort === communitySort));
+    document.querySelectorAll('[data-type]').forEach(button => button.classList.toggle('active', button.dataset.type === communityType));
     $('feedModeTitle').textContent = feedMode === 'discover' ? tr('Discover','اكتشف') : tr('Connections','التواصلات');
     if (activeAreaSlug) {
       const area = communityAreas[activeAreaSlug];
@@ -1448,7 +1451,7 @@ function renderPostCard(post, index, detail) {
     ? '<div class="project-request">' + tr('Selection request:','طلب اختيار:') + ' <strong>' + escapeHtml(requestStatus) + '</strong></div>'
     : '';
   return [
-    '<article class="post-card' + (detail ? ' detail' : '') + (isQuestion(post) ? ' question' : '') + '" style="--i:' + index + '">',
+    '<article class="post-card' + (detail ? ' detail' : '') + (isQuestion(post) ? ' question' : '') + '"' + (detail ? '' : ' data-open-post="' + escapeHtml(post.id) + '" tabindex="0" role="link"') + ' style="--i:' + index + '">',
       '<div class="post-context">' + communityContext + '<span>·</span><span>' + postLabel(post) + '</span></div>',
       '<div class="post-head">',
         '<a class="post-author" href="' + authorProfileUrl + '">',
@@ -1529,6 +1532,21 @@ function bindPostActions(target, posts) {
     }
   }));
   target.querySelectorAll('[data-open-comments]').forEach(button => button.addEventListener('click', () => openComments(button.dataset.openComments, true)));
+  target.querySelectorAll('[data-open-post]').forEach(card => {
+    const open = event => {
+      if (event.target.closest('a,button,input,textarea,[data-open-image]')) return;
+      navigateTo('/community.html?post=' + encodeURIComponent(card.dataset.openPost), false);
+    };
+    card.addEventListener('click', open);
+    card.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(event); } });
+  });
+  target.querySelectorAll('.post-image img').forEach(image => image.addEventListener('click', event => {
+    event.preventDefault();
+    event.stopPropagation();
+    const card = image.closest('[data-open-post], .post-card');
+    const post = byId.get(card?.dataset.openPost) || posts.find(item => item.id === card?.querySelector('[data-open-comments]')?.dataset.openComments);
+    if (post) openImageViewer(post);
+  }));
   target.querySelectorAll('[data-share]').forEach(button => button.addEventListener('click', async () => {
     const post = byId.get(button.dataset.share);
     if (!post) return;
@@ -1543,6 +1561,47 @@ function bindPostActions(target, posts) {
       if (error?.name !== 'AbortError') showToast(tr('The post link could not be shared.','تعذرت مشاركة رابط المنشور.'));
     }
   }));
+}
+
+function renderImageViewerActions() {
+  const post = activeImagePost;
+  if (!post) return;
+  const meta = post.meta || {mine:0, score:0, commentsCount:0};
+  $('imageViewerActions').innerHTML = '<button type="button" data-image-vote="1" class="' + (meta.mine === 1 ? 'active' : '') + '" aria-label="' + tr('Applaud','التصفيق') + '">↑</button><b>' + (meta.score || 0) + '</b><button type="button" data-image-vote="-1" class="' + (meta.mine === -1 ? 'active' : '') + '" aria-label="' + tr('Show less','عرض أقل') + '">↓</button><button type="button" class="image-comment-button" data-image-comments><span aria-hidden="true">◯</span><span>' + (meta.commentsCount || 0) + '</span></button>';
+}
+
+function openImageViewer(post) {
+  if (!post?.imageDataUrl) return;
+  activeImagePost = post;
+  $('imageViewerImage').src = post.imageDataUrl;
+  $('imageViewerImage').alt = post.title || tr('Post image','صورة المنشور');
+  renderImageViewerActions();
+  $('imageViewer').hidden = false;
+  document.body.classList.add('image-viewer-open');
+}
+
+function closeImageViewer() {
+  activeImagePost = null;
+  $('imageViewer').hidden = true;
+  $('imageViewerImage').src = '';
+  document.body.classList.remove('image-viewer-open');
+}
+
+async function voteFromImageViewer(value) {
+  const post = activeImagePost;
+  if (!post) return;
+  if (!currentUser) { location.href = loginUrl(); return; }
+  const previous = Number(post.meta.mine) || 0;
+  const next = previous === value ? 0 : value;
+  try {
+    await setDoc(doc(db, 'communityPosts', post.id, 'votes', currentUser.uid), {userId:currentUser.uid, value:next, updatedAt:serverTimestamp()});
+    if (next === 1) await sendNotification(post.userId, 'applause', post);
+    else if (previous === 1) await removeNotification(post.userId, 'applause', post.id);
+    post.meta.mine = next;
+    post.meta.score = (Number(post.meta.score) || 0) + next - previous;
+    document.querySelectorAll('[data-vote-score="' + post.id + '"]').forEach(score => { score.textContent = String(post.meta.score); });
+    renderImageViewerActions();
+  } catch (error) { console.error(error); showToast(tr('Your reaction could not be saved.','تعذر حفظ تفاعلك.')); }
 }
 
 async function loadPosts() {
@@ -1627,9 +1686,10 @@ function renderThread(comment, byParent) {
 async function openComments(postId, updateRoute) {
   if (updateRoute) {
     const params = new URLSearchParams(location.search);
+    const addedPost = !params.has('post');
     params.set('post', postId);
     params.set('comments', '1');
-    history.pushState({communityOverlay:true}, '', '/community.html?' + params.toString());
+    history.pushState({communityOverlay:true, addedPost}, '', '/community.html?' + params.toString());
   }
   activeCommentsPostId = postId;
   $('commentsOverlay').hidden = false;
@@ -1733,13 +1793,10 @@ function closeComments() {
     closeCommentsUi();
     return;
   }
-  if (history.state?.communityOverlay) {
-    history.back();
-  } else {
-    params.delete('comments');
-    history.replaceState({}, '', '/community.html?' + params.toString());
-    closeCommentsUi();
-  }
+  params.delete('comments');
+  if (history.state?.communityOverlay && history.state.addedPost) params.delete('post');
+  history.replaceState({}, '', '/community.html?' + params.toString());
+  closeCommentsUi();
 }
 
 function renderPostTypeFields() {
@@ -2139,10 +2196,12 @@ document.querySelectorAll('.filter-pill').forEach(button => button.addEventListe
   if (button.dataset.profileFilter) return;
   if (button.dataset.sort) {
     communitySort = button.dataset.sort;
+    localStorage.setItem('communitySort', communitySort);
     document.querySelectorAll('[data-sort]').forEach(item => item.classList.toggle('active', item === button));
   }
   if (button.dataset.type) {
     communityType = button.dataset.type;
+    localStorage.setItem('communityType', communityType);
     document.querySelectorAll('[data-type]').forEach(item => item.classList.toggle('active', item === button));
   }
   loadPosts();
@@ -2281,6 +2340,18 @@ document.addEventListener('pointerdown', event => {
   if (!event.target.closest('.community-search-shell')) closeCommunitySearch();
   if (!event.target.closest('.notification-shell')) $('notificationPanel').hidden = true;
 });
+$('imageViewerBackdrop').addEventListener('click', closeImageViewer);
+$('imageViewerClose').addEventListener('click', closeImageViewer);
+$('imageViewerActions').addEventListener('click', async event => {
+  const vote = event.target.closest('[data-image-vote]');
+  if (vote) { await voteFromImageViewer(Number(vote.dataset.imageVote)); return; }
+  if (event.target.closest('[data-image-comments]') && activeImagePost) {
+    const postId = activeImagePost.id;
+    closeImageViewer();
+    await openComments(postId, true);
+  }
+});
+document.addEventListener('keydown', event => { if (event.key === 'Escape' && !$('imageViewer').hidden) closeImageViewer(); });
 
 $('quickComposer').addEventListener('click', () => navigateTo(composerUrl(), false));
 $('railSpacesExpand').addEventListener('click', () => { railSpacesExpanded = !railSpacesExpanded; renderCommunitySpaces(); });
