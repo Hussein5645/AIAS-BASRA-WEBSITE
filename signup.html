@@ -347,7 +347,9 @@
         // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
-            authDomain: "aias-bsr.firebaseapp.com",
+            // Keep redirect state on the same origin. Required by Safari and
+            // modern Chrome when third-party storage is blocked.
+            authDomain: "www.aiasbsr.com",
             projectId: "aias-bsr",
             storageBucket: "aias-bsr.firebasestorage.app",
             messagingSenderId: "78055223814",
