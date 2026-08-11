@@ -277,7 +277,7 @@
         <form id="profileSetupForm" style="margin-bottom:1.25rem;text-align:left;">
             <p style="color:#4a5568;margin:0 0 1rem;line-height:1.5;" data-en="Complete your public Community profile to finish registering." data-ar="أكمل ملف مجتمعك العام لإتمام التسجيل.">Complete your public Community profile to finish registering.</p>
             <div style="margin-bottom:.85rem;"><label for="profileName" style="display:block;font-weight:600;margin-bottom:.35rem;">Name</label><input id="profileName" required maxlength="80" style="width:100%;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;font:inherit;"></div>
-            <div style="margin-bottom:.85rem;"><label for="profileUsername" style="display:block;font-weight:600;margin-bottom:.35rem;">Unique username</label><input id="profileUsername" required minlength="3" maxlength="24" pattern="[a-z0-9_]{3,24}" placeholder="your_handle" autocomplete="username" style="width:100%;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;font:inherit;"><small style="display:block;margin-top:.3rem;color:#718096;">Your permanent profile will be p/your_handle. Use lowercase letters, numbers, or underscores.</small></div>
+            <div style="margin-bottom:.85rem;"><label for="profileUsername" style="display:block;font-weight:600;margin-bottom:.35rem;">Unique username</label><input id="profileUsername" required minlength="3" maxlength="24" pattern="[a-z0-9_]{3,24}" placeholder="your_handle" autocomplete="username" style="width:100%;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;font:inherit;"><small id="usernameStatus" style="display:block;margin-top:.3rem;color:#718096;" aria-live="polite">Your permanent profile will be p/your_handle. Use lowercase letters, numbers, or underscores.</small></div>
             <div style="margin-bottom:.85rem;"><label for="profileSchool" style="display:block;font-weight:600;margin-bottom:.35rem;">School / organization</label><input id="profileSchool" required maxlength="120" style="width:100%;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;font:inherit;"></div>
             <div style="margin-bottom:.85rem;"><label for="profileCity" style="display:block;font-weight:600;margin-bottom:.35rem;">City</label><input id="profileCity" required maxlength="80" style="width:100%;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;font:inherit;"></div>
             <div style="margin-bottom:.85rem;"><label for="profileBio" style="display:block;font-weight:600;margin-bottom:.35rem;">Short bio</label><textarea id="profileBio" required maxlength="600" style="width:100%;min-height:80px;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;font:inherit;"></textarea></div>
@@ -400,6 +400,36 @@
             profileFields.username.value = username;
             return username;
         }
+
+        let usernameCheckTimer;
+        profileFields.username.addEventListener('input', () => {
+            clearTimeout(usernameCheckTimer);
+            const username = normalizeUsername(profileFields.username.value);
+            if (profileFields.username.value !== username) profileFields.username.value = username;
+            usernameCheckTimer = setTimeout(async () => {
+                const status = document.getElementById('usernameStatus');
+                if (!/^[a-z0-9_]{3,24}$/.test(username)) {
+                    profileFields.username.setCustomValidity('Use 3–24 lowercase letters, numbers, or underscores.');
+                    status.className = 'invalid';
+                    status.style.color = '#b91c1c';
+                    status.textContent = 'Use 3–24 lowercase letters, numbers, or underscores.';
+                    return;
+                }
+                status.textContent = 'Checking p/' + username + '…';
+                try {
+                    const snapshot = await getDoc(doc(db, 'usernames', username));
+                    const available = !snapshot.exists() || snapshot.data().userId === auth.currentUser?.uid;
+                    profileFields.username.setCustomValidity(available ? '' : 'That username is already taken.');
+                    status.className = available ? 'valid' : 'invalid';
+                    status.style.color = available ? '#15803d' : '#b91c1c';
+                    status.textContent = available ? 'p/' + username + ' is available.' : 'p/' + username + ' is already taken.';
+                } catch {
+                    profileFields.username.setCustomValidity('Username availability could not be checked.');
+                    status.style.color = '#b91c1c';
+                    status.textContent = 'Could not check this username. Try again.';
+                }
+            }, 250);
+        });
 
         function showMessage(text, type) {
             messageDiv.textContent = text;

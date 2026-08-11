@@ -1,6 +1,6 @@
 import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc, query, where, limit, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 const config = {
   apiKey: 'AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ',
@@ -25,29 +25,9 @@ let searchTerm = '';
 let toastTimer = null;
 let routeSequence = 0;
 let activeAreaSlug = null;
-
-const AREAS = {
-  'studio-crit': {
-    name: 'Studio Crit',
-    symbol: 'SC',
-    description: 'Share work in progress, ask for critique, and help each other make the next iteration stronger.'
-  },
-  'basra-city': {
-    name: 'Basra City',
-    symbol: 'BC',
-    description: 'A space for Basra’s streets, public life, heritage, housing, and the city we want to shape.'
-  },
-  sustainability: {
-    name: 'Sustainability',
-    symbol: 'SU',
-    description: 'Climate-aware materials, passive strategies, research, and practical ideas for responsible design.'
-  },
-  'tools-tech': {
-    name: 'Tools + Tech',
-    symbol: 'TT',
-    description: 'Software workflows, fabrication, visualization, AI, and the tools changing architectural practice.'
-  }
-};
+let communityAreas = {};
+let communityDataReady = null;
+let selectedPromptPostId = null;
 
 const $ = id => document.getElementById(id);
 const escapeHtml = value => String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -76,10 +56,82 @@ function profileUrl(uid, username) {
 async function resolveProfileId(routeValue) {
   if (!routeValue) return null;
   const normalized = String(routeValue).toLowerCase();
-  const usernameSnapshot = await getDoc(doc(db, 'usernames', normalized));
-  if (usernameSnapshot.exists()) return usernameSnapshot.data().userId || null;
-  const userSnapshot = await getDoc(doc(db, 'users', routeValue));
-  return userSnapshot.exists() ? routeValue : null;
+  if (currentUser && (routeValue === currentUser.uid || normalized === currentProfile?.username)) return currentUser.uid;
+  try {
+    const usernameSnapshot = await getDoc(doc(db, 'usernames', normalized));
+    if (usernameSnapshot.exists()) return usernameSnapshot.data().userId || null;
+  } catch (error) {
+    console.warn('[Community] Username index unavailable, trying profile fallback.', error);
+  }
+  try {
+    const userSnapshot = await getDoc(doc(db, 'users', routeValue));
+    if (userSnapshot.exists()) return routeValue;
+    const legacySnapshot = await getDocs(query(collection(db, 'users'), where('username', '==', normalized), limit(1)));
+    return legacySnapshot.empty ? null : legacySnapshot.docs[0].id;
+  } catch { return null; }
+}
+
+function normalizeCommunityHandle(value) {
+  return String(value || '').trim().toLowerCase().replace(/^\/?a\//, '').replace(/[^a-z0-9-]/g, '');
+}
+
+function renderCommunitySpaces() {
+  const spaces = Object.entries(communityAreas).sort((a,b) => (a[1].name || a[0]).localeCompare(b[1].name || b[0]));
+  $('railSpacesList').innerHTML = spaces.length
+    ? spaces.map(([slug, area]) => '<a href="' + areaUrl(slug) + '"><i>' + escapeHtml(area.symbol || initials(area.name)) + '</i><span>a/' + escapeHtml(slug) + '</span></a>').join('')
+    : '<span class="spaces-loading">No community spaces yet.</span>';
+  $('sideSpacesList').innerHTML = spaces.length
+    ? spaces.slice(0, 4).map(([slug, area]) => '<a href="' + areaUrl(slug) + '"><span class="space-avatar">' + escapeHtml(area.symbol || initials(area.name)) + '</span><span><strong>a/' + escapeHtml(slug) + '</strong><small>' + escapeHtml(area.description || area.name) + '</small></span><b>›</b></a>').join('')
+    : '<span class="spaces-loading">Spaces created by the community team will appear here.</span>';
+  $('communityHandles').innerHTML = '<option value="main">Main thread</option>' + spaces.map(([slug, area]) => '<option value="a/' + escapeHtml(slug) + '">' + escapeHtml(area.name || slug) + '</option>').join('');
+  $('mobileSpacesLink').href = spaces.length ? areaUrl(spaces[0][0]) : '/community.html';
+}
+
+async function loadCommunitySpaces() {
+  try {
+    const snapshot = await getDocs(collection(db, 'communitySpaces'));
+    communityAreas = Object.fromEntries(snapshot.docs
+      .map(item => [item.id, {slug:item.id, ...item.data()}])
+      .filter(([, area]) => area.active !== false));
+  } catch (error) {
+    console.error('[Community] Could not load spaces.', error);
+    communityAreas = {};
+  }
+  renderCommunitySpaces();
+  return communityAreas;
+}
+
+function validateCommunityHandle(showMessage) {
+  const raw = $('postCommunity').value;
+  const slug = normalizeCommunityHandle(raw);
+  const valid = slug === 'main' || Boolean(communityAreas[slug]);
+  $('postCommunity').setCustomValidity(valid ? '' : 'Choose an existing Firebase community handle.');
+  if (showMessage) {
+    const status = $('postCommunityStatus');
+    status.className = valid ? 'valid' : 'invalid';
+    status.textContent = valid
+      ? (slug === 'main' ? 'Posting to the main thread.' : 'Posting to a/' + slug + ' and the main thread.')
+      : 'No Firebase community exists with that handle.';
+  }
+  return valid ? slug : null;
+}
+
+async function loadPromptOfTheWeek() {
+  try {
+    const settingSnapshot = await getDoc(doc(db, 'communitySettings', 'main'));
+    const postId = settingSnapshot.exists() ? settingSnapshot.data().promptPostId : null;
+    if (!postId) throw new Error('No prompt selected');
+    const postSnapshot = await getDoc(doc(db, 'communityPosts', postId));
+    if (!postSnapshot.exists() || postSnapshot.data().type !== 'question' || postSnapshot.data().published === false) throw new Error('Selected prompt is unavailable');
+    const post = postSnapshot.data();
+    selectedPromptPostId = postId;
+    $('promptTitle').textContent = post.title;
+    $('promptAuthor').textContent = 'Asked by @' + (post.authorUsername || post.authorName || 'member');
+    $('promptCard').hidden = false;
+  } catch {
+    selectedPromptPostId = null;
+    $('promptCard').hidden = true;
+  }
 }
 
 function composerUrl() {
@@ -133,6 +185,32 @@ async function getProfile(uid) {
 
 function normalizeUsername(value) {
   return String(value || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+}
+
+async function checkUsernameAvailability(input, status, uid) {
+  const username = normalizeUsername(input.value);
+  if (input.value !== username) input.value = username;
+  if (!/^[a-z0-9_]{3,24}$/.test(username)) {
+    input.setCustomValidity('Use 3–24 lowercase letters, numbers, or underscores.');
+    status.className = 'username-check invalid';
+    status.textContent = 'Use 3–24 lowercase letters, numbers, or underscores.';
+    return false;
+  }
+  status.className = 'username-check';
+  status.textContent = 'Checking p/' + username + '…';
+  try {
+    const snapshot = await getDoc(doc(db, 'usernames', username));
+    const available = !snapshot.exists() || snapshot.data().userId === uid;
+    input.setCustomValidity(available ? '' : 'That username is already taken.');
+    status.className = 'username-check ' + (available ? 'valid' : 'invalid');
+    status.textContent = available ? 'p/' + username + ' is available.' : 'p/' + username + ' is already taken.';
+    return available;
+  } catch {
+    input.setCustomValidity('Username availability could not be checked.');
+    status.className = 'username-check invalid';
+    status.textContent = 'Could not check this username. Try again.';
+    return false;
+  }
 }
 
 async function claimUsername(uid, requestedUsername) {
@@ -197,13 +275,14 @@ function navigateTo(url, replace) {
 
 async function handleRoute(scrollToTop) {
   const sequence = ++routeSequence;
+  if (communityDataReady) await communityDataReady;
   const params = new URLSearchParams(location.search);
   const pathRoute = getPathRoute();
   const selectedPostId = params.get('post');
   const requestedView = params.get('view');
   const publicProfileRoute = pathRoute.profile || params.get('user');
   const requestedArea = pathRoute.area || params.get('area');
-  activeAreaSlug = requestedArea && AREAS[requestedArea] ? requestedArea : null;
+  activeAreaSlug = requestedArea && communityAreas[requestedArea] ? requestedArea : null;
   const view = publicProfileRoute || requestedView === 'profile' ? 'profile' : requestedView === 'post' ? 'post' : 'home';
   if (!params.has('comments')) closeCommentsUi();
   showView(view);
@@ -216,7 +295,7 @@ async function handleRoute(scrollToTop) {
     $('quickComposer').hidden = Boolean(selectedPostId);
     document.querySelector('.feed-toolbar').hidden = Boolean(selectedPostId);
     if (activeAreaSlug) {
-      const area = AREAS[activeAreaSlug];
+      const area = communityAreas[activeAreaSlug];
       $('areaSymbol').textContent = area.symbol;
       $('areaPath').textContent = 'a/' + activeAreaSlug;
       $('areaTitle').textContent = area.name;
@@ -232,9 +311,10 @@ async function handleRoute(scrollToTop) {
     if (selectedPostId && params.get('comments') === '1') openComments(selectedPostId, false);
   } else if (view === 'profile') {
     const profileId = publicProfileRoute ? await resolveProfileId(publicProfileRoute) : currentUser?.uid || null;
-    await loadProfile(profileId);
+    await loadProfile(profileId, Boolean(publicProfileRoute));
   } else {
-    $('postCommunity').value = activeAreaSlug || params.get('area') || 'main';
+    $('postCommunity').value = activeAreaSlug ? 'a/' + activeAreaSlug : params.get('area') || 'main';
+    validateCommunityHandle(true);
     renderPostGate();
   }
 }
@@ -244,7 +324,7 @@ function renderPostCard(post, index, detail) {
   const authorName = post.authorName || meta.profile.displayName || 'Community member';
   const school = meta.profile.school || (isProject(post) ? 'Project author' : 'Community member');
   const authorProfileUrl = profileUrl(post.userId, meta.profile.username);
-  const communitySlug = AREAS[post.communitySlug] ? post.communitySlug : 'main';
+  const communitySlug = communityAreas[post.communitySlug] ? post.communitySlug : 'main';
   const communityContext = communitySlug === 'main'
     ? '<span class="main-thread-label">Main thread</span>'
     : '<a href="' + areaUrl(communitySlug) + '">a/' + escapeHtml(communitySlug) + '</a>';
@@ -535,12 +615,14 @@ function renderPostGate() {
   const allowed = currentUser && currentProfile?.profileComplete && currentProfile?.username;
   if (allowed) {
     $('postGate').innerHTML = '';
+    $('postIdentity').innerHTML = 'Posting as <strong>@' + escapeHtml(currentProfile.username) + '</strong>';
   } else if (currentUser) {
     const action = currentProfile?.profileComplete && !currentProfile?.username ? 'Claim a unique username on' : 'Complete';
     $('postGate').innerHTML = '<p class="notice">' + action + ' your <a href="' + profileUrl(currentUser.uid, currentProfile?.username) + '">community profile</a> before publishing.</p>';
   } else {
     $('postGate').innerHTML = '<p class="notice">You need to <a href="' + loginUrl() + '">sign in</a> before publishing to the community.</p>';
   }
+  if (!allowed) $('postIdentity').innerHTML = '';
   $('postFormCard').hidden = !allowed;
 }
 
@@ -573,11 +655,13 @@ async function loadProfilePosts(uid) {
   }
 }
 
-async function loadProfile(uid) {
+async function loadProfile(uid, routedProfile) {
   const target = $('profileContent');
   if (!uid) {
     target.className = '';
-    target.innerHTML = '<p class="notice">Sign in to create and view your community profile. <a href="' + loginUrl() + '">Sign in</a></p>';
+    target.innerHTML = routedProfile
+      ? '<p class="notice error">This profile could not be found. Check the username and try again.</p>'
+      : '<p class="notice">Sign in to create and view your community profile. <a href="' + loginUrl() + '">Sign in</a></p>';
     $('profilePosts').innerHTML = '';
     $('profilePostCount').textContent = '';
     return;
@@ -603,7 +687,7 @@ async function loadProfile(uid) {
       interests.length ? '<div class="interest-row">' + interests.map(item => '<span>' + escapeHtml(item) + '</span>').join('') + '</div>' : '',
       owner ? [
         '<form id="profileForm" class="profile-form" hidden>',
-          '<div class="form-grid"><div class="form-group"><label for="profileName">Name</label><input id="profileName" required value="' + escapeHtml(displayName) + '"></div><div class="form-group"><label for="profileUsername">Unique username</label><input id="profileUsername" required minlength="3" maxlength="24" pattern="[a-z0-9_]{3,24}" value="' + escapeHtml(profile.username || '') + '" ' + (profile.username ? 'readonly' : '') + ' placeholder="your_handle"><small>' + (profile.username ? 'Your permanent profile address is p/' + escapeHtml(profile.username) : 'Lowercase letters, numbers, and underscores only.') + '</small></div></div>',
+          '<div class="form-grid"><div class="form-group"><label for="profileName">Name</label><input id="profileName" required value="' + escapeHtml(displayName) + '"></div><div class="form-group"><label for="profileUsername">Unique username</label><input id="profileUsername" required minlength="3" maxlength="24" pattern="[a-z0-9_]{3,24}" value="' + escapeHtml(profile.username || '') + '" ' + (profile.username ? 'readonly' : '') + ' placeholder="your_handle"><small id="profileUsernameStatus" class="username-check ' + (profile.username ? 'valid' : '') + '">' + (profile.username ? 'Your permanent profile address is p/' + escapeHtml(profile.username) : 'Availability will be checked as you type.') + '</small></div></div>',
           '<div class="form-group"><label for="profileSchool">School / organization</label><input id="profileSchool" required value="' + escapeHtml(profile.school || '') + '"></div>',
           '<div class="form-grid"><div class="form-group"><label for="profileCity">City</label><input id="profileCity" required value="' + escapeHtml(profile.city || '') + '"></div><div class="form-group"><label for="profileInterests">Interests</label><input id="profileInterests" value="' + escapeHtml(profile.interests || '') + '" placeholder="Urbanism, interiors, sketching"></div></div>',
           '<div class="form-group"><label for="profileBio">Bio</label><textarea id="profileBio" required>' + escapeHtml(profile.bio || '') + '</textarea></div>',
@@ -612,6 +696,13 @@ async function loadProfile(uid) {
       ].join('') : ''
     ].join('');
     if (owner) {
+      if (!profile.username) {
+        let usernameTimer;
+        $('profileUsername').addEventListener('input', () => {
+          clearTimeout(usernameTimer);
+          usernameTimer = setTimeout(() => checkUsernameAvailability($('profileUsername'), $('profileUsernameStatus'), uid), 250);
+        });
+      }
       $('editProfile').addEventListener('click', () => {
         $('profileForm').hidden = !$('profileForm').hidden;
         if (!$('profileForm').hidden) $('profileName').focus();
@@ -693,15 +784,9 @@ $('communitySearch').addEventListener('input', event => {
 $('quickComposer').addEventListener('click', () => navigateTo(composerUrl(), false));
 $('areaCreate').addEventListener('click', () => navigateTo(composerUrl(), false));
 $('answerPrompt').addEventListener('click', () => {
-  navigateTo('/community.html?view=post', false);
-  setTimeout(() => {
-    if (!$('postFormCard').hidden) {
-      $('postTitle').value = 'A detail that changed how I see space';
-      $('postTitle').dispatchEvent(new Event('input'));
-      $('postContent').focus();
-    }
-  }, 50);
+  if (selectedPromptPostId) navigateTo('/community.html?post=' + encodeURIComponent(selectedPromptPostId) + '&comments=1', false);
 });
+$('postCommunity').addEventListener('input', () => validateCommunityHandle(true));
 
 document.querySelectorAll('input[name="postTypeChoice"]').forEach(input => input.addEventListener('change', event => {
   $('postType').value = event.target.value;
@@ -724,7 +809,7 @@ $('postForm').addEventListener('submit', async event => {
   const summary = $('postSummary').value.trim();
   $('postStatus').classList.remove('success');
   let behanceSrc = '';
-  if (type === 'text' && !content) {
+  if (type !== 'behance' && !content) {
     $('postStatus').textContent = 'Write something before publishing.';
     return;
   }
@@ -740,7 +825,12 @@ $('postForm').addEventListener('submit', async event => {
   button.disabled = true;
   try {
     const featureRequest = type === 'behance' && $('featureRequest').checked;
-    const communitySlug = $('postCommunity').value;
+    const communitySlug = validateCommunityHandle(true);
+    if (!communitySlug) {
+      $('postStatus').textContent = 'Choose an existing community handle before publishing.';
+      button.disabled = false;
+      return;
+    }
     const postRef = await addDoc(collection(db, 'communityPosts'), {
       type,
       title,
@@ -771,10 +861,17 @@ $('postForm').addEventListener('submit', async event => {
   }
 });
 
+communityDataReady = loadCommunitySpaces();
+loadPromptOfTheWeek();
+
 onAuthStateChanged(auth, async user => {
   currentUser = user;
   if (user) {
     currentProfile = await getProfile(user.uid);
+    if (currentProfile.username) {
+      try { await claimUsername(user.uid, currentProfile.username); }
+      catch (error) { console.warn('[Community] Existing username index could not be repaired.', error); }
+    }
     const displayName = currentProfile.displayName || user.displayName || 'Member';
     const photo = currentProfile.photoURL || user.photoURL || '';
     $('memberAction').href = profileUrl(user.uid, currentProfile.username);

@@ -42,10 +42,7 @@
       </nav>
       <div class="rail-spaces">
         <div class="rail-spaces-title"><span>Spaces</span><small>Explore</small></div>
-        <a href="a/studio-crit"><i>SC</i><span>a/studio-crit</span></a>
-        <a href="a/basra-city"><i>BC</i><span>a/basra-city</span></a>
-        <a href="a/sustainability"><i>SU</i><span>a/sustainability</span></a>
-        <a href="a/tools-tech"><i>TT</i><span>a/tools-tech</span></a>
+        <div id="railSpacesList"><span class="spaces-loading">Loading spaces…</span></div>
       </div>
       <div class="rail-cta">
         <span class="rail-cta-mark">A</span>
@@ -117,16 +114,12 @@
             </fieldset>
             <input id="postType" type="hidden" value="text">
             <div class="form-group community-picker">
-              <label for="postCommunity">Choose where to post</label>
-              <select id="postCommunity">
-                <option value="main">Main thread</option>
-                <option value="studio-crit">a/studio-crit</option>
-                <option value="basra-city">a/basra-city</option>
-                <option value="sustainability">a/sustainability</option>
-                <option value="tools-tech">a/tools-tech</option>
-              </select>
-              <small>Posts in a space also appear in the main community thread.</small>
+              <label for="postCommunity">Community handle</label>
+              <input id="postCommunity" list="communityHandles" value="main" autocomplete="off" placeholder="main or a/community-name">
+              <datalist id="communityHandles"></datalist>
+              <small id="postCommunityStatus" aria-live="polite">Type a community handle or post to the main thread. Every post also appears in the main feed.</small>
             </div>
+            <div id="postIdentity" class="post-identity"></div>
             <div class="form-group">
               <div class="label-line"><label for="postTitle">Give it a clear title</label><span id="titleCount">0 / 160</span></div>
               <input id="postTitle" required maxlength="160" placeholder="A question, insight, or project name">
@@ -165,10 +158,11 @@
         <div class="pulse-grid"><div><strong id="postStat">—</strong><span>posts shared</span></div><div><strong id="projectStat">—</strong><span>projects</span></div></div>
         <p><span class="live-dot"></span> The community is open</p>
       </section>
-      <section class="side-card prompt-card">
+      <section class="side-card prompt-card" id="promptCard" hidden>
         <span class="mini-kicker">PROMPT OF THE WEEK</span>
-        <h2>What detail changed the way you see a space?</h2>
-        <button type="button" id="answerPrompt">Share your answer <span aria-hidden="true">→</span></button>
+        <h2 id="promptTitle"></h2>
+        <p id="promptAuthor"></p>
+        <button type="button" id="answerPrompt">Open question <span aria-hidden="true">→</span></button>
       </section>
       <section class="side-card values-card">
         <h2>Good community energy</h2>
@@ -176,9 +170,7 @@
       </section>
       <section class="side-card spaces-card">
         <div class="side-card-heading"><span>Popular spaces</span><i aria-hidden="true"></i></div>
-        <a href="a/studio-crit"><span class="space-avatar">SC</span><span><strong>a/studio-crit</strong><small>Share work and get useful critique</small></span><b>›</b></a>
-        <a href="a/basra-city"><span class="space-avatar">BC</span><span><strong>a/basra-city</strong><small>Urban life, heritage, and public space</small></span><b>›</b></a>
-        <a href="a/sustainability"><span class="space-avatar">SU</span><span><strong>a/sustainability</strong><small>Climate-aware design ideas</small></span><b>›</b></a>
+        <div id="sideSpacesList"><span class="spaces-loading">Loading spaces…</span></div>
       </section>
       <a class="selected-card" href="community-projects.html"><span><small>CURATED BY AIAS BASRA</small><strong>Selected projects</strong></span><b aria-hidden="true">↗</b></a>
     </aside>
@@ -186,7 +178,7 @@
 
   <nav class="mobile-nav" aria-label="Mobile community navigation">
     <a class="active" href="community.html" data-route="home"><span aria-hidden="true">⌂</span><small>Home</small></a>
-    <a href="a/studio-crit"><span aria-hidden="true">◇</span><small>Spaces</small></a>
+    <a href="community.html" id="mobileSpacesLink"><span aria-hidden="true">◇</span><small>Spaces</small></a>
     <a class="mobile-create" href="community.html?view=post" data-route="post"><span aria-hidden="true">+</span><small>Create</small></a>
     <a href="community.html?view=profile" data-route="profile"><span aria-hidden="true">◉</span><small>Profile</small></a>
     <a href="index.html"><span aria-hidden="true">←</span><small>Website</small></a>

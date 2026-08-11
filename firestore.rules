@@ -74,6 +74,26 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    match /communitySpaces/{spaceId} {
+      allow read: if true;
+      allow create, update: if hasPermission('manage_community')
+        && spaceId.matches('^[a-z0-9-]{3,32}$')
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.description is string
+        && request.resource.data.description.size() <= 360;
+      allow delete: if hasPermission('manage_community');
+    }
+
+    match /communitySettings/{settingId} {
+      allow read: if true;
+      allow create, update: if hasPermission('manage_community')
+        && request.resource.data.promptPostId is string
+        && get(/databases/$(database)/documents/communityPosts/$(request.resource.data.promptPostId)).data.type == 'question';
+      allow delete: if hasPermission('manage_community');
+    }
+
     // Community members may publish thoughts, open questions, or Behance projects.
     // Community managers can review project selections and moderate activity.
     match /communityPosts/{postId} {
@@ -83,7 +103,10 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.profileComplete == true
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username is string
         && request.resource.data.type in ['text', 'question', 'behance']
-        && request.resource.data.communitySlug in ['main', 'studio-crit', 'basra-city', 'sustainability', 'tools-tech']
+        && request.resource.data.communitySlug is string
+        && (request.resource.data.communitySlug == 'main'
+          || (exists(/databases/$(database)/documents/communitySpaces/$(request.resource.data.communitySlug))
+            && get(/databases/$(database)/documents/communitySpaces/$(request.resource.data.communitySlug)).data.active == true))
         && request.resource.data.title is string
         && request.resource.data.title.size() > 0
         && request.resource.data.title.size() <= 160

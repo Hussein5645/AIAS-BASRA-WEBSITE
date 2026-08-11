@@ -300,6 +300,8 @@
 
       <!-- Community project review and direct embeds -->
       <section id="community-tab" class="tab-content">
+        <details class="accordion" open><summary>Prompt of the Week</summary><div class="accordion-body panel"><p style="color:#4a5568;margin-bottom:1rem">Choose one Open Question posted by a community member. The selected question appears in the Community sidebar and opens its full discussion when clicked.</p><div id="communityPromptAdmin"><p>Loading user questions…</p></div></div></details>
+        <details class="accordion" open><summary>Sub-communities</summary><div class="accordion-body panel"><p style="color:#4a5568;margin-bottom:1rem">Create and manage the Firebase-backed spaces available under a/{handle}.</p><form id="communitySpaceForm"><div class="two-col"><div class="form-group"><label for="communitySpaceSlug">Unique handle</label><input id="communitySpaceSlug" required minlength="3" maxlength="32" pattern="[a-z0-9-]{3,32}" placeholder="studio-crit"></div><div class="form-group"><label for="communitySpaceName">Display name</label><input id="communitySpaceName" required maxlength="80" placeholder="Studio Crit"></div></div><div class="two-col"><div class="form-group"><label for="communitySpaceSymbol">Symbol</label><input id="communitySpaceSymbol" required maxlength="3" placeholder="SC"></div><div class="form-group"><label for="communitySpaceDescription">Description</label><input id="communitySpaceDescription" required maxlength="360"></div></div><button class="submit-btn" type="submit">Save sub-community</button><p id="communitySpaceStatus" style="margin-top:.75rem"></p></form><div id="communitySpacesAdmin" style="margin-top:1.25rem"><p>Loading sub-communities…</p></div></div></details>
         <details class="accordion" open><summary>Project selection requests</summary><div class="accordion-body panel"><p style="color:#4a5568;margin-bottom:1rem">Review Behance projects submitted for the Selected Projects page. Text posts cannot be selected or featured.</p><div id="communityAdminList"><p>Loading project requests…</p></div></div></details>
         <details class="accordion" open><summary>Add a Behance project directly</summary><div class="accordion-body panel"><p style="color:#4a5568;margin-bottom:1rem">Use the Magazine tab to create a full main-site article. Add a Behance project here to publish it directly to the Community Projects page.</p><form id="adminBehanceForm"><div class="two-col"><div class="form-group"><label for="adminBehanceTitle">Title</label><input id="adminBehanceTitle" required maxlength="160"></div><div class="form-group"><label for="adminBehanceSummary">Summary</label><input id="adminBehanceSummary" required maxlength="360"></div></div><div class="form-group"><label for="adminBehanceEmbed">Behance iframe code</label><textarea id="adminBehanceEmbed" required placeholder="&lt;iframe src=&quot;https://www.behance.net/embed/project/...&quot; ...&gt;&lt;/iframe&gt;"></textarea></div><button class="submit-btn" type="submit">Publish selected project</button><p id="adminBehanceStatus" style="margin-top:.75rem"></p></form></div></details>
       </section>
@@ -786,7 +788,7 @@
       if (target) target.classList.add('active');
       if (tab==='events') loadExistingEvents();
       if (tab==='articles') loadExistingArticles();
-      if (tab==='community') loadCommunityAdminPosts();
+      if (tab==='community') loadCommunityAdminData();
       if (tab==='library') loadExistingLibraryResources();
       if (tab==='models3d') loadExistingModels3D();
       if (tab==='fbd') { loadFbd(); }
@@ -886,6 +888,81 @@
      *************************************************/
     const communityEscape = (value) => String(value || '').replace(/[&<>"']/g, char => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;' })[char]);
     let communityReviewState = { query:'', status:'all', page:0 };
+
+    async function loadCommunityAdminData() {
+      await Promise.all([loadCommunityAdminPosts(), loadCommunityPromptAdmin(), loadCommunitySpacesAdmin()]);
+    }
+
+    async function loadCommunityPromptAdmin() {
+      const box = document.getElementById('communityPromptAdmin');
+      if (!box) return;
+      try {
+        const results = await Promise.all([getDocs(collection(db, 'communityPosts')), getDoc(doc(db, 'communitySettings', 'main'))]);
+        const questions = results[0].docs.map(item => ({id:item.id, ...item.data()})).filter(post => post.type === 'question' && post.published !== false).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        const selectedId = results[1].exists() ? results[1].data().promptPostId || '' : '';
+        if (!questions.length) { box.innerHTML = '<p>No Open Questions have been posted yet.</p>'; return; }
+        const options = questions.map(post => '<option value="' + post.id + '" ' + (post.id === selectedId ? 'selected' : '') + '>' + communityEscape(post.title) + ' — @' + communityEscape(post.authorUsername || post.authorName || 'member') + '</option>').join('');
+        box.innerHTML = '<div class="two-col"><div class="form-group"><label for="promptQuestionSelect">User question</label><select id="promptQuestionSelect">' + options + '</select></div><div class="form-group"><label>Current prompt</label><div style="display:flex;gap:.5rem;align-items:center;min-height:44px">' + (selectedId ? '<a class="community-preview-btn" href="community.html?post=' + encodeURIComponent(selectedId) + '" target="_blank" rel="noopener">Open selected question</a>' : '<span>None selected</span>') + '</div></div></div><button id="savePromptQuestion" class="submit-btn" type="button" ' + (canManage(currentAccess, 'community') ? '' : 'disabled') + '>Set Prompt of the Week</button><p id="promptAdminStatus" style="margin-top:.75rem"></p>';
+        document.getElementById('savePromptQuestion')?.addEventListener('click', async () => {
+          const status = document.getElementById('promptAdminStatus');
+          try {
+            await setDoc(doc(db, 'communitySettings', 'main'), {promptPostId:document.getElementById('promptQuestionSelect').value, updatedAt:serverTimestamp(), updatedBy:currentAdminUser?.email || ''}, {merge:true});
+            status.style.color = '#15803d'; status.textContent = 'Prompt of the Week updated.';
+            loadCommunityPromptAdmin();
+          } catch (error) { status.style.color = '#b91c1c'; status.textContent = error.message || 'Could not update the prompt.'; }
+        });
+      } catch (error) {
+        console.error('[CommunityAdmin] prompt load failed', error);
+        box.innerHTML = '<p style="color:red">Could not load community questions.</p>';
+      }
+    }
+
+    async function loadCommunitySpacesAdmin() {
+      const box = document.getElementById('communitySpacesAdmin');
+      if (!box) return;
+      try {
+        const snapshot = await getDocs(collection(db, 'communitySpaces'));
+        const spaces = snapshot.docs.map(item => ({slug:item.id, ...item.data()})).sort((a,b) => (a.name || a.slug).localeCompare(b.name || b.slug));
+        if (!spaces.length) { box.innerHTML = '<p>No sub-communities have been created yet.</p>'; return; }
+        box.innerHTML = '<div class="community-review-list">' + spaces.map(space => '<article class="community-review-row"><div><div class="community-review-title">a/' + communityEscape(space.slug) + ' · ' + communityEscape(space.name) + '</div><div class="community-review-meta">' + communityEscape(space.description || '') + ' · <span class="community-status ' + (space.active === false ? 'none' : 'featured') + '">' + (space.active === false ? 'archived' : 'active') + '</span></div></div><div class="community-review-actions"><a class="community-preview-btn" href="/a/' + encodeURIComponent(space.slug) + '" target="_blank" rel="noopener">Open</a><button class="btn ' + (space.active === false ? 'edit-btn' : 'delete-btn') + '" data-toggle-space="' + communityEscape(space.slug) + '" data-active="' + (space.active === false ? 'false' : 'true') + '" ' + (canManage(currentAccess, 'community') ? '' : 'disabled') + '>' + (space.active === false ? 'Restore' : 'Archive') + '</button></div></article>').join('') + '</div>';
+        box.querySelectorAll('[data-toggle-space]').forEach(button => button.addEventListener('click', async () => {
+          await setDoc(doc(db, 'communitySpaces', button.dataset.toggleSpace), {active:button.dataset.active !== 'true', updatedAt:serverTimestamp(), updatedBy:currentAdminUser?.email || ''}, {merge:true});
+          loadCommunitySpacesAdmin();
+        }));
+      } catch (error) {
+        console.error('[CommunityAdmin] spaces load failed', error);
+        box.innerHTML = '<p style="color:red">Could not load sub-communities.</p>';
+      }
+    }
+
+    let communitySpaceCheckTimer;
+    document.getElementById('communitySpaceSlug')?.addEventListener('input', event => {
+      event.target.value = event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+      clearTimeout(communitySpaceCheckTimer);
+      communitySpaceCheckTimer = setTimeout(async () => {
+        const status = document.getElementById('communitySpaceStatus');
+        const slug = event.target.value;
+        if (!/^[a-z0-9-]{3,32}$/.test(slug)) { event.target.setCustomValidity('Use 3–32 lowercase letters, numbers, or hyphens.'); status.style.color='#b91c1c'; status.textContent='Enter a valid a/ handle.'; return; }
+        const snapshot = await getDoc(doc(db, 'communitySpaces', slug));
+        event.target.setCustomValidity(snapshot.exists() ? 'That community handle already exists.' : '');
+        status.style.color = snapshot.exists() ? '#b45309' : '#15803d';
+        status.textContent = snapshot.exists() ? 'a/' + slug + ' already exists. Choose another unique handle.' : 'a/' + slug + ' is available.';
+      }, 250);
+    });
+    document.getElementById('communitySpaceForm')?.addEventListener('submit', async event => {
+      event.preventDefault();
+      const status = document.getElementById('communitySpaceStatus');
+      const slug = document.getElementById('communitySpaceSlug').value.trim();
+      try {
+        if (!canManage(currentAccess, 'community')) throw new Error('You do not have permission to manage sub-communities.');
+        const existing = await getDoc(doc(db, 'communitySpaces', slug));
+        if (existing.exists()) throw new Error('That unique community handle is already in use.');
+        await setDoc(doc(db, 'communitySpaces', slug), {name:document.getElementById('communitySpaceName').value.trim(), symbol:document.getElementById('communitySpaceSymbol').value.trim().toUpperCase(), description:document.getElementById('communitySpaceDescription').value.trim(), active:true, updatedAt:serverTimestamp(), updatedBy:currentAdminUser?.email || ''}, {merge:true});
+        status.style.color = '#15803d'; status.textContent = 'Sub-community saved to Firebase.';
+        event.target.reset();
+        loadCommunitySpacesAdmin();
+      } catch (error) { status.style.color = '#b91c1c'; status.textContent = error.message || 'Could not save this sub-community.'; }
+    });
     window.loadCommunityAdminPosts = async function() {
       const box = document.getElementById('communityAdminList');
       if (!box) return;
