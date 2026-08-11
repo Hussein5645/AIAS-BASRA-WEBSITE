@@ -383,6 +383,15 @@ async function toggleUserConnection(targetId) {
 async function toggleSpaceConnection(slug) {
   if (!currentUser) { location.href = loginUrl(); return false; }
   if (!slug || !communityAreas[slug]) return false;
+  const space = communityAreas[slug];
+  if (space.isPrivate && !connectedSpaceSlugs.has(slug) && space.creatorId !== currentUser.uid) {
+    const requestRef = doc(db, 'communitySpaces', slug, 'connectionRequests', currentUser.uid);
+    const existing = await getDoc(requestRef);
+    if (!existing.exists() || existing.data().status !== 'pending') {
+      await setDoc(requestRef, {userId:currentUser.uid, spaceSlug:slug, status:'pending', requestedAt:serverTimestamp()});
+    }
+    return 'requested';
+  }
   const next = !connectedSpaceSlugs.has(slug);
   if (!next) {
     const postsSnapshot = await getDocs(query(collection(db, 'communityPosts'), where('userId', '==', currentUser.uid)));
@@ -413,7 +422,6 @@ async function toggleSpaceConnection(slug) {
   if (next) connectedSpaceSlugs.add(slug); else connectedSpaceSlugs.delete(slug);
   renderCommunitySpaces();
   if (!next) invalidateCommunitySearchIndex();
-  const space = communityAreas[slug];
   await updateConnectionNotification(space.creatorId, 'space_connection', slug, space.name || 'a/' + slug, next);
   return next;
 }
@@ -479,6 +487,11 @@ function canPostToSpace(slug) {
   if (slug === 'main') return true;
   const area = communityAreas[slug];
   return Boolean(currentUser && area && (area.creatorId === currentUser.uid || connectedSpaceSlugs.has(slug)));
+}
+
+function canViewSpacePost(post) {
+  const area = communityAreas[post.communitySlug];
+  return !area?.isPrivate || area.creatorId === currentUser?.uid || connectedSpaceSlugs.has(post.communitySlug) || post.userId === currentUser?.uid;
 }
 
 function renderCommunitySpaces() {
@@ -643,7 +656,7 @@ function validateCommunityHandle(showMessage) {
     const status = $('postCommunityStatus');
     status.className = valid ? 'valid' : 'invalid';
     status.textContent = valid
-      ? (slug === 'main' ? tr('Posting to the main thread.','سيُنشر في المسار الرئيسي.') : tr('Posting to a/','سيُنشر في a/') + slug + tr(' and the main thread.',' وفي المسار الرئيسي.'))
+      ? (slug === 'main' ? tr('Posting to the main thread.','سيُنشر في المسار الرئيسي.') : tr('Posting to a/','سيُنشر في a/') + slug + ((communityAreas[slug]?.showInMainThread !== false) ? tr(' and the main thread.',' وفي المسار الرئيسي.') : tr(' only.',' فقط.')))
       : tr('No community space exists with that handle.','لا توجد مساحة مجتمعية بهذا المعرّف.');
   }
   if (showMessage && !valid) $('postCommunityStatus').textContent = tr('You can only post in spaces you own or are connected to.','يمكنك النشر فقط في المساحات التي تملكها أو تتصل بها.');
@@ -689,7 +702,7 @@ async function checkSpaceHandleAvailability(input, status) {
   }
 }
 
-async function createCommunitySpace(name, requestedHandle, description, imageBase64 = '', bannerBase64 = '') {
+async function createCommunitySpace(name, requestedHandle, description, imageBase64 = '', bannerBase64 = '', isPrivate = false, showInMainThread = true) {
   const handle = normalizeCommunityHandle(requestedHandle);
   if (!/^[a-z0-9-]{3,32}$/.test(handle) || handle === 'main') throw new Error(tr('Choose a valid, non-reserved space handle.','اختر معرّف مساحة صالحاً وغير محجوز.'));
   const spaceRef = doc(db, 'communitySpaces', handle);
@@ -702,6 +715,8 @@ async function createCommunitySpace(name, requestedHandle, description, imageBas
     creatorUsername: currentProfile.username,
     imageBase64,
     bannerBase64,
+    isPrivate:Boolean(isPrivate),
+    showInMainThread: isPrivate ? false : Boolean(showInMainThread),
     createdAt: serverTimestamp()
   };
   await runTransaction(db, async transaction => {
@@ -713,6 +728,41 @@ async function createCommunitySpace(name, requestedHandle, description, imageBas
   communityAreas[handle] = {...record, slug:handle};
   renderCommunitySpaces();
   return handle;
+}
+
+async function loadManageSpaces() {
+  if (!currentUser) {
+    $('manageSpacesList').innerHTML = '';
+    $('manageSpacesGate').innerHTML = '<p class="notice">' + tr('Sign in to manage your spaces.','سجّل الدخول لإدارة مساحاتك.') + ' <a href="' + loginUrl() + '">' + tr('Sign in','تسجيل الدخول') + '</a></p>';
+    return;
+  }
+  $('manageSpacesGate').innerHTML = '';
+  const spaces = Object.entries(communityAreas).filter(([, area]) => area.creatorId === currentUser.uid);
+  if (!spaces.length) {
+    $('manageSpacesList').innerHTML = '<div class="connections-empty"><span>#</span><h2>' + tr('No spaces yet','لا توجد مساحات بعد') + '</h2><p>' + tr('Create a space to control its membership and visibility.','أنشئ مساحة للتحكم بعضويتها وظهور منشوراتها.') + '</p><a href="community.html?view=space">' + tr('Create a space','إنشاء مساحة') + ' →</a></div>';
+    return;
+  }
+  $('manageSpacesList').innerHTML = '<div class="manage-spaces-grid">' + (await Promise.all(spaces.map(async ([slug, area]) => {
+    let requests = [];
+    try { requests = (await getDocs(query(collection(db, 'communitySpaces', slug, 'connectionRequests'), where('status', '==', 'pending')))).docs.map(item => ({id:item.id, ...item.data()})); } catch (error) { console.warn('[Community] Requests unavailable.', error); }
+    const requestRows = requests.length ? '<div class="space-request-list">' + (await Promise.all(requests.map(async request => { const profile = await getProfile(request.userId); return '<div><span>' + escapeHtml(profile.displayName || profile.username || tr('Member','عضو')) + '</span><button type="button" data-approve-request="' + escapeHtml(slug) + '|' + escapeHtml(request.userId) + '">' + tr('Approve','موافقة') + '</button><button type="button" data-deny-request="' + escapeHtml(slug) + '|' + escapeHtml(request.userId) + '">' + tr('Deny','رفض') + '</button></div>'; }))).join('') + '</div>' : '<p class="space-request-empty">' + tr('No pending requests.','لا توجد طلبات معلقة.') + '</p>';
+    return '<article class="manage-space-card"><div><span class="mini-kicker">a/' + escapeHtml(slug) + '</span><h2>' + escapeHtml(area.name || slug) + '</h2><p>' + escapeHtml(area.description || '') + '</p><p><strong>' + (area.isPrivate ? tr('Private','خاصة') : tr('Public','عامة')) + '</strong> · ' + (area.showInMainThread !== false && !area.isPrivate ? tr('Posts appear in the main thread','تظهر المنشورات في المسار الرئيسي') : tr('Posts stay out of the main thread','المنشورات لا تظهر في المسار الرئيسي')) + '</p></div><button type="button" data-manage-edit="' + escapeHtml(slug) + '">' + tr('Edit settings','تعديل الإعدادات') + '</button><section><strong>' + tr('Membership requests','طلبات العضوية') + ' (' + requests.length + ')</strong>' + requestRows + '</section></article>';
+  }))).join('') + '</div>';
+}
+
+async function reviewSpaceRequest(slug, userId, approved) {
+  const area = communityAreas[slug];
+  if (!area || area.creatorId !== currentUser?.uid) return;
+  const batch = writeBatch(db);
+  batch.set(doc(db, 'communitySpaces', slug, 'connectionRequests', userId), {status:approved ? 'approved' : 'denied', reviewedAt:serverTimestamp(), reviewedBy:currentUser.uid}, {merge:true});
+  if (approved) {
+    const record = {userId, spaceSlug:slug, createdAt:serverTimestamp()};
+    batch.set(doc(db, 'communitySpaces', slug, 'connections', userId), record);
+    batch.set(doc(db, 'users', userId, 'connectedSpaces', slug), record);
+  }
+  await batch.commit();
+  await loadManageSpaces();
+  showToast(approved ? tr('Request approved.','تمت الموافقة على الطلب.') : tr('Request denied.','تم رفض الطلب.'));
 }
 
 function updateSpaceMediaPreview(targetId, value, emptyCopy) {
@@ -754,7 +804,7 @@ function renderActiveAreaHeader(area) {
   $('areaConnect').hidden = Boolean(owner);
   activeAreaConnection = connectedSpaceSlugs.has(activeAreaSlug);
   $('areaConnect').classList.toggle('connected', activeAreaConnection);
-  $('areaConnect').querySelector('span').textContent = activeAreaConnection ? tr('Connected','متصل') : tr('Connect','تواصل');
+  $('areaConnect').querySelector('span').textContent = activeAreaConnection ? tr('Connected','متصل') : (area.isPrivate ? tr('Request to connect','طلب اتصال') : tr('Connect','تواصل'));
   const canPost = Boolean(owner || activeAreaConnection);
   $('areaCreate').disabled = !canPost;
   $('areaCreate').title = canPost ? '' : tr('Connect to this space before posting.','اتصل بهذه المساحة قبل النشر.');
@@ -784,6 +834,8 @@ function openSpaceEditor() {
   $('spaceEditHandle').innerHTML = tr('Permanent address: ','العنوان الدائم: ') + '<strong>a/' + escapeHtml(activeEditSpaceSlug) + '</strong>';
   $('spaceEditName').value = area.name || activeEditSpaceSlug;
   $('spaceEditDescription').value = area.description || '';
+  $('spaceEditIsPrivate').checked = Boolean(area.isPrivate);
+  $('spaceEditShowInMainThread').checked = area.showInMainThread !== false;
   $('spaceEditNameCount').textContent = $('spaceEditName').value.length.toLocaleString() + ' / 80';
   $('spaceEditDescriptionCount').textContent = $('spaceEditDescription').value.length.toLocaleString() + ' / 360';
   $('spaceEditImageFile').value = '';
@@ -1224,7 +1276,7 @@ async function handleRoute(scrollToTop) {
   const publicProfileRoute = pathRoute.profile || params.get('user');
   const requestedArea = pathRoute.area || params.get('area');
   activeAreaSlug = requestedArea && communityAreas[requestedArea] ? requestedArea : null;
-  const view = publicProfileRoute || requestedView === 'profile' ? 'profile' : requestedView === 'connections' ? 'connections' : requestedView === 'selected' ? 'selected' : requestedView === 'spaces' ? 'spaces' : requestedView === 'post' ? 'post' : requestedView === 'space' ? 'space' : 'home';
+  const view = publicProfileRoute || requestedView === 'profile' ? 'profile' : requestedView === 'connections' ? 'connections' : requestedView === 'manage-spaces' ? 'manage-spaces' : requestedView === 'selected' ? 'selected' : requestedView === 'spaces' ? 'spaces' : requestedView === 'post' ? 'post' : requestedView === 'space' ? 'space' : 'home';
   feedMode = currentUser ? (params.get('feed') === 'discover' ? 'discover' : 'following') : 'discover';
   if (view === 'home' && !selectedPostId && !activeAreaSlug) communitySort = feedMode === 'discover' ? 'smart' : 'latest';
   if (!params.has('comments')) closeCommentsUi();
@@ -1268,6 +1320,9 @@ async function handleRoute(scrollToTop) {
   } else if (view === 'connections') {
     document.title = tr('My Connections — AIAS Basra Community','تواصلاتي — مجتمع AIAS البصرة');
     await loadConnectionManager();
+  } else if (view === 'manage-spaces') {
+    document.title = tr('Manage My Spaces — AIAS Basra Community','إدارة مساحاتي — مجتمع AIAS البصرة');
+    await loadManageSpaces();
   } else if (view === 'post') {
     const requestedType = ['text','question','behance'].includes(params.get('type')) ? params.get('type') : $('postType').value;
     $('postType').value = requestedType;
@@ -1409,7 +1464,8 @@ async function loadPosts() {
     const selectedPostId = params.get('post');
     const allPosts = (await getDocs(collection(db, 'communityPosts'))).docs
       .map(item => ({id:item.id, ...item.data()}))
-      .filter(post => post.published !== false);
+      .filter(post => post.published !== false)
+      .filter(canViewSpacePost);
     $('postStat').textContent = allPosts.length;
     $('projectStat').textContent = allPosts.filter(isProject).length;
 
@@ -1418,7 +1474,10 @@ async function loadPosts() {
       posts = posts.filter(post => post.id === selectedPostId);
     } else {
       if (activeAreaSlug) posts = posts.filter(post => post.communitySlug === activeAreaSlug);
-      else if (feedMode === 'following' && currentUser) posts = posts.filter(post => post.userId === currentUser.uid || connectedUserIds.has(post.userId) || connectedSpaceSlugs.has(post.communitySlug) || communityAreas[post.communitySlug]?.creatorId === currentUser.uid);
+      else {
+        if (feedMode === 'following' && currentUser) posts = posts.filter(post => post.userId === currentUser.uid || connectedUserIds.has(post.userId) || connectedSpaceSlugs.has(post.communitySlug) || communityAreas[post.communitySlug]?.creatorId === currentUser.uid);
+        posts = posts.filter(post => post.communitySlug === 'main' || communityAreas[post.communitySlug]?.showInMainThread !== false);
+      }
       if (communityType !== 'both') {
         posts = posts.filter(post => communityType === 'text'
           ? !isProject(post) && !isQuestion(post)
@@ -2088,6 +2147,22 @@ $('quickComposer').addEventListener('click', () => navigateTo(composerUrl(), fal
 $('railSpacesExpand').addEventListener('click', () => { railSpacesExpanded = !railSpacesExpanded; renderCommunitySpaces(); });
 $('areaCreate').addEventListener('click', () => navigateTo(composerUrl(), false));
 $('areaManage').addEventListener('click', openSpaceEditor);
+$('manageSpacesList').addEventListener('click', async event => {
+  const edit = event.target.closest('[data-manage-edit]');
+  const approve = event.target.closest('[data-approve-request]');
+  const deny = event.target.closest('[data-deny-request]');
+  if (edit) {
+    activeAreaSlug = edit.dataset.manageEdit;
+    openSpaceEditor();
+    return;
+  }
+  const control = approve || deny;
+  if (!control) return;
+  const [slug, userId] = control.dataset[approve ? 'approveRequest' : 'denyRequest'].split('|');
+  control.disabled = true;
+  try { await reviewSpaceRequest(slug, userId, Boolean(approve)); }
+  catch (error) { console.error(error); showToast(tr('The request could not be updated.','تعذر تحديث الطلب.')); control.disabled = false; }
+});
 $('areaConnect').addEventListener('click', async event => {
   if (!currentUser) { location.href = loginUrl(); return; }
   const button = event.currentTarget;
@@ -2095,6 +2170,10 @@ $('areaConnect').addEventListener('click', async event => {
   try {
     const result = await toggleSpaceConnection(activeAreaSlug);
     if (result === null) return;
+    if (result === 'requested') {
+      showToast(tr('Connection request sent to the space admin.','تم إرسال طلب الاتصال إلى مشرف المساحة.'));
+      return;
+    }
     activeAreaConnection = result;
     renderActiveAreaHeader(communityAreas[activeAreaSlug]);
     await refreshAreaConnectionCount(activeAreaSlug);
@@ -2258,6 +2337,8 @@ $('removeSpaceEditBanner').addEventListener('click', () => {
 });
 $('spaceEditName').addEventListener('input', event => { $('spaceEditNameCount').textContent = event.target.value.length.toLocaleString() + ' / 80'; });
 $('spaceEditDescription').addEventListener('input', event => { $('spaceEditDescriptionCount').textContent = event.target.value.length.toLocaleString() + ' / 360'; });
+$('spaceIsPrivate').addEventListener('change', event => { if (event.target.checked) $('spaceShowInMainThread').checked = false; });
+$('spaceEditIsPrivate').addEventListener('change', event => { if (event.target.checked) $('spaceEditShowInMainThread').checked = false; });
 $('spaceEditClose').addEventListener('click', closeSpaceEditor);
 $('spaceEditCancel').addEventListener('click', closeSpaceEditor);
 $('spaceEditDialog').addEventListener('cancel', () => { activeEditSpaceSlug = null; });
@@ -2281,9 +2362,11 @@ $('spaceEditForm').addEventListener('submit', async event => {
       symbol:initials(name),
       imageBase64:editSpaceImageBase64,
       bannerBase64:editSpaceBannerBase64,
+      isPrivate:$('spaceEditIsPrivate').checked,
+      showInMainThread:$('spaceEditIsPrivate').checked ? false : $('spaceEditShowInMainThread').checked,
       updatedAt:serverTimestamp()
     }, {merge:true});
-    communityAreas[slug] = {...area, name, description, symbol:initials(name), imageBase64:editSpaceImageBase64, bannerBase64:editSpaceBannerBase64};
+    communityAreas[slug] = {...area, name, description, symbol:initials(name), imageBase64:editSpaceImageBase64, bannerBase64:editSpaceBannerBase64, isPrivate:$('spaceEditIsPrivate').checked, showInMainThread:$('spaceEditIsPrivate').checked ? false : $('spaceEditShowInMainThread').checked};
     invalidateCommunitySearchIndex();
     renderCommunitySpaces();
     renderActiveAreaHeader(communityAreas[slug]);
@@ -2328,7 +2411,7 @@ $('spaceForm').addEventListener('submit', async event => {
       $('spaceStatus').textContent = tr('Choose an available space handle before continuing.','اختر معرّف مساحة متاحاً قبل المتابعة.');
       return;
     }
-    const handle = await createCommunitySpace(name, $('spaceHandle').value, description, newSpaceImageBase64, newSpaceBannerBase64);
+    const handle = await createCommunitySpace(name, $('spaceHandle').value, description, newSpaceImageBase64, newSpaceBannerBase64, $('spaceIsPrivate').checked, $('spaceShowInMainThread').checked);
     $('spaceForm').reset();
     newSpaceImageBase64 = '';
     newSpaceBannerBase64 = '';

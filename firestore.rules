@@ -145,11 +145,16 @@ service cloud.firestore {
     match /users/{userId}/connectedSpaces/{spaceId} {
       allow read: if isAuthenticated() && request.auth.uid == userId;
       allow create: if isAuthenticated()
-        && request.auth.uid == userId
+        && (request.auth.uid == userId
+          || get(/databases/$(database)/documents/communitySpaces/$(spaceId)).data.creatorId == request.auth.uid)
         && request.resource.data.userId == userId
         && request.resource.data.spaceSlug == spaceId
         && request.resource.data.createdAt == request.time
-        && exists(/databases/$(database)/documents/communitySpaces/$(spaceId));
+        && exists(/databases/$(database)/documents/communitySpaces/$(spaceId))
+        && (get(/databases/$(database)/documents/communitySpaces/$(spaceId)).data.isPrivate != true
+          || (get(/databases/$(database)/documents/communitySpaces/$(spaceId)).data.creatorId == request.auth.uid
+            && exists(/databases/$(database)/documents/communitySpaces/$(spaceId)/connectionRequests/$(userId))
+            && getAfter(/databases/$(database)/documents/communitySpaces/$(spaceId)/connectionRequests/$(userId)).data.status == 'approved'));
       allow update: if false;
       allow delete: if isAuthenticated() && request.auth.uid == userId;
     }
@@ -194,7 +199,10 @@ service cloud.firestore {
           && request.resource.data.creatorId == request.auth.uid
           && request.resource.data.creatorUsername == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username
           && get(/databases/$(database)/documents/usernames/$(request.resource.data.creatorUsername)).data.userId == request.auth.uid
-          && request.resource.data.active == true));
+          && request.resource.data.active == true
+          && request.resource.data.isPrivate is bool
+          && request.resource.data.showInMainThread is bool
+          && (request.resource.data.isPrivate == false || request.resource.data.showInMainThread == false)));
       allow update: if spaceId != 'main'
         && spaceId.matches('^[a-z0-9-]{3,32}$')
         && request.resource.data.name is string
@@ -220,7 +228,10 @@ service cloud.firestore {
           && resource.data.creatorId == request.auth.uid
           && request.resource.data.creatorId == resource.data.creatorId
           && request.resource.data.creatorUsername == resource.data.creatorUsername
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'description', 'symbol', 'imageBase64', 'bannerBase64', 'updatedAt'])));
+          && (!('isPrivate' in request.resource.data) || request.resource.data.isPrivate is bool)
+          && (!('showInMainThread' in request.resource.data) || request.resource.data.showInMainThread is bool)
+          && (!('isPrivate' in request.resource.data) || request.resource.data.isPrivate == false || request.resource.data.showInMainThread == false)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'description', 'symbol', 'imageBase64', 'bannerBase64', 'isPrivate', 'showInMainThread', 'updatedAt'])));
       allow delete: if hasPermission('manage_community')
         || (isAuthenticated() && resource.data.creatorId == request.auth.uid);
     }
@@ -228,12 +239,37 @@ service cloud.firestore {
     match /communitySpaces/{spaceId}/connections/{userId} {
       allow read: if true;
       allow create: if isAuthenticated()
-        && request.auth.uid == userId
+        && (request.auth.uid == userId
+          || get(/databases/$(database)/documents/communitySpaces/$(spaceId)).data.creatorId == request.auth.uid)
         && request.resource.data.userId == userId
         && request.resource.data.spaceSlug == spaceId
         && request.resource.data.createdAt == request.time
-        && exists(/databases/$(database)/documents/communitySpaces/$(spaceId));
+        && exists(/databases/$(database)/documents/communitySpaces/$(spaceId))
+        && (get(/databases/$(database)/documents/communitySpaces/$(spaceId)).data.isPrivate != true
+          || (get(/databases/$(database)/documents/communitySpaces/$(spaceId)).data.creatorId == request.auth.uid
+            && exists(/databases/$(database)/documents/communitySpaces/$(spaceId)/connectionRequests/$(userId))
+            && getAfter(/databases/$(database)/documents/communitySpaces/$(spaceId)/connectionRequests/$(userId)).data.status == 'approved'));
       allow update: if false;
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    match /communitySpaces/{spaceId}/connectionRequests/{userId} {
+      allow read: if isAuthenticated()
+        && (request.auth.uid == userId
+          || get(/databases/$(database)/documents/communitySpaces/$(spaceId)).data.creatorId == request.auth.uid);
+      allow create: if isAuthenticated()
+        && request.auth.uid == userId
+        && request.resource.data.userId == userId
+        && request.resource.data.spaceSlug == spaceId
+        && request.resource.data.status == 'pending'
+        && request.resource.data.requestedAt == request.time
+        && exists(/databases/$(database)/documents/communitySpaces/$(spaceId))
+        && get(/databases/$(database)/documents/communitySpaces/$(spaceId)).data.isPrivate == true;
+      allow update: if isAuthenticated()
+        && get(/databases/$(database)/documents/communitySpaces/$(spaceId)).data.creatorId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.spaceSlug == resource.data.spaceSlug
+        && request.resource.data.status in ['approved', 'denied'];
       allow delete: if isAuthenticated() && request.auth.uid == userId;
     }
 

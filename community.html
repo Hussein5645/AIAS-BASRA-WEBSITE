@@ -52,6 +52,7 @@
         <a class="rail-link active" href="community.html" data-route="home"><span class="rail-icon" aria-hidden="true">⌂</span><span data-en="Home" data-ar="الرئيسية">Home</span></a>
         <a class="rail-link" href="community.html?view=post" data-route="post"><span class="rail-icon rail-icon-plus" aria-hidden="true">+</span><span data-en="Create" data-ar="إنشاء">Create</span></a>
         <a class="rail-link" href="community.html?view=space" data-route="space"><span class="rail-icon" aria-hidden="true">#</span><span data-en="New space" data-ar="مساحة جديدة">New space</span></a>
+        <a class="rail-link" href="community.html?view=manage-spaces" data-route="manage-spaces"><span class="rail-icon" aria-hidden="true">⚙</span><span data-en="Manage my spaces" data-ar="إدارة مساحاتي">Manage my spaces</span></a>
         <a class="rail-link" href="community.html?view=profile" data-route="profile"><span class="rail-icon" aria-hidden="true">◉</span><span data-en="My profile" data-ar="ملفي الشخصي">My profile</span></a>
         <a class="rail-link" href="community.html?view=connections" data-route="connections"><span class="rail-icon" aria-hidden="true">◎</span><span data-en="My connections" data-ar="تواصلاتي">My connections</span></a>
         <a class="rail-link" href="community.html?view=selected" data-route="selected"><span class="rail-icon" aria-hidden="true">◇</span><span data-en="Selected projects" data-ar="المشاريع المختارة">Selected projects</span></a>
@@ -219,6 +220,8 @@
               <div class="label-line"><label for="spaceDescription" data-en="What belongs in this space?" data-ar="ما المحتوى المناسب لهذه المساحة؟">What belongs in this space?</label><span id="spaceDescriptionCount">0 / 360</span></div>
               <textarea id="spaceDescription" required minlength="10" maxlength="360" placeholder="Describe the topic and help members understand what to share here." data-en="Describe the topic and help members understand what to share here." data-ar="صِف الموضوع وساعد الأعضاء على فهم ما يمكن مشاركته هنا."></textarea>
             </div>
+            <div class="form-group"><label><input id="spaceIsPrivate" type="checkbox"> <span data-en="Private space — members must request approval to connect" data-ar="مساحة خاصة — يجب أن يطلب الأعضاء الموافقة للاتصال">Private space — members must request approval to connect</span></label></div>
+            <div class="form-group"><label><input id="spaceShowInMainThread" type="checkbox" checked> <span data-en="Show this space's posts in the main thread" data-ar="إظهار منشورات هذه المساحة في المسار الرئيسي">Show this space's posts in the main thread</span></label></div>
             <footer class="composer-footer"><p id="spaceStatus" class="form-status" aria-live="polite"></p><button class="primary-button" type="submit"><span data-en="Create space" data-ar="إنشاء المساحة">Create space</span><b aria-hidden="true">→</b></button></footer>
           </form>
         </section>
@@ -254,6 +257,11 @@
           </div>
           <div id="connectionsList" class="connections-list" aria-live="polite"></div>
         </section>
+      </section>
+
+      <section id="manage-spacesView" class="view" hidden>
+        <header class="section-heading"><a href="community.html" data-route="home" aria-label="Back to community">←</a><div><span class="eyebrow"><i></i> <span data-en="SPACE ADMINISTRATION" data-ar="إدارة المساحات">SPACE ADMINISTRATION</span></span><h1 data-en="Manage my spaces" data-ar="إدارة مساحاتي">Manage my spaces</h1><p data-en="Control privacy, main-thread visibility, and membership requests for every space you own." data-ar="تحكم بالخصوصية وظهور منشورات المسار الرئيسي وطلبات العضوية لكل مساحة تملكها.">Control privacy, main-thread visibility, and membership requests for every space you own.</p></div></header>
+        <div id="manageSpacesGate"></div><section id="manageSpacesList" class="connections-list" aria-live="polite"></section>
       </section>
     </section>
 
@@ -318,6 +326,8 @@
       </div>
       <div class="form-group"><div class="label-line"><label for="spaceEditName" data-en="Space name" data-ar="اسم المساحة">Space name</label><span id="spaceEditNameCount">0 / 80</span></div><input id="spaceEditName" required minlength="3" maxlength="80"></div>
       <div class="form-group"><div class="label-line"><label for="spaceEditDescription" data-en="Description" data-ar="الوصف">Description</label><span id="spaceEditDescriptionCount">0 / 360</span></div><textarea id="spaceEditDescription" required minlength="10" maxlength="360"></textarea></div>
+      <div class="form-group"><label><input id="spaceEditIsPrivate" type="checkbox"> <span data-en="Private space — approve membership requests" data-ar="مساحة خاصة — وافق على طلبات العضوية">Private space — approve membership requests</span></label></div>
+      <div class="form-group"><label><input id="spaceEditShowInMainThread" type="checkbox"> <span data-en="Show this space's posts in the main thread" data-ar="إظهار منشورات هذه المساحة في المسار الرئيسي">Show this space's posts in the main thread</span></label></div>
       <p id="spaceEditStatus" class="form-status" aria-live="polite"></p>
       <section class="space-danger-zone"><div><strong data-en="Delete this space" data-ar="حذف هذه المساحة">Delete this space</strong><small data-en="Its posts remain safely available in the main community feed." data-ar="ستبقى منشوراتها متاحة بأمان في الخلاصة الرئيسية للمجتمع.">Its posts remain safely available in the main community feed.</small></div><button id="deleteOwnedSpace" type="button" data-en="Delete space" data-ar="حذف المساحة">Delete space</button></section>
       <footer><button id="spaceEditCancel" class="secondary-button" type="button" data-en="Cancel" data-ar="إلغاء">Cancel</button><button class="primary-button" type="submit"><span data-en="Save space" data-ar="حفظ المساحة">Save space</span><b aria-hidden="true">→</b></button></footer>
