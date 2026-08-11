@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/community.css?v=20260811-i18n">
+  <link rel="stylesheet" href="css/community.css?v=20260811-projects">
 </head>
 <body>
   <header class="community-topbar">
@@ -109,7 +109,7 @@
       <section id="postView" class="view" hidden>
         <header class="section-heading">
           <a href="community.html" data-route="home" aria-label="Back to community">←</a>
-          <div><span class="eyebrow"><i></i> <span data-en="ADD TO THE CONVERSATION" data-ar="شارك في الحوار">ADD TO THE CONVERSATION</span></span><h1 data-en="Create a post" data-ar="إنشاء منشور">Create a post</h1><p data-en="Share a thought or ask an open question." data-ar="شارك فكرة أو اطرح سؤالاً مفتوحاً.">Share a thought or ask an open question.</p></div>
+          <div><span class="eyebrow"><i></i> <span data-en="ADD TO THE CONVERSATION" data-ar="شارك في الحوار">ADD TO THE CONVERSATION</span></span><h1 data-en="Create a post" data-ar="إنشاء منشور">Create a post</h1><p data-en="Share a thought, ask an open question, or add a project." data-ar="شارك فكرة أو اطرح سؤالاً مفتوحاً أو أضف مشروعاً.">Share a thought, ask an open question, or add a project.</p></div>
         </header>
         <div id="postGate"></div>
         <section id="postFormCard" class="composer-card" hidden>
@@ -118,14 +118,20 @@
               <legend data-en="What are you sharing?" data-ar="ماذا تريد أن تشارك؟">What are you sharing?</legend>
               <label><input type="radio" name="postTypeChoice" value="text" checked><span><b data-en="Thought" data-ar="فكرة">Thought</b><small data-en="Share an idea or start a discussion" data-ar="شارك فكرة أو ابدأ نقاشاً">Share an idea or start a discussion</small></span></label>
               <label><input type="radio" name="postTypeChoice" value="question"><span><b data-en="Open question" data-ar="سؤال مفتوح">Open question</b><small data-en="Ask members and collect answers" data-ar="اسأل الأعضاء واجمع الإجابات">Ask members and collect answers</small></span></label>
+              <label><input type="radio" name="postTypeChoice" value="behance"><span><b data-en="Add project" data-ar="إضافة مشروع">Add project</b><small data-en="Share a Behance project with the community" data-ar="شارك مشروع Behance مع المجتمع">Share a Behance project with the community</small></span></label>
             </fieldset>
             <input id="postType" type="hidden" value="text">
-            <div class="form-group community-picker">
+            <div id="postCommunityGroup" class="form-group community-picker">
               <div class="label-line"><label for="postCommunity" data-en="Space handle" data-ar="معرّف المساحة">Space handle</label><a href="community.html?view=space" data-route="space" data-en="Create a new space" data-ar="إنشاء مساحة جديدة">Create a new space</a></div>
               <input id="postCommunity" list="communityHandles" value="main" autocomplete="off" placeholder="main or a/community-name" data-en="main or a/community-name" data-ar="main أو a/community-name">
               <datalist id="communityHandles"></datalist>
               <div id="spaceSuggestions" class="space-suggestions" hidden></div>
               <small id="postCommunityStatus" aria-live="polite" data-en="Type a community handle or post to the main thread. Every post also appears in the main feed." data-ar="اكتب معرّف مساحة أو انشر في المسار الرئيسي. يظهر كل منشور أيضاً في الخلاصة الرئيسية.">Type a community handle or post to the main thread. Every post also appears in the main feed.</small>
+            </div>
+            <div id="projectFields" class="form-group" hidden>
+              <label for="postBehanceEmbed" data-en="Behance project embed link" data-ar="رابط تضمين مشروع Behance">Behance project embed link</label>
+              <input id="postBehanceEmbed" type="text" inputmode="url" placeholder="https://www.behance.net/embed/project/…" data-en="https://www.behance.net/embed/project/…" data-ar="https://www.behance.net/embed/project/…">
+              <small data-en="In Behance, choose Share → Embed, then paste the iframe code or its link." data-ar="في Behance اختر مشاركة ← تضمين، ثم الصق كود iframe أو رابطه.">In Behance, choose Share → Embed, then paste the iframe code or its link.</small>
             </div>
             <div id="postIdentity" class="post-identity"></div>
             <div class="form-group">
@@ -175,6 +181,12 @@
         </header>
         <div id="profileContent" class="profile-skeleton"><span></span><div></div></div>
         <div class="profile-posts-head"><h2 data-en="Posts" data-ar="المنشورات">Posts</h2><span id="profilePostCount"></span></div>
+        <div id="profilePostFilters" class="profile-post-filters" role="group" aria-label="Filter profile posts" data-aria-en="Filter profile posts" data-aria-ar="تصفية منشورات الملف">
+          <button class="filter-pill active" type="button" data-profile-filter="all" data-en="All posts" data-ar="كل المنشورات">All posts</button>
+          <button class="filter-pill" type="button" data-profile-filter="text" data-en="Thoughts" data-ar="الأفكار">Thoughts</button>
+          <button class="filter-pill" type="button" data-profile-filter="behance" data-en="Projects" data-ar="المشاريع">Projects</button>
+          <button class="filter-pill" type="button" data-profile-filter="question" data-en="Questions" data-ar="الأسئلة">Questions</button>
+        </div>
         <div id="profilePosts" class="profile-post-grid"></div>
       </section>
     </section>
@@ -220,6 +232,6 @@
   </div>
   <div id="communityToast" class="community-toast" role="status" aria-live="polite"></div>
 
-  <script type="module" src="js/community.js?v=20260811-i18n"></script>
+  <script type="module" src="js/community.js?v=20260811-projects"></script>
 </body>
 </html>

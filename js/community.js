@@ -34,6 +34,8 @@ let communitySearchIndexLoadedAt = 0;
 let communitySearchIndexPromise = null;
 let communitySearchSequence = 0;
 let communitySearchActiveIndex = -1;
+let profilePostFilter = 'all';
+let activeProfilePosts = [];
 
 const $ = id => document.getElementById(id);
 const escapeHtml = value => String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -79,6 +81,19 @@ function setCommunityLanguage(language, rerender = true) {
 const isProject = post => post.type === 'behance';
 const isQuestion = post => post.type === 'question';
 const postLabel = post => isProject(post) ? tr('Project','مشروع') : isQuestion(post) ? tr('Open question','سؤال مفتوح') : tr('Thought','فكرة');
+
+function extractBehanceEmbed(value) {
+  const raw = String(value || '').trim();
+  const iframeMatch = raw.match(/src=["']([^"']+)["']/i);
+  const candidate = (iframeMatch ? iframeMatch[1] : raw).replace(/&amp;/g, '&');
+  try {
+    const url = new URL(candidate);
+    if (url.protocol !== 'https:' || !/^(www\.)?behance\.net$/i.test(url.hostname) || !url.pathname.startsWith('/embed/project/')) return '';
+    return url.href;
+  } catch {
+    return '';
+  }
+}
 
 function getPathRoute() {
   const segments = decodeURIComponent(location.pathname).split('/').filter(Boolean);
@@ -677,6 +692,11 @@ async function handleRoute(scrollToTop) {
     const profileId = publicProfileRoute ? await resolveProfileId(publicProfileRoute) : currentUser?.uid || null;
     await loadProfile(profileId, Boolean(publicProfileRoute));
   } else if (view === 'post') {
+    const requestedType = ['text','question','behance'].includes(params.get('type')) ? params.get('type') : $('postType').value;
+    $('postType').value = requestedType;
+    const requestedTypeChoice = document.querySelector('input[name="postTypeChoice"][value="' + requestedType + '"]');
+    if (requestedTypeChoice) requestedTypeChoice.checked = true;
+    renderPostTypeFields();
     $('postCommunity').value = activeAreaSlug ? 'a/' + activeAreaSlug : params.get('area') || 'main';
     validateCommunityHandle(true);
     renderPostGate();
@@ -702,8 +722,9 @@ function renderPostCard(post, index, detail) {
   const projectPreview = isProject(post) && post.behanceSrc
     ? '<div class="project-preview"><iframe title="' + escapeHtml(post.title) + '" src="' + escapeHtml(post.behanceSrc) + '" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe><a class="project-preview-link" href="' + destination + '">' + tr('Open project','فتح المشروع') + ' <span aria-hidden="true">↗</span></a></div>'
     : '';
+  const requestStatus = post.featureStatus === 'denied' ? tr('not selected','لم يُختر') : tr('pending','قيد المراجعة');
   const request = currentUser?.uid === post.userId && isProject(post) && !post.featured && post.featureRequest
-    ? '<div class="project-request">' + tr('Selection request:','طلب اختيار:') + ' <strong>' + escapeHtml(post.featureStatus || tr('pending','قيد المراجعة')) + '</strong></div>'
+    ? '<div class="project-request">' + tr('Selection request:','طلب اختيار:') + ' <strong>' + escapeHtml(requestStatus) + '</strong></div>'
     : '';
   return [
     '<article class="post-card' + (detail ? ' detail' : '') + (isQuestion(post) ? ' question' : '') + '" style="--i:' + index + '">',
@@ -980,10 +1001,14 @@ function closeComments() {
 
 function renderPostTypeFields() {
   const question = $('postType').value === 'question';
+  const project = $('postType').value === 'behance';
+  $('postCommunityGroup').hidden = project;
+  $('projectFields').hidden = !project;
+  $('postBehanceEmbed').required = project;
   $('postContent').required = true;
-  document.querySelector('label[for="postContent"]').textContent = question ? tr('Add helpful context','أضف سياقاً مفيداً') : tr('Tell the community more','أخبر المجتمع بالمزيد');
-  $('postContent').placeholder = question ? tr('What have you tried, and what kind of answer would help?','ماذا جرّبت، وما نوع الإجابة التي ستفيدك؟') : tr('Share context, a fresh perspective, or invite feedback…','شارك السياق أو منظوراً جديداً أو اطلب آراء الأعضاء…');
-  $('postTitle').placeholder = question ? tr('Ask one clear, open question','اطرح سؤالاً مفتوحاً وواضحاً') : tr('Share one clear insight or idea','شارك فكرة أو رؤية واضحة');
+  document.querySelector('label[for="postContent"]').textContent = project ? tr('Describe your project','صف مشروعك') : question ? tr('Add helpful context','أضف سياقاً مفيداً') : tr('Tell the community more','أخبر المجتمع بالمزيد');
+  $('postContent').placeholder = project ? tr('Explain the idea, process, and feedback you would like.','اشرح الفكرة وعملية التصميم والملاحظات التي ترغب بها.') : question ? tr('What have you tried, and what kind of answer would help?','ماذا جرّبت، وما نوع الإجابة التي ستفيدك؟') : tr('Share context, a fresh perspective, or invite feedback…','شارك السياق أو منظوراً جديداً أو اطلب آراء الأعضاء…');
+  $('postTitle').placeholder = project ? tr('Give your project a clear title','امنح مشروعك عنواناً واضحاً') : question ? tr('Ask one clear, open question','اطرح سؤالاً مفتوحاً وواضحاً') : tr('Share one clear insight or idea','شارك فكرة أو رؤية واضحة');
 }
 
 function renderPostGate() {
@@ -1015,21 +1040,21 @@ function renderSpaceGate() {
   $('spaceFormCard').hidden = !allowed;
 }
 
-async function loadProfilePosts(uid) {
+function renderProfilePosts() {
   const target = $('profilePosts');
-  target.innerHTML = '<div class="post-skeleton short"></div>';
-  try {
-    let posts = (await getDocs(collection(db, 'communityPosts'))).docs
-      .map(item => ({id:item.id, ...item.data()}))
-      .filter(post => post.published !== false && post.userId === uid)
-      .sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-    posts = await Promise.all(posts.map(async post => ({...post, meta:await getPostMeta(post)})));
-    $('profilePostCount').textContent = isArabic() ? posts.length.toLocaleString('ar-IQ') + ' ' + (posts.length === 1 ? 'منشور' : 'منشورات') : posts.length + (posts.length === 1 ? ' post' : ' posts');
-    if (!posts.length) {
-      target.innerHTML = '<div class="empty-state"><span class="empty-mark">A</span><h3>' + tr('No posts yet','لا توجد منشورات بعد') + '</h3><p>' + tr('This member is still preparing their first idea.','لا يزال هذا العضو يحضّر فكرته الأولى.') + '</p></div>';
-      return;
-    }
-    target.innerHTML = posts.map(post => {
+  const posts = profilePostFilter === 'all' ? activeProfilePosts : activeProfilePosts.filter(post => post.type === profilePostFilter);
+  document.querySelectorAll('[data-profile-filter]').forEach(button => button.classList.toggle('active', button.dataset.profileFilter === profilePostFilter));
+  const visibleCount = isArabic() ? posts.length.toLocaleString('ar-IQ') : posts.length.toLocaleString();
+  const totalCount = isArabic() ? activeProfilePosts.length.toLocaleString('ar-IQ') : activeProfilePosts.length.toLocaleString();
+  $('profilePostCount').textContent = profilePostFilter === 'all'
+    ? (isArabic() ? totalCount + ' منشوراً' : totalCount + (activeProfilePosts.length === 1 ? ' post' : ' posts'))
+    : tr(visibleCount + ' of ' + totalCount, visibleCount + ' من ' + totalCount);
+  if (!posts.length) {
+    const filtered = activeProfilePosts.length > 0;
+    target.innerHTML = '<div class="empty-state"><span class="empty-mark">A</span><h3>' + (filtered ? tr('Nothing in this filter','لا يوجد محتوى في هذا التصنيف') : tr('No posts yet','لا توجد منشورات بعد')) + '</h3><p>' + (filtered ? tr('Try another profile filter.','جرّب تصنيفاً آخر للملف.') : tr('This member is still preparing their first idea.','لا يزال هذا العضو يحضّر فكرته الأولى.')) + '</p></div>';
+    return;
+  }
+  target.innerHTML = posts.map(post => {
       const href = isProject(post) ? 'project.html?communityPost=' + encodeURIComponent(post.id) : 'community.html?post=' + encodeURIComponent(post.id);
       return [
         '<a class="profile-post-tile' + (isProject(post) ? ' project' : '') + '" href="' + href + '">',
@@ -1038,8 +1063,21 @@ async function loadProfilePosts(uid) {
         '</a>'
       ].join('');
     }).join('');
+}
+
+async function loadProfilePosts(uid) {
+  const target = $('profilePosts');
+  target.innerHTML = '<div class="post-skeleton short"></div>';
+  try {
+    let posts = (await getDocs(collection(db, 'communityPosts'))).docs
+      .map(item => ({id:item.id, ...item.data()}))
+      .filter(post => post.published !== false && post.userId === uid)
+      .sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+    activeProfilePosts = await Promise.all(posts.map(async post => ({...post, meta:await getPostMeta(post)})));
+    renderProfilePosts();
   } catch (error) {
     console.error(error);
+    activeProfilePosts = [];
     target.innerHTML = '<p class="notice error">' + tr('Profile posts are unavailable right now.','منشورات الملف الشخصي غير متاحة حالياً.') + '</p>';
   }
 }
@@ -1047,6 +1085,7 @@ async function loadProfilePosts(uid) {
 async function loadProfile(uid, routedProfile) {
   const target = $('profileContent');
   if (!uid) {
+    activeProfilePosts = [];
     target.className = '';
     target.innerHTML = routedProfile
       ? '<p class="notice error">' + tr('This profile could not be found. Check the username and try again.','تعذر العثور على هذا الملف. تحقق من اسم المستخدم وحاول مجدداً.') + '</p>'
@@ -1158,6 +1197,7 @@ document.addEventListener('keydown', event => {
 window.addEventListener('popstate', () => { closeCommunitySearch(); handleRoute(false); });
 
 document.querySelectorAll('.filter-pill').forEach(button => button.addEventListener('click', () => {
+  if (button.dataset.profileFilter) return;
   if (button.dataset.sort) {
     communitySort = button.dataset.sort;
     document.querySelectorAll('[data-sort]').forEach(item => item.classList.toggle('active', item === button));
@@ -1167,6 +1207,11 @@ document.querySelectorAll('.filter-pill').forEach(button => button.addEventListe
     document.querySelectorAll('[data-type]').forEach(item => item.classList.toggle('active', item === button));
   }
   loadPosts();
+}));
+
+document.querySelectorAll('[data-profile-filter]').forEach(button => button.addEventListener('click', () => {
+  profilePostFilter = button.dataset.profileFilter;
+  renderProfilePosts();
 }));
 
 let searchTimer;
@@ -1257,18 +1302,24 @@ setCommunityLanguage(currentLanguage, false);
 
 $('postForm').addEventListener('submit', async event => {
   event.preventDefault();
-  const type = $('postType').value === 'question' ? 'question' : 'text';
+  const type = ['question','behance'].includes($('postType').value) ? $('postType').value : 'text';
   const title = $('postTitle').value.trim();
   const content = $('postContent').value.trim();
+  const behanceSrc = type === 'behance' ? extractBehanceEmbed($('postBehanceEmbed').value) : '';
   $('postStatus').classList.remove('success');
   if (!content) {
     $('postStatus').textContent = tr('Write something before publishing.','اكتب شيئاً قبل النشر.');
     return;
   }
+  if (type === 'behance' && !behanceSrc) {
+    $('postStatus').textContent = tr('Paste a valid Behance embed link before publishing.','الصق رابط تضمين صالحاً من Behance قبل النشر.');
+    $('postBehanceEmbed').focus();
+    return;
+  }
   const button = event.submitter;
   button.disabled = true;
   try {
-    const communitySlug = await validateCommunityHandleLive(true);
+    const communitySlug = type === 'behance' ? 'main' : await validateCommunityHandleLive(true);
     if (!communitySlug) {
       $('postStatus').textContent = tr('Choose an existing community handle before publishing.','اختر معرّف مساحة موجوداً قبل النشر.');
       button.disabled = false;
@@ -1279,7 +1330,7 @@ $('postForm').addEventListener('submit', async event => {
       title,
       summary: content.slice(0, 360),
       content,
-      behanceSrc: '',
+      behanceSrc,
       communitySlug,
       userId: currentUser.uid,
       authorName: currentProfile.displayName || currentUser.displayName || tr('Member','عضو'),
@@ -1293,10 +1344,12 @@ $('postForm').addEventListener('submit', async event => {
     invalidateCommunitySearchIndex();
     $('postForm').reset();
     $('postType').value = 'text';
+    document.querySelector('input[name="postTypeChoice"][value="text"]').checked = true;
     renderPostTypeFields();
     ['postTitle','postContent'].forEach(id => $(id).dispatchEvent(new Event('input')));
     showToast(tr('Your post is live.','تم نشر منشورك.'));
-    navigateTo('/community.html?post=' + encodeURIComponent(postRef.id), false);
+    if (type === 'behance') location.href = '/project.html?communityPost=' + encodeURIComponent(postRef.id);
+    else navigateTo('/community.html?post=' + encodeURIComponent(postRef.id), false);
   } catch (error) {
     console.error(error);
     $('postStatus').textContent = error.message || tr('This post could not be published.','تعذر نشر هذا المنشور.');
