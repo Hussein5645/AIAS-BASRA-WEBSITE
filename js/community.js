@@ -2539,7 +2539,7 @@ $('notificationList').addEventListener('click', async event => {
 $('feedModeBar').addEventListener('click', event => {
   const button = event.target.closest('[data-feed-mode]');
   if (!button) return;
-  navigateTo(button.dataset.feedMode === 'discover' ? '/community.html?feed=discover' : '/community.html', false);
+  navigateTo('/community.html?feed=' + (button.dataset.feedMode === 'discover' ? 'discover' : 'following'), false);
 });
 $('answerPrompt').addEventListener('click', () => {
   if (selectedPromptPostId) navigateTo('/community.html?post=' + encodeURIComponent(selectedPromptPostId) + '&comments=1', false);
