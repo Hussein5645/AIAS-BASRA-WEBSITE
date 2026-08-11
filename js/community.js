@@ -57,6 +57,7 @@ let profileConnectionActive = false;
 let activeAreaConnection = false;
 let unsubscribeNotifications = null;
 let notificationItems = [];
+let notificationSnapshotReady = false;
 let connectionDirectoryType = 'people';
 let connectionPeopleItems = [];
 let connectionSpaceItems = [];
@@ -255,9 +256,29 @@ async function updateConnectionNotification(recipientId, type, detailId, title, 
   }
 }
 
+async function sendSpaceRequestNotification(space) {
+  if (!currentUser || !space?.creatorId || space.creatorId === currentUser.uid) return;
+  const notificationRef = doc(db, 'users', space.creatorId, 'notifications', notificationKey('space_request', space.slug, currentUser.uid));
+  try {
+    await setDoc(notificationRef, {
+      recipientId:space.creatorId,
+      actorId:currentUser.uid,
+      actorName:currentProfile?.displayName || currentUser.displayName || tr('Member','عضو'),
+      actorUsername:currentProfile?.username || '',
+      type:'space_request',
+      postId:'',
+      postTitle:space.name || 'a/' + space.slug,
+      detailId:space.slug,
+      read:false,
+      createdAt:serverTimestamp()
+    });
+  } catch (error) { console.warn('[Community] Space-request notification could not be created.', error); }
+}
+
 function notificationCopy(item) {
   if (item.type === 'connection') return tr(' connected with you',' تواصل معك');
   if (item.type === 'space_connection') return tr(' connected with your space',' تواصل مع مساحتك');
+  if (item.type === 'space_request') return tr(' requested access to your space',' طلب الوصول إلى مساحتك');
   if (item.type === 'reply') return tr(' replied to your comment',' ردّ على تعليقك');
   if (item.type === 'applause') return tr(' applauded your post',' صفّق لمنشورك');
   return tr(' commented on your post',' علّق على منشورك');
@@ -272,10 +293,10 @@ function renderNotifications() {
     ? notificationItems.map(item => {
       const targetUrl = item.type === 'connection'
         ? profileUrl(item.actorId, item.actorUsername)
-        : item.type === 'space_connection'
+        : item.type === 'space_connection' || item.type === 'space_request'
           ? areaUrl(item.detailId)
           : '/community.html?post=' + encodeURIComponent(item.postId) + '&comments=1';
-      const symbol = item.type === 'connection' ? '◎' : item.type === 'space_connection' ? '#' : item.type === 'reply' ? '↩' : item.type === 'applause' ? '✦' : '◯';
+      const symbol = item.type === 'connection' ? '◎' : item.type === 'space_connection' ? '#' : item.type === 'space_request' ? '◐' : item.type === 'reply' ? '↩' : item.type === 'applause' ? '✦' : '◯';
       return '<button class="notification-item' + (item.read ? '' : ' unread') + '" type="button" data-notification-id="' + escapeHtml(item.id) + '" data-notification-url="' + escapeHtml(targetUrl) + '"><span class="notification-symbol" aria-hidden="true">' + symbol + '</span><span><strong>' + escapeHtml(item.actorName || tr('Member','عضو')) + notificationCopy(item) + '</strong><small>' + escapeHtml(item.postTitle || tr('Community post','منشور المجتمع')) + ' · ' + escapeHtml(formatDate(item.createdAt)) + '</small></span><i aria-hidden="true"></i></button>';
     }).join('')
     : '<p class="notification-empty">' + tr('No notifications yet.','لا توجد إشعارات بعد.') + '</p>';
@@ -285,19 +306,59 @@ function stopNotificationInbox() {
   unsubscribeNotifications?.();
   unsubscribeNotifications = null;
   notificationItems = [];
+  notificationSnapshotReady = false;
   $('notificationBell').hidden = true;
   $('notificationPanel').hidden = true;
   renderNotifications();
 }
 
+function playNotificationTone() {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const context = new AudioContext();
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.frequency.value = 740;
+    gain.gain.setValueAtTime(.0001, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.08, context.currentTime + .02);
+    gain.gain.exponentialRampToValueAtTime(.0001, context.currentTime + .22);
+    oscillator.connect(gain).connect(context.destination);
+    oscillator.start();
+    oscillator.stop(context.currentTime + .24);
+    oscillator.addEventListener('ended', () => context.close());
+  } catch {}
+}
+
+function showBrowserNotification(item) {
+  if (!item || item.read || !('Notification' in window) || Notification.permission !== 'granted') return;
+  const notification = new Notification('AIAS Basra Community', {
+    body:(item.actorName || tr('Member','عضو')) + notificationCopy(item) + ' · ' + (item.postTitle || ''),
+    icon:'/LOGO.png',
+    tag:item.id,
+    renotify:true,
+    silent:false
+  });
+  notification.onclick = () => {
+    window.focus();
+    const target = item.type === 'connection' ? profileUrl(item.actorId, item.actorUsername) : item.type === 'space_connection' || item.type === 'space_request' ? areaUrl(item.detailId) : '/community.html?post=' + encodeURIComponent(item.postId) + '&comments=1';
+    navigateTo(target, false);
+    notification.close();
+  };
+  playNotificationTone();
+}
+
 function startNotificationInbox() {
   unsubscribeNotifications?.();
   if (!currentUser) return stopNotificationInbox();
+  notificationSnapshotReady = false;
   $('notificationBell').hidden = false;
   const inboxQuery = query(collection(db, 'users', currentUser.uid, 'notifications'), orderBy('createdAt', 'desc'), limit(40));
   unsubscribeNotifications = onSnapshot(inboxQuery, snapshot => {
     notificationItems = snapshot.docs.map(item => ({id:item.id, ...item.data()}));
     renderNotifications();
+    if (notificationSnapshotReady) snapshot.docChanges().filter(change => change.type === 'added').forEach(change => showBrowserNotification({id:change.doc.id, ...change.doc.data()}));
+    notificationSnapshotReady = true;
   }, error => {
     console.warn('[Community] Notifications unavailable.', error);
     $('notificationList').innerHTML = '<p class="notification-empty">' + tr('Notifications are unavailable right now.','الإشعارات غير متاحة حالياً.') + '</p>';
@@ -395,6 +456,7 @@ async function toggleSpaceConnection(slug) {
     const existing = await getDoc(requestRef);
     if (!existing.exists() || existing.data().status !== 'pending') {
       await setDoc(requestRef, {userId:currentUser.uid, spaceSlug:slug, status:'pending', requestedAt:serverTimestamp()});
+      await sendSpaceRequestNotification(space);
     }
     return 'requested';
   }
@@ -786,7 +848,7 @@ async function loadManageSpaces() {
       members = memberSnapshot.docs.map(item => ({id:item.id, ...item.data()}));
     } catch (error) { console.warn('[Community] Space membership unavailable.', error); }
     const requestRows = requests.length ? '<div class="space-request-list">' + (await Promise.all(requests.map(async request => { const profile = await getProfile(request.userId); return '<div><span>' + escapeHtml(profile.displayName || profile.username || tr('Member','عضو')) + '</span><button type="button" data-approve-request="' + escapeHtml(slug) + '|' + escapeHtml(request.userId) + '">' + tr('Approve','موافقة') + '</button><button type="button" data-deny-request="' + escapeHtml(slug) + '|' + escapeHtml(request.userId) + '">' + tr('Deny','رفض') + '</button></div>'; }))).join('') + '</div>' : '<p class="space-request-empty">' + tr('No pending requests.','لا توجد طلبات معلقة.') + '</p>';
-    const memberRows = members.length ? '<div class="space-member-list">' + (await Promise.all(members.map(async member => { const profile = await getProfile(member.userId); const name = profile.displayName || profile.username || tr('Member','عضو'); return '<article><a href="' + escapeHtml(profileUrl(member.userId, profile.username)) + '">' + avatarMarkup(name, profile.photoBase64 || profile.photoURL, 'space-member-avatar') + '<span><strong>' + escapeHtml(name) + '</strong><small>' + escapeHtml(profile.username ? '@' + profile.username : tr('Space member','عضو في المساحة')) + '</small></span></a><button type="button" data-remove-space-member="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '">' + tr('Remove access','إزالة الوصول') + '</button></article>'; }))).join('') + '</div>' : '<p class="space-request-empty">' + tr('No connected members yet.','لا يوجد أعضاء متصلون بعد.') + '</p>';
+    const memberRows = members.length ? '<div class="space-member-tools"><label><span aria-hidden="true">⌕</span><input type="search" autocomplete="off" data-space-member-search="' + escapeHtml(slug) + '" placeholder="' + escapeHtml(tr('Search members','ابحث عن الأعضاء')) + '" aria-label="' + escapeHtml(tr('Search space members','البحث في أعضاء المساحة')) + '"></label><small data-space-member-count="' + escapeHtml(slug) + '">' + members.length + ' ' + tr('members','أعضاء') + '</small></div><div class="space-member-list" id="spaceMemberList-' + escapeHtml(slug) + '">' + (await Promise.all(members.map(async member => { const profile = await getProfile(member.userId); const name = profile.displayName || profile.username || tr('Member','عضو'); const searchText = [name, profile.username || '', profile.school || '', profile.city || ''].join(' ').toLowerCase(); return '<article data-space-member="' + escapeHtml(searchText) + '"><a href="' + escapeHtml(profileUrl(member.userId, profile.username)) + '">' + avatarMarkup(name, profile.photoBase64 || profile.photoURL, 'space-member-avatar') + '<span><strong>' + escapeHtml(name) + '</strong><small>' + escapeHtml(profile.username ? '@' + profile.username : tr('Space member','عضو في المساحة')) + '</small></span></a><button type="button" data-remove-space-member="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '">' + tr('Remove access','إزالة الوصول') + '</button></article>'; }))).join('') + '</div>' : '<p class="space-request-empty">' + tr('No connected members yet.','لا يوجد أعضاء متصلون بعد.') + '</p>';
     const settingToggles = '<div class="manage-space-toggles">'
       + '<label class="space-setting-toggle compact"><span class="space-setting-icon" aria-hidden="true">◐</span><span class="space-setting-copy"><strong>' + tr('Private space','مساحة خاصة') + '</strong><small>' + tr('Require approval to connect','تتطلب الموافقة للاتصال') + '</small></span><span class="toggle-control"><input type="checkbox" data-manage-space-setting="' + escapeHtml(slug) + '|isPrivate"' + (area.isPrivate ? ' checked' : '') + '><i aria-hidden="true"></i></span></label>'
       + '<label class="space-setting-toggle compact' + (area.isPrivate ? ' is-disabled' : '') + '"><span class="space-setting-icon" aria-hidden="true">⌁</span><span class="space-setting-copy"><strong>' + tr('Main-thread posts','منشورات المسار الرئيسي') + '</strong><small>' + tr('Show posts outside this space','إظهار المنشورات خارج المساحة') + '</small></span><span class="toggle-control"><input type="checkbox" data-manage-space-setting="' + escapeHtml(slug) + '|showInMainThread"' + (area.showInMainThread !== false && !area.isPrivate ? ' checked' : '') + (area.isPrivate ? ' disabled' : '') + '><i aria-hidden="true"></i></span></label></div>';
@@ -812,9 +874,20 @@ async function reviewSpaceRequest(slug, userId, approved) {
 async function removeSpaceMember(slug, userId) {
   const area = communityAreas[slug];
   if (!area || area.creatorId !== currentUser?.uid || !userId) return;
-  if (!confirm(tr('Remove this member from a/' + slug + '? They will lose access immediately.','إزالة هذا العضو من a/' + slug + '؟ سيفقد الوصول فوراً.'))) return;
+  const postsSnapshot = await getDocs(query(collection(db, 'communityPosts'), where('userId', '==', userId)));
+  const spacePosts = postsSnapshot.docs.filter(item => item.data().communitySlug === slug);
+  const warning = tr(
+    'Remove this member from a/' + slug + '? They will lose access immediately and all ' + spacePosts.length.toLocaleString() + ' of their posts in this space will be permanently deleted.',
+    'إزالة هذا العضو من a/' + slug + '؟ سيفقد الوصول فوراً وسيتم حذف جميع منشوراته في هذه المساحة نهائياً (' + spacePosts.length.toLocaleString('ar-IQ') + ').'
+  );
+  if (!confirm(warning)) return;
   const requestRef = doc(db, 'communitySpaces', slug, 'connectionRequests', userId);
   const requestSnapshot = await getDoc(requestRef);
+  for (let index = 0; index < spacePosts.length; index += 450) {
+    const deleteBatch = writeBatch(db);
+    spacePosts.slice(index, index + 450).forEach(post => deleteBatch.delete(post.ref));
+    await deleteBatch.commit();
+  }
   const batch = writeBatch(db);
   batch.delete(doc(db, 'communitySpaces', slug, 'connections', userId));
   batch.delete(doc(db, 'users', userId, 'connectedSpaces', slug));
@@ -2389,6 +2462,21 @@ $('manageSpacesList').addEventListener('change', async event => {
   try { await updateManagedSpaceSetting(slug, setting, toggle.checked); }
   catch (error) { console.error(error); showToast(tr('The space setting could not be saved.','تعذر حفظ إعداد المساحة.')); await loadManageSpaces(); }
 });
+$('manageSpacesList').addEventListener('input', event => {
+  const input = event.target.closest('[data-space-member-search]');
+  if (!input) return;
+  const slug = input.dataset.spaceMemberSearch;
+  const query = String(input.value || '').trim().toLowerCase();
+  const rows = [...$('manageSpacesList').querySelectorAll('#spaceMemberList-' + CSS.escape(slug) + ' [data-space-member]')];
+  let visible = 0;
+  rows.forEach(row => {
+    const matches = !query || row.dataset.spaceMember.includes(query);
+    row.hidden = !matches;
+    if (matches) visible += 1;
+  });
+  const count = $('manageSpacesList').querySelector('[data-space-member-count="' + CSS.escape(slug) + '"]');
+  if (count) count.textContent = visible + ' ' + tr(visible === 1 ? 'member' : 'members', visible === 1 ? 'عضو' : 'أعضاء');
+});
 $('areaConnect').addEventListener('click', async event => {
   if (!currentUser) { location.href = loginUrl(); return; }
   const button = event.currentTarget;
@@ -2427,7 +2515,12 @@ $('privateSpaceRequest')?.addEventListener('click', async event => {
     showToast(tr('The access request could not be sent.','تعذر إرسال طلب الوصول.'));
   } finally { button.disabled = false; }
 });
-$('notificationBell').addEventListener('click', () => { $('notificationPanel').hidden = !$('notificationPanel').hidden; });
+$('notificationBell').addEventListener('click', async () => {
+  if ('Notification' in window && Notification.permission === 'default') {
+    try { await Notification.requestPermission(); } catch {}
+  }
+  $('notificationPanel').hidden = !$('notificationPanel').hidden;
+});
 $('markNotificationsRead').addEventListener('click', async () => {
   if (!currentUser) return;
   const unread = notificationItems.filter(item => !item.read);

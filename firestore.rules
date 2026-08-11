@@ -79,7 +79,7 @@ service cloud.firestore {
         && request.resource.data.recipientId == userId
         && request.resource.data.actorId == request.auth.uid
         && userId != request.auth.uid
-        && request.resource.data.type in ['comment', 'reply', 'applause', 'connection', 'space_connection']
+        && request.resource.data.type in ['comment', 'reply', 'applause', 'connection', 'space_connection', 'space_request']
         && request.resource.data.postId is string
         && request.resource.data.detailId is string
         && request.resource.data.actorName is string
@@ -109,7 +109,12 @@ service cloud.firestore {
           || (request.resource.data.type == 'space_connection'
             && exists(/databases/$(database)/documents/communitySpaces/$(request.resource.data.detailId))
             && get(/databases/$(database)/documents/communitySpaces/$(request.resource.data.detailId)).data.creatorId == userId
-            && exists(/databases/$(database)/documents/communitySpaces/$(request.resource.data.detailId)/connections/$(request.auth.uid))));
+            && exists(/databases/$(database)/documents/communitySpaces/$(request.resource.data.detailId)/connections/$(request.auth.uid)))
+          || (request.resource.data.type == 'space_request'
+            && exists(/databases/$(database)/documents/communitySpaces/$(request.resource.data.detailId))
+            && get(/databases/$(database)/documents/communitySpaces/$(request.resource.data.detailId)).data.creatorId == userId
+            && exists(/databases/$(database)/documents/communitySpaces/$(request.resource.data.detailId)/connectionRequests/$(request.auth.uid))
+            && get(/databases/$(database)/documents/communitySpaces/$(request.resource.data.detailId)/connectionRequests/$(request.auth.uid)).data.status == 'pending'));
       allow update: if isAuthenticated()
         && request.auth.uid == userId
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'readAt']);
@@ -334,7 +339,13 @@ service cloud.firestore {
             && request.resource.data.featureRequest == true
             && request.resource.data.featureStatus == 'pending'))
         && (request.resource.data.type == 'behance' || request.resource.data.featureRequest == false));
-      allow delete: if hasPermission('manage_community') || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow delete: if hasPermission('manage_community')
+        || (isAuthenticated() && resource.data.userId == request.auth.uid)
+        || (isAuthenticated()
+          && resource.data.communitySlug is string
+          && resource.data.communitySlug != 'main'
+          && exists(/databases/$(database)/documents/communitySpaces/$(resource.data.communitySlug))
+          && get(/databases/$(database)/documents/communitySpaces/$(resource.data.communitySlug)).data.creatorId == request.auth.uid);
     }
 
     match /communityPosts/{postId}/images/{chunkId} {
