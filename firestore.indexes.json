@@ -1,0 +1,16 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "communityPosts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "userId", "order": "ASCENDING"},
+        {"fieldPath": "archived", "order": "ASCENDING"},
+        {"fieldPath": "archiveCause", "order": "ASCENDING"},
+        {"fieldPath": "moderationStatus", "order": "ASCENDING"},
+        {"fieldPath": "archivedAt", "order": "DESCENDING"}
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

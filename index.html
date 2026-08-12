@@ -317,7 +317,7 @@
     <script type="module">
         import dataLoader from './js/data-loader.js';
         import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         const communityConfig = { apiKey:'AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ', authDomain:'aias-bsr.firebaseapp.com', projectId:'aias-bsr', storageBucket:'aias-bsr.firebasestorage.app', messagingSenderId:'78055223814', appId:'1:78055223814:web:99460402c2b1fcd5ae8987' };
         let communityApp; try { communityApp = getApp(); } catch { communityApp = initializeApp(communityConfig); }
         const communityDb = getFirestore(communityApp);
@@ -410,7 +410,7 @@
             if (!grid) return;
             const currentLang = getCurrentLanguage();
             try {
-                const projects = (await getDocs(collection(communityDb, 'communityPosts'))).docs.map(item => ({ id:item.id, ...item.data() })).filter(post => post.featured && post.type === 'behance' && post.published !== false).sort((a,b) => (b.featuredAt?.seconds || b.createdAt?.seconds || 0) - (a.featuredAt?.seconds || a.createdAt?.seconds || 0)).slice(0,3);
+                const projects = (await getDocs(query(collection(communityDb, 'communityPosts'), where('archived', '==', false)))).docs.map(item => ({ id:item.id, ...item.data() })).filter(post => post.featured && post.type === 'behance' && post.published !== false).sort((a,b) => (b.featuredAt?.seconds || b.createdAt?.seconds || 0) - (a.featuredAt?.seconds || a.createdAt?.seconds || 0)).slice(0,3);
                 grid.innerHTML = projects.length ? projects.map(project => `<article class="home-article-card reveal"><div class="home-article-image" style="padding:0;overflow:hidden;background:#fff;"><iframe src="${escapeHtml(project.behanceSrc)}" title="${escapeHtml(project.title)}" style="width:100%;height:180px;border:0;" loading="lazy" allowfullscreen></iframe></div><div class="home-article-content"><div class="home-article-date">${currentLang === 'ar' ? 'مشروع مختار' : 'Selected project'} · ${escapeHtml(project.authorName || (currentLang === 'ar' ? 'عضو في المجتمع' : 'Community member'))}</div><h3 class="home-article-title">${escapeHtml(project.title)}</h3><p class="home-article-summary">${escapeHtml(project.summary)}</p><a class="home-article-link" href="project.html?communityPost=${encodeURIComponent(project.id)}">${currentLang === 'ar' ? 'عرض المشروع ←' : 'View Project →'}</a></div></article>`).join('') : `<div class="empty-state"><p>${currentLang === 'ar' ? 'لا توجد مشاريع مجتمعية مختارة بعد.' : 'No selected community projects yet.'}</p></div>`;
             } catch (error) { console.error(error); grid.innerHTML = `<div class="empty-state"><p>${currentLang === 'ar' ? 'المشاريع المختارة غير متاحة حالياً.' : 'Selected projects are unavailable right now.'}</p></div>`; }
         }

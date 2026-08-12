@@ -3,10 +3,13 @@
   "private": true,
   "main": "index.js",
   "engines": {
-    "node": "20"
+    "node": "22"
+  },
+  "scripts": {
+    "migrate:community-moderation": "node scripts/backfill-community-moderation.js"
   },
   "dependencies": {
-    "firebase-admin": "^12.7.0",
-    "firebase-functions": "^6.2.0"
+    "firebase-admin": "^14.2.0",
+    "firebase-functions": "^7.3.2"
   }
 }

@@ -726,7 +726,7 @@ async function toggleSpaceConnection(slug) {
   }
   const next = !connectedSpaceSlugs.has(slug);
   if (!next) {
-    const postsSnapshot = await getDocs(query(collection(db, 'communityPosts'), where('userId', '==', currentUser.uid)));
+    const postsSnapshot = await getDocs(query(collection(db, 'communityPosts'), where('userId', '==', currentUser.uid), where('archived', '==', false)));
     const spacePosts = postsSnapshot.docs.filter(item => item.data().communitySlug === slug);
     const warning = tr(
       'Disconnect from a/' + slug + '? All of your posts in this space (' + spacePosts.length.toLocaleString() + ') will be permanently deleted. This cannot be undone.',
@@ -906,7 +906,7 @@ function renderSpaceDirectory() {
 async function loadSpaceDirectory() {
   $('spaceDirectoryGrid').innerHTML = '<div class="post-skeleton"></div><div class="post-skeleton short"></div>';
   try {
-    const postsSnapshot = await getDocs(collection(db, 'communityPosts'));
+    const postsSnapshot = await getDocs(query(collection(db, 'communityPosts'), where('archived', '==', false)));
     const stats = new Map();
     postsSnapshot.docs.forEach(item => {
       const post = item.data();
@@ -955,7 +955,7 @@ function renderSelectedShell() {
 async function loadSelectedShell() {
   $('selectedShellGrid').innerHTML = '<div class="post-skeleton"></div><div class="post-skeleton short"></div>';
   try {
-    selectedShellProjects = (await getDocs(collection(db, 'communityPosts'))).docs
+    selectedShellProjects = (await getDocs(query(collection(db, 'communityPosts'), where('archived', '==', false)))).docs
       .map(item => ({id:item.id, ...item.data()}))
       .filter(project => project.type === 'behance' && project.featured === true && project.published !== false)
       .sort((a,b) => (b.featuredAt?.seconds || b.createdAt?.seconds || 0) - (a.featuredAt?.seconds || a.createdAt?.seconds || 0));
@@ -981,12 +981,12 @@ function renderSpaceSuggestions(value = '') {
 
 async function loadCommunitySpaces() {
   try {
-    const snapshot = await getDocs(collection(db, 'communitySpaces'));
+    const snapshot = await getDocs(query(collection(db, 'communitySpaces'), where('archived', '==', false)));
     communityAreas = Object.fromEntries(snapshot.docs
       .map(item => [item.id, {slug:item.id, ...item.data()}])
       .filter(([, area]) => area.active !== false));
     try {
-      const postsSnapshot = await getDocs(collection(db, 'communityPosts'));
+      const postsSnapshot = await getDocs(query(collection(db, 'communityPosts'), where('archived', '==', false)));
       popularSpaceStats = new Map();
       postsSnapshot.docs.forEach(item => {
         const post = item.data();
@@ -1069,6 +1069,8 @@ async function createCommunitySpace(name, requestedHandle, description, imageBas
     description,
     symbol: initials(name),
     active: true,
+    archived: false,
+    moderationStatus: 'clear',
     creatorId: currentUser.uid,
     creatorUsername: currentProfile.username,
     imageBase64,
@@ -1138,7 +1140,7 @@ async function reviewSpaceRequest(slug, userId, approved) {
 async function removeSpaceMember(slug, userId) {
   const area = communityAreas[slug];
   if (!area || area.creatorId !== currentUser?.uid || !userId) return;
-  const postsSnapshot = await getDocs(query(collection(db, 'communityPosts'), where('userId', '==', userId)));
+  const postsSnapshot = await getDocs(query(collection(db, 'communityPosts'), where('userId', '==', userId), where('archived', '==', false)));
   const spacePosts = postsSnapshot.docs.filter(item => item.data().communitySlug === slug);
   const warning = tr(
     'Remove this member from a/' + slug + '? They will lose access immediately and all ' + spacePosts.length.toLocaleString() + ' of their posts in this space will be permanently deleted.',
@@ -1418,8 +1420,8 @@ async function loadCommunitySearchIndex(force = false) {
   if (!force && fresh) return communitySearchIndex;
   if (communitySearchIndexPromise) return communitySearchIndexPromise;
   communitySearchIndexPromise = Promise.all([
-    getDocs(collection(db, 'communityPosts')),
-    getDocs(collection(db, 'communitySpaces')),
+    getDocs(query(collection(db, 'communityPosts'), where('archived', '==', false))),
+    getDocs(query(collection(db, 'communitySpaces'), where('archived', '==', false))),
     getDocs(collection(db, 'users'))
   ]).then(([postsSnapshot, spacesSnapshot, usersSnapshot]) => {
     const privateSpaceSlugs = new Set(spacesSnapshot.docs
@@ -1974,7 +1976,7 @@ async function loadPosts() {
   try {
     const params = new URLSearchParams(location.search);
     const selectedPostId = params.get('post');
-    const allPosts = (await getDocs(collection(db, 'communityPosts'))).docs
+    const allPosts = (await getDocs(query(collection(db, 'communityPosts'), where('archived', '==', false)))).docs
       .map(item => ({id:item.id, ...item.data()}))
       .filter(post => post.published !== false)
       .filter(canViewSpacePost);
@@ -2404,7 +2406,7 @@ async function loadProfilePosts(uid, owner) {
   const target = $('profilePosts');
   target.innerHTML = '<div class="post-skeleton short"></div>';
   try {
-    let posts = (await getDocs(collection(db, 'communityPosts'))).docs
+    let posts = (await getDocs(query(collection(db, 'communityPosts'), where('archived', '==', false)))).docs
       .map(item => ({id:item.id, ...item.data()}))
       .filter(post => post.published !== false && post.userId === uid)
       .filter(post => owner || !communityAreas[post.communitySlug]?.isPrivate)
@@ -3098,6 +3100,8 @@ $('postForm').addEventListener('submit', async event => {
       featureRequest: false,
       featureStatus: 'none',
       featured: false,
+      archived: false,
+      moderationStatus: 'clear',
       createdAt: serverTimestamp()
     });
     if (galleryImages.length) {
