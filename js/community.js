@@ -726,8 +726,8 @@ async function toggleSpaceConnection(slug) {
   }
   const next = !connectedSpaceSlugs.has(slug);
   if (!next) {
-    const postsSnapshot = await getDocs(query(collection(db, 'communityPosts'), where('userId', '==', currentUser.uid), where('archived', '==', false)));
-    const spacePosts = postsSnapshot.docs.filter(item => item.data().communitySlug === slug);
+    const postsSnapshot = await getDocs(query(collection(db, 'communityPosts'), where('userId', '==', currentUser.uid)));
+    const spacePosts = postsSnapshot.docs.filter(item => item.data().archived !== true && item.data().communitySlug === slug);
     const warning = tr(
       'Disconnect from a/' + slug + '? All of your posts in this space (' + spacePosts.length.toLocaleString() + ') will be permanently deleted. This cannot be undone.',
       'هل تريد إلغاء الاتصال من a/' + slug + '؟ سيتم حذف جميع منشوراتك في هذه المساحة (' + spacePosts.length.toLocaleString('ar-IQ') + ') نهائياً. لا يمكن التراجع عن ذلك.'
@@ -906,11 +906,11 @@ function renderSpaceDirectory() {
 async function loadSpaceDirectory() {
   $('spaceDirectoryGrid').innerHTML = '<div class="post-skeleton"></div><div class="post-skeleton short"></div>';
   try {
-    const postsSnapshot = await getDocs(query(collection(db, 'communityPosts'), where('archived', '==', false)));
+    const postsSnapshot = await getDocs(collection(db, 'communityPosts'));
     const stats = new Map();
     postsSnapshot.docs.forEach(item => {
       const post = item.data();
-      if (post.published === false || !post.communitySlug || post.communitySlug === 'main') return;
+      if (post.archived === true || post.published === false || !post.communitySlug || post.communitySlug === 'main') return;
       const current = stats.get(post.communitySlug) || {postCount:0,lastActivity:0};
       current.postCount += 1;
       current.lastActivity = Math.max(current.lastActivity, spaceTimestamp(post.createdAt));
@@ -955,9 +955,9 @@ function renderSelectedShell() {
 async function loadSelectedShell() {
   $('selectedShellGrid').innerHTML = '<div class="post-skeleton"></div><div class="post-skeleton short"></div>';
   try {
-    selectedShellProjects = (await getDocs(query(collection(db, 'communityPosts'), where('archived', '==', false)))).docs
+    selectedShellProjects = (await getDocs(collection(db, 'communityPosts'))).docs
       .map(item => ({id:item.id, ...item.data()}))
-      .filter(project => project.type === 'behance' && project.featured === true && project.published !== false)
+      .filter(project => project.archived !== true && project.type === 'behance' && project.featured === true && project.published !== false)
       .sort((a,b) => (b.featuredAt?.seconds || b.createdAt?.seconds || 0) - (a.featuredAt?.seconds || a.createdAt?.seconds || 0));
     renderSelectedShell();
   } catch (error) {
@@ -981,16 +981,16 @@ function renderSpaceSuggestions(value = '') {
 
 async function loadCommunitySpaces() {
   try {
-    const snapshot = await getDocs(query(collection(db, 'communitySpaces'), where('archived', '==', false)));
+    const snapshot = await getDocs(collection(db, 'communitySpaces'));
     communityAreas = Object.fromEntries(snapshot.docs
       .map(item => [item.id, {slug:item.id, ...item.data()}])
-      .filter(([, area]) => area.active !== false));
+      .filter(([, area]) => area.archived !== true && area.active !== false));
     try {
-      const postsSnapshot = await getDocs(query(collection(db, 'communityPosts'), where('archived', '==', false)));
+      const postsSnapshot = await getDocs(collection(db, 'communityPosts'));
       popularSpaceStats = new Map();
       postsSnapshot.docs.forEach(item => {
         const post = item.data();
-        if (post.published === false || !post.communitySlug || post.communitySlug === 'main') return;
+        if (post.archived === true || post.published === false || !post.communitySlug || post.communitySlug === 'main') return;
         const current = popularSpaceStats.get(post.communitySlug) || {postCount:0,lastActivity:0};
         current.postCount += 1;
         current.lastActivity = Math.max(current.lastActivity, spaceTimestamp(post.createdAt));
@@ -1140,8 +1140,8 @@ async function reviewSpaceRequest(slug, userId, approved) {
 async function removeSpaceMember(slug, userId) {
   const area = communityAreas[slug];
   if (!area || area.creatorId !== currentUser?.uid || !userId) return;
-  const postsSnapshot = await getDocs(query(collection(db, 'communityPosts'), where('userId', '==', userId), where('archived', '==', false)));
-  const spacePosts = postsSnapshot.docs.filter(item => item.data().communitySlug === slug);
+  const postsSnapshot = await getDocs(query(collection(db, 'communityPosts'), where('userId', '==', userId)));
+  const spacePosts = postsSnapshot.docs.filter(item => item.data().archived !== true && item.data().communitySlug === slug);
   const warning = tr(
     'Remove this member from a/' + slug + '? They will lose access immediately and all ' + spacePosts.length.toLocaleString() + ' of their posts in this space will be permanently deleted.',
     'إزالة هذا العضو من a/' + slug + '؟ سيفقد الوصول فوراً وسيتم حذف جميع منشوراته في هذه المساحة نهائياً (' + spacePosts.length.toLocaleString('ar-IQ') + ').'
@@ -1420,8 +1420,8 @@ async function loadCommunitySearchIndex(force = false) {
   if (!force && fresh) return communitySearchIndex;
   if (communitySearchIndexPromise) return communitySearchIndexPromise;
   communitySearchIndexPromise = Promise.all([
-    getDocs(query(collection(db, 'communityPosts'), where('archived', '==', false))),
-    getDocs(query(collection(db, 'communitySpaces'), where('archived', '==', false))),
+    getDocs(collection(db, 'communityPosts')),
+    getDocs(collection(db, 'communitySpaces')),
     getDocs(collection(db, 'users'))
   ]).then(([postsSnapshot, spacesSnapshot, usersSnapshot]) => {
     const privateSpaceSlugs = new Set(spacesSnapshot.docs
@@ -1429,7 +1429,7 @@ async function loadCommunitySearchIndex(force = false) {
       .map(item => item.id));
     const spaces = spacesSnapshot.docs
       .map(item => ({id:item.id, ...item.data()}))
-      .filter(space => space.active !== false)
+      .filter(space => space.archived !== true && space.active !== false)
       .map(space => ({
         kind:'space',
         id:space.id,
@@ -1976,9 +1976,9 @@ async function loadPosts() {
   try {
     const params = new URLSearchParams(location.search);
     const selectedPostId = params.get('post');
-    const allPosts = (await getDocs(query(collection(db, 'communityPosts'), where('archived', '==', false)))).docs
+    const allPosts = (await getDocs(collection(db, 'communityPosts'))).docs
       .map(item => ({id:item.id, ...item.data()}))
-      .filter(post => post.published !== false)
+      .filter(post => post.archived !== true && post.published !== false)
       .filter(canViewSpacePost);
     $('postStat').textContent = allPosts.length;
     $('projectStat').textContent = allPosts.filter(isProject).length;
@@ -2406,9 +2406,9 @@ async function loadProfilePosts(uid, owner) {
   const target = $('profilePosts');
   target.innerHTML = '<div class="post-skeleton short"></div>';
   try {
-    let posts = (await getDocs(query(collection(db, 'communityPosts'), where('archived', '==', false)))).docs
+    let posts = (await getDocs(collection(db, 'communityPosts'))).docs
       .map(item => ({id:item.id, ...item.data()}))
-      .filter(post => post.published !== false && post.userId === uid)
+      .filter(post => post.archived !== true && post.published !== false && post.userId === uid)
       .filter(post => owner || !communityAreas[post.communitySlug]?.isPrivate)
       .sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
     activeProfilePosts = await Promise.all(posts.map(async post => {
