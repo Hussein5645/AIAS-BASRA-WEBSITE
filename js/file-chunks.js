@@ -3,10 +3,10 @@ import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1
 import { getFirestore, doc, collection, getDocs, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
-  authDomain: "aias-bsr.firebaseapp.com", projectId: "aias-bsr",
-  storageBucket: "aias-bsr.firebasestorage.app", messagingSenderId: "78055223814",
-  appId: "1:78055223814:web:99460402c2b1fcd5ae8987"
+  apiKey: "AIzaSyAvPMOgz1w7SFylBY8cmn9nf9GQvn-IRNI",
+  authDomain: "space-42d87.firebaseapp.com", projectId: "space-42d87",
+  storageBucket: "space-42d87.firebasestorage.app", messagingSenderId: "658382934950",
+  appId: "1:658382934950:web:c61b6fa237b203e6bf7567"
 };
 let app;
 try { app = getApp(); } catch { app = initializeApp(firebaseConfig); }

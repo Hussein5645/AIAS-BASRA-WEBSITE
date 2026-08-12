@@ -1,0 +1,17 @@
+{
+  "id": "/",
+  "name": "AIAS Basra Community",
+  "short_name": "AIAS Basra",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fffdfa",
+  "theme_color": "#661f22",
+  "icons": [
+    {
+      "src": "/static/images/branding/LOGO.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

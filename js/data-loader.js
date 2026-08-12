@@ -4,13 +4,13 @@ import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gsta
 
 // Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
-    authDomain: "aias-bsr.firebaseapp.com",
-    projectId: "aias-bsr",
-    storageBucket: "aias-bsr.firebasestorage.app",
-    messagingSenderId: "78055223814",
-    appId: "1:78055223814:web:99460402c2b1fcd5ae8987",
-    measurementId: "G-6W50T4HXDV"
+    apiKey: "AIzaSyAvPMOgz1w7SFylBY8cmn9nf9GQvn-IRNI",
+    authDomain: "space-42d87.firebaseapp.com",
+    projectId: "space-42d87",
+    storageBucket: "space-42d87.firebasestorage.app",
+    messagingSenderId: "658382934950",
+    appId: "1:658382934950:web:c61b6fa237b203e6bf7567",
+    measurementId: "G-Q7Y482TMEY"
 };
 
 // Debug toggle: enable via ?debug=true or localStorage.setItem('debug','true')

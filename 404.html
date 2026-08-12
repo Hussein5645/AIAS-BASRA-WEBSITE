@@ -11,8 +11,8 @@
             if (!area && !profile) return;
             document.documentElement.style.visibility = 'hidden';
             const target = area
-                ? '/community.html?area=' + encodeURIComponent(area[1].toLowerCase())
-                : '/community.html?user=' + encodeURIComponent(profile[1].toLowerCase());
+                ? 'https://space-42d87.web.app/a/' + encodeURIComponent(area[1].toLowerCase())
+                : 'https://space-42d87.web.app/p/' + encodeURIComponent(profile[1].toLowerCase());
             window.location.replace(target);
         })();
     </script>
@@ -140,9 +140,9 @@
         const match = currentPath.match(articlePattern);
         
         if (areaMatch) {
-            window.location.replace('/community.html?area=' + encodeURIComponent(areaMatch[1].toLowerCase()));
+            window.location.replace('https://space-42d87.web.app/a/' + encodeURIComponent(areaMatch[1].toLowerCase()));
         } else if (profileMatch) {
-            window.location.replace('/community.html?user=' + encodeURIComponent(profileMatch[1].toLowerCase()));
+            window.location.replace('https://space-42d87.web.app/p/' + encodeURIComponent(profileMatch[1].toLowerCase()));
         } else if (match) {
             const articleId = match[1];
             const correctUrl = `/articles.html#${articleId}`;

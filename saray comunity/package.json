@@ -1,0 +1,24 @@
+{
+  "name": "saray-community-firebase",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test tests/moderation-policy.test.mjs",
+    "test:rules": "firebase emulators:exec --only firestore \"node --test tests/firestore-moderation.test.mjs\"",
+    "test:hosting": "firebase emulators:exec --only hosting \"node --test tests/hosting-smoke.test.mjs\"",
+    "migrate:public-data": "node scripts/migrate-public-firestore.mjs",
+    "migrate:community-media": "node scripts/migrate-community-media.mjs",
+    "serve": "firebase emulators:start --only hosting,auth,firestore,functions",
+    "deploy:hosting": "firebase deploy --only hosting:space-42d87",
+    "deploy:backend": "firebase deploy --only firestore:rules,firestore:indexes,storage,functions",
+    "deploy": "firebase deploy --only hosting:space-42d87,firestore:rules,firestore:indexes,storage,functions"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^4.0.1",
+    "firebase": "^11.10.0",
+    "firebase-tools": "^15.24.0"
+  }
+}

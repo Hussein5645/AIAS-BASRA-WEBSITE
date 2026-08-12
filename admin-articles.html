@@ -31,7 +31,7 @@
     import FirestoreAPI from './js/firestore-api.js?v=20260808-article-editor';
     import { toBase64 } from './js/file-chunks.js';
     import { canManage, getAdminAccess, persistAccessSession } from './js/rbac.js';
-    const config={apiKey:'AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ',authDomain:'aias-bsr.firebaseapp.com',projectId:'aias-bsr',storageBucket:'aias-bsr.firebasestorage.app',messagingSenderId:'78055223814',appId:'1:78055223814:web:99460402c2b1fcd5ae8987'};
+    const config={apiKey:'AIzaSyAvPMOgz1w7SFylBY8cmn9nf9GQvn-IRNI',authDomain:'space-42d87.firebaseapp.com',projectId:'space-42d87',storageBucket:'space-42d87.firebasestorage.app',messagingSenderId:'658382934950',appId:'1:658382934950:web:c61b6fa237b203e6bf7567'};
     let app;try{app=getApp()}catch{app=initializeApp(config)}const auth=getAuth(app),db=getFirestore(app),api=new FirestoreAPI();
     const $=id=>document.getElementById(id);const form=$('articleForm'), list=$('articleList'), modeBanner=$('modeBanner'), message=$('message');let articles=[],editing=null,savedRange=null;
     const fields={id:$('articleId'),language:$('language'),title:$('title'),author:$('author'),date:$('date'),summary:$('summary'),imageUrl:$('imageUrl'),imageFile:$('imageFile'),imageStatus:$('imageStatus'),stored:$('storedImages'),preview:$('imagePreview'),editor:$('contentEditor'),inline:$('inlineImageFile'),inlineStatus:$('inlineStatus'),markdown:$('markdownFile'),save:$('saveBtn')};

@@ -3,7 +3,7 @@
 
   const DISMISS_KEY = 'aias_app_prompt_dismissed';
   const APP_PACKAGE = 'com.aiasbsr.community';
-  const PRODUCTION_ORIGIN = 'https://www.aiasbsr.com';
+  const PRODUCTION_ORIGIN = 'https://space-42d87.web.app';
   const isAndroid = /Android/i.test(navigator.userAgent || '');
   const isStandalone = window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
   const mobileViewport = window.matchMedia?.('(max-width: 699px)');
@@ -57,7 +57,7 @@
   function appTarget() {
     const appPath = /^\/(?:community(?:\.html)?|project(?:\.html)?|a\/|p\/)/i.test(location.pathname)
       ? location.pathname + location.search
-      : '/community.html';
+      : '/';
     return new URL(appPath, PRODUCTION_ORIGIN);
   }
 

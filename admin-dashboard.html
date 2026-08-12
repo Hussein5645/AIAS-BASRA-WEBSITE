@@ -344,7 +344,7 @@
 
       <!-- Community management -->
       <section id="community-tab" class="tab-content">
-        <header class="community-admin-hero"><div><h2>Community management</h2><p>Review featured-project requests, manage existing member spaces, and keep the Question of the Week current.</p><a href="community.html" target="_blank" rel="noopener">Open the community ↗</a> <a href="admin-community-moderation.html">Open moderation &amp; archives →</a></div><label class="community-admin-search"><span class="sr-only">Search Community management</span><input id="communityAdminSearch" type="search" autocomplete="off" placeholder="Search projects, spaces, or questions"></label></header>
+        <header class="community-admin-hero"><div><h2>Community management</h2><p>Review featured-project requests, manage existing member spaces, and keep the Question of the Week current.</p><a href="https://space-42d87.web.app/" target="_blank" rel="noopener">Open the community ↗</a> <a href="https://space-42d87.web.app/admin-community-moderation.html">Open moderation &amp; archives →</a></div><label class="community-admin-search"><span class="sr-only">Search Community management</span><input id="communityAdminSearch" type="search" autocomplete="off" placeholder="Search projects, spaces, or questions"></label></header>
         <div class="community-admin-stats" aria-label="Community overview"><article class="community-admin-stat"><span>✓</span><div><strong id="communityPendingCount">—</strong><small>Pending project requests</small></div></article><article class="community-admin-stat"><span>#</span><div><strong id="communitySpacesCount">—</strong><small>Active member spaces</small></div></article><article class="community-admin-stat"><span>?</span><div><strong id="communityQuestionState">—</strong><small>Question of the Week</small></div></article></div>
         <div class="community-admin-grid">
           <section class="community-admin-card"><header class="community-admin-card-head"><span>✓</span><div><h3>Submitted project approvals</h3><p>Review projects members requested for the Selected Projects page.</p></div></header><div class="community-admin-card-body"><div id="communityAdminList"><p>Loading project requests…</p></div></div></section>
@@ -573,7 +573,7 @@
             <h3 id="firestoreConnectionTitle">Firestore connection</h3>
             <p>Check the live database and confirm that this administrator can read protected configuration.</p>
             <div id="tokenStatus" class="firestore-status-line" role="status" aria-live="polite">
-              <div class="firestore-status-main"><span class="firestore-status-dot" aria-hidden="true"></span><span><strong id="tokenStatusText">Not checked</strong><small id="firestoreProjectText">Project: aias-bsr</small></span></div>
+              <div class="firestore-status-main"><span class="firestore-status-dot" aria-hidden="true"></span><span><strong id="tokenStatusText">Not checked</strong><small id="firestoreProjectText">Project: space-42d87</small></span></div>
               <span id="firestoreLatency" class="firestore-meta">—</span>
             </div>
             <div id="firestoreConnectionDetails" class="firestore-checks"></div>
@@ -629,13 +629,13 @@
     import { moderateCommunityContent } from "./js/community-moderation.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyAyLFqSWDyLShllJIoqsr2Jjme47OJTPKQ",
-      authDomain: "aias-bsr.firebaseapp.com",
-      projectId: "aias-bsr",
-      storageBucket: "aias-bsr.firebasestorage.app",
-      messagingSenderId: "78055223814",
-      appId: "1:78055223814:web:99460402c2b1fcd5ae8987",
-      measurementId: "G-6W50T4HXDV"
+      apiKey: "AIzaSyAvPMOgz1w7SFylBY8cmn9nf9GQvn-IRNI",
+      authDomain: "space-42d87.firebaseapp.com",
+      projectId: "space-42d87",
+      storageBucket: "space-42d87.firebasestorage.app",
+      messagingSenderId: "658382934950",
+      appId: "1:658382934950:web:c61b6fa237b203e6bf7567",
+      measurementId: "G-Q7Y482TMEY"
     };
 
     let app;
@@ -985,8 +985,8 @@
         const selected = allQuestions.find(post => post.id === selectedId);
         const questionState = document.getElementById('communityQuestionState');
         if (questionState) questionState.textContent = selected ? 'Selected' : 'Not set';
-        const current = selected ? `<div style="margin-bottom:.9rem;padding:.75rem;border-radius:9px;background:#f0fff4"><strong>Current Question of the Week</strong><div class="community-review-title" style="margin-top:.3rem">${communityEscape(selected.title)}</div><a class="community-preview-btn" style="margin-top:.55rem" href="community.html?post=${encodeURIComponent(selected.id)}" target="_blank" rel="noopener">Open question</a></div>` : '<p class="notice">No Question of the Week is selected.</p>';
-        const list = questions.length ? `<div class="community-review-list">${questions.slice(0,20).map(post => `<article class="community-review-row"><div><div class="community-review-title">${communityEscape(post.title)}</div><div class="community-review-meta">@${communityEscape(post.authorUsername || post.authorName || 'member')}${post.id === selectedId ? ' · <span class="community-status featured">current</span>' : ''}</div></div><div class="community-review-actions"><a class="community-preview-btn" href="community.html?post=${encodeURIComponent(post.id)}" target="_blank" rel="noopener">Open</a>${post.id === selectedId ? '' : `<button class="btn edit-btn" type="button" data-set-weekly-question="${post.id}" ${canManage(currentAccess, 'community') ? '' : 'disabled'}>Set for this week</button>`}</div></article>`).join('')}</div>` : `<p>${communityAdminQuery ? 'No questions match the Community search.' : 'No community questions have been posted yet.'}</p>`;
+        const current = selected ? `<div style="margin-bottom:.9rem;padding:.75rem;border-radius:9px;background:#f0fff4"><strong>Current Question of the Week</strong><div class="community-review-title" style="margin-top:.3rem">${communityEscape(selected.title)}</div><a class="community-preview-btn" style="margin-top:.55rem" href="https://space-42d87.web.app/?post=${encodeURIComponent(selected.id)}" target="_blank" rel="noopener">Open question</a></div>` : '<p class="notice">No Question of the Week is selected.</p>';
+        const list = questions.length ? `<div class="community-review-list">${questions.slice(0,20).map(post => `<article class="community-review-row"><div><div class="community-review-title">${communityEscape(post.title)}</div><div class="community-review-meta">@${communityEscape(post.authorUsername || post.authorName || 'member')}${post.id === selectedId ? ' · <span class="community-status featured">current</span>' : ''}</div></div><div class="community-review-actions"><a class="community-preview-btn" href="https://space-42d87.web.app/?post=${encodeURIComponent(post.id)}" target="_blank" rel="noopener">Open</a>${post.id === selectedId ? '' : `<button class="btn edit-btn" type="button" data-set-weekly-question="${post.id}" ${canManage(currentAccess, 'community') ? '' : 'disabled'}>Set for this week</button>`}</div></article>`).join('')}</div>` : `<p>${communityAdminQuery ? 'No questions match the Community search.' : 'No community questions have been posted yet.'}</p>`;
         box.innerHTML = current + '<h3 style="margin:.2rem 0 .55rem">Available questions</h3>' + list + '<p id="promptAdminStatus" style="margin-top:.75rem" aria-live="polite"></p>';
         box.querySelectorAll('[data-set-weekly-question]').forEach(button => button.addEventListener('click', () => setQuestionOfWeek(button.dataset.setWeeklyQuestion, document.getElementById('promptAdminStatus'))));
       } catch (error) {
