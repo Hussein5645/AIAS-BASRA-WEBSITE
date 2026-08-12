@@ -318,7 +318,7 @@ service cloud.firestore {
           && request.resource.data.creatorId == resource.data.creatorId
           && request.resource.data.creatorUsername == resource.data.creatorUsername
           && request.resource.data.archived == resource.data.archived
-          && request.resource.data.diff(resource.data).affectedKeys().hasNone(['archiveReason', 'archiveCause', 'archiveCascadeId', 'archivedAt', 'archivedBy', 'moderationStatus', 'moderationReason', 'moderationUpdatedAt', 'moderationUpdatedBy'])
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['archiveReason', 'archiveCause', 'archiveCascadeId', 'archivedAt', 'archivedBy', 'moderationStatus', 'moderationReason', 'moderationUpdatedAt', 'moderationUpdatedBy'])
           && (!('isPrivate' in request.resource.data) || request.resource.data.isPrivate is bool)
           && (!('showInMainThread' in request.resource.data) || request.resource.data.showInMainThread is bool)
           && (!('isPrivate' in request.resource.data) || request.resource.data.isPrivate == false || request.resource.data.showInMainThread == false)
@@ -437,7 +437,7 @@ service cloud.firestore {
         && request.resource.data.type == resource.data.type
         && request.resource.data.communitySlug == resource.data.communitySlug
         && request.resource.data.archived == resource.data.archived
-        && request.resource.data.diff(resource.data).affectedKeys().hasNone(['archiveReason', 'archiveCause', 'archiveCascadeId', 'archivedAt', 'archivedBy', 'moderationStatus', 'moderationReason', 'moderationUpdatedAt', 'moderationUpdatedBy', 'flaggedAt', 'flaggedBy', 'warningReason', 'warnedAt', 'warnedBy', 'repostedPostId', 'repostedAt'])
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['archiveReason', 'archiveCause', 'archiveCascadeId', 'archivedAt', 'archivedBy', 'moderationStatus', 'moderationReason', 'moderationUpdatedAt', 'moderationUpdatedBy', 'flaggedAt', 'flaggedBy', 'warningReason', 'warnedAt', 'warnedBy', 'repostedPostId', 'repostedAt'])
         && request.resource.data.featured == resource.data.featured
         && (request.resource.data.featureStatus == resource.data.featureStatus
           || (request.resource.data.type == 'behance'

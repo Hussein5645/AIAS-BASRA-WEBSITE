@@ -4,11 +4,12 @@
       "collectionGroup": "communityPosts",
       "queryScope": "COLLECTION",
       "fields": [
-        {"fieldPath": "userId", "order": "ASCENDING"},
-        {"fieldPath": "archived", "order": "ASCENDING"},
         {"fieldPath": "archiveCause", "order": "ASCENDING"},
+        {"fieldPath": "archived", "order": "ASCENDING"},
         {"fieldPath": "moderationStatus", "order": "ASCENDING"},
-        {"fieldPath": "archivedAt", "order": "DESCENDING"}
+        {"fieldPath": "userId", "order": "ASCENDING"},
+        {"fieldPath": "archivedAt", "order": "DESCENDING"},
+        {"fieldPath": "__name__", "order": "DESCENDING"}
       ]
     }
   ],
