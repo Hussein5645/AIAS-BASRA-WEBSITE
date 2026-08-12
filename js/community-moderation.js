@@ -119,10 +119,9 @@ async function deleteSubcollection(db, path) {
   await commitChunks(db, snapshot.docs.map(item => batch => batch.delete(item.ref)));
 }
 
-export async function permanentlyDeleteCommunityContent(db, user, {contentType, contentId, reason, confirmation}) {
+export async function permanentlyDeleteCommunityContent(db, user, {contentType, contentId, reason}) {
   const actor = moderator(user);
   const cleanReason = sanitizeModerationReason(reason);
-  if (confirmation !== 'PERMANENTLY DELETE') throw new Error('Type PERMANENTLY DELETE to confirm. This content cannot be restored.');
   const collectionName = COLLECTIONS[contentType];
   if (!collectionName) throw new Error('Invalid content type.');
   const contentRef = doc(db, collectionName, contentId);

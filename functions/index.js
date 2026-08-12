@@ -167,7 +167,6 @@ exports.permanentlyDeleteCommunityContent = onCall(async request => {
   if (!CONTENT_COLLECTIONS[contentType]) throw new HttpsError('invalid-argument', 'Choose a valid content type.');
   const contentId = cleanId(request.data?.contentId);
   const reason = cleanReason(request.data?.reason);
-  if (request.data?.confirmation !== 'PERMANENTLY DELETE') throw new HttpsError('failed-precondition', 'Type PERMANENTLY DELETE to confirm. This action cannot be restored.');
   const ref = db.collection(CONTENT_COLLECTIONS[contentType]).doc(contentId);
   const snapshot = await ref.get();
   if (!snapshot.exists) throw new HttpsError('not-found', 'The requested content no longer exists.');
