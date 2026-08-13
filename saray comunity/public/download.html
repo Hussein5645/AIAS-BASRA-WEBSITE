@@ -26,7 +26,7 @@
           <button class="download-button" id="downloadButton" type="button"><span data-en="Download Android beta" data-ar="تنزيل نسخة أندرويد التجريبية">Download Android beta</span><b aria-hidden="true">↓</b></button>
           <div class="progress" id="downloadProgress" hidden><div class="progress-track"><i id="progressBar"></i></div><div class="progress-copy"><span id="progressLabel">Preparing download…</span><span id="progressPercent">0%</span></div></div>
           <p class="status" id="downloadStatus" role="status" aria-live="polite"></p>
-          <a class="fallback" id="fallbackLink" href="/downloads/AIAS-Basra-Community-1.7-release.apk" download hidden data-en="Use direct download instead" data-ar="استخدام التنزيل المباشر بدلاً من ذلك">Use direct download instead</a>
+          <a class="fallback" id="fallbackLink" href="/downloads/AIAS-Basra-Community-1.8-release.apk" download hidden data-en="Use direct download instead" data-ar="استخدام التنزيل المباشر بدلاً من ذلك">Use direct download instead</a>
           <div class="details"><div><small data-en="Version" data-ar="الإصدار">Version</small><strong>1.5 beta</strong></div><div><small data-en="Size" data-ar="الحجم">Size</small><strong>15.5 MB</strong></div><div><small data-en="Format" data-ar="الصيغة">Format</small><strong>APK</strong></div></div>
           <section class="instructions"><strong data-en="After downloading" data-ar="بعد التنزيل">After downloading</strong><ol><li data-en="Open the downloaded APK file." data-ar="افتح ملف APK الذي تم تنزيله.">Open the downloaded APK file.</li><li data-en="If asked, allow installation from this browser." data-ar="إذا طُلب منك، اسمح بالتثبيت من هذا المتصفح.">If asked, allow installation from this browser.</li><li data-en="Choose Install, then open AIAS Basra Community." data-ar="اختر تثبيت، ثم افتح تطبيق مجتمع AIAS البصرة.">Choose Install, then open AIAS Basra Community.</li></ol></section>
         </div>
@@ -37,7 +37,7 @@
   <button class="language" id="languageButton" type="button">العربية</button>
   <script>
     (() => {
-      const APK_URL='/downloads/AIAS-Basra-Community-1.7-release.apk', FILE_NAME='AIAS-Basra-Community-1.7-release.apk';
+      const APK_URL='/downloads/AIAS-Basra-Community-1.8-release.apk', FILE_NAME='AIAS-Basra-Community-1.8-release.apk';
       const ua=navigator.userAgent||'', isIOS=/iPhone|iPad|iPod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
       const $=id=>document.getElementById(id), translatable=()=>document.querySelectorAll('[data-en][data-ar]');
       let arabic=false, busy=false;

@@ -1133,10 +1133,18 @@ async function loadManageSpaces() {
     const ownerControls = area.creatorId === currentUser.uid && members.length
       ? '<section class="space-admin-tools"><strong>' + tr('Administrators','المشرفون') + '</strong>' + (await Promise.all(members.map(async member => { const profile = await getProfile(member.userId); const isAdmin = adminIds.has(member.userId); return '<div><span>' + escapeHtml(profile.displayName || profile.username || tr('Member','عضو')) + (isAdmin ? ' · ' + tr('Admin','مشرف') : '') + '</span><button type="button" data-set-space-admin="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '|' + (isAdmin ? '0' : '1') + '">' + (isAdmin ? tr('Remove admin','إزالة المشرف') : tr('Make admin','تعيين مشرف')) + '</button><button type="button" data-warn-space-member="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '">' + tr('Warn','تحذير') + '</button></div>'; }))).join('') + '</section>'
       : '';
+    const visibilityProfiles = area.creatorId === currentUser.uid
+      ? await Promise.all([getProfile(area.creatorId), ...members.map(member => getProfile(member.userId))])
+      : [];
+    const restrictedVisibilityCount = visibilityProfiles.filter(profile => profile.mainThreadPostingAccess !== true).length;
+    const publicBlocked = area.isPrivate === true && restrictedVisibilityCount > 0;
+    const visibilityWarning = publicBlocked
+      ? '<p class="notice warning">' + tr('This space must remain private because ' + restrictedVisibilityCount + ' owner/member account(s) do not have main-thread posting access. Remove those members or wait for access approval before making it public.','يجب أن تبقى هذه المساحة خاصة لأن ' + restrictedVisibilityCount + ' من حسابات المالك/الأعضاء لا تملك تصريح النشر في المسار الرئيسي. أزل هؤلاء الأعضاء أو انتظر الموافقة على التصريح قبل جعلها عامة.') + '</p>'
+      : '';
     const settingToggles = '<div class="manage-space-toggles">'
-      + '<label class="space-setting-toggle compact"><span class="space-setting-icon" aria-hidden="true">◐</span><span class="space-setting-copy"><strong>' + tr('Private space','مساحة خاصة') + '</strong><small>' + tr('Require approval to connect','تتطلب الموافقة للاتصال') + '</small></span><span class="toggle-control"><input type="checkbox" data-manage-space-setting="' + escapeHtml(slug) + '|isPrivate"' + (area.isPrivate ? ' checked' : '') + '><i aria-hidden="true"></i></span></label>'
+      + '<label class="space-setting-toggle compact' + (publicBlocked ? ' is-disabled' : '') + '"><span class="space-setting-icon" aria-hidden="true">◐</span><span class="space-setting-copy"><strong>' + tr('Private space','مساحة خاصة') + '</strong><small>' + tr('Require approval to connect','تتطلب الموافقة للاتصال') + '</small></span><span class="toggle-control"><input type="checkbox" data-manage-space-setting="' + escapeHtml(slug) + '|isPrivate"' + (area.isPrivate ? ' checked' : '') + (publicBlocked ? ' disabled' : '') + '><i aria-hidden="true"></i></span></label>'
       + '<label class="space-setting-toggle compact' + (area.isPrivate ? ' is-disabled' : '') + '"><span class="space-setting-icon" aria-hidden="true">⌁</span><span class="space-setting-copy"><strong>' + tr('Main-thread posts','منشورات المسار الرئيسي') + '</strong><small>' + tr('Show posts outside this space','إظهار المنشورات خارج المساحة') + '</small></span><span class="toggle-control"><input type="checkbox" data-manage-space-setting="' + escapeHtml(slug) + '|showInMainThread"' + (area.showInMainThread !== false && !area.isPrivate ? ' checked' : '') + (area.isPrivate ? ' disabled' : '') + '><i aria-hidden="true"></i></span></label></div>';
-    const ownerSettings = area.creatorId === currentUser.uid ? settingToggles + '<button type="button" data-manage-edit="' + escapeHtml(slug) + '">' + tr('Edit name, description & media','تعديل الاسم والوصف والوسائط') + '</button>' : '';
+    const ownerSettings = area.creatorId === currentUser.uid ? visibilityWarning + settingToggles + '<button type="button" data-manage-edit="' + escapeHtml(slug) + '">' + tr('Edit name, description & media','تعديل الاسم والوصف والوسائط') + '</button>' : '';
     const requestSection = area.creatorId === currentUser.uid ? '<section><strong>' + tr('Membership requests','طلبات العضوية') + ' (' + requests.length + ')</strong>' + requestRows + '</section>' : '';
     return '<article class="manage-space-card"><div><span class="mini-kicker">a/' + escapeHtml(slug) + '</span><h2>' + escapeHtml(area.name || slug) + '</h2><p>' + escapeHtml(area.description || '') + '</p></div>' + ownerSettings + requestSection + '<section><strong>' + tr('Space members','أعضاء المساحة') + ' (' + members.length + ')</strong>' + memberRows + '</section>' + ownerControls + '</article>';
   }))).join('') + '</div>';
@@ -3018,7 +3026,7 @@ $('manageSpacesList').addEventListener('change', async event => {
   const [slug, setting] = toggle.dataset.manageSpaceSetting.split('|');
   toggle.disabled = true;
   try { await updateManagedSpaceSetting(slug, setting, toggle.checked); }
-  catch (error) { console.error(error); showToast(tr('The space setting could not be saved.','تعذر حفظ إعداد المساحة.')); await loadManageSpaces(); }
+  catch (error) { console.error(error); showToast(error.message || tr('The space setting could not be saved.','تعذر حفظ إعداد المساحة.')); await loadManageSpaces(); }
 });
 $('manageSpacesList').addEventListener('input', event => {
   const input = event.target.closest('[data-space-member-search]');
