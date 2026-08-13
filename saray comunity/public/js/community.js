@@ -11,6 +11,9 @@ const FCM_VAPID_KEY = '';
 const profileCache = new Map();
 let currentUser = null;
 let currentProfile = null;
+
+const getReadablePosts = () => getDocs(query(collection(db, 'communityPosts'), where('archived', '==', false)));
+const getReadableSpaces = () => getDocs(query(collection(db, 'communitySpaces'), where('archived', '==', false)));
 let communitySort = ['latest','smart','upvoted'].includes(localStorage.getItem('communitySort')) ? localStorage.getItem('communitySort') : 'latest';
 let communityType = ['both','text','question','behance'].includes(localStorage.getItem('communityType')) ? localStorage.getItem('communityType') : 'both';
 let activeCommentsPostId = null;
@@ -26,9 +29,10 @@ let communitySearchIndexLoadedAt = 0;
 let communitySearchIndexPromise = null;
 let communitySearchSequence = 0;
 let communitySearchActiveIndex = -1;
-let profilePostFilter = 'all';
+let profilePostFilter = 'grid';
 let showOwnPrivateSpacePosts = false;
 let activeProfilePosts = [];
+let loadedProfilePostsFor = null;
 let activeEditPostId = null;
 let spaceDirectorySort = 'popular';
 let spaceDirectoryItems = [];
@@ -45,6 +49,7 @@ let editSpaceMediaBusy = 0;
 let feedMode = 'following';
 let connectedUserIds = new Set();
 let connectedSpaceSlugs = new Set();
+let managedSpaceSlugs = new Set();
 let activeProfileId = null;
 let profileConnectionActive = false;
 let activeAreaConnection = false;
@@ -464,6 +469,12 @@ async function sendSpaceRequestNotification(space) {
 }
 
 function notificationCopy(item) {
+  if (item.type === 'main_thread_access_granted') return tr(' approved your main-thread posting access',' وافق على تصريح النشر في المسار الرئيسي');
+  if (item.type === 'main_thread_access_denied') return tr(' reviewed your main-thread posting request',' راجع طلب تصريح النشر في المسار الرئيسي');
+  if (item.type === 'space_post_warned') return tr(' warned your space post',' حذّرك بشأن منشورك في المساحة');
+  if (item.type === 'space_post_deleted') return tr(' deleted your space post',' حذف منشورك في المساحة');
+  if (item.type === 'space_member_warned') return tr(' sent you a space warning',' أرسل إليك تحذيراً في المساحة');
+  if (item.type === 'space_member_removed') return tr(' removed you from a space',' أزالك من المساحة');
   if (item.type === 'space_post') return tr(' posted in your space',' نشر في مساحتك');
   if (item.type === 'mention') return tr(' mentioned you',' أشار إليك');
   if (item.type === 'space_mention') return tr(' mentioned your space',' أشار إلى مساحتك');
@@ -484,7 +495,7 @@ function renderNotifications() {
     ? notificationItems.map(item => {
       const targetUrl = item.type === 'connection'
         ? profileUrl(item.actorId, item.actorUsername)
-        : item.type === 'space_connection' || item.type === 'space_request'
+        : ['space_connection','space_request','space_member_warned','space_member_removed','space_post_deleted'].includes(item.type)
           ? areaUrl(item.detailId)
           : '/?post=' + encodeURIComponent(item.postId) + '&comments=1';
       const symbol = item.type === 'connection' ? '◎' : item.type === 'space_connection' ? '#' : item.type === 'space_request' ? '◐' : item.type === 'reply' ? '↩' : item.type === 'applause' ? '✦' : '◯';
@@ -708,42 +719,21 @@ async function toggleSpaceConnection(slug) {
   if (!currentUser) { location.href = loginUrl(); return false; }
   if (!slug || !communityAreas[slug]) return false;
   const space = communityAreas[slug];
-  if (space.isPrivate && !connectedSpaceSlugs.has(slug) && space.creatorId !== currentUser.uid) {
-    const requestRef = doc(db, 'communitySpaces', slug, 'connectionRequests', currentUser.uid);
-    const existing = await getDoc(requestRef);
-    if (!existing.exists() || existing.data().status !== 'pending') {
-      await setDoc(requestRef, {userId:currentUser.uid, spaceSlug:slug, status:'pending', requestedAt:serverTimestamp()});
-      await sendSpaceRequestNotification(space);
-    }
-    return 'requested';
-  }
   const next = !connectedSpaceSlugs.has(slug);
   if (!next) {
-    const postsSnapshot = await getDocs(query(collection(db, 'communityPosts'), where('userId', '==', currentUser.uid)));
-    const spacePosts = postsSnapshot.docs.filter(item => item.data().archived !== true && item.data().communitySlug === slug);
+    const postsSnapshot = await getDocs(query(collection(db, 'communityPosts'), where('userId', '==', currentUser.uid), where('archived', '==', false)));
+    const spacePosts = postsSnapshot.docs.filter(item => item.data().communitySlug === slug);
     const warning = tr(
       'Disconnect from a/' + slug + '? All of your posts in this space (' + spacePosts.length.toLocaleString() + ') will be permanently deleted. This cannot be undone.',
       'هل تريد إلغاء الاتصال من a/' + slug + '؟ سيتم حذف جميع منشوراتك في هذه المساحة (' + spacePosts.length.toLocaleString('ar-IQ') + ') نهائياً. لا يمكن التراجع عن ذلك.'
     );
     if (!confirm(warning)) return null;
-    for (let index = 0; index < spacePosts.length; index += 450) {
-      const deleteBatch = writeBatch(db);
-      spacePosts.slice(index, index + 450).forEach(item => deleteBatch.delete(item.ref));
-      await deleteBatch.commit();
-    }
   }
-  const batch = writeBatch(db);
-  const connectionRef = doc(db, 'users', currentUser.uid, 'connectedSpaces', slug);
-  const memberRef = doc(db, 'communitySpaces', slug, 'connections', currentUser.uid);
-  if (next) {
-    const record = {userId:currentUser.uid, spaceSlug:slug, createdAt:serverTimestamp()};
-    batch.set(connectionRef, record);
-    batch.set(memberRef, record);
-  } else {
-    batch.delete(connectionRef);
-    batch.delete(memberRef);
+  const result = await callFunction('setCommunitySpaceConnection', {spaceId:slug, connected:next});
+  if (result.status === 'requested') {
+    await sendSpaceRequestNotification(space);
+    return 'requested';
   }
-  await batch.commit();
   if (next) connectedSpaceSlugs.add(slug); else connectedSpaceSlugs.delete(slug);
   renderCommunitySpaces();
   if (!next) invalidateCommunitySearchIndex();
@@ -809,9 +799,10 @@ function spaceVisual(area, className, tag = 'span') {
 }
 
 function canPostToSpace(slug) {
-  if (slug === 'main') return true;
+  const mainAccess = currentProfile?.mainThreadPostingAccess !== false;
+  if (slug === 'main') return mainAccess;
   const area = communityAreas[slug];
-  return Boolean(currentUser && area && (area.creatorId === currentUser.uid || connectedSpaceSlugs.has(slug)));
+  return Boolean(currentUser && area && (area.creatorId === currentUser.uid || connectedSpaceSlugs.has(slug)) && (mainAccess || area.isPrivate === true));
 }
 
 function canAccessPrivateSpace(area) {
@@ -900,7 +891,7 @@ function renderSpaceDirectory() {
 async function loadSpaceDirectory() {
   $('spaceDirectoryGrid').innerHTML = '<div class="post-skeleton"></div><div class="post-skeleton short"></div>';
   try {
-    const postsSnapshot = await getDocs(collection(db, 'communityPosts'));
+    const postsSnapshot = await getReadablePosts();
     const stats = new Map();
     postsSnapshot.docs.forEach(item => {
       const post = item.data();
@@ -951,7 +942,7 @@ function renderSelectedShell() {
 async function loadSelectedShell() {
   $('selectedShellGrid').innerHTML = '<div class="post-skeleton"></div><div class="post-skeleton short"></div>';
   try {
-    selectedShellProjects = (await getDocs(collection(db, 'communityPosts'))).docs
+    selectedShellProjects = (await getReadablePosts()).docs
       .map(item => ({id:item.id, ...item.data()}))
       .filter(project => project.archived !== true && project.type === 'behance' && project.featured === true && project.published !== false)
       .sort((a,b) => (b.featuredAt?.seconds || b.createdAt?.seconds || 0) - (a.featuredAt?.seconds || a.createdAt?.seconds || 0));
@@ -977,12 +968,12 @@ function renderSpaceSuggestions(value = '') {
 
 async function loadCommunitySpaces() {
   try {
-    const snapshot = await getDocs(collection(db, 'communitySpaces'));
+    const snapshot = await getReadableSpaces();
     communityAreas = Object.fromEntries(snapshot.docs
       .map(item => [item.id, {slug:item.id, ...item.data()}])
       .filter(([, area]) => area.archived !== true && area.active !== false));
     try {
-      const postsSnapshot = await getDocs(collection(db, 'communityPosts'));
+      const postsSnapshot = await getReadablePosts();
       popularSpaceStats = new Map();
       postsSnapshot.docs.forEach(item => {
         const post = item.data();
@@ -1000,6 +991,19 @@ async function loadCommunitySpaces() {
   renderCommunitySpaces();
   return communityAreas;
 }
+
+async function loadManagedSpaceSlugs() {
+  managedSpaceSlugs = new Set();
+  if (!currentUser) return;
+  await Promise.all(Object.entries(communityAreas).map(async ([slug, area]) => {
+    if (area.creatorId === currentUser.uid) return void managedSpaceSlugs.add(slug);
+    try {
+      if ((await getDoc(doc(db, 'communitySpaces', slug, 'admins', currentUser.uid))).exists()) managedSpaceSlugs.add(slug);
+    } catch (error) { console.warn('[Community] Space admin status unavailable.', slug, error); }
+  }));
+}
+
+const canManageSpace = slug => Boolean(currentUser && slug && slug !== 'main' && managedSpaceSlugs.has(slug));
 
 function validateCommunityHandle(showMessage) {
   const raw = $('postCommunity').value;
@@ -1057,6 +1061,10 @@ async function checkSpaceHandleAvailability(input, status) {
 }
 
 async function createCommunitySpace(name, requestedHandle, description, imageBase64 = '', bannerBase64 = '', isPrivate = false, showInMainThread = true) {
+  if (currentProfile?.mainThreadPostingAccess === false) {
+    isPrivate = true;
+    showInMainThread = false;
+  }
   const handle = normalizeCommunityHandle(requestedHandle);
   if (!/^[a-z0-9-]{3,32}$/.test(handle) || handle === 'main') throw new Error(tr('Choose a valid, non-reserved space handle.','اختر معرّف مساحة صالحاً وغير محجوز.'));
   const spaceRef = doc(db, 'communitySpaces', handle);
@@ -1101,7 +1109,7 @@ async function loadManageSpaces() {
     return;
   }
   $('manageSpacesGate').innerHTML = '';
-  const spaces = Object.entries(communityAreas).filter(([, area]) => area.creatorId === currentUser.uid);
+  const spaces = Object.entries(communityAreas).filter(([slug]) => managedSpaceSlugs.has(slug));
   if (!spaces.length) {
     $('manageSpacesList').innerHTML = '<div class="connections-empty"><span>#</span><h2>' + tr('No spaces yet','لا توجد مساحات بعد') + '</h2><p>' + tr('Create a space to control its membership and visibility.','أنشئ مساحة للتحكم بعضويتها وظهور منشوراتها.') + '</p><a href="/?view=space">' + tr('Create a space','إنشاء مساحة') + ' →</a></div>';
     return;
@@ -1109,20 +1117,28 @@ async function loadManageSpaces() {
   $('manageSpacesList').innerHTML = '<div class="manage-spaces-grid">' + (await Promise.all(spaces.map(async ([slug, area]) => {
     let requests = [];
     let members = [];
+    let adminIds = new Set();
     try {
-      const [requestSnapshot, memberSnapshot] = await Promise.all([
+      const [requestSnapshot, memberSnapshot, adminSnapshot] = await Promise.all([
         getDocs(query(collection(db, 'communitySpaces', slug, 'connectionRequests'), where('status', '==', 'pending'))),
-        getDocs(collection(db, 'communitySpaces', slug, 'connections'))
+        getDocs(collection(db, 'communitySpaces', slug, 'connections')),
+        getDocs(collection(db, 'communitySpaces', slug, 'admins'))
       ]);
       requests = requestSnapshot.docs.map(item => ({id:item.id, ...item.data()}));
       members = memberSnapshot.docs.map(item => ({id:item.id, ...item.data()}));
+      adminIds = new Set(adminSnapshot.docs.map(item => item.id));
     } catch (error) { console.warn('[Community] Space membership unavailable.', error); }
     const requestRows = requests.length ? '<div class="space-request-list">' + (await Promise.all(requests.map(async request => { const profile = await getProfile(request.userId); return '<div><span>' + escapeHtml(profile.displayName || profile.username || tr('Member','عضو')) + '</span><button type="button" data-approve-request="' + escapeHtml(slug) + '|' + escapeHtml(request.userId) + '">' + tr('Approve','موافقة') + '</button><button type="button" data-deny-request="' + escapeHtml(slug) + '|' + escapeHtml(request.userId) + '">' + tr('Deny','رفض') + '</button></div>'; }))).join('') + '</div>' : '<p class="space-request-empty">' + tr('No pending requests.','لا توجد طلبات معلقة.') + '</p>';
-    const memberRows = members.length ? '<div class="space-member-tools"><label><span aria-hidden="true">⌕</span><input type="search" autocomplete="off" data-space-member-search="' + escapeHtml(slug) + '" placeholder="' + escapeHtml(tr('Search members','ابحث عن الأعضاء')) + '" aria-label="' + escapeHtml(tr('Search space members','البحث في أعضاء المساحة')) + '"></label><small data-space-member-count="' + escapeHtml(slug) + '">' + members.length + ' ' + tr('members','أعضاء') + '</small></div><div class="space-member-list" id="spaceMemberList-' + escapeHtml(slug) + '">' + (await Promise.all(members.map(async member => { const profile = await getProfile(member.userId); const name = profile.displayName || profile.username || tr('Member','عضو'); const searchText = [name, profile.username || '', profile.school || '', profile.city || ''].join(' ').toLowerCase(); return '<article data-space-member="' + escapeHtml(searchText) + '"><a href="' + escapeHtml(profileUrl(member.userId, profile.username)) + '">' + avatarMarkup(name, profile.photoBase64 || profile.photoURL, 'space-member-avatar', profile.verified === true) + '<span><strong>' + escapeHtml(name) + '</strong><small>' + escapeHtml(profile.username ? '@' + profile.username : tr('Space member','عضو في المساحة')) + '</small></span></a><button type="button" data-remove-space-member="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '">' + tr('Remove access','إزالة الوصول') + '</button></article>'; }))).join('') + '</div>' : '<p class="space-request-empty">' + tr('No connected members yet.','لا يوجد أعضاء متصلون بعد.') + '</p>';
+    const memberRows = members.length ? '<div class="space-member-tools"><label><span aria-hidden="true">⌕</span><input type="search" autocomplete="off" data-space-member-search="' + escapeHtml(slug) + '" placeholder="' + escapeHtml(tr('Search members','ابحث عن الأعضاء')) + '" aria-label="' + escapeHtml(tr('Search space members','البحث في أعضاء المساحة')) + '"></label><small data-space-member-count="' + escapeHtml(slug) + '">' + members.length + ' ' + tr('members','أعضاء') + '</small></div><div class="space-member-list" id="spaceMemberList-' + escapeHtml(slug) + '">' + (await Promise.all(members.map(async member => { const profile = await getProfile(member.userId); const name = profile.displayName || profile.username || tr('Member','عضو'); const searchText = [name, profile.username || '', profile.school || '', profile.city || ''].join(' ').toLowerCase(); return '<article data-space-member="' + escapeHtml(searchText) + '"><a href="' + escapeHtml(profileUrl(member.userId, profile.username)) + '">' + avatarMarkup(name, profile.photoBase64 || profile.photoURL, 'space-member-avatar', profile.verified === true) + '<span><strong>' + escapeHtml(name) + (adminIds.has(member.userId) ? ' · ' + tr('Admin','مشرف') : '') + '</strong><small>' + escapeHtml(profile.username ? '@' + profile.username : tr('Space member','عضو في المساحة')) + '</small>' + (profile.mainThreadPostingAccess === true ? '' : '<em class="main-access-missing">' + tr('No main-thread access','لا يملك تصريح المسار الرئيسي') + '</em>') + '</span></a><div class="space-member-actions"><button type="button" data-warn-space-member="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '">' + tr('Warn','تحذير') + '</button><button type="button" data-remove-space-member="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '">' + tr('Remove access','إزالة الوصول') + '</button></div></article>'; }))).join('') + '</div>' : '<p class="space-request-empty">' + tr('No connected members yet.','لا يوجد أعضاء متصلون بعد.') + '</p>';
+    const ownerControls = area.creatorId === currentUser.uid && members.length
+      ? '<section class="space-admin-tools"><strong>' + tr('Administrators','المشرفون') + '</strong>' + (await Promise.all(members.map(async member => { const profile = await getProfile(member.userId); const isAdmin = adminIds.has(member.userId); return '<div><span>' + escapeHtml(profile.displayName || profile.username || tr('Member','عضو')) + (isAdmin ? ' · ' + tr('Admin','مشرف') : '') + '</span><button type="button" data-set-space-admin="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '|' + (isAdmin ? '0' : '1') + '">' + (isAdmin ? tr('Remove admin','إزالة المشرف') : tr('Make admin','تعيين مشرف')) + '</button><button type="button" data-warn-space-member="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '">' + tr('Warn','تحذير') + '</button></div>'; }))).join('') + '</section>'
+      : '';
     const settingToggles = '<div class="manage-space-toggles">'
       + '<label class="space-setting-toggle compact"><span class="space-setting-icon" aria-hidden="true">◐</span><span class="space-setting-copy"><strong>' + tr('Private space','مساحة خاصة') + '</strong><small>' + tr('Require approval to connect','تتطلب الموافقة للاتصال') + '</small></span><span class="toggle-control"><input type="checkbox" data-manage-space-setting="' + escapeHtml(slug) + '|isPrivate"' + (area.isPrivate ? ' checked' : '') + '><i aria-hidden="true"></i></span></label>'
       + '<label class="space-setting-toggle compact' + (area.isPrivate ? ' is-disabled' : '') + '"><span class="space-setting-icon" aria-hidden="true">⌁</span><span class="space-setting-copy"><strong>' + tr('Main-thread posts','منشورات المسار الرئيسي') + '</strong><small>' + tr('Show posts outside this space','إظهار المنشورات خارج المساحة') + '</small></span><span class="toggle-control"><input type="checkbox" data-manage-space-setting="' + escapeHtml(slug) + '|showInMainThread"' + (area.showInMainThread !== false && !area.isPrivate ? ' checked' : '') + (area.isPrivate ? ' disabled' : '') + '><i aria-hidden="true"></i></span></label></div>';
-    return '<article class="manage-space-card"><div><span class="mini-kicker">a/' + escapeHtml(slug) + '</span><h2>' + escapeHtml(area.name || slug) + '</h2><p>' + escapeHtml(area.description || '') + '</p></div>' + settingToggles + '<button type="button" data-manage-edit="' + escapeHtml(slug) + '">' + tr('Edit name, description & media','تعديل الاسم والوصف والوسائط') + '</button><section><strong>' + tr('Membership requests','طلبات العضوية') + ' (' + requests.length + ')</strong>' + requestRows + '</section><section><strong>' + tr('Space members','أعضاء المساحة') + ' (' + members.length + ')</strong>' + memberRows + '</section></article>';
+    const ownerSettings = area.creatorId === currentUser.uid ? settingToggles + '<button type="button" data-manage-edit="' + escapeHtml(slug) + '">' + tr('Edit name, description & media','تعديل الاسم والوصف والوسائط') + '</button>' : '';
+    const requestSection = area.creatorId === currentUser.uid ? '<section><strong>' + tr('Membership requests','طلبات العضوية') + ' (' + requests.length + ')</strong>' + requestRows + '</section>' : '';
+    return '<article class="manage-space-card"><div><span class="mini-kicker">a/' + escapeHtml(slug) + '</span><h2>' + escapeHtml(area.name || slug) + '</h2><p>' + escapeHtml(area.description || '') + '</p></div>' + ownerSettings + requestSection + '<section><strong>' + tr('Space members','أعضاء المساحة') + ' (' + members.length + ')</strong>' + memberRows + '</section>' + ownerControls + '</article>';
   }))).join('') + '</div>';
 }
 
@@ -1143,37 +1159,48 @@ async function reviewSpaceRequest(slug, userId, approved) {
 
 async function removeSpaceMember(slug, userId) {
   const area = communityAreas[slug];
-  if (!area || area.creatorId !== currentUser?.uid || !userId) return;
-  const postsSnapshot = await getDocs(query(collection(db, 'communityPosts'), where('userId', '==', userId)));
-  const spacePosts = postsSnapshot.docs.filter(item => item.data().archived !== true && item.data().communitySlug === slug);
+  if (!area || !canManageSpace(slug) || !userId) return;
+  const postsSnapshot = await getDocs(query(collection(db, 'communityPosts'), where('userId', '==', userId), where('archived', '==', false)));
+  const spacePosts = postsSnapshot.docs.filter(item => item.data().communitySlug === slug);
   const warning = tr(
     'Remove this member from a/' + slug + '? They will lose access immediately and all ' + spacePosts.length.toLocaleString() + ' of their posts in this space will be permanently deleted.',
     'إزالة هذا العضو من a/' + slug + '؟ سيفقد الوصول فوراً وسيتم حذف جميع منشوراته في هذه المساحة نهائياً (' + spacePosts.length.toLocaleString('ar-IQ') + ').'
   );
   if (!confirm(warning)) return;
-  const requestRef = doc(db, 'communitySpaces', slug, 'connectionRequests', userId);
-  const requestSnapshot = await getDoc(requestRef);
-  for (let index = 0; index < spacePosts.length; index += 450) {
-    const deleteBatch = writeBatch(db);
-    spacePosts.slice(index, index + 450).forEach(post => deleteBatch.delete(post.ref));
-    await deleteBatch.commit();
-  }
-  const batch = writeBatch(db);
-  batch.delete(doc(db, 'communitySpaces', slug, 'connections', userId));
-  batch.delete(doc(db, 'users', userId, 'connectedSpaces', slug));
-  if (requestSnapshot.exists()) batch.set(requestRef, {status:'removed', reviewedAt:serverTimestamp(), reviewedBy:currentUser.uid}, {merge:true});
-  await batch.commit();
+  await callFunction('removeCommunitySpaceMember', {spaceId:slug, userId});
   await loadManageSpaces();
   showToast(tr('Member access removed.','تمت إزالة وصول العضو.'));
+}
+
+async function setSpaceAdmin(slug, userId, enabled) {
+  await callFunction('setCommunitySpaceAdmin', {spaceId:slug, userId, enabled});
+  await loadManageSpaces();
+  showToast(enabled ? tr('Space admin added.','تم تعيين مشرف للمساحة.') : tr('Space admin removed.','تمت إزالة مشرف المساحة.'));
+}
+
+async function warnSpaceMember(slug, userId) {
+  const reason = prompt(tr('Warning reason (required):','سبب التحذير (مطلوب):'))?.trim();
+  if (!reason) return;
+  await callFunction('warnCommunitySpaceMember', {spaceId:slug, userId, reason});
+  showToast(tr('Warning sent to the member.','تم إرسال التحذير إلى العضو.'));
+}
+
+async function moderateSpacePost(post, action) {
+  const reason = prompt(tr(action === 'delete' ? 'Deletion reason (required):' : 'Warning reason (required):', action === 'delete' ? 'سبب الحذف (مطلوب):' : 'سبب التحذير (مطلوب):'))?.trim();
+  if (!reason) return;
+  if (action === 'delete' && !confirm(tr('Permanently delete this post?','حذف هذا المنشور نهائياً؟'))) return;
+  await callFunction('moderateCommunitySpacePost', {postId:post.id, action, reason});
+  showToast(action === 'delete' ? tr('Post deleted.','تم حذف المنشور.') : tr('Post warning sent.','تم إرسال تحذير المنشور.'));
+  if (action === 'delete') await loadPosts();
 }
 
 async function updateManagedSpaceSetting(slug, setting, enabled) {
   const area = communityAreas[slug];
   if (!area || area.creatorId !== currentUser?.uid || !['isPrivate', 'showInMainThread'].includes(setting)) return;
-  const changes = setting === 'isPrivate'
-    ? {isPrivate:enabled, showInMainThread:enabled ? false : area.showInMainThread !== false, updatedAt:serverTimestamp()}
-    : {showInMainThread:enabled, updatedAt:serverTimestamp()};
-  await setDoc(doc(db, 'communitySpaces', slug), changes, {merge:true});
+  const nextPrivate = setting === 'isPrivate' ? enabled : area.isPrivate === true;
+  const nextMainThread = nextPrivate ? false : (setting === 'showInMainThread' ? enabled : area.showInMainThread !== false);
+  await callFunction('setCommunitySpaceVisibility', {spaceId:slug, isPrivate:nextPrivate, showInMainThread:nextMainThread});
+  const changes = {isPrivate:nextPrivate, showInMainThread:nextMainThread};
   communityAreas[slug] = {...area, ...changes};
   renderCommunitySpaces();
   await loadManageSpaces();
@@ -1426,8 +1453,8 @@ async function loadCommunitySearchIndex(force = false) {
   if (!force && fresh) return communitySearchIndex;
   if (communitySearchIndexPromise) return communitySearchIndexPromise;
   communitySearchIndexPromise = Promise.all([
-    getDocs(collection(db, 'communityPosts')),
-    getDocs(collection(db, 'communitySpaces')),
+    getReadablePosts(),
+    getReadableSpaces(),
     getDocs(collection(db, 'users'))
   ]).then(([postsSnapshot, spacesSnapshot, usersSnapshot]) => {
     const privateSpaceSlugs = new Set(spacesSnapshot.docs
@@ -1600,7 +1627,7 @@ function showToast(message) {
 async function getProfile(uid) {
   if (!uid) return {};
   if (!profileCache.has(uid)) {
-    profileCache.set(uid, getDoc(doc(db, 'users', uid)).then(snapshot => snapshot.exists() ? snapshot.data() : {}).catch(() => ({})));
+    profileCache.set(uid, getDoc(doc(db, 'users', uid)).then(snapshot => snapshot.exists() ? {mainThreadPostingAccess:true, ...snapshot.data()} : {}).catch(() => ({})));
   }
   return profileCache.get(uid);
 }
@@ -1671,10 +1698,23 @@ async function getPostMeta(post) {
 }
 
 function canonicalPostUrl(post) {
-  const path = isProject(post)
-    ? '/project.html?communityPost=' + encodeURIComponent(post.id)
-    : '/?post=' + encodeURIComponent(post.id);
-  return new URL(path, location.origin).href;
+  return new URL('/share/post/' + encodeURIComponent(post.id), location.origin).href;
+}
+
+function canonicalSpaceUrl(slug) {
+  return new URL('/share/space/' + encodeURIComponent(slug), location.origin).href;
+}
+
+async function shareCommunityItem(data, copiedMessage, failureMessage) {
+  try {
+    if (navigator.share) await navigator.share(data);
+    else {
+      await navigator.clipboard.writeText(data.url);
+      showToast(copiedMessage);
+    }
+  } catch (error) {
+    if (error?.name !== 'AbortError') showToast(failureMessage);
+  }
 }
 
 function loginUrl() {
@@ -1781,9 +1821,14 @@ function renderPostCard(post, index, detail) {
   const school = meta.profile.school || (isProject(post) ? tr('Project author','صاحب المشروع') : tr('Community member','عضو في المجتمع'));
   const authorProfileUrl = profileUrl(post.userId, meta.profile.username);
   const communitySlug = communityAreas[post.communitySlug] ? post.communitySlug : 'main';
+  const sourceArea = communityAreas[communitySlug];
+  const spaceFirst = !activeAreaSlug && communitySlug !== 'main';
   const communityContext = communitySlug === 'main'
     ? '<span class="main-thread-label">' + tr('Main thread','المسار الرئيسي') + '</span>'
     : '<a href="' + areaUrl(communitySlug) + '">a/' + escapeHtml(communitySlug) + '</a>';
+  const spaceSource = spaceFirst
+    ? '<a class="post-space-source" href="' + areaUrl(communitySlug) + '">' + spaceVisual(sourceArea, 'post-space-image') + '<span><small>' + tr('Posted in','نُشر في') + '</small><strong>' + escapeHtml(sourceArea.name || communitySlug) + '</strong><b>a/' + escapeHtml(communitySlug) + '</b></span><i aria-hidden="true">' + (isArabic() ? '←' : '→') + '</i></a>'
+    : '<div class="post-context">' + communityContext + '<span>·</span><span>' + postLabel(post) + '</span></div>';
   const destination = isProject(post)
     ? 'project.html?communityPost=' + encodeURIComponent(post.id)
     : '/?post=' + encodeURIComponent(post.id);
@@ -1801,13 +1846,16 @@ function renderPostCard(post, index, detail) {
   const request = currentUser?.uid === post.userId && isProject(post) && !post.featured && post.featureRequest
     ? '<div class="project-request">' + tr('Selection request:','طلب اختيار:') + ' <strong>' + escapeHtml(requestStatus) + '</strong></div>'
     : '';
+  const moderationActions = canManageSpace(communitySlug)
+    ? '<div class="space-post-moderation"><button type="button" data-moderate-space-post="' + escapeHtml(post.id) + '|warn">' + tr('Warn post','تحذير المنشور') + '</button><button class="danger" type="button" data-moderate-space-post="' + escapeHtml(post.id) + '|delete">' + tr('Delete post','حذف المنشور') + '</button></div>'
+    : '';
   return [
-    '<article class="post-card' + (detail ? ' detail' : '') + (isQuestion(post) ? ' question' : '') + '"' + (detail ? '' : ' data-open-post="' + escapeHtml(post.id) + '" tabindex="0" role="link"') + ' style="--i:' + index + '">',
-      '<div class="post-context">' + communityContext + '<span>·</span><span>' + postLabel(post) + '</span></div>',
+    '<article class="post-card' + (detail ? ' detail' : '') + (isQuestion(post) ? ' question' : '') + (spaceFirst ? ' from-space' : '') + '"' + (detail ? '' : ' data-open-post="' + escapeHtml(post.id) + '" tabindex="0" role="link"') + ' style="--i:' + index + '">',
+      spaceSource,
       '<div class="post-head">',
         '<a class="post-author" href="' + authorProfileUrl + '">',
           avatarMarkup(authorName, meta.profile.photoBase64 || meta.profile.photoURL, 'avatar', meta.profile.verified === true),
-          '<span class="author-copy"><strong>' + escapeHtml(authorName) + '</strong><span>' + escapeHtml(school) + ' · ' + escapeHtml(formatDate(post.createdAt)) + selected + '</span></span>',
+          '<span class="author-copy"><small class="post-byline-label">' + (spaceFirst ? tr('Shared by','نشره') : '') + '</small><strong>' + escapeHtml(authorName) + '</strong><span>' + escapeHtml(school) + ' · ' + escapeHtml(formatDate(post.createdAt)) + (post.editedAt || post.updatedAt ? ' · <em class="post-edited-label">' + tr('Edited','تم التعديل') + '</em>' : '') + selected + '</span></span>',
         '</a>',
         '<span class="post-kind' + (isProject(post) ? ' project' : isQuestion(post) ? ' question' : '') + '">' + postLabel(post) + '</span>',
       '</div>',
@@ -1823,6 +1871,7 @@ function renderPostCard(post, index, detail) {
         '</div>',
         '<button class="action-button" type="button" data-open-comments="' + post.id + '"><span class="action-icon" aria-hidden="true">◯</span><span>' + meta.commentsCount + ' ' + (isQuestion(post) ? (isArabic() ? 'إجابة' : meta.commentsCount === 1 ? 'answer' : 'answers') : (isArabic() ? 'تعليق' : meta.commentsCount === 1 ? 'comment' : 'comments')) + '</span></button>',
         '<button class="action-button share" type="button" data-share="' + post.id + '"><span class="action-icon" aria-hidden="true">↗</span><span>' + tr('Share','مشاركة') + '</span></button>',
+        moderationActions,
       '</div>',
       request,
     '</article>'
@@ -1902,15 +1951,17 @@ function bindPostActions(target, posts) {
     const post = byId.get(button.dataset.share);
     if (!post) return;
     const shareData = {title: post.title + ' — AIAS Basra Community', text: plainPostText(post).slice(0, 140), url: canonicalPostUrl(post)};
-    try {
-      if (navigator.share) await navigator.share(shareData);
-      else {
-        await navigator.clipboard.writeText(shareData.url);
-        showToast(tr('Post link copied.','تم نسخ رابط المنشور.'));
-      }
-    } catch (error) {
-      if (error?.name !== 'AbortError') showToast(tr('The post link could not be shared.','تعذرت مشاركة رابط المنشور.'));
-    }
+    await shareCommunityItem(shareData, tr('Post link copied.','تم نسخ رابط المنشور.'), tr('The post link could not be shared.','تعذرت مشاركة رابط المنشور.'));
+  }));
+  target.querySelectorAll('[data-moderate-space-post]').forEach(button => button.addEventListener('click', async event => {
+    event.preventDefault();
+    event.stopPropagation();
+    const [postId, action] = button.dataset.moderateSpacePost.split('|');
+    const post = byId.get(postId);
+    if (!post) return;
+    button.disabled = true;
+    try { await moderateSpacePost(post, action); }
+    catch (error) { console.error(error); showToast(tr('The moderation action failed.','تعذر تنفيذ إجراء الإشراف.')); button.disabled = false; }
   }));
 }
 
@@ -1982,7 +2033,7 @@ async function loadPosts() {
   try {
     const params = new URLSearchParams(location.search);
     const selectedPostId = params.get('post');
-    const allPosts = (await getDocs(collection(db, 'communityPosts'))).docs
+    const allPosts = (await getReadablePosts()).docs
       .map(item => ({id:item.id, ...item.data()}))
       .filter(post => post.archived !== true && post.published !== false)
       .filter(canViewSpacePost);
@@ -2313,7 +2364,7 @@ function clearPostImageComposer() {
 function renderPostGate() {
   const allowed = currentUser && currentProfile?.profileComplete && currentProfile?.username;
   if (allowed) {
-    $('postGate').innerHTML = '';
+    $('postGate').innerHTML = currentProfile.mainThreadPostingAccess !== false ? '' : '<p class="notice warning">' + tr('You do not have main-thread posting access yet. You may publish only inside private spaces. Apply from your profile for public posting access.','ليس لديك صلاحية النشر في المسار الرئيسي بعد. يمكنك النشر داخل المساحات الخاصة فقط. قدّم طلباً من ملفك للحصول على صلاحية النشر العام.') + '</p>';
     $('postIdentity').innerHTML = tr('Posting as ','تنشر باسم ') + '<strong>@' + escapeHtml(currentProfile.username) + '</strong>';
   } else if (currentUser) {
     const action = currentProfile?.profileComplete && !currentProfile?.username ? tr('Claim a unique username on','اختر اسم مستخدم فريداً في') : tr('Complete','أكمل');
@@ -2328,7 +2379,17 @@ function renderPostGate() {
 function renderSpaceGate() {
   const allowed = currentUser && currentProfile?.profileComplete && currentProfile?.username;
   if (allowed) {
-    $('spaceGate').innerHTML = '';
+    const restricted = currentProfile.mainThreadPostingAccess === false;
+    $('spaceGate').innerHTML = restricted ? '<p class="notice warning">' + tr('Without main-thread posting access, you can create private spaces only.','من دون صلاحية النشر في المسار الرئيسي، يمكنك إنشاء مساحات خاصة فقط.') + '</p>' : '';
+    if (restricted) {
+      $('spaceIsPrivate').checked = true;
+      $('spaceIsPrivate').disabled = true;
+      $('spaceShowInMainThread').checked = false;
+      $('spaceShowInMainThread').disabled = true;
+    } else {
+      $('spaceIsPrivate').disabled = false;
+      $('spaceShowInMainThread').disabled = false;
+    }
     $('spaceIdentity').innerHTML = tr('Creating as ','تنشئ باسم ') + '<strong>@' + escapeHtml(currentProfile.username) + '</strong> · ' + tr('Handles are permanent and unique.','المعرّفات دائمة وفريدة.') ;
   } else if (currentUser) {
     const action = currentProfile?.profileComplete && !currentProfile?.username ? tr('Claim a unique username on','اختر اسم مستخدم فريداً في') : tr('Complete','أكمل');
@@ -2341,19 +2402,32 @@ function renderSpaceGate() {
 
 function renderProfilePosts() {
   const target = $('profilePosts');
+  if (activeProfileId && loadedProfilePostsFor !== activeProfileId) {
+    target.className = profilePostFilter === 'thread' ? 'post-list profile-post-thread' : 'profile-post-grid';
+    target.innerHTML = '<div class="post-skeleton short"></div>';
+    return;
+  }
   const allowedPosts = activeProfilePosts.filter(post => showOwnPrivateSpacePosts || !communityAreas[post.communitySlug]?.isPrivate);
-  const posts = profilePostFilter === 'all' ? allowedPosts : allowedPosts.filter(post => post.type === profilePostFilter);
+  const posts = profilePostFilter === 'grid' ? allowedPosts.filter(post => postImageUrls(post).length > 0) : allowedPosts;
   document.querySelectorAll('[data-profile-filter]').forEach(button => button.classList.toggle('active', button.dataset.profileFilter === profilePostFilter));
   const visibleCount = isArabic() ? posts.length.toLocaleString('ar-IQ') : posts.length.toLocaleString();
   const totalCount = isArabic() ? allowedPosts.length.toLocaleString('ar-IQ') : allowedPosts.length.toLocaleString();
-  $('profilePostCount').textContent = profilePostFilter === 'all'
+  $('profilePostCount').textContent = profilePostFilter === 'thread'
     ? (isArabic() ? totalCount + ' منشوراً' : totalCount + (allowedPosts.length === 1 ? ' post' : ' posts'))
-    : tr(visibleCount + ' of ' + totalCount, visibleCount + ' من ' + totalCount);
+    : tr(visibleCount + ' image posts', visibleCount + ' منشوراً مصوراً');
   if (!posts.length) {
     const filtered = allowedPosts.length > 0;
-    target.innerHTML = '<div class="empty-state"><span class="empty-mark">A</span><h3>' + (filtered ? tr('Nothing in this filter','لا يوجد محتوى في هذا التصنيف') : tr('No posts yet','لا توجد منشورات بعد')) + '</h3><p>' + (filtered ? tr('Try another profile filter.','جرّب تصنيفاً آخر للملف.') : tr('This member is still preparing their first idea.','لا يزال هذا العضو يحضّر فكرته الأولى.')) + '</p></div>';
+    target.className = profilePostFilter === 'thread' ? 'post-list profile-post-thread' : 'profile-post-grid';
+    target.innerHTML = '<div class="empty-state"><span class="empty-mark">A</span><h3>' + (filtered ? tr('No image posts yet','لا توجد منشورات مصورة بعد') : tr('No posts yet','لا توجد منشورات بعد')) + '</h3><p>' + (filtered ? tr('Switch to Thread to see all posts.','انتقل إلى المسار لرؤية كل المنشورات.') : tr('This member is still preparing their first idea.','لا يزال هذا العضو يحضّر فكرته الأولى.')) + '</p></div>';
     return;
   }
+  if (profilePostFilter === 'thread') {
+    target.className = 'post-list profile-post-thread';
+    target.innerHTML = posts.map((post, index) => renderPostCard(post, index, false)).join('');
+    bindPostActions(target, posts);
+    return;
+  }
+  target.className = 'profile-post-grid';
   target.innerHTML = posts.map(post => {
       const href = isProject(post) ? 'project.html?communityPost=' + encodeURIComponent(post.id) : '/?post=' + encodeURIComponent(post.id);
       const owner = currentUser?.uid === post.userId;
@@ -2367,7 +2441,7 @@ function renderProfilePosts() {
         '<article class="profile-post-tile' + (isProject(post) ? ' project' : '') + (profileImage ? ' has-image' : '') + '">',
           '<a class="profile-post-main" href="' + href + '">',
           '<div class="profile-post-media">' + media + '</div>',
-          '<div class="profile-post-overlay"><div><span class="profile-post-kind">' + postLabel(post).toUpperCase() + '</span>' + (communityAreas[post.communitySlug]?.isPrivate ? '<span class="profile-private-post">' + tr('Private space','مساحة خاصة') + '</span>' : '') + '</div><strong class="profile-post-title">' + escapeHtml(post.title) + '</strong><span class="tile-stats"><span>✦ ' + post.meta.score + '</span><span>◯ ' + post.meta.commentsCount + '</span>' + (postImageUrls(post).length > 1 ? '<span>▧ ' + postImageUrls(post).length + '</span>' : '') + '</span></div>',
+          '<div class="profile-post-overlay"><div><span class="profile-post-kind">' + postLabel(post).toUpperCase() + '</span>' + (post.editedAt || post.updatedAt ? '<span class="profile-post-edited">' + tr('Edited','تم التعديل') + '</span>' : '') + (communityAreas[post.communitySlug]?.isPrivate ? '<span class="profile-private-post">' + tr('Private space','مساحة خاصة') + '</span>' : '') + '</div><strong class="profile-post-title">' + escapeHtml(post.title) + '</strong><span class="tile-stats"><span>✦ ' + post.meta.score + '</span><span>◯ ' + post.meta.commentsCount + '</span>' + (postImageUrls(post).length > 1 ? '<span>▧ ' + postImageUrls(post).length + '</span>' : '') + '</span></div>',
           '</a>',
           owner ? '<div class="profile-post-actions"><button type="button" data-edit-profile-post="' + escapeHtml(post.id) + '">' + tr('Edit','تعديل') + '</button><button type="button" data-delete-profile-post="' + escapeHtml(post.id) + '">' + tr('Delete','حذف') + '</button></div>' : '',
         '</article>'
@@ -2416,7 +2490,7 @@ async function loadProfilePosts(uid, owner) {
   const target = $('profilePosts');
   target.innerHTML = '<div class="post-skeleton short"></div>';
   try {
-    let posts = (await getDocs(collection(db, 'communityPosts'))).docs
+    let posts = (await getReadablePosts()).docs
       .map(item => ({id:item.id, ...item.data()}))
       .filter(post => post.archived !== true && post.published !== false && post.userId === uid)
       .filter(post => owner || !communityAreas[post.communitySlug]?.isPrivate)
@@ -2425,10 +2499,12 @@ async function loadProfilePosts(uid, owner) {
       const hydrated = post.type === 'text' ? await loadPostImage(post) : post;
       return {...hydrated, meta:await getPostMeta(post)};
     }));
+    loadedProfilePostsFor = uid;
     renderProfilePosts();
   } catch (error) {
     console.error(error);
     activeProfilePosts = [];
+    loadedProfilePostsFor = uid;
     target.innerHTML = '<p class="notice error">' + tr('Profile posts are unavailable right now.','منشورات الملف الشخصي غير متاحة حالياً.') + '</p>';
   }
 }
@@ -2437,6 +2513,7 @@ async function loadProfile(uid, routedProfile) {
   const target = $('profileContent');
   if (!uid) {
     activeProfilePosts = [];
+    loadedProfilePostsFor = null;
     target.className = '';
     target.innerHTML = routedProfile
       ? '<p class="notice error">' + tr('This profile could not be found. Check the username and try again.','تعذر العثور على هذا الملف. تحقق من اسم المستخدم وحاول مجدداً.') + '</p>'
@@ -2447,6 +2524,8 @@ async function loadProfile(uid, routedProfile) {
   }
   target.className = 'profile-skeleton';
   target.innerHTML = '';
+  activeProfilePosts = [];
+  loadedProfilePostsFor = null;
   try {
     const profile = await getProfile(uid);
     const owner = currentUser?.uid === uid;
@@ -2473,6 +2552,9 @@ async function loadProfile(uid, routedProfile) {
         owner ? '<button id="editProfile" class="edit-profile-button" type="button">' + tr('Edit profile','تعديل الملف') + '</button>' : '<button id="profileConnect" class="edit-profile-button connect-button ' + (profileConnectionActive ? 'connected' : '') + '" type="button"><span>' + (profileConnectionActive ? tr('Connected','متصل') : tr('Connect','تواصل')) + '</span></button>',
       '</div>',
       '<div class="profile-connection-stat"><span aria-hidden="true">◎</span><strong id="profileConnectionCount">' + profileConnectionCount.toLocaleString(isArabic() ? 'ar-IQ' : undefined) + '</strong><span id="profileConnectionLabel">' + tr('connected people','أشخاص متصلون') + '</span>' + (owner ? '<a href="/?view=connections">' + tr('Manage','إدارة') + ' →</a>' : '') + '</div>',
+      owner ? (profile.mainThreadPostingAccess !== false
+        ? '<section class="posting-access-card approved"><strong>' + tr('Main-thread posting approved','تمت الموافقة على النشر في المسار الرئيسي') + '</strong><p>' + tr('You can post publicly and create public spaces.','يمكنك النشر علناً وإنشاء مساحات عامة.') + '</p></section>'
+        : '<section class="posting-access-card warning"><strong>' + tr('Main-thread posting access required','مطلوب تصريح للنشر في المسار الرئيسي') + '</strong><p>' + tr('You can browse and post in private spaces, but cannot post publicly or create public spaces until an admin approves you.','يمكنك التصفح والنشر في المساحات الخاصة، لكن لا يمكنك النشر علناً أو إنشاء مساحات عامة حتى يوافق أحد المشرفين.') + '</p><button id="requestMainThreadAccess" type="button"' + (profile.mainThreadAccessStatus === 'pending' ? ' disabled' : '') + '>' + (profile.mainThreadAccessStatus === 'pending' ? tr('Request pending','الطلب قيد المراجعة') : tr('Apply for access','طلب التصريح')) + '</button></section>') : '',
       '<p class="profile-bio">' + escapeHtml(profile.bio || tr('No bio added yet.','لم تُضف نبذة بعد.')) + '</p>',
       interests.length ? '<div class="interest-row">' + interests.map(item => '<span>' + escapeHtml(item) + '</span>').join('') + '</div>' : '',
       owner ? [
@@ -2509,6 +2591,20 @@ async function loadProfile(uid, routedProfile) {
       });
     }
     if (owner) {
+      const accessButton = $('requestMainThreadAccess');
+      if (accessButton) accessButton.addEventListener('click', async () => {
+        accessButton.disabled = true;
+        try {
+          await callFunction('requestMainThreadPostingAccess', {});
+          profileCache.delete(uid);
+          currentProfile = await getProfile(uid);
+          showToast(tr('Your access request was sent to the admins.','تم إرسال طلب التصريح إلى المشرفين.'));
+          await loadProfile(uid);
+        } catch (error) {
+          showToast(error.message || tr('The request could not be sent.','تعذر إرسال الطلب.'));
+          accessButton.disabled = false;
+        }
+      });
       let nextPhotoBase64 = profile.photoURL || profile.photoBase64 || '';
       let nextBannerBase64 = profile.bannerURL || profile.bannerBase64 || '';
       let profileMediaBusy = 0;
@@ -2707,9 +2803,11 @@ document.querySelectorAll('.filter-pill').forEach(button => button.addEventListe
   loadPosts();
 }));
 
-document.querySelectorAll('[data-profile-filter]').forEach(button => button.addEventListener('click', () => {
+document.querySelectorAll('[data-profile-filter]').forEach(button => button.addEventListener('click', event => {
+  event.preventDefault();
   profilePostFilter = button.dataset.profileFilter;
   renderProfilePosts();
+  requestAnimationFrame(renderProfilePosts);
 }));
 $('profilePrivatePostsToggle').addEventListener('click', () => {
   if (currentUser?.uid !== activeProfileId) return;
@@ -2779,7 +2877,7 @@ $('postEditForm').addEventListener('submit', async event => {
   }
   button.disabled = true;
   try {
-    const changes = {title, content, summary:content.slice(0,360), updatedAt:serverTimestamp()};
+    const changes = {title, content, summary:content.slice(0,360), updatedAt:serverTimestamp(), editedAt:serverTimestamp()};
     if (isProject(post)) changes.behanceSrc = behanceSrc;
     await setDoc(doc(db, 'communityPosts', post.id), changes, {merge:true});
     activeProfilePosts = activeProfilePosts.map(item => item.id === post.id ? {...item, ...changes} : item);
@@ -2863,12 +2961,23 @@ document.addEventListener('keydown', event => {
 $('quickComposer').addEventListener('click', () => navigateTo(composerUrl(), false));
 $('railSpacesExpand').addEventListener('click', () => { railSpacesExpanded = !railSpacesExpanded; renderCommunitySpaces(); });
 $('areaCreate').addEventListener('click', () => navigateTo(composerUrl(), false));
+$('areaShare').addEventListener('click', async () => {
+  const area = activeAreaSlug ? communityAreas[activeAreaSlug] : null;
+  if (!area) return;
+  await shareCommunityItem(
+    {title:(area.name || 'a/' + activeAreaSlug) + ' — AIAS Basra Community', text:String(area.description || tr('Join this space on AIAS Basra Community.','انضم إلى هذه المساحة في مجتمع AIAS البصرة.')).slice(0, 180), url:canonicalSpaceUrl(activeAreaSlug)},
+    tr('Space link copied.','تم نسخ رابط المساحة.'),
+    tr('The space link could not be shared.','تعذرت مشاركة رابط المساحة.')
+  );
+});
 $('areaManage').addEventListener('click', openSpaceEditor);
 $('manageSpacesList').addEventListener('click', async event => {
   const edit = event.target.closest('[data-manage-edit]');
   const approve = event.target.closest('[data-approve-request]');
   const deny = event.target.closest('[data-deny-request]');
   const removeMember = event.target.closest('[data-remove-space-member]');
+  const adminControl = event.target.closest('[data-set-space-admin]');
+  const warnMember = event.target.closest('[data-warn-space-member]');
   if (edit) {
     activeAreaSlug = edit.dataset.manageEdit;
     openSpaceEditor();
@@ -2879,6 +2988,21 @@ $('manageSpacesList').addEventListener('click', async event => {
     removeMember.disabled = true;
     try { await removeSpaceMember(slug, userId); }
     catch (error) { console.error(error); showToast(tr('Member access could not be removed.','تعذر إزالة وصول العضو.')); removeMember.disabled = false; }
+    return;
+  }
+  if (adminControl) {
+    const [slug, userId, enabled] = adminControl.dataset.setSpaceAdmin.split('|');
+    adminControl.disabled = true;
+    try { await setSpaceAdmin(slug, userId, enabled === '1'); }
+    catch (error) { console.error(error); showToast(tr('The administrator could not be updated.','تعذر تحديث المشرف.')); adminControl.disabled = false; }
+    return;
+  }
+  if (warnMember) {
+    const [slug, userId] = warnMember.dataset.warnSpaceMember.split('|');
+    warnMember.disabled = true;
+    try { await warnSpaceMember(slug, userId); }
+    catch (error) { console.error(error); showToast(tr('The warning could not be sent.','تعذر إرسال التحذير.')); }
+    warnMember.disabled = false;
     return;
   }
   const control = approve || deny;
@@ -3201,6 +3325,11 @@ $('spaceEditForm').addEventListener('submit', async event => {
   $('spaceEditStatus').textContent = '';
   try {
     if (editSpaceMediaBusy) throw new Error(tr('Wait for the images to finish preparing.','انتظر حتى يكتمل تجهيز الصور.'));
+    const nextPrivate = $('spaceEditIsPrivate').checked;
+    const nextMainThread = nextPrivate ? false : $('spaceEditShowInMainThread').checked;
+    if (nextPrivate !== (area.isPrivate === true) || nextMainThread !== (area.showInMainThread !== false)) {
+      await callFunction('setCommunitySpaceVisibility', {spaceId:slug, isPrivate:nextPrivate, showInMainThread:nextMainThread});
+    }
     const [imageURL, bannerURL] = await Promise.all([
       storeCommunityImage(`community/spaces/${slug}/avatar`, editSpaceImageBase64),
       storeCommunityImage(`community/spaces/${slug}/banner`, editSpaceBannerBase64)
@@ -3213,11 +3342,9 @@ $('spaceEditForm').addEventListener('submit', async event => {
       bannerBase64:'',
       imageURL,
       bannerURL,
-      isPrivate:$('spaceEditIsPrivate').checked,
-      showInMainThread:$('spaceEditIsPrivate').checked ? false : $('spaceEditShowInMainThread').checked,
       updatedAt:serverTimestamp()
     }, {merge:true});
-    communityAreas[slug] = {...area, name, description, symbol:initials(name), imageBase64:'', bannerBase64:'', imageURL, bannerURL, isPrivate:$('spaceEditIsPrivate').checked, showInMainThread:$('spaceEditIsPrivate').checked ? false : $('spaceEditShowInMainThread').checked};
+    communityAreas[slug] = {...area, name, description, symbol:initials(name), imageBase64:'', bannerBase64:'', imageURL, bannerURL, isPrivate:nextPrivate, showInMainThread:nextMainThread};
     invalidateCommunitySearchIndex();
     renderCommunitySpaces();
     renderActiveAreaHeader(communityAreas[slug]);
@@ -3314,6 +3441,7 @@ onAuthStateChanged(auth, async user => {
     $('quickAvatar').textContent = 'A';
   }
   if (communityDataReady) await communityDataReady;
+  await loadManagedSpaceSlugs();
   await loadConnections();
   renderCommunitySpaces();
   startNotificationInbox();

@@ -6,10 +6,11 @@
     "node": "22"
   },
   "scripts": {
-    "migrate:community-moderation": "node scripts/backfill-community-moderation.js"
+    "migrate:community-moderation": "node scripts/backfill-community-moderation.js",
+    "migrate:main-thread-access": "node scripts/backfill-main-thread-access.js"
   },
   "dependencies": {
-    "firebase-admin": "^13.6.0",
-    "firebase-functions": "^6.6.0"
+    "firebase-admin": "^14.2.0",
+    "firebase-functions": "^7.3.2"
   }
 }

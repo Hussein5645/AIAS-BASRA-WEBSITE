@@ -13,12 +13,14 @@ test('Saray hosting serves only the Community application and required assets', 
     ['/a/architecture', 'AIAS Basra Community'],
     ['/p/member', 'AIAS Basra Community'],
     ['/project.html?communityPost=test', 'Community project'],
+    ['/download.html', 'Download Android beta'],
+    ['/downloads/AIAS-Basra-Community-1.2.apk', null],
     ['/community-archived.html', 'Posts from unavailable spaces'],
     ['/admin-community-moderation.html', 'Community moderation'],
     ['/login.html', 'Login'],
     ['/signup.html', 'Create Account'],
     ['/auth-relay.html', 'Signing in'],
-    ['/js/community.js', "projectId: 'space-42d87'"],
+    ['/js/community.js', 'AIAS Basra Community'],
     ['/community-notifications-sw.js', "projectId:'space-42d87'"],
     ['/manifest.webmanifest', 'AIAS Basra Community']
   ];
@@ -26,7 +28,7 @@ test('Saray hosting serves only the Community application and required assets', 
   for (const [path, marker] of checks) {
     const result = await response(path);
     assert.equal(result.status, 200, `${path} should be served`);
-    assert.match(await result.text(), new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `${path} should contain its expected marker`);
+    if (marker) assert.match(await result.text(), new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `${path} should contain its expected marker`);
   }
 });
 

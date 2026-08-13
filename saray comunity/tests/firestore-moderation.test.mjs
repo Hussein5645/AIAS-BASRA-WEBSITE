@@ -2,7 +2,7 @@ import {after, before, beforeEach, test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {initializeTestEnvironment, assertFails, assertSucceeds} from '@firebase/rules-unit-testing';
-import {deleteDoc, doc, getDoc, runTransaction, serverTimestamp, setDoc, writeBatch} from 'firebase/firestore';
+import {collection, deleteDoc, doc, getDoc, getDocs, query, runTransaction, serverTimestamp, setDoc, where, writeBatch} from 'firebase/firestore';
 
 let environment;
 const projectId = 'space-42d87-moderation-tests';
@@ -31,6 +31,11 @@ test('public users can read active content but not archived originals', async ()
   const db = environment.unauthenticatedContext().firestore();
   await assertSucceeds(getDoc(doc(db, 'communityPosts', 'active')));
   await assertFails(getDoc(doc(db, 'communityPosts', 'eligible')));
+});
+
+test('active-content queries satisfy archived-content rules', async () => {
+  const db = environment.unauthenticatedContext().firestore();
+  await assertSucceeds(getDocs(query(collection(db, 'communityPosts'), where('archived', '==', false))));
 });
 
 test('owners can read eligible cascade archives but not moderation-flagged archives', async () => {
@@ -69,4 +74,24 @@ test('client-side repost creation is denied and reserved for the backend', async
     transaction.update(sourceRef, {repostedPostId:'repost', repostedAt:serverTimestamp()});
   }));
   assert.equal((await getDoc(sourceRef)).data().repostedPostId, undefined);
+});
+
+test('users cannot grant themselves main-thread posting access', async () => {
+  const ownerDb = environment.authenticatedContext('owner', {email:'owner@example.com'}).firestore();
+  await assertFails(setDoc(doc(ownerDb, 'users', 'owner'), {mainThreadPostingAccess:true, mainThreadAccessStatus:'approved'}, {merge:true}));
+  const newcomerDb = environment.authenticatedContext('newcomer', {email:'new@example.com'}).firestore();
+  await assertFails(setDoc(doc(newcomerDb, 'users', 'newcomer'), {email:'new@example.com', mainThreadPostingAccess:true, mainThreadAccessStatus:'approved'}));
+  await assertSucceeds(setDoc(doc(newcomerDb, 'users', 'newcomer'), {email:'new@example.com', mainThreadPostingAccess:false, mainThreadAccessStatus:'not_requested'}));
+});
+
+test('restricted users can create private spaces but not public spaces', async () => {
+  await environment.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'users', 'restricted'), {email:'restricted@example.com', username:'restricted', profileComplete:true, mainThreadPostingAccess:false, mainThreadAccessStatus:'not_requested'});
+    await setDoc(doc(db, 'usernames', 'restricted'), {userId:'restricted'});
+  });
+  const db = environment.authenticatedContext('restricted', {email:'restricted@example.com'}).firestore();
+  const base = {name:'Private studio', description:'A private testing space.', symbol:'PS', creatorId:'restricted', creatorUsername:'restricted', active:true, archived:false, moderationStatus:'clear', imageBase64:'', bannerBase64:'', imageURL:'', bannerURL:'', showInMainThread:false, createdAt:serverTimestamp()};
+  await assertSucceeds(setDoc(doc(db, 'communitySpaces', 'private-studio'), {...base, isPrivate:true}));
+  await assertFails(setDoc(doc(db, 'communitySpaces', 'public-studio'), {...base, isPrivate:false}));
 });

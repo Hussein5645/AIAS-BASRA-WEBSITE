@@ -536,10 +536,11 @@
             if (!user || !profileSetupForm.reportValidity()) return;
             try {
                 const username = await claimUsername(user.uid);
+                const existingProfile = await getDoc(doc(db, 'users', user.uid));
                 await setDoc(doc(db, 'users', user.uid), {
                     email: user.email, username, displayName: profileFields.displayName.value.trim(), photoURL: user.photoURL || '',
                     school: profileFields.school.value.trim(), city: profileFields.city.value.trim(), bio: profileFields.bio.value.trim(),
-                    profileComplete: true, createdAt: new Date().toISOString(), lastLogin: new Date().toISOString()
+                    profileComplete: true, ...(existingProfile.exists() ? {} : {mainThreadPostingAccess:false, mainThreadAccessStatus:'not_requested'}), createdAt: new Date().toISOString(), lastLogin: new Date().toISOString()
                 }, { merge: true });
                 sessionStorage.removeItem(pendingProfileKey);
                 await checkUserRoleAndRedirect(user);

@@ -1,82 +1,61 @@
 (function () {
   'use strict';
 
-  const DISMISS_KEY = 'aias_app_prompt_dismissed';
-  const APP_PACKAGE = 'com.aiasbsr.community';
-  const PRODUCTION_ORIGIN = 'https://space-42d87.web.app';
-  const isAndroid = /Android/i.test(navigator.userAgent || '');
-  const isStandalone = window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
+  const DOWNLOAD_PAGE_URL = '/download.html';
+  const userAgent = navigator.userAgent || '';
+  const isAndroid = /Android/i.test(userAgent);
+  const isIOS = /iPhone|iPad|iPod/i.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const mobileViewport = window.matchMedia?.('(max-width: 699px)');
+  const isStandalone = window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
 
-  if (!isAndroid || isStandalone || !mobileViewport?.matches || document.getElementById('aiasAppPrompt')) return;
-  try { if (sessionStorage.getItem(DISMISS_KEY) === '1') return; } catch {}
+  // The card is intentionally limited to Android and iOS phones/tablets.
+  if ((!isAndroid && !isIOS) || !mobileViewport?.matches || isStandalone || document.getElementById('aiasMobileAppCard')) return;
 
   let storedLanguage = '';
   try { storedLanguage = localStorage.getItem('language') || ''; } catch {}
   const isArabic = document.documentElement.dir === 'rtl' || document.documentElement.lang?.toLowerCase().startsWith('ar') || storedLanguage === 'ar';
-  const copy = isArabic
-    ? { title:'فتح تطبيق AIAS Basra؟', body:'تابع مجتمع AIAS البصرة في التطبيق.', open:'فتح التطبيق', stay:'المتابعة في الموقع', label:'فتح تطبيق AIAS Basra' }
-    : { title:'Open the AIAS Basra app?', body:'Continue in the AIAS Basra Community app.', open:'Open app', stay:'Continue on website', label:'Open the AIAS Basra app' };
+  const copy = isAndroid
+    ? (isArabic
+      ? {eyebrow:'تطبيق AIAS BASRA', title:'استخدم تطبيق المجتمع', body:'نزّل نسخة أندرويد للوصول إلى مجتمع AIAS البصرة من هاتفك.', action:'صفحة التنزيل', label:'فتح صفحة تنزيل تطبيق AIAS Basra لأندرويد'}
+      : {eyebrow:'AIAS BASRA APP', title:'Use the Community mobile app', body:'Download the Android beta and access AIAS Basra Community from your phone.', action:'Download page', label:'Open the AIAS Basra Android download page'})
+    : (isArabic
+      ? {eyebrow:'تطبيق AIAS BASRA', title:'نسخة iOS قريباً', body:'نعمل على تجهيز تطبيق مجتمع AIAS البصرة لأجهزة iPhone وiPad.', action:'قريباً', label:'تطبيق iOS قريباً'}
+      : {eyebrow:'AIAS BASRA APP', title:'iOS app coming soon', body:'We are preparing the AIAS Basra Community app for iPhone and iPad.', action:'Coming soon', label:'AIAS Basra iOS app coming soon'});
 
   const style = document.createElement('style');
   style.textContent = `
-    .aias-app-prompt[hidden]{display:none!important}
-    .aias-app-prompt{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:flex-end;justify-content:center;padding:18px;background:rgba(22,14,16,.46);font-family:Inter,"DM Sans",Arial,sans-serif;backdrop-filter:blur(3px)}
-    .aias-app-prompt__card{width:min(100%,440px);display:grid;grid-template-columns:54px minmax(0,1fr);gap:13px;padding:17px;border:1px solid rgba(102,31,34,.13);border-radius:22px;background:#fffdfa;box-shadow:0 24px 70px rgba(46,19,23,.28);animation:aiasAppPromptIn .22s ease both}
-    .aias-app-prompt__logo{width:54px;height:54px;object-fit:cover;border-radius:16px;background:#f2ece6}
-    .aias-app-prompt__copy{min-width:0}.aias-app-prompt__copy strong,.aias-app-prompt__copy span{display:block}.aias-app-prompt__copy strong{color:#321c22;font-size:.98rem;line-height:1.3}.aias-app-prompt__copy span{margin-top:4px;color:#74696b;font-size:.76rem;line-height:1.45}
-    .aias-app-prompt__actions{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:2px}.aias-app-prompt__actions button{min-height:46px;border-radius:13px;padding:0 12px;font:800 .76rem/1 Inter,"DM Sans",Arial,sans-serif;cursor:pointer}.aias-app-prompt__open{border:0;color:#fff;background:linear-gradient(135deg,#50191d,#7d3431)}.aias-app-prompt__stay{border:1px solid #d9ccc5;color:#5d2529;background:#fff}
-    @keyframes aiasAppPromptIn{from{opacity:0;transform:translateY(18px)}}
-    @media(min-width:700px){.aias-app-prompt{display:none!important}}
-    @media(prefers-reduced-motion:reduce){.aias-app-prompt__card{animation:none}}
+    .aias-mobile-app-card[hidden]{display:none!important}
+    .aias-mobile-app-card{position:relative;z-index:49;width:min(100%,1460px);margin:0 auto;padding:10px 28px 0;font-family:"DM Sans",Arial,sans-serif}
+    .aias-mobile-app-card__inner{position:relative;display:grid;grid-template-columns:46px minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 44px 12px 13px;border:1px solid rgba(240,218,161,.3);border-radius:18px;color:#fff;background:linear-gradient(125deg,#3d1115,#661f22 62%,#945c50);box-shadow:0 12px 28px rgba(61,17,21,.16)}
+    .aias-mobile-app-card__logo{width:46px;height:46px;object-fit:cover;border-radius:13px;background:#fffdfa}
+    .aias-mobile-app-card__copy{min-width:0}.aias-mobile-app-card__copy small,.aias-mobile-app-card__copy strong,.aias-mobile-app-card__copy span{display:block}.aias-mobile-app-card__copy small{color:#f0daa1;font-size:.52rem;font-weight:800;letter-spacing:.13em}.aias-mobile-app-card__copy strong{margin-top:2px;font:800 .9rem/1.25 Manrope,"DM Sans",Arial,sans-serif}.aias-mobile-app-card__copy span{margin-top:2px;color:rgba(255,255,255,.67);font-size:.65rem;line-height:1.35}
+    .aias-mobile-app-card__action{min-height:40px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 13px;border:0;border-radius:11px;color:#661f22;background:#f0daa1;text-decoration:none;font-size:.68rem;font-weight:800;white-space:nowrap}.aias-mobile-app-card__action[aria-disabled="true"]{opacity:.72;cursor:default}
+    .aias-mobile-app-card__close{position:absolute;top:8px;right:8px;width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:50%;color:rgba(255,255,255,.72);background:transparent;cursor:pointer;font-size:1rem}
+    html[dir="rtl"] .aias-mobile-app-card__close{right:auto;left:8px}
+    @media(min-width:700px){.aias-mobile-app-card{display:none!important}}
+    @media(max-width:480px){.aias-mobile-app-card{padding:8px 10px 0}.aias-mobile-app-card__inner{grid-template-columns:42px minmax(0,1fr);gap:10px;padding:11px 38px 11px 11px}.aias-mobile-app-card__logo{width:42px;height:42px}.aias-mobile-app-card__action{grid-column:1/-1;width:100%}}
   `;
   document.head.appendChild(style);
 
-  const prompt = document.createElement('div');
-  prompt.id = 'aiasAppPrompt';
-  prompt.className = 'aias-app-prompt';
-  prompt.hidden = true;
-  prompt.setAttribute('role', 'dialog');
-  prompt.setAttribute('aria-modal', 'true');
-  prompt.setAttribute('aria-label', copy.label);
-  prompt.innerHTML = `
-    <section class="aias-app-prompt__card">
-      <img class="aias-app-prompt__logo" src="/static/images/branding/LOGO.png" alt="">
-      <div class="aias-app-prompt__copy"><strong>${copy.title}</strong><span>${copy.body}</span></div>
-      <div class="aias-app-prompt__actions"><button class="aias-app-prompt__open" type="button">${copy.open}</button><button class="aias-app-prompt__stay" type="button">${copy.stay}</button></div>
-    </section>`;
-  document.body.appendChild(prompt);
-  const previousBodyOverflow = document.body.style.overflow;
+  const card = document.createElement('aside');
+  card.id = 'aiasMobileAppCard';
+  card.className = 'aias-mobile-app-card';
+  card.setAttribute('aria-label', copy.label);
+  card.innerHTML = `<div class="aias-mobile-app-card__inner">
+    <img class="aias-mobile-app-card__logo" src="/static/images/branding/LOGO.png" alt="">
+    <div class="aias-mobile-app-card__copy"><small>${copy.eyebrow}</small><strong>${copy.title}</strong><span>${copy.body}</span></div>
+    ${isAndroid ? `<a class="aias-mobile-app-card__action" href="${DOWNLOAD_PAGE_URL}"><span>${copy.action}</span><b aria-hidden="true">→</b></a>` : `<a class="aias-mobile-app-card__action" href="${DOWNLOAD_PAGE_URL}">${copy.action}</a>`}
+    <button class="aias-mobile-app-card__close" type="button" aria-label="${isArabic ? 'إخفاء' : 'Dismiss'}">×</button>
+  </div>`;
+
+  const header = document.querySelector('.community-topbar');
+  if (header) header.insertAdjacentElement('afterend', card);
+  else document.body.prepend(card);
 
   function dismiss() {
-    prompt.hidden = true;
-    document.body.style.overflow = previousBodyOverflow;
-    try { sessionStorage.setItem(DISMISS_KEY, '1'); } catch {}
+    card.hidden = true;
   }
 
-  function appTarget() {
-    const appPath = /^\/(?:project(?:\.html)?|a\/|p\/)/i.test(location.pathname) || location.pathname === '/'
-      ? location.pathname + location.search
-      : '/';
-    return new URL(appPath, PRODUCTION_ORIGIN);
-  }
-
-  function openApp() {
-    const target = appTarget();
-    const fallback = encodeURIComponent(location.href);
-    try { sessionStorage.setItem(DISMISS_KEY, '1'); } catch {}
-    location.href = `intent://${target.host}${target.pathname}${target.search}#Intent;scheme=https;package=${APP_PACKAGE};S.browser_fallback_url=${fallback};end`;
-  }
-
-  prompt.querySelector('.aias-app-prompt__open').addEventListener('click', openApp);
-  prompt.querySelector('.aias-app-prompt__stay').addEventListener('click', dismiss);
-  prompt.addEventListener('click', event => { if (event.target === prompt) dismiss(); });
-  document.addEventListener('keydown', event => { if (event.key === 'Escape' && !prompt.hidden) dismiss(); });
-  mobileViewport.addEventListener?.('change', event => { if (!event.matches && !prompt.hidden) dismiss(); });
-
-  window.setTimeout(() => {
-    prompt.hidden = false;
-    document.body.style.overflow = 'hidden';
-    prompt.querySelector('.aias-app-prompt__open').focus({preventScroll:true});
-  }, 500);
+  card.querySelector('.aias-mobile-app-card__close').addEventListener('click', dismiss);
+  mobileViewport.addEventListener?.('change', event => { if (!event.matches) dismiss(); });
 })();

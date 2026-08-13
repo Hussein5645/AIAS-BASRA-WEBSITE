@@ -22,4 +22,14 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app, 'us-central1');
-export const callFunction = (name, data) => httpsCallable(functions, name)(data).then(result => result.data);
+const communityCompatibilityOperations = Object.freeze({
+  requestMainThreadPostingAccess:'request_main_thread_access',
+  reviewMainThreadPostingAccess:'review_main_thread_access',
+  setCommunitySpaceVisibility:'set_space_visibility',
+  moderateCommunitySpacePost:'moderate_space_post',
+  warnCommunitySpaceMember:'warn_space_member'
+});
+export const callFunction = (name, data = {}) => {
+  const operation = communityCompatibilityOperations[name];
+  return httpsCallable(functions, operation ? 'setCommunitySpaceConnection' : name)(operation ? {...data, operation} : data).then(result => result.data);
+};

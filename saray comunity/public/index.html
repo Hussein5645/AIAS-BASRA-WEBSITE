@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/community.css?v=20260811-comment-edit-v14">
+  <link rel="stylesheet" href="css/community.css?v=20260813-sharing-v1">
 </head>
 <body class="community-booting">
   <div id="communitySplash" class="community-splash" role="status" aria-live="polite" aria-label="Loading the AIAS Basra community" data-aria-en="Loading the AIAS Basra community" data-aria-ar="جارٍ تحميل مجتمع AIAS البصرة">
@@ -98,7 +98,7 @@
           <div id="areaBanner" class="area-banner-media"></div>
           <div class="area-symbol" id="areaSymbol">A</div>
           <div class="area-copy"><span class="mini-kicker" id="areaPath">a/community</span><h1 id="areaTitle">Community space</h1><p id="areaDescription"></p><div class="area-connection-stat"><span aria-hidden="true">◎</span><strong id="areaConnectCount">0</strong><span data-en="connected members" data-ar="أعضاء متصلون">connected members</span></div></div>
-          <div class="area-header-actions"><button id="areaConnect" type="button" hidden><span data-en="Connect" data-ar="تواصل">Connect</span></button><button id="areaManage" type="button" hidden><span data-en="Manage space" data-ar="إدارة المساحة">Manage space</span> <span aria-hidden="true">⚙</span></button><button id="areaCreate" type="button"><span data-en="Create post" data-ar="إنشاء منشور">Create post</span> <span aria-hidden="true">+</span></button></div>
+          <div class="area-header-actions"><button id="areaConnect" type="button" hidden><span data-en="Connect" data-ar="تواصل">Connect</span></button><button id="areaShare" type="button"><span data-en="Share space" data-ar="مشاركة المساحة">Share space</span> <span aria-hidden="true">↗</span></button><button id="areaManage" type="button" hidden><span data-en="Manage space" data-ar="إدارة المساحة">Manage space</span> <span aria-hidden="true">⚙</span></button><button id="areaCreate" type="button"><span data-en="Create post" data-ar="إنشاء منشور">Create post</span> <span aria-hidden="true">+</span></button></div>
         </section>
         <section id="privateSpaceGate" class="private-space-gate" hidden>
           <div class="private-space-dialog-icon" aria-hidden="true">◐</div>
@@ -265,11 +265,9 @@
         </header>
         <div id="profileContent" class="profile-skeleton"><span></span><div></div></div>
         <div class="profile-posts-head"><h2 data-en="Posts" data-ar="المنشورات">Posts</h2><span id="profilePostCount"></span></div>
-        <div id="profilePostFilters" class="profile-post-filters" role="group" aria-label="Filter profile posts" data-aria-en="Filter profile posts" data-aria-ar="تصفية منشورات الملف">
-          <button class="filter-pill active" type="button" data-profile-filter="all" data-en="All posts" data-ar="كل المنشورات">All posts</button>
-          <button class="filter-pill" type="button" data-profile-filter="text" data-en="Thoughts" data-ar="الأفكار">Thoughts</button>
-          <button class="filter-pill" type="button" data-profile-filter="behance" data-en="Projects" data-ar="المشاريع">Projects</button>
-          <button class="filter-pill" type="button" data-profile-filter="question" data-en="Questions" data-ar="الأسئلة">Questions</button>
+        <div id="profilePostFilters" class="profile-post-filters profile-view-modes" role="group" aria-label="Choose profile post view" data-aria-en="Choose profile post view" data-aria-ar="اختر طريقة عرض منشورات الملف">
+          <button class="filter-pill active" type="button" data-profile-filter="grid" data-en="▦ Grid" data-ar="▦ شبكة الصور">▦ Grid</button>
+          <button class="filter-pill" type="button" data-profile-filter="thread" data-en="☰ Thread" data-ar="☰ المسار">☰ Thread</button>
           <button id="profilePrivatePostsToggle" class="filter-pill private-posts-toggle" type="button" aria-pressed="false" hidden><span data-en="Show private-space posts" data-ar="إظهار منشورات المساحات الخاصة">Show private-space posts</span></button>
         </div>
         <div id="profilePosts" class="profile-post-grid"></div>
@@ -380,7 +378,7 @@
   </dialog>
   <div id="communityToast" class="community-toast" role="status" aria-live="polite"></div>
 
-  <script src="/js/app-open-prompt.js?v=20260811" defer></script>
-  <script type="module" src="js/community.js?v=20260811-comment-edit-v19"></script>
+  <script src="/js/app-open-prompt.js?v=20260813-download-page-v3" defer></script>
+  <script type="module" src="js/community.js?v=20260813-moderation-v2"></script>
 </body>
 </html>

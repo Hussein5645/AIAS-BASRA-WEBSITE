@@ -22,7 +22,13 @@ async function backfill(collectionName, defaults) {
 }
 
 (async () => {
-  await backfill('communityPosts', {archived:false, moderationStatus:'clear'});
-  await backfill('communitySpaces', {archived:false, moderationStatus:'clear'});
+  await backfill('communityPosts', {
+    archived:false, moderationStatus:'clear', published:true,
+    featured:false, featureRequest:false, featureStatus:'none'
+  });
+  await backfill('communitySpaces', {
+    archived:false, moderationStatus:'clear', active:true,
+    isPrivate:false, showInMainThread:true
+  });
   console.log('Community moderation backfill complete.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
