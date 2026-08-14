@@ -6,6 +6,7 @@
   <script>try{if(localStorage.getItem('language')==='ar'){document.documentElement.lang='ar';document.documentElement.dir='rtl';}}catch{}</script>
   <meta name="theme-color" content="#661f22">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="AIAS Basra">
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="description" content="The AIAS Basra member community — share ideas, discuss architecture, and discover work by local designers.">
@@ -15,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/community.css?v=20260813-sharing-v1">
+  <link rel="stylesheet" href="css/community.css?v=20260814-mobile-disconnect-v4">
 </head>
 <body class="community-booting">
   <div id="communitySplash" class="community-splash" role="status" aria-live="polite" aria-label="Loading the AIAS Basra community" data-aria-en="Loading the AIAS Basra community" data-aria-ar="جارٍ تحميل مجتمع AIAS البصرة">
@@ -70,6 +71,7 @@
         <a class="rail-link" href="/?view=manage-spaces" data-route="manage-spaces"><span class="rail-icon" aria-hidden="true">⚙</span><span data-en="Manage my spaces" data-ar="إدارة مساحاتي">Manage my spaces</span></a>
         <a class="rail-link" href="/?view=profile" data-route="profile"><span class="rail-icon" aria-hidden="true">◉</span><span data-en="My profile" data-ar="ملفي الشخصي">My profile</span></a>
         <a class="rail-link" href="/?view=connections" data-route="connections"><span class="rail-icon" aria-hidden="true">◎</span><span data-en="My connections" data-ar="تواصلاتي">My connections</span></a>
+        <a class="rail-link" href="/?view=chats" data-route="chats"><span class="rail-icon" aria-hidden="true">◯</span><span data-en="Messages" data-ar="الرسائل">Messages</span></a>
         <a class="rail-link" href="community-archived.html"><span class="rail-icon" aria-hidden="true">↶</span><span data-en="Unavailable-space posts" data-ar="منشورات المساحات غير المتاحة">Unavailable-space posts</span></a>
         <a class="rail-link" href="/?view=selected" data-route="selected"><span class="rail-icon" aria-hidden="true">◇</span><span data-en="Selected projects" data-ar="المشاريع المختارة">Selected projects</span></a>
       </nav>
@@ -98,7 +100,7 @@
           <div id="areaBanner" class="area-banner-media"></div>
           <div class="area-symbol" id="areaSymbol">A</div>
           <div class="area-copy"><span class="mini-kicker" id="areaPath">a/community</span><h1 id="areaTitle">Community space</h1><p id="areaDescription"></p><div class="area-connection-stat"><span aria-hidden="true">◎</span><strong id="areaConnectCount">0</strong><span data-en="connected members" data-ar="أعضاء متصلون">connected members</span></div></div>
-          <div class="area-header-actions"><button id="areaConnect" type="button" hidden><span data-en="Connect" data-ar="تواصل">Connect</span></button><button id="areaShare" type="button"><span data-en="Share space" data-ar="مشاركة المساحة">Share space</span> <span aria-hidden="true">↗</span></button><button id="areaManage" type="button" hidden><span data-en="Manage space" data-ar="إدارة المساحة">Manage space</span> <span aria-hidden="true">⚙</span></button><button id="areaCreate" type="button"><span data-en="Create post" data-ar="إنشاء منشور">Create post</span> <span aria-hidden="true">+</span></button></div>
+          <div class="area-header-actions"><button id="areaConnect" type="button" hidden><span data-en="Connect" data-ar="تواصل">Connect</span></button><button id="areaMessages" type="button" hidden><span data-en="Messages" data-ar="الرسائل">Messages</span> <span aria-hidden="true">◯</span></button><button id="areaShare" type="button"><span data-en="Share space" data-ar="مشاركة المساحة">Share space</span> <span aria-hidden="true">↗</span></button><button id="areaManage" type="button" hidden><span data-en="Manage space" data-ar="إدارة المساحة">Manage space</span> <span aria-hidden="true">⚙</span></button><button id="areaCreate" type="button"><span data-en="Create post" data-ar="إنشاء منشور">Create post</span> <span aria-hidden="true">+</span></button></div>
         </section>
         <section id="privateSpaceGate" class="private-space-gate" hidden>
           <div class="private-space-dialog-icon" aria-hidden="true">◐</div>
@@ -149,6 +151,29 @@
         </div>
       </section>
 
+      <section id="messagesView" class="view space-messages-view" hidden>
+        <header class="messages-header"><a id="messagesBack" href="/" aria-label="Back to space">←</a><div id="messagesSpaceVisual" class="messages-space-visual">A</div><div><span class="mini-kicker" id="messagesSpacePath">a/space</span><h1 id="messagesSpaceTitle" data-en="Space messages" data-ar="رسائل المساحة">Space messages</h1><p data-en="Live conversation for connected members" data-ar="محادثة مباشرة للأعضاء المتصلين">Live conversation for connected members</p></div><button id="messagesTopTab" class="messages-top-tab" type="button">✦ Top</button><button id="messagesOnline" class="messages-online" type="button" hidden aria-live="polite"></button></header>
+        <section id="messagesGate" class="messages-gate" hidden></section>
+        <section id="messagesPanel" class="messages-panel" hidden>
+          <div id="messagesList" class="messages-list" aria-live="polite"><div class="post-skeleton short"></div></div>
+          <div id="messageReplyPreview" class="message-reply-preview" hidden><div><small data-en="Replying to" data-ar="الرد على">Replying to</small><strong id="messageReplyName"></strong><span id="messageReplyText"></span></div><button id="messageReplyCancel" type="button" aria-label="Cancel reply">×</button></div>
+          <div id="messageImagePreview" class="message-image-preview" hidden><img id="messageImagePreviewImage" alt=""><div><strong data-en="Photo ready" data-ar="الصورة جاهزة">Photo ready</strong><span id="messageUploadStatus"></span></div><button id="messageImageRemove" type="button" aria-label="Remove image">×</button></div>
+          <div id="messageVoicePreview" class="message-voice-preview" hidden><audio id="messageVoicePreviewAudio" controls preload="metadata"></audio><div><strong data-en="Voice message ready" data-ar="الرسالة الصوتية جاهزة">Voice message ready</strong><span id="messageVoiceStatus"></span></div><button id="messageVoiceRemove" type="button" aria-label="Remove voice message">×</button></div>
+          <form id="messageForm" class="message-composer"><label class="message-image-picker" for="messageImageInput" aria-label="Add image"><span aria-hidden="true">▧</span><input id="messageImageInput" type="file" accept="image/jpeg,image/png,image/webp"></label><button id="messageVoiceRecord" class="message-voice-record" type="button" aria-label="Record voice message"><span aria-hidden="true">●</span></button><textarea id="messageText" class="mention-input" maxlength="2000" rows="1" autocomplete="off" aria-autocomplete="list" aria-label="Write a message. Type @ to tag a chat member." placeholder="Write a message… Type @ to tag" data-en="Write a message… Type @ to tag" data-ar="اكتب رسالة… استخدم @ للإشارة"></textarea><button type="submit"><span data-en="Send" data-ar="إرسال">Send</span> <b aria-hidden="true">↑</b></button></form>
+        </section>
+      </section>
+
+      <section id="chatsView" class="view" hidden>
+        <header class="section-heading chat-inbox-heading">
+          <a href="/" data-route="home" aria-label="Back to community">←</a>
+          <div><h1 data-en="Messages" data-ar="الرسائل">Messages</h1><p data-en="Your space conversations" data-ar="محادثات مساحاتك">Your space conversations</p></div>
+          <span class="chat-inbox-presence" title="Live conversations"><i></i><span data-en="Live" data-ar="مباشر">Live</span></span>
+        </header>
+        <div id="chatInboxGate"></div>
+        <label class="chat-inbox-search" for="chatInboxSearch"><span aria-hidden="true">⌕</span><input id="chatInboxSearch" type="search" autocomplete="off" placeholder="Search Messages" data-en="Search Messages" data-ar="البحث في الرسائل"></label>
+        <section id="chatInboxList" class="chat-inbox-list" aria-live="polite"></section>
+      </section>
+
       <section id="spacesView" class="view" hidden>
         <header class="section-heading space-directory-heading">
           <a href="/" data-route="home" aria-label="Back to community">←</a>
@@ -158,9 +183,12 @@
         <section class="space-directory-tools" aria-label="Find community spaces" data-aria-en="Find community spaces" data-aria-ar="البحث عن مساحات المجتمع">
           <label class="space-directory-search" for="spaceDirectorySearch"><span aria-hidden="true">⌕</span><input id="spaceDirectorySearch" type="search" autocomplete="off" placeholder="Search by space name, handle, or topic" data-en="Search by space name, handle, or topic" data-ar="ابحث باسم المساحة أو المعرّف أو الموضوع"></label>
           <div class="space-directory-sort" role="group" aria-label="Sort spaces" data-aria-en="Sort spaces" data-aria-ar="ترتيب المساحات"><button class="active" type="button" data-space-sort="popular" data-en="Popular" data-ar="الرائجة">Popular</button><button type="button" data-space-sort="new" data-en="New" data-ar="الجديدة">New</button></div>
+          <div class="space-directory-filter" role="group" aria-label="Filter spaces" data-aria-en="Filter spaces" data-aria-ar="تصفية المساحات"><button class="active" type="button" data-space-filter="all" data-en="All" data-ar="الكل">All</button><button type="button" data-space-filter="public" data-en="Public" data-ar="عامة">Public</button><button type="button" data-space-filter="private" data-en="Private" data-ar="خاصة">Private</button></div>
+          <div class="space-directory-view" role="group" aria-label="Choose view" data-aria-en="Choose view" data-aria-ar="اختر طريقة العرض"><button class="active" type="button" data-space-view="grid" aria-label="Grid view" data-aria-en="Grid view" data-aria-ar="عرض شبكي" aria-pressed="true">▦</button><button type="button" data-space-view="list" aria-label="List view" data-aria-en="List view" data-aria-ar="عرض قائمة" aria-pressed="false">☷</button></div>
         </section>
         <div class="space-directory-meta"><strong id="spaceDirectoryCount"></strong><span data-en="Open a space to see its posts and questions." data-ar="افتح مساحة لعرض منشوراتها وأسئلتها.">Open a space to see its posts and questions.</span></div>
         <section id="spaceDirectoryGrid" class="space-directory-grid" aria-live="polite"><div class="post-skeleton"></div><div class="post-skeleton short"></div></section>
+        <nav id="spaceDirectoryPagination" class="space-directory-pagination" aria-label="Spaces pages" data-aria-en="Spaces pages" data-aria-ar="صفحات المساحات" hidden></nav>
       </section>
 
       <section id="selectedView" class="view" hidden>
@@ -252,6 +280,7 @@
               <textarea id="spaceDescription" required minlength="10" maxlength="360" placeholder="Describe the topic and help members understand what to share here." data-en="Describe the topic and help members understand what to share here." data-ar="صِف الموضوع وساعد الأعضاء على فهم ما يمكن مشاركته هنا."></textarea>
             </div>
             <div class="form-group"><label><input id="spaceIsPrivate" type="checkbox"> <span data-en="Private space — members must request approval to connect" data-ar="مساحة خاصة — يجب أن يطلب الأعضاء الموافقة للاتصال">Private space — members must request approval to connect</span></label></div>
+            <div class="form-group"><label><input id="spaceIsViewOnly" type="checkbox"> <span data-en="View only — everyone can view, comment, and vote; posting, connection, and Messages require admin approval" data-ar="للعرض فقط — يمكن للجميع المشاهدة والتعليق والتصويت؛ ويتطلب النشر والاتصال والرسائل موافقة المشرف">View only — everyone can view, comment, and vote; posting, connection, and Messages require admin approval</span></label></div>
             <div class="form-group"><label><input id="spaceShowInMainThread" type="checkbox" checked> <span data-en="Show this space's posts in the main thread" data-ar="إظهار منشورات هذه المساحة في المسار الرئيسي">Show this space's posts in the main thread</span></label></div>
             <footer class="composer-footer"><p id="spaceStatus" class="form-status" aria-live="polite"></p><button class="primary-button" type="submit"><span data-en="Create space" data-ar="إنشاء المساحة">Create space</span><b aria-hidden="true">→</b></button></footer>
           </form>
@@ -290,7 +319,7 @@
       </section>
 
       <section id="manage-spacesView" class="view" hidden>
-        <header class="section-heading"><a href="/" data-route="home" aria-label="Back to community">←</a><div><span class="eyebrow"><i></i> <span data-en="SPACE ADMINISTRATION" data-ar="إدارة المساحات">SPACE ADMINISTRATION</span></span><h1 data-en="Manage my spaces" data-ar="إدارة مساحاتي">Manage my spaces</h1><p data-en="Control privacy, main-thread visibility, and membership requests for every space you own." data-ar="تحكم بالخصوصية وظهور منشورات المسار الرئيسي وطلبات العضوية لكل مساحة تملكها.">Control privacy, main-thread visibility, and membership requests for every space you own.</p></div></header>
+        <header class="section-heading"><a href="/" data-route="home" aria-label="Back to community">←</a><div><span class="eyebrow"><i></i> <span data-en="SPACE ADMINISTRATION" data-ar="إدارة المساحات">SPACE ADMINISTRATION</span></span><h1 data-en="Manage my spaces" data-ar="إدارة مساحاتي">Manage my spaces</h1><p data-en="Control privacy, View-only mode, main-thread visibility, and membership requests for every space you manage." data-ar="تحكم بالخصوصية ووضع العرض فقط وظهور منشورات المسار الرئيسي وطلبات العضوية لكل مساحة تديرها.">Control privacy, View-only mode, main-thread visibility, and membership requests for every space you manage.</p></div></header>
         <div id="manageSpacesGate"></div><section id="manageSpacesList" class="connections-list" aria-live="polite"></section>
       </section>
     </section>
@@ -324,9 +353,15 @@
     <a class="active" href="/" data-route="home"><span aria-hidden="true">⌂</span><small data-en="Home" data-ar="الرئيسية">Home</small></a>
     <a href="/?view=spaces" id="mobileSpacesLink" data-route="spaces"><span aria-hidden="true">◇</span><small data-en="Spaces" data-ar="المساحات">Spaces</small></a>
     <a class="mobile-create" href="/?view=post" data-route="post"><span aria-hidden="true">+</span><small data-en="Create" data-ar="إنشاء">Create</small></a>
-    <a href="/?view=profile" data-route="profile"><span aria-hidden="true">◉</span><small data-en="Profile" data-ar="الملف">Profile</small></a>
-    <a href="https://www.aiasbsr.com/"><span aria-hidden="true">←</span><small data-en="Website" data-ar="الموقع">Website</small></a>
+    <a href="/?view=profile" id="mobileProfileAction" data-route="profile" aria-label="Open profile. Press and hold to manage account."><span id="mobileProfileAvatar" aria-hidden="true">◉</span><small data-en="Profile" data-ar="الملف">Profile</small></a>
+    <a href="/?view=chats" data-route="chats"><span aria-hidden="true">◯</span><small data-en="Messages" data-ar="الرسائل">Messages</small></a>
   </nav>
+
+  <dialog id="accountSwitchDialog" class="account-switch-dialog" aria-labelledby="accountSwitchTitle">
+    <header><div><span class="mini-kicker" data-en="ACCOUNT" data-ar="الحساب">ACCOUNT</span><h2 id="accountSwitchTitle" data-en="Signed-in account" data-ar="الحساب المسجّل">Signed-in account</h2></div><button id="accountSwitchClose" type="button" aria-label="Close">×</button></header>
+    <div id="accountSwitchList"></div>
+    <button id="accountSwitchAdd" class="secondary-button" type="button" data-en="Sign in with another account" data-ar="سجّل الدخول بحساب آخر">Sign in with another account</button>
+  </dialog>
 
   <div id="commentsOverlay" class="comments-overlay" hidden>
     <button class="comments-backdrop" type="button" data-close-comments aria-label="Close comments"></button>
@@ -368,17 +403,33 @@
       <section class="space-settings-panel" aria-label="Space settings" data-aria-en="Space settings" data-aria-ar="إعدادات المساحة">
         <div class="space-settings-head"><div><span class="mini-kicker" data-en="SPACE SETTINGS" data-ar="إعدادات المساحة">SPACE SETTINGS</span><h3 data-en="Privacy & visibility" data-ar="الخصوصية والظهور">Privacy & visibility</h3></div><span class="space-settings-icon" aria-hidden="true">⚙</span></div>
         <label class="space-setting-toggle" for="spaceEditIsPrivate"><span class="space-setting-icon" aria-hidden="true">◐</span><span class="space-setting-copy"><strong data-en="Private space" data-ar="مساحة خاصة">Private space</strong><small data-en="Members send a request; you approve or deny it." data-ar="يرسل الأعضاء طلباً، ثم توافق عليه أو ترفضه.">Members send a request; you approve or deny it.</small></span><span class="toggle-control"><input id="spaceEditIsPrivate" type="checkbox"><i aria-hidden="true"></i></span></label>
+        <label class="space-setting-toggle" for="spaceEditIsViewOnly"><span class="space-setting-icon" aria-hidden="true">◎</span><span class="space-setting-copy"><strong data-en="View only" data-ar="للعرض فقط">View only</strong><small data-en="Anyone can read, comment, and vote. Only approved members can post or open Messages." data-ar="يمكن للجميع القراءة والتعليق والتصويت. يمكن للأعضاء الموافق عليهم فقط النشر أو فتح الرسائل.">Anyone can read, comment, and vote. Only approved members can post or open Messages.</small></span><span class="toggle-control"><input id="spaceEditIsViewOnly" type="checkbox"><i aria-hidden="true"></i></span></label>
         <label class="space-setting-toggle" for="spaceEditShowInMainThread"><span class="space-setting-icon" aria-hidden="true">⌁</span><span class="space-setting-copy"><strong data-en="Show posts in the main thread" data-ar="إظهار المنشورات في المسار الرئيسي">Show posts in the main thread</strong><small data-en="Turn this off to keep this space's posts in its own feed." data-ar="عطّل هذا الخيار لإبقاء منشورات المساحة في خلاصتها الخاصة.">Turn this off to keep this space's posts in its own feed.</small></span><span class="toggle-control"><input id="spaceEditShowInMainThread" type="checkbox"><i aria-hidden="true"></i></span></label>
-        <p class="space-settings-note"><span aria-hidden="true">✦</span> <span data-en="Private-space posts always stay out of the main thread." data-ar="منشورات المساحات الخاصة لا تظهر أبداً في المسار الرئيسي.">Private-space posts always stay out of the main thread.</span></p>
+        <p class="space-settings-note"><span aria-hidden="true">✦</span> <span data-en="Private-space posts stay out of the main thread. View-only spaces may appear there." data-ar="لا تظهر منشورات المساحات الخاصة في المسار الرئيسي، بينما يمكن أن تظهر مساحات العرض فقط فيه.">Private-space posts stay out of the main thread. View-only spaces may appear there.</span></p>
       </section>
       <p id="spaceEditStatus" class="form-status" aria-live="polite"></p>
       <section class="space-danger-zone"><div><strong data-en="Delete this space" data-ar="حذف هذه المساحة">Delete this space</strong><small data-en="Its posts remain safely available in the main community feed." data-ar="ستبقى منشوراتها متاحة بأمان في الخلاصة الرئيسية للمجتمع.">Its posts remain safely available in the main community feed.</small></div><button id="deleteOwnedSpace" type="button" data-en="Delete space" data-ar="حذف المساحة">Delete space</button></section>
       <footer><button id="spaceEditCancel" class="secondary-button" type="button" data-en="Cancel" data-ar="إلغاء">Cancel</button><button class="primary-button" type="submit"><span data-en="Save space" data-ar="حفظ المساحة">Save space</span><b aria-hidden="true">→</b></button></footer>
     </form>
   </dialog>
+  <dialog id="postShareDialog" class="post-edit-dialog post-share-dialog" aria-labelledby="postShareTitle">
+    <div class="post-share-shell"><header><div><span class="mini-kicker" data-en="SHARE POST" data-ar="مشاركة المنشور">SHARE POST</span><h2 id="postShareTitle" data-en="Send to space messages" data-ar="إرسال إلى رسائل مساحة">Send to space messages</h2></div><button id="postShareClose" type="button" aria-label="Close">×</button></header><p id="postShareName"></p><div id="postShareSpaces" class="post-share-spaces"></div><button id="postShareExternal" class="secondary-button" type="button"><span data-en="Share outside the Community" data-ar="مشاركة خارج المجتمع">Share outside the Community</span> <b aria-hidden="true">↗</b></button></div>
+  </dialog>
+  <dialog id="messageViewersDialog" class="post-edit-dialog message-viewers-dialog" aria-labelledby="messageViewersTitle">
+    <div class="post-share-shell"><header><div><span class="mini-kicker" data-en="READ RECEIPTS" data-ar="إيصالات القراءة">READ RECEIPTS</span><h2 id="messageViewersTitle" data-en="Seen by" data-ar="شاهده">Seen by</h2></div><button id="messageViewersClose" type="button" aria-label="Close">×</button></header><div id="messageViewersList" class="message-viewers-list"></div></div>
+  </dialog>
+  <dialog id="chatOnlineDialog" class="post-edit-dialog message-viewers-dialog" aria-labelledby="chatOnlineTitle">
+    <div class="post-share-shell"><header><div><span class="mini-kicker" data-en="LIVE NOW" data-ar="متصلون الآن">LIVE NOW</span><h2 id="chatOnlineTitle" data-en="Online members" data-ar="الأعضاء المتصلون">Online members</h2></div><button id="chatOnlineClose" type="button" aria-label="Close">×</button></header><div id="chatOnlineList" class="message-viewers-list"></div></div>
+  </dialog>
+  <dialog id="messageReactionDialog" class="message-reaction-dialog" aria-labelledby="messageReactionTitle">
+    <div><header><div><strong id="messageReactionTitle" data-en="React to message" data-ar="تفاعل مع الرسالة">React to message</strong><small id="messageReactionHint"></small></div><button id="messageReactionClose" type="button" aria-label="Close">×</button></header><div id="messageReactionPicker" class="message-reaction-picker"></div></div>
+  </dialog>
+  <dialog id="messageReactorsDialog" class="post-edit-dialog message-viewers-dialog" aria-labelledby="messageReactorsTitle">
+    <div class="post-share-shell"><header><div><span class="mini-kicker" data-en="MESSAGE REACTIONS" data-ar="تفاعلات الرسالة">MESSAGE REACTIONS</span><h2 id="messageReactorsTitle" data-en="Reactions" data-ar="التفاعلات">Reactions</h2></div><button id="messageReactorsClose" type="button" aria-label="Close">×</button></header><div id="messageReactorsList" class="message-viewers-list"></div></div>
+  </dialog>
   <div id="communityToast" class="community-toast" role="status" aria-live="polite"></div>
 
   <script src="/js/app-open-prompt.js?v=20260813-download-page-v3" defer></script>
-  <script type="module" src="js/community.js?v=20260813-space-privacy-v3"></script>
+  <script type="module" src="js/community.js?v=20260814-mobile-disconnect-v4"></script>
 </body>
 </html>

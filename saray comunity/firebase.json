@@ -18,7 +18,17 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "downloads/AIAS-Basra-Community-1.9-release.apk",
+      "downloads/AIAS-Basra-Community-2.0-release.apk",
+      "downloads/AIAS-Basra-Community-2.1-release.apk",
+        "downloads/AIAS-Basra-Community-2.2-release.apk",
+        "downloads/AIAS-Basra-Community-2.3-release.apk",
+        "downloads/AIAS-Basra-Community-2.4-release.apk",
+        "downloads/AIAS-Basra-Community-2.5-release.apk",
+        "downloads/AIAS-Basra-Community-2.6-release.apk",
+        "downloads/AIAS-Basra-Community-2.7-release.apk",
+        "downloads/AIAS-Basra-Community-2.8-release.apk"
     ],
     "rewrites": [
       {
@@ -37,6 +47,33 @@
       }
     ],
     "headers": [
+      {
+        "source": "/index.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "/js/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "/css/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
       {
         "source": "/downloads/**",
         "headers": [
@@ -84,6 +121,10 @@
     },
     "functions": {
       "port": 5001
+    },
+    "storage": {
+      "host": "127.0.0.1",
+      "port": 9199
     },
     "hosting": {
       "port": 5000

@@ -1,24 +1,125 @@
 import {onAuthStateChanged, signOut} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import {collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, limit, orderBy, onSnapshot, writeBatch, runTransaction, serverTimestamp} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import {collection, doc, getDoc, getDocFromCache, getDocs, getDocsFromCache, addDoc, setDoc, updateDoc, deleteDoc, query, where, limit, orderBy, startAfter, onSnapshot, writeBatch, runTransaction, serverTimestamp} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { getMessaging, getToken, isSupported } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js';
-import {deleteObject, getDownloadURL, ref as storageRef, uploadString} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
-import {app, auth, db, storage, callFunction} from './firebase-client.js';
+import {deleteObject, getBlob, getDownloadURL, ref as storageRef, uploadBytesResumable, uploadString} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+import {app, auth, db, storage, callFunction} from './firebase-client.js?v=20260813-chat-seen-v1';
 
 // Set this to the public Web Push certificate from the space-42d87 Firebase
 // console when a custom VAPID key is enabled. Without it, Firebase Messaging
 // uses the project's default web-push credentials.
 const FCM_VAPID_KEY = '';
 const profileCache = new Map();
+const protectedMediaUrls = new Map();
 let currentUser = null;
 let currentProfile = null;
 
-const getReadablePosts = () => getDocs(query(collection(db, 'communityPosts'), where('archived', '==', false)));
-const getReadableSpaces = () => getDocs(query(collection(db, 'communitySpaces'), where('archived', '==', false)));
+const SMART_CACHE_PREFIX = 'aias-community-cache-v2:';
+const SMART_CACHE_TTL = 90 * 1000;
+const smartSnapshots = new Map();
+const smartRefreshes = new Map();
+
+function smartCacheCheckedAt(key) {
+  try { return Number(localStorage.getItem(SMART_CACHE_PREFIX + key)) || 0; } catch { return 0; }
+}
+
+function markSmartCacheChecked(key) {
+  try { localStorage.setItem(SMART_CACHE_PREFIX + key, String(Date.now())); } catch {}
+}
+
+function invalidateSmartData(...prefixes) {
+  [...smartSnapshots.keys()].forEach(key => {
+    if (prefixes.some(prefix => key.startsWith(prefix))) smartSnapshots.delete(key);
+  });
+  try {
+    for (let index = localStorage.length - 1; index >= 0; index -= 1) {
+      const storageKey = localStorage.key(index) || '';
+      const dataKey = storageKey.startsWith(SMART_CACHE_PREFIX) ? storageKey.slice(SMART_CACHE_PREFIX.length) : '';
+      if (prefixes.some(prefix => dataKey.startsWith(prefix))) localStorage.removeItem(storageKey);
+    }
+  } catch {}
+}
+
+async function refreshSmartQuery(key, sourceQuery, notify = false) {
+  if (smartRefreshes.has(key)) return smartRefreshes.get(key);
+  const refresh = getDocs(sourceQuery).then(snapshot => {
+    smartSnapshots.set(key, snapshot);
+    markSmartCacheChecked(key);
+    if (notify) window.dispatchEvent(new CustomEvent('community-smart-refresh', {detail:{key}}));
+    return snapshot;
+  }).finally(() => smartRefreshes.delete(key));
+  smartRefreshes.set(key, refresh);
+  return refresh;
+}
+
+async function smartQuery(key, sourceQuery, maxAge = SMART_CACHE_TTL) {
+  if (smartSnapshots.has(key)) return smartSnapshots.get(key);
+  let cached = null;
+  try { cached = await getDocsFromCache(sourceQuery); } catch {}
+  const checkedAt = smartCacheCheckedAt(key);
+  if (checkedAt && cached) {
+    smartSnapshots.set(key, cached);
+    if (Date.now() - checkedAt > maxAge) refreshSmartQuery(key, sourceQuery, true).catch(error => console.warn('[Community] Background refresh failed.', key, error));
+    return cached;
+  }
+  return refreshSmartQuery(key, sourceQuery, false);
+}
+
+async function smartDocument(key, reference, maxAge = SMART_CACHE_TTL) {
+  if (smartSnapshots.has(key)) return smartSnapshots.get(key);
+  let cached = null;
+  try { cached = await getDocFromCache(reference); } catch {}
+  const checkedAt = smartCacheCheckedAt(key);
+  if (checkedAt && cached) {
+    smartSnapshots.set(key, cached);
+    if (Date.now() - checkedAt > maxAge && !smartRefreshes.has(key)) {
+      const refresh = getDoc(reference).then(snapshot => {
+        smartSnapshots.set(key, snapshot);
+        markSmartCacheChecked(key);
+        return snapshot;
+      }).catch(error => { console.warn('[Community] Background document refresh failed.', key, error); return cached; })
+        .finally(() => smartRefreshes.delete(key));
+      smartRefreshes.set(key, refresh);
+    }
+    return cached;
+  }
+  const snapshot = await getDoc(reference);
+  smartSnapshots.set(key, snapshot);
+  markSmartCacheChecked(key);
+  return snapshot;
+}
+
+const readablePostsQuery = query(collection(db, 'communityPosts'), where('archived', '==', false), where('published', '==', true), where('moderationStatus', '==', 'clear'), where('visibility', '==', 'public'));
+const readableSpacesQuery = query(collection(db, 'communitySpaces'), where('archived', '==', false));
+const getReadablePosts = () => smartQuery('posts:all', readablePostsQuery, 4 * 60 * 1000);
+const getReadableSpaces = () => smartQuery('spaces:active', readableSpacesQuery, 2 * 60 * 1000);
+async function getFeedPosts(slug) {
+  const optimizedQuery = slug
+    ? query(collection(db, 'communityPosts'), where('archived', '==', false), where('published', '==', true), where('moderationStatus', '==', 'clear'), where('communitySlug', '==', slug), orderBy('createdAt', 'desc'), limit(36))
+    : query(collection(db, 'communityPosts'), where('archived', '==', false), where('published', '==', true), where('moderationStatus', '==', 'clear'), where('visibility', '==', 'public'), orderBy('createdAt', 'desc'), limit(48));
+  const key = slug ? 'posts:space:' + slug : 'posts:feed';
+  if (feedListenerKey !== key) {
+    unsubscribeFeed?.();
+    feedListenerKey = key;
+    let initial = true;
+    feedInitialSnapshot = new Promise((resolve, reject) => {
+      unsubscribeFeed = onSnapshot(optimizedQuery, snapshot => {
+        smartSnapshots.set(key, snapshot);
+        markSmartCacheChecked(key);
+        if (initial) { initial = false; resolve(snapshot); }
+        else window.dispatchEvent(new CustomEvent('community-smart-refresh', {detail:{key}}));
+      }, reject);
+    });
+  }
+  return feedInitialSnapshot;
+}
 let communitySort = ['latest','smart','upvoted'].includes(localStorage.getItem('communitySort')) ? localStorage.getItem('communitySort') : 'latest';
 let communityType = ['both','text','question','behance'].includes(localStorage.getItem('communityType')) ? localStorage.getItem('communityType') : 'both';
 let activeCommentsPostId = null;
 let toastTimer = null;
 let routeSequence = 0;
+let postPaintSequence = 0;
+let feedVisibleLimit = 18;
+let lastFeedScope = '';
 let activeAreaSlug = null;
 let communityAreas = {};
 let communityDataReady = null;
@@ -35,6 +136,10 @@ let activeProfilePosts = [];
 let loadedProfilePostsFor = null;
 let activeEditPostId = null;
 let spaceDirectorySort = 'popular';
+let spaceDirectoryFilter = 'all';
+let spaceDirectoryView = localStorage.getItem('spaceDirectoryView') === 'list' ? 'list' : 'grid';
+let spaceDirectoryPage = 1;
+const SPACE_DIRECTORY_PAGE_SIZE = 24;
 let spaceDirectoryItems = [];
 let popularSpaceStats = new Map();
 let railSpacesExpanded = false;
@@ -49,11 +154,20 @@ let editSpaceMediaBusy = 0;
 let feedMode = 'following';
 let connectedUserIds = new Set();
 let connectedSpaceSlugs = new Set();
+let chatApprovedSpaceSlugs = new Set();
+let blockedSpaceSlugs = new Set();
 let managedSpaceSlugs = new Set();
+let expandedManagedSpaceSlugs = new Set();
+let managedSpacesAccordionReady = false;
 let activeProfileId = null;
 let profileConnectionActive = false;
 let activeAreaConnection = false;
 let unsubscribeNotifications = null;
+let unsubscribeCurrentProfile = null;
+let unsubscribeFeed = null;
+let feedListenerKey = '';
+let feedInitialSnapshot = null;
+let unsubscribeComments = null;
 let notificationItems = [];
 let notificationSnapshotReady = false;
 let notificationServiceWorkerReady = null;
@@ -63,6 +177,45 @@ let connectionPeopleItems = [];
 let connectionSpaceItems = [];
 let activeImagePost = null;
 let activeImageIndex = 0;
+let unsubscribeSpaceMessages = null;
+let unsubscribeSpaceAccess = null;
+let unsubscribeAreaAccess = null;
+let unsubscribeAreaChatRequest = null;
+let unsubscribeSpaceMessageReads = null;
+let activeMessageReply = null;
+let activeMessageImage = null;
+let activeMessageVoice = null;
+let messageMediaRecorder = null;
+let messageVoiceTimer = null;
+let activeSharePost = null;
+const sharedPostCache = new Map();
+const chatImageUrls = new Map();
+let activeSpaceMessages = [];
+let liveSpaceMessages = [];
+let olderSpaceMessages = [];
+let activeSpaceMessageReads = [];
+let activeMessagesSpace = null;
+let lastSeenMessageMarked = '';
+let unsubscribeSpaceChatPresence = null;
+let chatPresenceTimer = null;
+let activeChatPresence = [];
+let showTopApplaudedMessages = false;
+let activeReactionMessageId = '';
+const CHAT_REACTION_EMOJIS = ['❤️','😂','😮','😢','🔥','👏'];
+const CHAT_REACTION_LABELS = Object.freeze({
+  '❤️':['Love','أحببته'],
+  '😂':['Funny','مضحك'],
+  '😮':['Wow','واو'],
+  '😢':['Sad','حزين'],
+  '🔥':['Fire','رائع'],
+  '👏':['Applause','تصفيق']
+});
+const activeMessageReactions = new Map();
+let chatInboxPresenceUnsubscribers = [];
+let oldestSpaceMessageCursor = null;
+let loadingOlderSpaceMessages = false;
+let hasOlderSpaceMessages = true;
+let spaceMessagePaintVersion = 0;
 let postImages = [];
 let communitySplashDismissed = false;
 let mentionMenu = null;
@@ -71,10 +224,14 @@ let mentionMenuRange = null;
 let mentionMenuItems = [];
 let mentionMenuIndex = 0;
 let mentionMenuSequence = 0;
+const chatMentionIndexCache = new Map();
 const POST_IMAGE_MAX_BYTES = 10 * 1024 * 1024;
 const POST_IMAGE_CHUNK_SIZE = 700000;
 const POST_IMAGE_MAX_COUNT = 6;
 const POST_IMAGE_MAX_CHUNKS = 72;
+const CHAT_IMAGE_MAX_BYTES = 8 * 1024 * 1024;
+const CHAT_AUDIO_MAX_BYTES = 12 * 1024 * 1024;
+const CHAT_AUDIO_MAX_MS = 5 * 60 * 1000;
 
 const $ = id => document.getElementById(id);
 const escapeHtml = value => String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -353,14 +510,15 @@ async function openMentionMenu(input) {
   if (!range) return closeMentionMenu();
   const sequence = ++mentionMenuSequence;
   let index;
-  try { index = await loadCommunitySearchIndex(); }
+  try { index = input.id === 'messageText' ? await loadChatMentionIndex(activeMessagesSpace) : await loadCommunitySearchIndex(); }
   catch { return closeMentionMenu(); }
   if (sequence !== mentionMenuSequence || document.activeElement !== input) return;
   const raw = range.query;
-  const spaceOnly = raw.startsWith('a/');
+  const chatOnly = input.id === 'messageText';
+  const spaceOnly = !chatOnly && raw.startsWith('a/');
   const queryText = normalizeSearchText(raw.replace(/^a\//, ''));
   const candidates = index
-    .filter(item => (item.kind === 'member' || item.kind === 'space') && (!spaceOnly || item.kind === 'space'))
+    .filter(item => (item.kind === 'member' || item.kind === 'space') && (!chatOnly || item.kind === 'member') && (!spaceOnly || item.kind === 'space'))
     .map(item => ({...item, mentionScore:queryText ? searchResultScore(item, (item.kind === 'member' ? '@' : 'a/') + queryText) : (item.kind === 'member' ? 8 : 7)}))
     .filter(item => item.mentionScore >= 0)
     .sort((left, right) => right.mentionScore - left.mentionScore || right.sortTime - left.sortTime)
@@ -377,8 +535,9 @@ async function openMentionMenu(input) {
   mentionMenu.setAttribute('role', 'listbox');
   mentionMenu.innerHTML = candidates.map((item, itemIndex) => {
     const handle = item.kind === 'space' ? '@a/' + item.handle : '@' + item.handle;
-    const kind = item.kind === 'space' ? tr('Space','مساحة') : tr('Person','شخص');
-    return '<button id="mention-option-' + itemIndex + '" type="button" role="option" data-mention-option="' + itemIndex + '"><span class="mention-option-icon ' + item.kind + '">' + escapeHtml(item.icon) + '</span><span><strong>' + escapeHtml(item.title) + '</strong><small>' + escapeHtml(handle) + ' · ' + kind + '</small></span></button>';
+    const kind = item.kind === 'space' ? tr('Space','مساحة') : input.id === 'messageText' ? tr('Chat member','عضو في الدردشة') : tr('Person','شخص');
+    const visual = item.photo ? '<img src="' + escapeHtml(item.photo) + '" alt="">' : escapeHtml(item.icon);
+    return '<button id="mention-option-' + itemIndex + '" type="button" role="option" data-mention-option="' + itemIndex + '"><span class="mention-option-icon ' + item.kind + '">' + visual + '</span><span><strong>' + escapeHtml(item.title) + '</strong><small>' + escapeHtml(handle) + ' · ' + kind + '</small></span></button>';
   }).join('');
   document.body.appendChild(mentionMenu);
   input.setAttribute('aria-controls', mentionMenu.id);
@@ -390,6 +549,28 @@ async function openMentionMenu(input) {
   });
   positionMentionMenu();
   paintMentionMenu();
+}
+
+async function loadChatMentionIndex(space) {
+  if (!space?.slug) return [];
+  const cached = chatMentionIndexCache.get(space.slug);
+  if (cached && Date.now() - cached.loadedAt < 45000) return cached.items;
+  const [connections, admins] = await Promise.all([
+    getDocs(collection(db, 'communitySpaces', space.slug, 'connections')),
+    getDocs(collection(db, 'communitySpaces', space.slug, 'admins')).catch(() => null)
+  ]);
+  const ids = new Set(connections.docs.map(item => item.data().userId || item.id).filter(Boolean));
+  admins?.docs.forEach(item => ids.add(item.data().userId || item.id));
+  if (space.creatorId) ids.add(space.creatorId);
+  if (currentUser?.uid) ids.add(currentUser.uid);
+  const profiles = await Promise.all([...ids].map(async id => ({id, profile:await getProfile(id)})));
+  const items = profiles.filter(({profile}) => profile.username).map(({id, profile}) => ({
+    kind:'member', id, title:profile.displayName || '@' + profile.username, handle:profile.username,
+    searchText:[profile.username, profile.displayName].join(' '), icon:initials(profile.displayName || profile.username),
+    photo:profile.photoBase64 || profile.photoURL || '', sortTime:profile.updatedAt?.seconds || 0
+  }));
+  chatMentionIndexCache.set(space.slug, {loadedAt:Date.now(), items});
+  return items;
 }
 
 function notificationKey(type, postId, actorId, detailId = '') {
@@ -475,12 +656,15 @@ function notificationCopy(item) {
   if (item.type === 'space_post_deleted') return tr(' deleted your space post',' حذف منشورك في المساحة');
   if (item.type === 'space_member_warned') return tr(' sent you a space warning',' أرسل إليك تحذيراً في المساحة');
   if (item.type === 'space_member_removed') return tr(' removed you from a space',' أزالك من المساحة');
+  if (item.type === 'space_chat_removed') return tr(' removed you from space messages',' أزالك من رسائل المساحة');
+  if (item.type === 'space_message') return tr(' mentioned or replied to you in space messages',' أشار إليك أو رد عليك في رسائل المساحة');
   if (item.type === 'space_post') return tr(' posted in your space',' نشر في مساحتك');
   if (item.type === 'mention') return tr(' mentioned you',' أشار إليك');
   if (item.type === 'space_mention') return tr(' mentioned your space',' أشار إلى مساحتك');
   if (item.type === 'connection') return tr(' connected with you',' تواصل معك');
   if (item.type === 'space_connection') return tr(' connected with your space',' تواصل مع مساحتك');
   if (item.type === 'space_request') return tr(' requested access to your space',' طلب الوصول إلى مساحتك');
+  if (item.type === 'space_chat_request') return tr(' requested Messages access for your space',' طلب الوصول إلى رسائل مساحتك');
   if (item.type === 'reply') return tr(' replied to your comment',' ردّ على تعليقك');
   if (item.type === 'applause') return tr(' applauded your post',' صفّق لمنشورك');
   return tr(' commented on your post',' علّق على منشورك');
@@ -495,8 +679,10 @@ function renderNotifications() {
     ? notificationItems.map(item => {
       const targetUrl = item.type === 'connection'
         ? profileUrl(item.actorId, item.actorUsername)
-        : ['space_connection','space_request','space_member_warned','space_member_removed','space_post_deleted'].includes(item.type)
-          ? areaUrl(item.detailId)
+        : ['space_message'].includes(item.type)
+          ? '/?view=messages&area=' + encodeURIComponent(item.detailId)
+          : ['space_connection','space_request','space_chat_request','space_member_warned','space_member_removed','space_post_deleted','space_chat_removed'].includes(item.type)
+            ? areaUrl(item.detailId)
           : '/?post=' + encodeURIComponent(item.postId) + '&comments=1';
       const symbol = item.type === 'connection' ? '◎' : item.type === 'space_connection' ? '#' : item.type === 'space_request' ? '◐' : item.type === 'reply' ? '↩' : item.type === 'applause' ? '✦' : '◯';
       return '<button class="notification-item' + (item.read ? '' : ' unread') + '" type="button" data-notification-id="' + escapeHtml(item.id) + '" data-notification-url="' + escapeHtml(targetUrl) + '"><span class="notification-symbol" aria-hidden="true">' + symbol + '</span><span><strong>' + escapeHtml(item.actorName || tr('Member','عضو')) + notificationCopy(item) + '</strong><small>' + escapeHtml(item.postTitle || tr('Community post','منشور المجتمع')) + ' · ' + escapeHtml(formatDate(item.createdAt)) + '</small></span><i aria-hidden="true"></i></button>';
@@ -593,7 +779,7 @@ async function registerPushSubscription() {
 
 async function showBrowserNotification(item) {
   if (!item || item.read || !('Notification' in window) || Notification.permission !== 'granted') return;
-  const target = item.type === 'connection' ? profileUrl(item.actorId, item.actorUsername) : item.type === 'space_connection' || item.type === 'space_request' ? areaUrl(item.detailId) : '/?post=' + encodeURIComponent(item.postId) + '&comments=1';
+  const target = item.type === 'connection' ? profileUrl(item.actorId, item.actorUsername) : item.type === 'space_connection' || item.type === 'space_request' || item.type === 'space_chat_request' ? areaUrl(item.detailId) : '/?post=' + encodeURIComponent(item.postId) + '&comments=1';
   const options = {
     body:(item.actorName || tr('Member','عضو')) + notificationCopy(item) + ' · ' + (item.postTitle || ''),
     icon:'/LOGO.png',
@@ -636,14 +822,19 @@ function startNotificationInbox() {
 async function loadConnections() {
   connectedUserIds = new Set();
   connectedSpaceSlugs = new Set();
+  chatApprovedSpaceSlugs = new Set();
+  blockedSpaceSlugs = new Set();
   if (!currentUser) return;
   try {
-    const [people, spaces] = await Promise.all([
+    const [people, spaces, blockedSpaces] = await Promise.all([
       getDocs(collection(db, 'users', currentUser.uid, 'connections')),
-      getDocs(collection(db, 'users', currentUser.uid, 'connectedSpaces'))
+      getDocs(collection(db, 'users', currentUser.uid, 'connectedSpaces')),
+      getDocs(collection(db, 'users', currentUser.uid, 'blockedSpaces'))
     ]);
     connectedUserIds = new Set(people.docs.map(item => item.id));
     connectedSpaceSlugs = new Set(spaces.docs.map(item => item.id).filter(slug => communityAreas[slug]));
+    chatApprovedSpaceSlugs = new Set(spaces.docs.filter(item => item.data().chatAccessApproved !== false).map(item => item.id));
+    blockedSpaceSlugs = new Set(blockedSpaces.docs.map(item => item.id));
   } catch (error) {
     console.warn('[Community] Connections unavailable.', error);
   }
@@ -734,7 +925,7 @@ async function toggleSpaceConnection(slug) {
     await sendSpaceRequestNotification(space);
     return 'requested';
   }
-  if (next) connectedSpaceSlugs.add(slug); else connectedSpaceSlugs.delete(slug);
+  if (next) connectedSpaceSlugs.add(slug); else { connectedSpaceSlugs.delete(slug); chatApprovedSpaceSlugs.delete(slug); }
   renderCommunitySpaces();
   if (!next) invalidateCommunitySearchIndex();
   await updateConnectionNotification(space.creatorId, 'space_connection', slug, space.name || 'a/' + slug, next);
@@ -780,9 +971,9 @@ async function resolveProfileId(routeValue) {
     console.warn('[Community] Username index unavailable, trying profile fallback.', error);
   }
   try {
-    const userSnapshot = await getDoc(doc(db, 'users', routeValue));
+    const userSnapshot = await getDoc(doc(db, 'publicProfiles', routeValue));
     if (userSnapshot.exists()) return routeValue;
-    const legacySnapshot = await getDocs(query(collection(db, 'users'), where('username', '==', normalized), limit(1)));
+    const legacySnapshot = await getDocs(query(collection(db, 'publicProfiles'), where('username', '==', normalized), limit(1)));
     return legacySnapshot.empty ? null : legacySnapshot.docs[0].id;
   } catch { return null; }
 }
@@ -806,7 +997,7 @@ function canPostToSpace(slug) {
 }
 
 function canAccessPrivateSpace(area) {
-  return !area?.isPrivate || area.creatorId === currentUser?.uid || connectedSpaceSlugs.has(area.slug);
+  return !blockedSpaceSlugs.has(area?.slug) && (!area?.isPrivate || area.creatorId === currentUser?.uid || connectedSpaceSlugs.has(area.slug));
 }
 
 function renderPrivateSpaceGate(area) {
@@ -829,11 +1020,11 @@ function renderPrivateSpaceGate(area) {
 
 function canViewSpacePost(post) {
   const area = communityAreas[post.communitySlug];
-  return !area?.isPrivate || area.creatorId === currentUser?.uid || connectedSpaceSlugs.has(post.communitySlug) || post.userId === currentUser?.uid;
+  return !blockedSpaceSlugs.has(post.communitySlug) && (!area?.isPrivate || area.creatorId === currentUser?.uid || connectedSpaceSlugs.has(post.communitySlug) || post.userId === currentUser?.uid);
 }
 
 function renderCommunitySpaces() {
-  const spaces = Object.entries(communityAreas).sort((a,b) => (a[1].name || a[0]).localeCompare(b[1].name || b[0]));
+  const spaces = Object.entries(communityAreas).filter(([slug]) => !blockedSpaceSlugs.has(slug)).sort((a,b) => (a[1].name || a[0]).localeCompare(b[1].name || b[0]));
   const ownedSpaces = currentUser
     ? spaces.filter(([,area]) => area.creatorId === currentUser.uid).sort((a,b) => spaceTimestamp(b[1].createdAt) - spaceTimestamp(a[1].createdAt) || (a[1].name || a[0]).localeCompare(b[1].name || b[0]))
     : [];
@@ -867,25 +1058,55 @@ function renderSpaceDirectory() {
   const queryText = $('spaceDirectorySearch').value.trim().toLowerCase();
   const items = spaceDirectoryItems
     .filter(item => !queryText || [item.slug,item.name,item.description,item.creatorUsername].join(' ').toLowerCase().includes(queryText))
+    .filter(item => spaceDirectoryFilter === 'all' || (spaceDirectoryFilter === 'private' ? item.isPrivate : !item.isPrivate))
     .sort((a,b) => spaceDirectorySort === 'new'
-      ? b.createdAt - a.createdAt || a.name.localeCompare(b.name)
-      : b.postCount - a.postCount || b.lastActivity - a.lastActivity || a.name.localeCompare(b.name));
+      ? b.createdAt - a.createdAt
+      : b.postCount - a.postCount || b.lastActivity - a.lastActivity);
+  const pageCount = Math.max(1, Math.ceil(items.length / SPACE_DIRECTORY_PAGE_SIZE));
+  spaceDirectoryPage = Math.min(spaceDirectoryPage, pageCount);
+  const firstItem = (spaceDirectoryPage - 1) * SPACE_DIRECTORY_PAGE_SIZE;
+  const visibleItems = items.slice(firstItem, firstItem + SPACE_DIRECTORY_PAGE_SIZE);
   document.querySelectorAll('[data-space-sort]').forEach(button => button.classList.toggle('active', button.dataset.spaceSort === spaceDirectorySort));
+  document.querySelectorAll('[data-space-filter]').forEach(button => button.classList.toggle('active', button.dataset.spaceFilter === spaceDirectoryFilter));
+  document.querySelectorAll('[data-space-view]').forEach(button => {
+    const active = button.dataset.spaceView === spaceDirectoryView;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+  $('spaceDirectoryGrid').classList.toggle('is-list', spaceDirectoryView === 'list');
   $('spaceDirectoryCount').textContent = isArabic()
     ? items.length.toLocaleString('ar-IQ') + ' ' + (items.length === 1 ? 'مساحة' : 'مساحات')
-    : items.length + (items.length === 1 ? ' space' : ' spaces');
+    : items.length.toLocaleString() + (items.length === 1 ? ' space' : ' spaces');
   if (!items.length) {
     $('spaceDirectoryGrid').innerHTML = '<div class="space-directory-empty"><span>A</span><h2>' + tr('No spaces found','لم يتم العثور على مساحات') + '</h2><p>' + tr('Try another search or create a new member space.','جرّب بحثاً آخر أو أنشئ مساحة جديدة للأعضاء.') + '</p><a href="/?view=space">' + tr('Create a space','إنشاء مساحة') + ' <b aria-hidden="true">+</b></a></div>';
+    $('spaceDirectoryPagination').hidden = true;
     return;
   }
-  $('spaceDirectoryGrid').innerHTML = items.map((item,index) => {
+  $('spaceDirectoryGrid').innerHTML = visibleItems.map((item,index) => {
     const newSpace = item.createdAt && Date.now() / 1000 - item.createdAt < 60 * 60 * 24 * 30;
     const badge = spaceDirectorySort === 'new' && newSpace ? tr('New','جديدة') : item.postCount > 0 ? tr('Active','نشطة') : tr('Open','مفتوحة');
-    const accessStatus = item.isPrivate ? tr('Private','خاصة') : tr('Public','عامة');
+    const accessStatus = item.isPrivate ? tr('Private','خاصة') : item.isViewOnly ? tr('View only','للعرض فقط') : tr('Public','عامة');
     const feedStatus = item.isPrivate || item.showInMainThread === false ? tr('Space only','المساحة فقط') : tr('Main thread','المسار الرئيسي');
     const banner = item.bannerURL || item.bannerBase64 || '';
     return '<a class="space-directory-card" href="' + areaUrl(item.slug) + '" style="--space-index:' + index + ';' + (banner ? '--space-banner:url(&quot;' + escapeHtml(banner) + '&quot;)' : '') + '"><div class="space-directory-card-head">' + spaceVisual(item, 'space-directory-symbol') + '<span class="space-directory-badge">' + badge + '</span></div><span class="mini-kicker">a/' + escapeHtml(item.slug) + '</span><h2>' + escapeHtml(item.name) + '</h2><p>' + escapeHtml(item.description || tr('A member space for community conversation.','مساحة للأعضاء وحوارات المجتمع.')) + '</p><div class="space-card-statuses"><span class="' + (item.isPrivate ? 'private' : 'public') + '">' + accessStatus + '</span><span class="' + (item.isPrivate || item.showInMainThread === false ? 'space-only' : 'main-thread') + '">' + feedStatus + '</span></div><footer><span>' + (isArabic() ? item.postCount.toLocaleString('ar-IQ') : item.postCount.toLocaleString()) + ' ' + tr(item.postCount === 1 ? 'post' : 'posts','منشور') + '</span><b aria-hidden="true">' + (isArabic() ? '←' : '→') + '</b></footer></a>';
   }).join('');
+  renderSpaceDirectoryPagination(pageCount);
+}
+
+function renderSpaceDirectoryPagination(pageCount) {
+  const pagination = $('spaceDirectoryPagination');
+  pagination.hidden = pageCount <= 1;
+  if (pageCount <= 1) return;
+  const pages = [...new Set([1, spaceDirectoryPage - 1, spaceDirectoryPage, spaceDirectoryPage + 1, pageCount])]
+    .filter(page => page >= 1 && page <= pageCount)
+    .sort((a,b) => a - b);
+  let previousPage = 0;
+  const pageButtons = pages.map(page => {
+    const gap = previousPage && page - previousPage > 1 ? '<span aria-hidden="true">…</span>' : '';
+    previousPage = page;
+    return gap + '<button type="button" data-space-page="' + page + '" class="' + (page === spaceDirectoryPage ? 'active' : '') + '" aria-current="' + (page === spaceDirectoryPage ? 'page' : 'false') + '">' + page.toLocaleString(isArabic() ? 'ar-IQ' : undefined) + '</button>';
+  }).join('');
+  pagination.innerHTML = '<button type="button" data-space-page="' + (spaceDirectoryPage - 1) + '" ' + (spaceDirectoryPage === 1 ? 'disabled' : '') + ' aria-label="' + tr('Previous page','الصفحة السابقة') + '">' + (isArabic() ? '→' : '←') + '</button>' + pageButtons + '<button type="button" data-space-page="' + (spaceDirectoryPage + 1) + '" ' + (spaceDirectoryPage === pageCount ? 'disabled' : '') + ' aria-label="' + tr('Next page','الصفحة التالية') + '">' + (isArabic() ? '←' : '→') + '</button>';
 }
 
 async function loadSpaceDirectory() {
@@ -913,6 +1134,7 @@ async function loadSpaceDirectory() {
       bannerURL:area.bannerURL || '',
       creatorUsername:area.creatorUsername || '',
       isPrivate:Boolean(area.isPrivate),
+      isViewOnly:Boolean(area.isViewOnly),
       showInMainThread:area.showInMainThread !== false,
       createdAt:spaceTimestamp(area.createdAt),
       postCount:stats.get(slug)?.postCount || 0,
@@ -973,7 +1195,7 @@ async function loadCommunitySpaces() {
       .map(item => [item.id, {slug:item.id, ...item.data()}])
       .filter(([, area]) => area.archived !== true && area.active !== false));
     try {
-      const postsSnapshot = await getReadablePosts();
+      const postsSnapshot = await getFeedPosts(null);
       popularSpaceStats = new Map();
       postsSnapshot.docs.forEach(item => {
         const post = item.data();
@@ -995,15 +1217,17 @@ async function loadCommunitySpaces() {
 async function loadManagedSpaceSlugs() {
   managedSpaceSlugs = new Set();
   if (!currentUser) return;
-  await Promise.all(Object.entries(communityAreas).map(async ([slug, area]) => {
-    if (area.creatorId === currentUser.uid) return void managedSpaceSlugs.add(slug);
-    try {
-      if ((await getDoc(doc(db, 'communitySpaces', slug, 'admins', currentUser.uid))).exists()) managedSpaceSlugs.add(slug);
-    } catch (error) { console.warn('[Community] Space admin status unavailable.', slug, error); }
-  }));
+  Object.entries(communityAreas).forEach(([slug, area]) => { if (area.creatorId === currentUser.uid) managedSpaceSlugs.add(slug); });
+  try {
+    const result = await callFunction('setCommunitySpaceConnection', {operation:'get_managed_spaces'});
+    (result?.spaceIds || []).filter(slug => communityAreas[slug]).forEach(slug => managedSpaceSlugs.add(slug));
+  } catch (error) {
+    console.warn('[Community] Appointed space-admin status is temporarily unavailable.', error);
+  }
 }
 
 const canManageSpace = slug => Boolean(currentUser && slug && slug !== 'main' && managedSpaceSlugs.has(slug));
+const canAccessSpaceChat = area => Boolean(currentUser && area?.chatEnabled === true && !blockedSpaceSlugs.has(area.slug) && (area.creatorId === currentUser.uid || managedSpaceSlugs.has(area.slug) || (connectedSpaceSlugs.has(area.slug) && chatApprovedSpaceSlugs.has(area.slug))));
 
 function validateCommunityHandle(showMessage) {
   const raw = $('postCommunity').value;
@@ -1044,9 +1268,9 @@ async function checkSpaceHandleAvailability(input, status) {
   status.className = 'username-check';
   status.textContent = tr('Checking a/','جارٍ التحقق من a/') + handle + '…';
   try {
-    const snapshot = await getDoc(doc(db, 'communitySpaces', handle));
+    const result = await callFunction('setCommunitySpaceConnection', {operation:'check_space_handle', spaceId:handle});
     if (sequence !== spaceAvailabilitySequence || normalizeCommunityHandle(input.value) !== handle) return false;
-    const available = !snapshot.exists();
+    const available = result?.available === true;
     input.setCustomValidity(available ? '' : tr('That space handle is already taken.','معرّف المساحة هذا مستخدم بالفعل.'));
     status.className = 'username-check ' + (available ? 'valid' : 'invalid');
     status.textContent = available ? 'a/' + handle + tr(' is available.',' متاح.') : 'a/' + handle + tr(' is already taken.',' مستخدم بالفعل.');
@@ -1060,14 +1284,20 @@ async function checkSpaceHandleAvailability(input, status) {
   }
 }
 
-async function createCommunitySpace(name, requestedHandle, description, imageBase64 = '', bannerBase64 = '', isPrivate = false, showInMainThread = true) {
+async function createCommunitySpace(name, requestedHandle, description, imageBase64 = '', bannerBase64 = '', isPrivate = false, isViewOnly = false, showInMainThread = true) {
   if (currentProfile?.mainThreadPostingAccess === false) {
     isPrivate = true;
+    isViewOnly = false;
     showInMainThread = false;
   }
+  if (isPrivate) isViewOnly = false;
   const handle = normalizeCommunityHandle(requestedHandle);
   if (!/^[a-z0-9-]{3,32}$/.test(handle) || handle === 'main') throw new Error(tr('Choose a valid, non-reserved space handle.','اختر معرّف مساحة صالحاً وغير محجوز.'));
   const spaceRef = doc(db, 'communitySpaces', handle);
+  const created = await callFunction('setCommunitySpaceConnection', {
+    operation:'create_space', spaceId:handle, name, description,
+    isPrivate:Boolean(isPrivate), isViewOnly:Boolean(isViewOnly), showInMainThread:Boolean(showInMainThread)
+  });
   const record = {
     name,
     description,
@@ -1081,15 +1311,11 @@ async function createCommunitySpace(name, requestedHandle, description, imageBas
     bannerBase64:'',
     imageURL:'',
     bannerURL:'',
-    isPrivate:Boolean(isPrivate),
-    showInMainThread: isPrivate ? false : Boolean(showInMainThread),
+    isPrivate:created.isPrivate === true,
+    isViewOnly:created.isViewOnly === true,
+    showInMainThread:created.showInMainThread === true,
     createdAt: serverTimestamp()
   };
-  await runTransaction(db, async transaction => {
-    const snapshot = await transaction.get(spaceRef);
-    if (snapshot.exists()) throw new Error(tr('That space handle was just taken. Choose another one.','تم حجز معرّف المساحة للتو. اختر معرّفاً آخر.'));
-    transaction.set(spaceRef, record);
-  });
   const [imageURL, bannerURL] = await Promise.all([
     imageBase64 ? storeCommunityImage(`community/spaces/${handle}/avatar`, imageBase64) : '',
     bannerBase64 ? storeCommunityImage(`community/spaces/${handle}/banner`, bannerBase64) : ''
@@ -1114,25 +1340,35 @@ async function loadManageSpaces() {
     $('manageSpacesList').innerHTML = '<div class="connections-empty"><span>#</span><h2>' + tr('No spaces yet','لا توجد مساحات بعد') + '</h2><p>' + tr('Create a space to control its membership and visibility.','أنشئ مساحة للتحكم بعضويتها وظهور منشوراتها.') + '</p><a href="/?view=space">' + tr('Create a space','إنشاء مساحة') + ' →</a></div>';
     return;
   }
+  if (!managedSpacesAccordionReady) {
+    expandedManagedSpaceSlugs.add(spaces[0][0]);
+    managedSpacesAccordionReady = true;
+  }
   $('manageSpacesList').innerHTML = '<div class="manage-spaces-grid">' + (await Promise.all(spaces.map(async ([slug, area]) => {
     let requests = [];
     let members = [];
     let adminIds = new Set();
+    let chatAccessRequests = [];
+    let blockedUsers = [];
+    let chatBannedIds = new Set();
     try {
-      const [requestSnapshot, memberSnapshot, adminSnapshot] = await Promise.all([
-        getDocs(query(collection(db, 'communitySpaces', slug, 'connectionRequests'), where('status', '==', 'pending'))),
+      const owner = area.creatorId === currentUser.uid;
+      const [requestSnapshot, memberSnapshot, adminSnapshot, chatAccessSnapshot, blockedSnapshot, chatBanSnapshot] = await Promise.all([
+        canManageSpace(slug) ? getDocs(query(collection(db, 'communitySpaces', slug, 'connectionRequests'), where('status', '==', 'pending'))) : Promise.resolve(null),
         getDocs(collection(db, 'communitySpaces', slug, 'connections')),
-        getDocs(collection(db, 'communitySpaces', slug, 'admins'))
+        getDocs(collection(db, 'communitySpaces', slug, 'admins')),
+        getDocs(query(collection(db, 'communitySpaces', slug, 'chatAccessRequests'), where('status', '==', 'pending'))),
+        getDocs(collection(db, 'communitySpaces', slug, 'blocks')),
+        getDocs(collection(db, 'communitySpaces', slug, 'chatBans'))
       ]);
-      requests = requestSnapshot.docs.map(item => ({id:item.id, ...item.data()}));
+      requests = requestSnapshot ? requestSnapshot.docs.map(item => ({id:item.id, ...item.data()})) : [];
       members = memberSnapshot.docs.map(item => ({id:item.id, ...item.data()}));
       adminIds = new Set(adminSnapshot.docs.map(item => item.id));
+      chatAccessRequests = chatAccessSnapshot.docs.map(item => ({id:item.id, ...item.data()}));
+      blockedUsers = blockedSnapshot.docs.map(item => ({id:item.id, ...item.data()}));
+      chatBannedIds = new Set(chatBanSnapshot.docs.map(item => item.id));
     } catch (error) { console.warn('[Community] Space membership unavailable.', error); }
     const requestRows = requests.length ? '<div class="space-request-list">' + (await Promise.all(requests.map(async request => { const profile = await getProfile(request.userId); return '<div><span>' + escapeHtml(profile.displayName || profile.username || tr('Member','عضو')) + '</span><button type="button" data-approve-request="' + escapeHtml(slug) + '|' + escapeHtml(request.userId) + '">' + tr('Approve','موافقة') + '</button><button type="button" data-deny-request="' + escapeHtml(slug) + '|' + escapeHtml(request.userId) + '">' + tr('Deny','رفض') + '</button></div>'; }))).join('') + '</div>' : '<p class="space-request-empty">' + tr('No pending requests.','لا توجد طلبات معلقة.') + '</p>';
-    const memberRows = members.length ? '<div class="space-member-tools"><label><span aria-hidden="true">⌕</span><input type="search" autocomplete="off" data-space-member-search="' + escapeHtml(slug) + '" placeholder="' + escapeHtml(tr('Search members','ابحث عن الأعضاء')) + '" aria-label="' + escapeHtml(tr('Search space members','البحث في أعضاء المساحة')) + '"></label><small data-space-member-count="' + escapeHtml(slug) + '">' + members.length + ' ' + tr('members','أعضاء') + '</small></div><div class="space-member-list" id="spaceMemberList-' + escapeHtml(slug) + '">' + (await Promise.all(members.map(async member => { const profile = await getProfile(member.userId); const name = profile.displayName || profile.username || tr('Member','عضو'); const searchText = [name, profile.username || '', profile.school || '', profile.city || ''].join(' ').toLowerCase(); return '<article data-space-member="' + escapeHtml(searchText) + '"><a href="' + escapeHtml(profileUrl(member.userId, profile.username)) + '">' + avatarMarkup(name, profile.photoBase64 || profile.photoURL, 'space-member-avatar', profile.verified === true) + '<span><strong>' + escapeHtml(name) + (adminIds.has(member.userId) ? ' · ' + tr('Admin','مشرف') : '') + '</strong><small>' + escapeHtml(profile.username ? '@' + profile.username : tr('Space member','عضو في المساحة')) + '</small>' + (profile.mainThreadPostingAccess === true ? '' : '<em class="main-access-missing">' + tr('No main-thread access','لا يملك تصريح المسار الرئيسي') + '</em>') + '</span></a><div class="space-member-actions"><button type="button" data-warn-space-member="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '">' + tr('Warn','تحذير') + '</button><button type="button" data-remove-space-member="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '">' + tr('Remove access','إزالة الوصول') + '</button></div></article>'; }))).join('') + '</div>' : '<p class="space-request-empty">' + tr('No connected members yet.','لا يوجد أعضاء متصلون بعد.') + '</p>';
-    const ownerControls = area.creatorId === currentUser.uid && members.length
-      ? '<section class="space-admin-tools"><strong>' + tr('Administrators','المشرفون') + '</strong>' + (await Promise.all(members.map(async member => { const profile = await getProfile(member.userId); const isAdmin = adminIds.has(member.userId); return '<div><span>' + escapeHtml(profile.displayName || profile.username || tr('Member','عضو')) + (isAdmin ? ' · ' + tr('Admin','مشرف') : '') + '</span><button type="button" data-set-space-admin="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '|' + (isAdmin ? '0' : '1') + '">' + (isAdmin ? tr('Remove admin','إزالة المشرف') : tr('Make admin','تعيين مشرف')) + '</button><button type="button" data-warn-space-member="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '">' + tr('Warn','تحذير') + '</button></div>'; }))).join('') + '</section>'
-      : '';
     const visibilityProfiles = area.creatorId === currentUser.uid
       ? await Promise.all([getProfile(area.creatorId), ...members.map(member => getProfile(member.userId))])
       : [];
@@ -1143,24 +1379,44 @@ async function loadManageSpaces() {
       : '';
     const settingToggles = '<div class="manage-space-toggles">'
       + '<label class="space-setting-toggle compact' + (publicBlocked ? ' is-disabled' : '') + '"><span class="space-setting-icon" aria-hidden="true">◐</span><span class="space-setting-copy"><strong>' + tr('Private space','مساحة خاصة') + '</strong><small>' + tr('Require approval to connect','تتطلب الموافقة للاتصال') + '</small></span><span class="toggle-control"><input type="checkbox" data-manage-space-setting="' + escapeHtml(slug) + '|isPrivate"' + (area.isPrivate ? ' checked' : '') + (publicBlocked ? ' disabled' : '') + '><i aria-hidden="true"></i></span></label>'
+      + '<label class="space-setting-toggle compact"><span class="space-setting-icon" aria-hidden="true">◎</span><span class="space-setting-copy"><strong>' + tr('View only','للعرض فقط') + '</strong><small>' + tr('Public reading; approval required to post or use Messages','قراءة عامة؛ والموافقة مطلوبة للنشر أو استخدام الرسائل') + '</small></span><span class="toggle-control"><input type="checkbox" data-manage-space-setting="' + escapeHtml(slug) + '|isViewOnly"' + (area.isViewOnly ? ' checked' : '') + '><i aria-hidden="true"></i></span></label>'
       + '<label class="space-setting-toggle compact' + (area.isPrivate ? ' is-disabled' : '') + '"><span class="space-setting-icon" aria-hidden="true">⌁</span><span class="space-setting-copy"><strong>' + tr('Main-thread posts','منشورات المسار الرئيسي') + '</strong><small>' + tr('Show posts outside this space','إظهار المنشورات خارج المساحة') + '</small></span><span class="toggle-control"><input type="checkbox" data-manage-space-setting="' + escapeHtml(slug) + '|showInMainThread"' + (area.showInMainThread !== false && !area.isPrivate ? ' checked' : '') + (area.isPrivate ? ' disabled' : '') + '><i aria-hidden="true"></i></span></label></div>';
-    const ownerSettings = area.creatorId === currentUser.uid ? visibilityWarning + settingToggles + '<button type="button" data-manage-edit="' + escapeHtml(slug) + '">' + tr('Edit name, description & media','تعديل الاسم والوصف والوسائط') + '</button>' : '';
-    const requestSection = area.creatorId === currentUser.uid ? '<section><strong>' + tr('Membership requests','طلبات العضوية') + ' (' + requests.length + ')</strong>' + requestRows + '</section>' : '';
-    return '<article class="manage-space-card"><div><span class="mini-kicker">a/' + escapeHtml(slug) + '</span><h2>' + escapeHtml(area.name || slug) + '</h2><p>' + escapeHtml(area.description || '') + '</p></div>' + ownerSettings + requestSection + '<section><strong>' + tr('Space members','أعضاء المساحة') + ' (' + members.length + ')</strong>' + memberRows + '</section>' + ownerControls + '</article>';
+    const managementSettings = canManageSpace(slug) ? visibilityWarning + settingToggles + (area.creatorId === currentUser.uid ? '<button type="button" data-manage-edit="' + escapeHtml(slug) + '">' + tr('Edit name, description & media','تعديل الاسم والوصف والوسائط') + '</button>' : '') : '';
+    const requestSection = canManageSpace(slug) ? '<div class="member-management-group"><strong>' + tr('Membership requests','طلبات العضوية') + ' <span>(' + requests.length + ')</span></strong>' + requestRows + '</div>' : '';
+    const unifiedMemberRows = members.length ? '<div class="space-member-tools"><label><span aria-hidden="true">⌕</span><input type="search" autocomplete="off" data-space-member-search="' + escapeHtml(slug) + '" placeholder="' + escapeHtml(tr('Search members','ابحث عن الأعضاء')) + '" aria-label="' + escapeHtml(tr('Search space members','البحث في أعضاء المساحة')) + '"></label><small data-space-member-count="' + escapeHtml(slug) + '">' + members.length + ' ' + tr('members','أعضاء') + '</small></div><div class="space-member-list" id="spaceMemberList-' + escapeHtml(slug) + '">' + (await Promise.all(members.map(async member => {
+      const profile = await getProfile(member.userId);
+      const name = profile.displayName || profile.username || tr('Member','عضو');
+      const searchText = [name, profile.username || '', profile.school || '', profile.city || ''].join(' ').toLowerCase();
+      const isAdmin = adminIds.has(member.userId);
+      const accessRequest = chatAccessRequests.find(item => item.userId === member.userId);
+      const chatApproved = member.chatAccessApproved !== false;
+      const chatBanned = chatBannedIds.has(member.userId);
+      const labels = [isAdmin ? tr('Admin','مشرف') : '', area.chatEnabled === true ? (chatApproved ? tr('Messages enabled','الرسائل مفعّلة') : accessRequest ? tr('Messages pending','الرسائل معلّقة') : tr('Messages off','الرسائل غير مفعّلة')) : ''].filter(Boolean);
+      if (chatBanned && area.chatEnabled === true) labels[labels.length - 1] = tr('Messages banned','الرسائل محظورة');
+      const adminAction = area.creatorId === currentUser.uid ? '<button type="button" data-set-space-admin="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '|' + (isAdmin ? '0' : '1') + '">' + (isAdmin ? tr('Remove admin','إزالة المشرف') : tr('Make admin','تعيين مشرف')) + '</button>' : '';
+      const chatActions = area.chatEnabled !== true ? '' : (chatBanned
+        ? '<button type="button" data-review-chat-access="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '|1|0">' + tr('Restore Messages','استعادة الرسائل') + '</button>'
+        : (!chatApproved
+          ? '<button type="button" data-review-chat-access="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '|1|0">' + tr('Grant Messages','منح الرسائل') + '</button>' + (accessRequest ? '<button type="button" data-review-chat-access="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '|0|0">' + tr('Deny request','رفض الطلب') + '</button>' : '')
+          : '<button type="button" data-review-chat-access="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '|0|1">' + tr('Ban from Messages','حظر من الرسائل') + '</button>'));
+      return '<article data-space-member="' + escapeHtml(searchText) + '"><a href="' + escapeHtml(profileUrl(member.userId, profile.username)) + '">' + avatarMarkup(name, profile.photoBase64 || profile.photoURL, 'space-member-avatar', profile.verified === true) + '<span><strong>' + escapeHtml(name) + '</strong><small>' + escapeHtml(profile.username ? '@' + profile.username : tr('Space member','عضو في المساحة')) + '</small>' + (labels.length ? '<em class="space-member-status">' + escapeHtml(labels.join(' · ')) + '</em>' : '') + '</span></a><details class="space-member-menu"><summary aria-label="' + escapeHtml(tr('Member actions','إجراءات العضو')) + '" title="' + escapeHtml(tr('Member actions','إجراءات العضو')) + '">⋮</summary><div>' + adminAction + chatActions + '<button type="button" data-warn-space-member="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '">' + tr('Warn','تحذير') + '</button><button type="button" class="danger" data-block-space-user="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '">' + tr('Block from space','حظر من المساحة') + '</button><button type="button" class="danger" data-remove-space-member="' + escapeHtml(slug) + '|' + escapeHtml(member.userId) + '">' + tr('Remove member','إزالة العضو') + '</button></div></details></article>';
+    }))).join('') + '</div>' : '<p class="space-request-empty">' + tr('No connected members yet.','لا يوجد أعضاء متصلون بعد.') + '</p>';
+    const blockedRows = blockedUsers.length ? '<div class="space-member-list">' + (await Promise.all(blockedUsers.map(async blocked => { const profile = await getProfile(blocked.userId || blocked.id); const name = profile.displayName || profile.username || tr('Member','عضو'); return '<article><a href="' + escapeHtml(profileUrl(blocked.userId || blocked.id, profile.username)) + '">' + avatarMarkup(name, profile.photoBase64 || profile.photoURL, 'space-member-avatar', profile.verified === true) + '<span><strong>' + escapeHtml(name) + '</strong><small>' + escapeHtml(blocked.reason || tr('Blocked from this space','محظور من هذه المساحة')) + '</small></span></a><button type="button" data-unblock-space-user="' + escapeHtml(slug) + '|' + escapeHtml(blocked.userId || blocked.id) + '">' + tr('Unblock','إلغاء الحظر') + '</button></article>'; }))).join('') + '</div>' : '<p class="space-request-empty">' + tr('No blocked users.','لا يوجد مستخدمون محظورون.') + '</p>';
+    const memberManagement = '<section class="member-management-section"><header><div><span class="member-management-icon" aria-hidden="true">◎</span><strong>' + tr('Space access','الوصول إلى المساحة') + '</strong></div><small>' + members.length.toLocaleString(isArabic() ? 'ar-IQ' : undefined) + ' ' + tr('members','أعضاء') + ' · ' + blockedUsers.length.toLocaleString(isArabic() ? 'ar-IQ' : undefined) + ' ' + tr('blocked','محظورون') + '</small></header><div class="member-management-tabs"><button class="active" type="button" data-member-tab="' + escapeHtml(slug) + '|members">' + tr('Manage members','إدارة الأعضاء') + '</button><button type="button" data-member-tab="' + escapeHtml(slug) + '|blocked">' + tr('Blocked users','المستخدمون المحظورون') + ' (' + blockedUsers.length + ')</button></div><div class="member-management-groups"><div data-member-panel="' + escapeHtml(slug) + '|members">' + requestSection + '<div class="member-management-group"><strong>' + tr('All space members','كل أعضاء المساحة') + ' <span>(' + members.length + ')</span></strong><p class="member-management-help">' + tr('Use the three-dot menu to manage permissions or block a member from the entire space.','استخدم قائمة النقاط الثلاث لإدارة الصلاحيات أو حظر العضو من المساحة بالكامل.') + '</p>' + unifiedMemberRows + '</div></div><div data-member-panel="' + escapeHtml(slug) + '|blocked" hidden><div class="member-management-group"><strong>' + tr('Blocked users','المستخدمون المحظورون') + '</strong><p class="member-management-help">' + tr('Blocked users cannot view this space or any of its posts, even by direct link.','لا يستطيع المستخدمون المحظورون عرض هذه المساحة أو أي من منشوراتها حتى عبر رابط مباشر.') + '</p>' + blockedRows + '</div></div></div></section>';
+    const openState = expandedManagedSpaceSlugs.has(slug) ? ' open' : '';
+    const accessLabel = area.isPrivate ? tr('Private','خاصة') : area.isViewOnly ? tr('View only','للعرض فقط') : tr('Public','عامة');
+    return '<details class="manage-space-card" data-managed-space="' + escapeHtml(slug) + '"' + openState + '><summary class="manage-space-summary"><span class="manage-space-summary-visual">' + spaceVisual(area, 'manage-space-avatar') + '</span><span class="manage-space-summary-copy"><span class="mini-kicker">a/' + escapeHtml(slug) + '</span><strong>' + escapeHtml(area.name || slug) + '</strong><small>' + escapeHtml(area.description || tr('A community space.','مساحة مجتمعية.')) + '</small></span><span class="manage-space-summary-stats"><span>' + accessLabel + '</span><span>' + members.length.toLocaleString(isArabic() ? 'ar-IQ' : undefined) + ' ' + tr('members','أعضاء') + '</span>' + (requests.length ? '<span class="has-requests">' + requests.length.toLocaleString(isArabic() ? 'ar-IQ' : undefined) + ' ' + tr('pending','معلّقة') + '</span>' : '') + '</span><span class="manage-space-chevron" aria-hidden="true"></span></summary><div class="manage-space-body">' + managementSettings + memberManagement + '</div></details>';
   }))).join('') + '</div>';
+  $('manageSpacesList').querySelectorAll('[data-managed-space]').forEach(card => card.addEventListener('toggle', () => {
+    if (card.open) expandedManagedSpaceSlugs.add(card.dataset.managedSpace);
+    else expandedManagedSpaceSlugs.delete(card.dataset.managedSpace);
+  }));
 }
 
 async function reviewSpaceRequest(slug, userId, approved) {
   const area = communityAreas[slug];
-  if (!area || area.creatorId !== currentUser?.uid) return;
-  const batch = writeBatch(db);
-  batch.set(doc(db, 'communitySpaces', slug, 'connectionRequests', userId), {status:approved ? 'approved' : 'denied', reviewedAt:serverTimestamp(), reviewedBy:currentUser.uid}, {merge:true});
-  if (approved) {
-    const record = {userId, spaceSlug:slug, createdAt:serverTimestamp()};
-    batch.set(doc(db, 'communitySpaces', slug, 'connections', userId), record);
-    batch.set(doc(db, 'users', userId, 'connectedSpaces', slug), record);
-  }
-  await batch.commit();
+  if (!area || !canManageSpace(slug)) return;
+  await callFunction('setCommunitySpaceConnection', {operation:'review_space_connection', spaceId:slug, userId, approved});
   await loadManageSpaces();
   showToast(approved ? tr('Request approved.','تمت الموافقة على الطلب.') : tr('Request denied.','تم رفض الطلب.'));
 }
@@ -1193,6 +1449,21 @@ async function warnSpaceMember(slug, userId) {
   showToast(tr('Warning sent to the member.','تم إرسال التحذير إلى العضو.'));
 }
 
+async function blockSpaceUser(slug, userId) {
+  const reason = prompt(tr('Reason for blocking this user from the entire space:','سبب حظر هذا المستخدم من المساحة بالكامل:'))?.trim();
+  if (!reason || reason.length < 3) return;
+  if (!confirm(tr('Block this user from the space? They will lose membership and will not be able to view the space or any of its posts, even through a direct link.','حظر هذا المستخدم من المساحة؟ سيفقد العضوية ولن يتمكن من عرض المساحة أو أي من منشوراتها حتى عبر رابط مباشر.'))) return;
+  await callFunction('setCommunitySpaceConnection', {operation:'block_space_user', spaceId:slug, userId, reason});
+  await loadManageSpaces();
+  showToast(tr('User blocked from the space.','تم حظر المستخدم من المساحة.'));
+}
+
+async function unblockSpaceUser(slug, userId) {
+  await callFunction('setCommunitySpaceConnection', {operation:'unblock_space_user', spaceId:slug, userId});
+  await loadManageSpaces();
+  showToast(tr('User unblocked. They may request access again.','تم إلغاء الحظر. يمكن للمستخدم طلب الوصول مجدداً.'));
+}
+
 async function moderateSpacePost(post, action) {
   const reason = prompt(tr(action === 'delete' ? 'Deletion reason (required):' : 'Warning reason (required):', action === 'delete' ? 'سبب الحذف (مطلوب):' : 'سبب التحذير (مطلوب):'))?.trim();
   if (!reason) return;
@@ -1204,11 +1475,19 @@ async function moderateSpacePost(post, action) {
 
 async function updateManagedSpaceSetting(slug, setting, enabled) {
   const area = communityAreas[slug];
-  if (!area || area.creatorId !== currentUser?.uid || !['isPrivate', 'showInMainThread'].includes(setting)) return;
+  if (!area || !canManageSpace(slug) || !['isPrivate', 'isViewOnly', 'showInMainThread'].includes(setting)) return;
   const nextPrivate = setting === 'isPrivate' ? enabled : area.isPrivate === true;
-  const nextMainThread = nextPrivate ? false : (setting === 'showInMainThread' ? enabled : area.showInMainThread !== false);
-  await callFunction('setCommunitySpaceVisibility', {spaceId:slug, isPrivate:nextPrivate, showInMainThread:nextMainThread});
-  const changes = {isPrivate:nextPrivate, showInMainThread:nextMainThread};
+  const nextViewOnly = nextPrivate ? false : (setting === 'isViewOnly' ? enabled : area.isViewOnly === true);
+  const normalizedPrivate = nextViewOnly ? false : nextPrivate;
+  const nextMainThread = normalizedPrivate ? false : (setting === 'showInMainThread' ? enabled : area.showInMainThread !== false);
+  const confirmation = setting === 'isPrivate'
+    ? (enabled ? tr('Make this space private? Only approved members will retain access to its posts.', 'جعل هذه المساحة خاصة؟ سيحتفظ الأعضاء الموافق عليهم فقط بالوصول إلى منشوراتها.') : tr('Make this space public? Its posts may become visible outside the space.', 'جعل هذه المساحة عامة؟ قد تصبح منشوراتها مرئية خارج المساحة.'))
+    : setting === 'isViewOnly'
+      ? (enabled ? tr('Enable view-only mode? New members will require approval before posting or using Messages.', 'تفعيل وضع العرض فقط؟ سيحتاج الأعضاء الجدد إلى موافقة قبل النشر أو استخدام الرسائل.') : tr('Disable view-only mode?', 'إلغاء وضع العرض فقط؟'))
+      : (enabled ? tr('Show this space’s posts in the main thread?', 'إظهار منشورات هذه المساحة في المسار الرئيسي؟') : tr('Hide this space’s posts from the main thread?', 'إخفاء منشورات هذه المساحة من المسار الرئيسي؟'));
+  if (!confirm(confirmation)) { await loadManageSpaces(); return; }
+  await callFunction('setCommunitySpaceVisibility', {spaceId:slug, isPrivate:normalizedPrivate, isViewOnly:nextViewOnly, showInMainThread:nextMainThread});
+  const changes = {isPrivate:normalizedPrivate, isViewOnly:nextViewOnly, showInMainThread:nextMainThread};
   communityAreas[slug] = {...area, ...changes};
   renderCommunitySpaces();
   await loadManageSpaces();
@@ -1248,19 +1527,64 @@ function renderActiveAreaHeader(area) {
     : escapeHtml(area.symbol || initials(area.name));
   $('areaBanner').innerHTML = areaBanner ? '<img src="' + escapeHtml(areaBanner) + '" alt="">' : '';
   $('areaHeader').classList.toggle('has-banner', Boolean(areaBanner));
-  $('areaPath').textContent = 'a/' + activeAreaSlug;
+  $('areaPath').textContent = 'a/' + activeAreaSlug + (area.isViewOnly ? ' · ' + tr('VIEW ONLY','للعرض فقط') : '');
   $('areaTitle').textContent = area.name;
   $('areaDescription').textContent = area.description;
   const owner = currentUser && area.creatorId === currentUser.uid;
-  $('areaManage').hidden = !owner;
+  const manager = canManageSpace(activeAreaSlug);
+  $('areaManage').hidden = !manager;
   $('areaConnect').hidden = Boolean(owner);
   activeAreaConnection = connectedSpaceSlugs.has(activeAreaSlug);
   $('areaConnect').classList.toggle('connected', activeAreaConnection);
-  $('areaConnect').querySelector('span').textContent = activeAreaConnection ? tr('Connected','متصل') : (area.isPrivate ? tr('Request to connect','طلب اتصال') : tr('Connect','تواصل'));
+  $('areaConnect').setAttribute('aria-pressed', String(activeAreaConnection));
+  $('areaConnect').querySelector('span').textContent = activeAreaConnection ? tr('Disconnect','إلغاء التواصل') : (area.isPrivate || area.isViewOnly ? tr('Request to connect','طلب اتصال') : tr('Connect','تواصل'));
+  $('areaConnect').title = activeAreaConnection ? tr('Leave this space','مغادرة هذه المساحة') : '';
   const canPost = Boolean(owner || activeAreaConnection);
+  $('areaMessages').hidden = !(manager || activeAreaConnection);
+  const chatAllowed = canAccessSpaceChat(area);
+  $('areaMessages').querySelector('span').textContent = area.chatEnabled !== true ? tr('Add Messages','إضافة الرسائل') : chatAllowed ? tr('Messages','الرسائل') : tr('Request Messages','طلب الرسائل');
+  watchAreaMessagesAccess(area);
   $('areaCreate').disabled = !canPost;
-  $('areaCreate').title = canPost ? '' : tr('Connect to this space before posting.','اتصل بهذه المساحة قبل النشر.');
+  $('areaCreate').title = canPost ? '' : tr(area.isViewOnly ? 'Request connection approval before posting. You can still comment and vote.' : 'Connect to this space before posting.', area.isViewOnly ? 'اطلب الموافقة على الاتصال قبل النشر. لا يزال بإمكانك التعليق والتصويت.' : 'اتصل بهذه المساحة قبل النشر.');
   refreshAreaConnectionCount(activeAreaSlug);
+}
+
+function watchAreaMessagesAccess(area) {
+  unsubscribeAreaAccess?.();
+  unsubscribeAreaChatRequest?.();
+  unsubscribeAreaAccess = null;
+  unsubscribeAreaChatRequest = null;
+  if (!currentUser || area.chatEnabled !== true || activeAreaSlug !== area.slug) return;
+  let access = {};
+  let request = {};
+  const paint = () => {
+    if (activeAreaSlug !== area.slug) return;
+    const button = $('areaMessages');
+    const label = button.querySelector('span');
+    const banned = access.chatBanned === true;
+    const allowed = access.canUseChat === true && access.blocked !== true && !banned;
+    const pending = request.status === 'pending';
+    button.classList.toggle('is-chat-banned', banned);
+    button.classList.toggle('is-chat-pending', pending);
+    label.textContent = allowed
+      ? tr('Messages','الرسائل')
+      : pending
+        ? tr('Messages request pending','طلب الرسائل قيد المراجعة')
+        : tr('Request Messages','طلب الرسائل');
+    button.title = banned
+      ? tr('You are banned from this space’s Messages. Open Messages to request access from an administrator.','أنت محظور من رسائل هذه المساحة. افتح الرسائل لطلب الوصول من المشرف.')
+      : pending
+        ? tr('Your Messages access request is pending.','طلب وصولك إلى الرسائل قيد المراجعة.')
+        : '';
+  };
+  unsubscribeAreaAccess = onSnapshot(doc(db, 'communitySpaces', area.slug, 'access', currentUser.uid), snapshot => {
+    access = snapshot.data() || {};
+    paint();
+  }, error => console.warn('[Community] Space Messages access could not be watched.', error));
+  unsubscribeAreaChatRequest = onSnapshot(doc(db, 'communitySpaces', area.slug, 'chatAccessRequests', currentUser.uid), snapshot => {
+    request = snapshot.data() || {};
+    paint();
+  }, error => console.warn('[Community] Space Messages request could not be watched.', error));
 }
 
 async function refreshAreaConnectionCount(slug) {
@@ -1278,8 +1602,11 @@ function closeSpaceEditor() {
 
 function syncSpaceVisibilityToggle() {
   const privateToggle = $('spaceEditIsPrivate');
+  const viewOnlyToggle = $('spaceEditIsViewOnly');
   const mainToggle = $('spaceEditShowInMainThread');
   const row = mainToggle.closest('.space-setting-toggle');
+  if (privateToggle.checked) viewOnlyToggle.checked = false;
+  if (viewOnlyToggle.checked) privateToggle.checked = false;
   const locked = privateToggle.checked;
   if (locked) mainToggle.checked = false;
   mainToggle.disabled = locked;
@@ -1298,6 +1625,7 @@ function openSpaceEditor() {
   $('spaceEditName').value = area.name || activeEditSpaceSlug;
   $('spaceEditDescription').value = area.description || '';
   $('spaceEditIsPrivate').checked = Boolean(area.isPrivate);
+  $('spaceEditIsViewOnly').checked = Boolean(area.isViewOnly);
   $('spaceEditShowInMainThread').checked = area.showInMainThread !== false;
   syncSpaceVisibilityToggle();
   $('spaceEditNameCount').textContent = $('spaceEditName').value.length.toLocaleString() + ' / 80';
@@ -1321,7 +1649,7 @@ async function deleteOwnedSpace() {
   const button = $('deleteOwnedSpace');
   button.disabled = true;
   try {
-    await deleteDoc(doc(db, 'communitySpaces', slug));
+    await callFunction('setCommunitySpaceConnection', {operation:'delete_owned_space', spaceId:slug});
     delete communityAreas[slug];
     spaceDirectoryItems = spaceDirectoryItems.filter(item => item.slug !== slug);
     invalidateCommunitySearchIndex();
@@ -1394,6 +1722,7 @@ function formatDate(timestamp) {
 function invalidateCommunitySearchIndex() {
   communitySearchIndex = null;
   communitySearchIndexLoadedAt = 0;
+  invalidateSmartData('posts:', 'spaces:');
 }
 
 function normalizeSearchText(value) {
@@ -1463,7 +1792,7 @@ async function loadCommunitySearchIndex(force = false) {
   communitySearchIndexPromise = Promise.all([
     getReadablePosts(),
     getReadableSpaces(),
-    getDocs(collection(db, 'users'))
+    getDocs(query(collection(db, 'publicProfiles'), limit(120)))
   ]).then(([postsSnapshot, spacesSnapshot, usersSnapshot]) => {
     const privateSpaceSlugs = new Set(spacesSnapshot.docs
       .filter(item => item.data().isPrivate === true)
@@ -1635,7 +1964,8 @@ function showToast(message) {
 async function getProfile(uid) {
   if (!uid) return {};
   if (!profileCache.has(uid)) {
-    profileCache.set(uid, getDoc(doc(db, 'users', uid)).then(snapshot => snapshot.exists() ? {mainThreadPostingAccess:true, ...snapshot.data()} : {}).catch(() => ({})));
+    const reference = uid === currentUser?.uid ? doc(db, 'users', uid) : doc(db, 'publicProfiles', uid);
+    profileCache.set(uid, smartDocument('profile:' + uid, reference, 5 * 60 * 1000).then(snapshot => snapshot.exists() ? {mainThreadPostingAccess:true, ...snapshot.data()} : {}).catch(() => ({})));
   }
   return profileCache.get(uid);
 }
@@ -1692,16 +2022,15 @@ async function claimUsername(uid, requestedUsername) {
 }
 
 async function getPostMeta(post) {
-  const [profile, votesSnapshot, commentsSnapshot] = await Promise.all([
+  const [profile, mineSnapshot] = await Promise.all([
     getProfile(post.userId),
-    getDocs(collection(db, 'communityPosts', post.id, 'votes')),
-    getDocs(collection(db, 'communityPosts', post.id, 'comments'))
+    currentUser ? getDoc(doc(db, 'communityPosts', post.id, 'votes', currentUser.uid)).catch(() => null) : Promise.resolve(null)
   ]);
   return {
     profile,
-    score: votesSnapshot.docs.reduce((total, item) => total + (Number(item.data().value) || 0), 0),
-    mine: votesSnapshot.docs.find(item => item.id === currentUser?.uid)?.data().value || 0,
-    commentsCount: commentsSnapshot.size
+    score:Number(post.score) || 0,
+    mine:mineSnapshot?.exists?.() ? Number(mineSnapshot.data().value) || 0 : 0,
+    commentsCount:Number(post.commentsCount) || 0
   };
 }
 
@@ -1723,6 +2052,710 @@ async function shareCommunityItem(data, copiedMessage, failureMessage) {
   } catch (error) {
     if (error?.name !== 'AbortError') showToast(failureMessage);
   }
+}
+
+function stopSpaceMessages() {
+  unsubscribeSpaceAccess?.();
+  unsubscribeSpaceAccess = null;
+  unsubscribeSpaceMessages?.();
+  unsubscribeSpaceMessages = null;
+  unsubscribeSpaceMessageReads?.();
+  unsubscribeSpaceMessageReads = null;
+  unsubscribeSpaceChatPresence?.();
+  unsubscribeSpaceChatPresence = null;
+  if (chatPresenceTimer) window.clearInterval(chatPresenceTimer);
+  chatPresenceTimer = null;
+  activeChatPresence = [];
+  $('messagesOnline').hidden = true;
+  $('messagesOnline').innerHTML = '';
+  activeMessageReply = null;
+  activeSpaceMessages = [];
+  liveSpaceMessages = [];
+  olderSpaceMessages = [];
+  activeSpaceMessageReads = [];
+  activeMessagesSpace = null;
+  activeReactionMessageId = '';
+  activeMessageReactions.clear();
+  lastSeenMessageMarked = '';
+  oldestSpaceMessageCursor = null;
+  loadingOlderSpaceMessages = false;
+  hasOlderSpaceMessages = true;
+  clearMessageImage();
+  clearMessageVoice();
+  for (const value of chatImageUrls.values()) {
+    if (typeof value === 'string' && value.startsWith('blob:')) URL.revokeObjectURL(value);
+  }
+  chatImageUrls.clear();
+}
+
+async function updateChatPresence(spaceId) {
+  if (!currentUser || !spaceId || document.visibilityState === 'hidden') return;
+  try {
+    await setDoc(doc(db, 'communitySpaces', spaceId, 'chatPresence', currentUser.uid), {userId:currentUser.uid, activeAt:serverTimestamp()}, {merge:true});
+  } catch (error) { console.warn('[Community] Chat presence could not be updated.', error); }
+}
+
+async function renderChatPresence() {
+  const host = $('messagesOnline');
+  const currentSpace = activeMessagesSpace?.slug;
+  const online = activeChatPresence.filter(item => item.userId && Date.now() - (spaceTimestamp(item.activeAt) * 1000) < 90 * 1000);
+  if (!currentSpace || !online.length) { host.hidden = true; host.innerHTML = ''; return; }
+  const profiles = await Promise.all(online.slice(0, 4).map(async item => ({item, profile:await getProfile(item.userId)})));
+  if (currentSpace !== activeMessagesSpace?.slug) return;
+  host.hidden = false;
+  host.title = tr(online.length === 1 ? '1 member online now' : online.length + ' members online now', online.length === 1 ? 'عضو واحد متصل الآن' : online.length + ' أعضاء متصلون الآن');
+  host.innerHTML = '<span class="messages-online-avatars">' + profiles.slice(0, 3).map(({item, profile}) => avatarMarkup(profile.displayName || profile.username || tr('Member','عضو'), profile.photoBase64 || profile.photoURL, 'avatar', profile.verified === true)).join('') + (online.length > 3 ? '<b>+' + (online.length - 3) + '</b>' : '') + '</span><small><i></i>' + (online.length === 1 ? tr('1 online','متصل واحد') : online.length + ' ' + tr('online','متصلون')) + '</small>';
+}
+
+async function openChatOnlineMembers() {
+  const online = activeChatPresence.filter(item => item.userId && Date.now() - (spaceTimestamp(item.activeAt) * 1000) < 90 * 1000);
+  const members = await Promise.all(online.map(async item => ({item, profile:await getProfile(item.userId)})));
+  $('chatOnlineList').innerHTML = members.length ? members.map(({profile, item}) => {
+    const name = profile.displayName || profile.username || tr('Community member','عضو في المجتمع');
+    return '<a href="' + escapeHtml(profileUrl(item.userId, profile.username)) + '">' + avatarMarkup(name, profile.photoBase64 || profile.photoURL, 'avatar', profile.verified === true) + '<span><strong>' + escapeHtml(name) + '</strong><small><i class="live-dot"></i> ' + tr('Online now','متصل الآن') + '</small></span></a>';
+  }).join('') : '<p class="notice">' + tr('No members are online in this chat right now.','لا يوجد أعضاء متصلون في هذه الدردشة الآن.') + '</p>';
+  $('chatOnlineDialog').showModal();
+}
+
+async function seenMembersForMessage(messageId) {
+  const receipts = activeSpaceMessageReads.filter(receipt => receipt.lastMessageId === messageId && receipt.userId !== currentUser?.uid);
+  return Promise.all(receipts.map(async receipt => ({receipt, profile:await getProfile(receipt.userId)})));
+}
+
+async function openMessageViewers(messageId) {
+  const viewers = await seenMembersForMessage(messageId);
+  $('messageViewersList').innerHTML = viewers.length ? viewers.map(({receipt, profile}) => {
+    const name = profile.displayName || profile.username || tr('Community member','عضو في المجتمع');
+    return '<a href="' + escapeHtml(profileUrl(receipt.userId, profile.username)) + '">' + avatarMarkup(name, profile.photoBase64 || profile.photoURL, 'avatar', profile.verified === true) + '<span><strong>' + escapeHtml(name) + '</strong><small>' + tr('Seen','شاهد') + ' · ' + escapeHtml(formatDate(receipt.seenAt)) + '</small></span></a>';
+  }).join('') : '<p class="notice">' + tr('No other members have reached this message yet.','لم يصل أعضاء آخرون إلى هذه الرسالة بعد.') + '</p>';
+  $('messageViewersDialog').showModal();
+}
+
+async function openMessageReactionPicker(messageId) {
+  activeReactionMessageId = messageId;
+  let mine = '';
+  try { const snapshot = await getDoc(doc(db, 'communitySpaces', activeMessagesSpace.slug, 'messages', messageId, 'reactions', currentUser.uid)); mine = snapshot.exists() ? snapshot.data().emoji : ''; } catch {}
+  activeMessageReactions.set(messageId, mine);
+  $('messagesList').querySelectorAll('[data-chat-reactors="' + CSS.escape(messageId) + '"]').forEach(chip => {
+    const selected = chip.dataset.reactionEmoji === mine;
+    chip.classList.toggle('selected', selected);
+    chip.setAttribute('aria-pressed', String(selected));
+  });
+  $('messageReactionPicker').innerHTML = CHAT_REACTION_EMOJIS.map(emoji => {
+    const label = CHAT_REACTION_LABELS[emoji] || ['Reaction','تفاعل'];
+    return '<button type="button" data-pick-reaction="' + escapeHtml(emoji) + '" class="' + (emoji === mine ? 'selected' : '') + '" aria-label="' + escapeHtml(tr(label[0], label[1])) + '" aria-pressed="' + String(emoji === mine) + '"><span>' + escapeHtml(emoji) + '</span><small>' + escapeHtml(tr(label[0], label[1])) + '</small></button>';
+  }).join('');
+  $('messageReactionHint').textContent = mine ? tr('Tap your selected emoji to remove it.','اضغط على رمزك المحدد لإزالته.') : tr('Choose the feeling that fits.','اختر التفاعل المناسب.');
+  $('messageReactionDialog').showModal();
+}
+
+async function openMessageReactors(messageId, emoji) {
+  const snapshot = await getDocs(collection(db, 'communitySpaces', activeMessagesSpace.slug, 'messages', messageId, 'reactions'));
+  const reactions = snapshot.docs.map(item => item.data()).filter(item => !emoji || item.emoji === emoji);
+  const people = await Promise.all(reactions.map(async reaction => ({reaction, profile:await getProfile(reaction.userId)})));
+  people.sort((left, right) => Number(right.reaction.userId === currentUser?.uid) - Number(left.reaction.userId === currentUser?.uid));
+  $('messageReactorsTitle').textContent = emoji ? emoji + ' ' + tr('Reactions','التفاعلات') : tr('Reactions','التفاعلات');
+  $('messageReactorsList').innerHTML = people.length ? people.map(({reaction,profile}) => {
+    const name = reaction.userId === currentUser?.uid ? tr('You','أنت') : profile.displayName || profile.username || tr('Community member','عضو في المجتمع');
+    const handle = profile.username ? '@' + profile.username : tr('Chat member','عضو في الدردشة');
+    return '<a href="' + escapeHtml(profileUrl(reaction.userId, profile.username)) + '">' + avatarMarkup(name, profile.photoBase64 || profile.photoURL, 'avatar', profile.verified === true) + '<span><strong>' + escapeHtml(name) + '</strong><small>' + escapeHtml(handle) + '</small></span><b class="message-reactor-emoji" aria-label="' + escapeHtml(tr('Reaction','التفاعل')) + '">' + escapeHtml(reaction.emoji) + '</b></a>';
+  }).join('') : '<p class="notice">' + tr('No reactions yet.','لا توجد تفاعلات بعد.') + '</p>';
+  $('messageReactorsDialog').showModal();
+}
+
+function showMessageReactionBurst(messageId, emoji, sourceElement = null) {
+  const article = $('messagesList').querySelector('[data-message-id="' + CSS.escape(messageId) + '"]');
+  if (!emoji || !article) return;
+  const burst = document.createElement('span');
+  burst.className = 'message-reaction-burst';
+  burst.textContent = emoji;
+  (article.querySelector('.space-message-body') || sourceElement || article).appendChild(burst);
+  window.setTimeout(() => burst.remove(), 850);
+}
+
+async function setMessageReaction(messageId, emoji, sourceElement = null) {
+  if (!messageId || !activeMessagesSpace || !currentUser) return;
+  const result = await callFunction('setCommunitySpaceConnection', {operation:'set_space_message_reaction', spaceId:activeMessagesSpace.slug, messageId, emoji});
+  activeMessageReactions.set(messageId, result.emoji || '');
+  const message = activeSpaceMessages.find(item => item.id === messageId);
+  if (message) message.reactionCounts = result.reactionCounts || {};
+  await repaintActiveSpaceMessages();
+  showMessageReactionBurst(messageId, result.emoji, sourceElement);
+  return result;
+}
+
+async function quickLoveMessage(messageId, sourceElement = null) {
+  let mine = activeMessageReactions.get(messageId);
+  if (!activeMessageReactions.has(messageId)) {
+    try {
+      const snapshot = await getDoc(doc(db, 'communitySpaces', activeMessagesSpace.slug, 'messages', messageId, 'reactions', currentUser.uid));
+      mine = snapshot.exists() ? snapshot.data().emoji : '';
+      activeMessageReactions.set(messageId, mine);
+    } catch { mine = ''; }
+  }
+  if (mine === '❤️') return showMessageReactionBurst(messageId, '❤️', sourceElement);
+  return setMessageReaction(messageId, '❤️', sourceElement);
+}
+
+function setMessageReply(message = null) {
+  activeMessageReply = message;
+  $('messageReplyPreview').hidden = !message;
+  $('messageReplyName').textContent = message?.senderName || '';
+  $('messageReplyText').textContent = message ? (message.text || (message.imagePath ? tr('Photo','صورة') : message.audioPath ? tr('Voice message','رسالة صوتية') : tr('Shared post','منشور مُشارك'))).slice(0, 180) : '';
+  if (message) $('messageText').focus();
+}
+
+function clearMessageVoice() {
+  if (messageVoiceTimer) window.clearInterval(messageVoiceTimer);
+  messageVoiceTimer = null;
+  if (messageMediaRecorder?.state === 'recording') messageMediaRecorder.stop();
+  messageMediaRecorder?.stream?.getTracks?.().forEach(track => track.stop());
+  messageMediaRecorder = null;
+  if (activeMessageVoice?.previewUrl) URL.revokeObjectURL(activeMessageVoice.previewUrl);
+  activeMessageVoice = null;
+  $('messageVoicePreview').hidden = true;
+  $('messageVoicePreviewAudio').removeAttribute('src');
+  $('messageVoiceStatus').textContent = '';
+  $('messageVoiceRecord').classList.remove('recording');
+  $('messageVoiceRecord').setAttribute('aria-label', tr('Record voice message','تسجيل رسالة صوتية'));
+}
+
+async function toggleMessageVoiceRecording() {
+  if (messageMediaRecorder?.state === 'recording') {
+    messageMediaRecorder.stop();
+    return;
+  }
+  if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') throw new Error(tr('Voice recording is not supported by this browser.','هذا المتصفح لا يدعم تسجيل الصوت.'));
+  clearMessageImage();
+  clearMessageVoice();
+  const stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true}});
+  const mimeType = ['audio/webm;codecs=opus','audio/mp4','audio/ogg;codecs=opus'].find(type => MediaRecorder.isTypeSupported(type)) || '';
+  const recorder = new MediaRecorder(stream, mimeType ? {mimeType} : undefined);
+  const chunks = [];
+  const startedAt = Date.now();
+  messageMediaRecorder = recorder;
+  recorder.ondataavailable = event => { if (event.data.size) chunks.push(event.data); };
+  recorder.onstop = () => {
+    stream.getTracks().forEach(track => track.stop());
+    if (messageMediaRecorder !== recorder) return;
+    if (messageVoiceTimer) window.clearInterval(messageVoiceTimer);
+    messageVoiceTimer = null;
+    $('messageVoiceRecord').classList.remove('recording');
+    const durationMs = Math.min(CHAT_AUDIO_MAX_MS, Date.now() - startedAt);
+    const type = recorder.mimeType.split(';')[0] || 'audio/webm';
+    const blob = new Blob(chunks, {type});
+    messageMediaRecorder = null;
+    if (!blob.size || blob.size > CHAT_AUDIO_MAX_BYTES || durationMs < 250) return showToast(tr('The voice recording is empty or too large.','التسجيل الصوتي فارغ أو كبير جداً.'));
+    const previewUrl = URL.createObjectURL(blob);
+    activeMessageVoice = {blob, previewUrl, durationMs, audioPath:'', contentType:type};
+    $('messageVoicePreviewAudio').src = previewUrl;
+    $('messageVoicePreview').hidden = false;
+    $('messageVoiceStatus').textContent = tr('Ready to send','جاهزة للإرسال') + ' · ' + Math.ceil(durationMs / 1000) + 's';
+  };
+  recorder.start(500);
+  $('messageVoiceRecord').classList.add('recording');
+  $('messageVoiceRecord').setAttribute('aria-label', tr('Stop recording','إيقاف التسجيل'));
+  messageVoiceTimer = window.setInterval(() => {
+    const elapsed = Date.now() - startedAt;
+    $('messageVoiceStatus').textContent = tr('Recording','جارٍ التسجيل') + ' ' + Math.ceil(elapsed / 1000) + 's';
+    $('messageVoicePreview').hidden = false;
+    if (elapsed >= CHAT_AUDIO_MAX_MS && recorder.state === 'recording') recorder.stop();
+  }, 250);
+}
+
+function uploadMessageVoice(spaceId) {
+  if (!activeMessageVoice) return Promise.resolve('');
+  if (activeMessageVoice.audioPath) return Promise.resolve(activeMessageVoice.audioPath);
+  const extension = {'audio/webm':'webm','audio/mp4':'m4a','audio/ogg':'ogg','audio/aac':'aac','audio/mpeg':'mp3'}[activeMessageVoice.contentType] || 'webm';
+  const fileId = (crypto.randomUUID?.() || (Date.now() + '-' + Math.random().toString(36).slice(2))).replace(/[^A-Za-z0-9_-]/g, '');
+  const audioPath = `community/space-messages/${spaceId}/${currentUser.uid}/${fileId}.${extension}`;
+  const task = uploadBytesResumable(storageRef(storage, audioPath), activeMessageVoice.blob, {contentType:activeMessageVoice.contentType});
+  return new Promise((resolve, reject) => task.on('state_changed', snapshot => {
+    const progress = snapshot.totalBytes ? Math.round(snapshot.bytesTransferred / snapshot.totalBytes * 100) : 0;
+    $('messageVoiceStatus').textContent = tr(`Uploading ${progress}%`,`جارٍ الرفع ${progress}٪`);
+  }, reject, () => { if (activeMessageVoice) activeMessageVoice.audioPath = audioPath; resolve(audioPath); }));
+}
+
+function clearMessageImage() {
+  if (activeMessageImage?.previewUrl) URL.revokeObjectURL(activeMessageImage.previewUrl);
+  activeMessageImage = null;
+  if ($('messageImageInput')) $('messageImageInput').value = '';
+  if ($('messageImagePreview')) $('messageImagePreview').hidden = true;
+  if ($('messageImagePreviewImage')) $('messageImagePreviewImage').src = '';
+  if ($('messageUploadStatus')) $('messageUploadStatus').textContent = '';
+}
+
+function selectMessageImage(file) {
+  if (!file) return clearMessageImage();
+  if (!['image/jpeg','image/png','image/webp'].includes(file.type)) throw new Error(tr('Choose a JPEG, PNG, or WebP image.','اختر صورة JPEG أو PNG أو WebP.'));
+  if (file.size < 1 || file.size > CHAT_IMAGE_MAX_BYTES) throw new Error(tr('Choose an image no larger than 8 MB.','اختر صورة لا يزيد حجمها عن 8 ميغابايت.'));
+  clearMessageImage();
+  const previewUrl = URL.createObjectURL(file);
+  activeMessageImage = {file, previewUrl, imagePath:''};
+  $('messageImagePreviewImage').src = previewUrl;
+  $('messageImagePreview').hidden = false;
+  $('messageUploadStatus').textContent = tr('Ready to send','جاهزة للإرسال');
+}
+
+function uploadMessageImage(spaceId) {
+  if (!activeMessageImage) return Promise.resolve('');
+  if (activeMessageImage.imagePath) return Promise.resolve(activeMessageImage.imagePath);
+  const extension = {'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[activeMessageImage.file.type];
+  const fileId = (crypto.randomUUID?.() || (Date.now() + '-' + Math.random().toString(36).slice(2))).replace(/[^A-Za-z0-9_-]/g, '');
+  const imagePath = `community/space-messages/${spaceId}/${currentUser.uid}/${fileId}.${extension}`;
+  const task = uploadBytesResumable(storageRef(storage, imagePath), activeMessageImage.file, {contentType:activeMessageImage.file.type});
+  return new Promise((resolve, reject) => task.on('state_changed', snapshot => {
+    const progress = snapshot.totalBytes ? Math.round(snapshot.bytesTransferred / snapshot.totalBytes * 100) : 0;
+    $('messageUploadStatus').textContent = tr(`Uploading ${progress}%`,`جارٍ الرفع ${progress}٪`);
+  }, reject, () => {
+    if (activeMessageImage) activeMessageImage.imagePath = imagePath;
+    $('messageUploadStatus').textContent = tr('Upload complete','اكتمل الرفع');
+    resolve(imagePath);
+  }));
+}
+
+async function chatImageUrl(imagePath) {
+  if (!imagePath) return '';
+  if (!chatImageUrls.has(imagePath)) {
+    const pending = getBlob(storageRef(storage, imagePath)).then(blob => {
+      const url = URL.createObjectURL(blob);
+      chatImageUrls.set(imagePath, url);
+      return url;
+    }).catch(error => {
+      console.warn('[Community] Chat image could not be loaded.', error);
+      return '';
+    });
+    chatImageUrls.set(imagePath, pending);
+  }
+  return chatImageUrls.get(imagePath);
+}
+
+async function sharedPostForMessage(postId) {
+  if (!postId) return null;
+  if (!sharedPostCache.has(postId)) {
+    sharedPostCache.set(postId, getDoc(doc(db, 'communityPosts', postId)).then(async snapshot => {
+      if (!snapshot.exists()) return null;
+      const post = {id:snapshot.id, ...snapshot.data()};
+      return canSeeSharedChatPost(post) ? loadPostImage(post) : post;
+    }).catch(() => null));
+  }
+  return sharedPostCache.get(postId);
+}
+
+function canSeeSharedChatPost(post) {
+  if (!post || post.archived === true || post.published === false) return false;
+  if (blockedSpaceSlugs.has(post.communitySlug)) return false;
+  const area = communityAreas[post.communitySlug];
+  return !area?.isPrivate || area.creatorId === currentUser?.uid || managedSpaceSlugs.has(area.slug) || connectedSpaceSlugs.has(area.slug);
+}
+
+async function renderSpaceMessage(message, space) {
+  const [profile, sharedPost, messageImage, messageAudio] = await Promise.all([getProfile(message.senderId), sharedPostForMessage(message.sharedPostId), chatImageUrl(message.imagePath), chatImageUrl(message.audioPath)]);
+  const displayName = profile.displayName || message.senderName || tr('Community member','عضو في المجتمع');
+  const mine = message.senderId === currentUser?.uid;
+  const deleted = message.deleted === true;
+  const sharedAllowed = canSeeSharedChatPost(sharedPost);
+  const sharedImage = sharedAllowed ? postImageUrls(sharedPost)[0] : '';
+  const sharedCard = !deleted && message.sharedPostId
+    ? sharedAllowed
+      ? '<button class="chat-shared-post" type="button" data-message-post="' + escapeHtml(message.sharedPostId) + '">' + (sharedImage ? '<img src="' + escapeHtml(sharedImage) + '" alt="">' : '') + '<span>' + escapeHtml(sharedPost.type === 'question' ? tr('Open question','سؤال مفتوح') : sharedPost.type === 'behance' ? tr('Project','مشروع') : tr('Post','منشور')) + '</span><strong>' + escapeHtml(sharedPost.title || tr('Community post','منشور المجتمع')) + '</strong><small>' + escapeHtml(sharedPost.authorName || tr('Community member','عضو في المجتمع')) + ' · ' + escapeHtml(sharedPost.communitySlug === 'main' ? tr('Main thread','المسار الرئيسي') : 'a/' + sharedPost.communitySlug) + '</small><b>' + tr('Open post','فتح المنشور') + ' →</b></button>'
+      : '<div class="chat-shared-post restricted"><span aria-hidden="true">◐</span><strong>' + tr('Restricted post','منشور مقيّد') + '</strong><small>' + tr('Connect to the private space to view this post.','اتصل بالمساحة الخاصة لعرض هذا المنشور.') + '</small></div>'
+    : '';
+  const imageCard = !deleted && message.imagePath
+    ? messageImage
+      ? '<button class="chat-message-image" type="button" data-chat-image="' + escapeHtml(messageImage) + '"><img src="' + escapeHtml(messageImage) + '" alt="' + escapeHtml(tr('Chat photo','صورة الدردشة')) + '"></button>'
+      : '<div class="chat-image-unavailable">' + tr('Image unavailable','الصورة غير متاحة') + '</div>'
+    : '';
+  const audioCard = !deleted && message.audioPath
+    ? messageAudio
+      ? '<div class="chat-message-audio"><button type="button" data-chat-audio-toggle aria-label="' + escapeHtml(tr('Play voice message','تشغيل الرسالة الصوتية')) + '"><span aria-hidden="true">▶</span></button><span class="chat-message-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>' + Math.max(1, Math.ceil(Number(message.audioDurationMs || 0) / 1000)) + 's</small><audio preload="metadata" src="' + escapeHtml(messageAudio) + '"></audio></div>'
+      : '<div class="chat-image-unavailable">' + tr('Voice message unavailable','الرسالة الصوتية غير متاحة') + '</div>'
+    : '';
+  const reply = message.replyToId ? '<div class="chat-reply-context"><strong>' + escapeHtml(message.replyToSenderName || tr('Member','عضو')) + '</strong><span>' + escapeHtml(message.replyToText || tr('Message','رسالة')) + '</span></div>' : '';
+  const viewers = await seenMembersForMessage(message.id);
+  const seen = viewers.length ? '<button class="message-seen" type="button" data-message-viewers="' + escapeHtml(message.id) + '" title="' + escapeHtml(tr('See everyone who viewed this message','عرض كل من شاهد هذه الرسالة')) + '">' + viewers.slice(0, 2).map(({profile, receipt}) => avatarMarkup(profile.displayName || profile.username || tr('Member','عضو'), profile.photoBase64 || profile.photoURL, 'avatar', profile.verified === true)).join('') + (viewers.length > 2 ? '<b>+' + (viewers.length - 2) + '</b>' : '') + '</button>' : '';
+  const messageActions = !deleted
+    ? (mine ? '<button type="button" data-chat-edit="' + escapeHtml(message.id) + '">' + tr('Edit','تعديل') + '</button>' : '')
+      + (mine || canManageSpace(space.slug) ? '<button type="button" data-chat-delete="' + escapeHtml(message.id) + '">' + tr('Delete','حذف') + '</button>' : '')
+    : '';
+  const applause = !deleted ? '<button type="button" data-chat-applause="' + escapeHtml(message.id) + '" class="chat-applause">✦ ' + Number(message.applauseCount || 0) + '</button>' : '';
+  const myReaction = activeMessageReactions.get(message.id) || '';
+  const reactionChips = !deleted ? Object.entries(message.reactionCounts || {}).filter(([,count]) => Number(count) > 0).map(([emoji,count]) => {
+    const selected = emoji === myReaction;
+    return '<button type="button" class="chat-reaction-chip' + (selected ? ' selected' : '') + '" data-chat-reactors="' + escapeHtml(message.id) + '" data-reaction-emoji="' + escapeHtml(emoji) + '" aria-label="' + escapeHtml(emoji + ' · ' + Number(count) + ' · ' + tr('See who reacted','عرض من تفاعل')) + '" aria-pressed="' + String(selected) + '"><span>' + escapeHtml(emoji) + '</span><b>' + Number(count) + '</b></button>';
+  }).join('') : '';
+  const content = deleted ? '<div class="space-message-deleted">' + tr('Message deleted','تم حذف الرسالة') + '</div>' : reply + (message.text ? '<div class="space-message-text">' + renderMentionedText(message.text) + (message.editedAt ? ' <em>' + tr('Edited','تم التعديل') + '</em>' : '') + '</div>' : '') + imageCard + audioCard + sharedCard;
+  const reactionSurface = deleted ? '' : ' data-reaction-surface="' + escapeHtml(message.id) + '" title="' + escapeHtml(tr('Double-click to love · hold for more reactions','انقر مرتين للإعجاب · اضغط مطولاً لمزيد من التفاعلات')) + '"';
+  return '<article class="space-message' + (mine ? ' mine' : '') + (deleted ? ' deleted' : '') + '" data-message-id="' + escapeHtml(message.id) + '"><a class="space-message-avatar" href="' + escapeHtml(profileUrl(message.senderId, profile.username || message.senderUsername)) + '">' + avatarMarkup(displayName, profile.photoBase64 || profile.photoURL, 'avatar', profile.verified === true) + '</a><div><div class="space-message-body"' + reactionSurface + '><div class="space-message-meta"><a href="' + escapeHtml(profileUrl(message.senderId, profile.username || message.senderUsername)) + '">' + escapeHtml(displayName) + '</a><span>' + escapeHtml(formatDate(message.createdAt)) + '</span></div>' + content + (reactionChips ? '<div class="chat-reaction-chips">' + reactionChips + '</div>' : '') + '<div class="space-message-actions">' + applause + (!deleted ? '<button type="button" data-chat-react="' + escapeHtml(message.id) + '" aria-label="' + escapeHtml(tr('React to message','تفاعل مع الرسالة')) + '"><span aria-hidden="true">☺</span> ' + tr('React','تفاعل') + '</button><button type="button" data-chat-reply="' + escapeHtml(message.id) + '">' + tr('Reply','رد') + '</button>' : '') + messageActions + '</div></div>' + seen + '</div></article>';
+}
+
+async function paintSpaceMessages(source, space, {scrollToBottom = false, preserveScroll = false} = {}) {
+  const allMessages = Array.isArray(source) ? source : source.docs.map(item => ({id:item.id, ...item.data()}));
+  const messages = allMessages.filter(message => !showTopApplaudedMessages || Number(message.applauseCount || 0) > 0).sort((a,b) => showTopApplaudedMessages ? Number(b.applauseCount || 0) - Number(a.applauseCount || 0) : 0);
+  const messageList = $('messagesList');
+  const paintVersion = ++spaceMessagePaintVersion;
+  const previousScrollTop = messageList.scrollTop;
+  const previousScrollHeight = messageList.scrollHeight;
+  activeSpaceMessages = allMessages;
+  activeMessagesSpace = space;
+  if (!messages.length) {
+    messageList.innerHTML = '<div class="empty-state"><span class="empty-mark">◯</span><h3>' + tr('Start the conversation','ابدأ المحادثة') + '</h3><p>' + tr('Messages appear instantly for connected members.','تظهر الرسائل فوراً للأعضاء المتصلين.') + '</p></div>';
+  } else {
+    messageList.innerHTML = messages.map(message => '<article class="space-message chat-message-loading" data-message-slot="' + escapeHtml(message.id) + '"><div class="post-skeleton short"></div></article>').join('');
+    if (scrollToBottom) messageList.scrollTop = messageList.scrollHeight;
+    requestAnimationFrame(() => {
+      if (paintVersion === spaceMessagePaintVersion && scrollToBottom) messageList.scrollTop = messageList.scrollHeight;
+    });
+    await Promise.all([...messages].reverse().map(async message => {
+      const html = await renderSpaceMessage(message, space);
+      if (paintVersion !== spaceMessagePaintVersion) return;
+      const slot = messageList.querySelector('[data-message-slot="' + CSS.escape(message.id) + '"]');
+      if (!slot) return;
+      const template = document.createElement('template');
+      template.innerHTML = html.trim();
+      slot.replaceWith(template.content.firstElementChild);
+      if (scrollToBottom) messageList.scrollTop = messageList.scrollHeight;
+    }));
+    if (paintVersion !== spaceMessagePaintVersion) return;
+  }
+  $('messagesList').querySelectorAll('[data-chat-reply]').forEach(button => button.addEventListener('click', () => setMessageReply(messages.find(item => item.id === button.dataset.chatReply))));
+  $('messagesList').querySelectorAll('[data-message-viewers]').forEach(button => button.addEventListener('click', () => openMessageViewers(button.dataset.messageViewers).catch(console.error)));
+  $('messagesList').querySelectorAll('[data-chat-edit]').forEach(button => button.addEventListener('click', async () => {
+    const message = messages.find(item => item.id === button.dataset.chatEdit);
+    if (!message) return;
+    const text = prompt(tr('Edit your message:','عدّل رسالتك:'), message.text || '')?.trim();
+    if (text == null || text === message.text || (!text && !message.imagePath && !message.audioPath && !message.sharedPostId)) return;
+    button.disabled = true;
+    try { await callFunction('setCommunitySpaceConnection', {operation:'edit_space_message', spaceId:space.slug, messageId:message.id, text}); }
+    catch (error) { console.error(error); showToast(error.message || tr('Message could not be edited.','تعذر تعديل الرسالة.')); button.disabled = false; }
+  }));
+  $('messagesList').querySelectorAll('[data-chat-delete]').forEach(button => button.addEventListener('click', async () => {
+    const messageId = button.dataset.chatDelete;
+    if (!confirm(tr('Delete this message?','حذف هذه الرسالة؟'))) return;
+    button.disabled = true;
+    try { await callFunction('setCommunitySpaceConnection', {operation:'delete_space_message', spaceId:space.slug, messageId}); }
+    catch (error) { console.error(error); showToast(error.message || tr('Message could not be deleted.','تعذر حذف الرسالة.')); button.disabled = false; }
+  }));
+  $('messagesList').querySelectorAll('[data-message-post]').forEach(button => button.addEventListener('click', () => navigateTo('/?post=' + encodeURIComponent(button.dataset.messagePost) + '&area=' + encodeURIComponent(space.slug) + '&return=messages', false)));
+  $('messagesList').querySelectorAll('[data-chat-image]').forEach(button => button.addEventListener('click', () => openImageViewer({title:tr('Chat photo','صورة الدردشة'), imageDataUrls:[button.dataset.chatImage], chatImage:true}, 0)));
+  $('messagesList').querySelectorAll('[data-chat-applause]').forEach(button => button.addEventListener('click', async () => { button.disabled = true; try { await callFunction('setCommunitySpaceConnection', {operation:'toggle_space_message_applause', spaceId:space.slug, messageId:button.dataset.chatApplause}); } catch (error) { showToast(error.message || tr('Could not applaud this message.','تعذر التصفيق لهذه الرسالة.')); button.disabled = false; } }));
+  $('messagesList').querySelectorAll('[data-chat-react]').forEach(button => button.addEventListener('click', () => openMessageReactionPicker(button.dataset.chatReact).catch(console.error)));
+  $('messagesList').querySelectorAll('[data-chat-reactors]').forEach(button => button.addEventListener('click', () => openMessageReactors(button.dataset.chatReactors, button.dataset.reactionEmoji).catch(console.error)));
+  $('messagesList').querySelectorAll('[data-reaction-surface]').forEach(surface => {
+    const messageId = surface.dataset.reactionSurface;
+    let holdTimer = null;
+    let holdStart = null;
+    const cancelHold = () => { if (holdTimer) window.clearTimeout(holdTimer); holdTimer = null; holdStart = null; };
+    surface.addEventListener('dblclick', event => {
+      if (event.target.closest('a,button,audio,input,textarea')) return;
+      event.preventDefault();
+      quickLoveMessage(messageId, surface).catch(error => showToast(error.message || tr('Could not add reaction.','تعذر إضافة التفاعل.')));
+    });
+    surface.addEventListener('pointerdown', event => {
+      if (event.button !== 0 || event.target.closest('a,button,audio,input,textarea')) return;
+      holdStart = {x:event.clientX, y:event.clientY};
+      holdTimer = window.setTimeout(() => {
+        holdTimer = null;
+        navigator.vibrate?.(18);
+        openMessageReactionPicker(messageId).catch(console.error);
+      }, 520);
+    });
+    surface.addEventListener('pointermove', event => {
+      if (holdStart && Math.hypot(event.clientX - holdStart.x, event.clientY - holdStart.y) > 12) cancelHold();
+    });
+    ['pointerup','pointercancel','pointerleave'].forEach(type => surface.addEventListener(type, cancelHold));
+  });
+  $('messagesList').querySelectorAll('[data-chat-audio-toggle]').forEach(button => button.addEventListener('click', () => {
+    const card = button.closest('.chat-message-audio');
+    const audio = card?.querySelector('audio');
+    if (!audio) return;
+    $('messagesList').querySelectorAll('.chat-message-audio audio').forEach(other => { if (other !== audio) other.pause(); });
+    if (audio.paused) audio.play().catch(() => {}); else audio.pause();
+  }));
+  $('messagesList').querySelectorAll('.chat-message-audio audio').forEach(audio => {
+    const card = audio.closest('.chat-message-audio');
+    const toggle = card?.querySelector('[data-chat-audio-toggle]');
+    const sync = () => { const playing = !audio.paused && !audio.ended; card?.classList.toggle('playing', playing); if (toggle) { toggle.querySelector('span').textContent = playing ? '❚❚' : '▶'; toggle.setAttribute('aria-label', tr(playing ? 'Pause voice message' : 'Play voice message', playing ? 'إيقاف الرسالة الصوتية' : 'تشغيل الرسالة الصوتية')); } };
+    audio.addEventListener('play', sync); audio.addEventListener('pause', sync); audio.addEventListener('ended', sync);
+  });
+  requestAnimationFrame(() => {
+    if (scrollToBottom) messageList.scrollTop = messageList.scrollHeight;
+    else if (preserveScroll) messageList.scrollTop = previousScrollTop + Math.max(0, messageList.scrollHeight - previousScrollHeight);
+  });
+  const latest = messages.at(-1);
+  if (latest && latest.id !== lastSeenMessageMarked) {
+    lastSeenMessageMarked = latest.id;
+    callFunction('setCommunitySpaceConnection', {operation:'mark_space_messages_seen', spaceId:space.slug, messageId:latest.id}).catch(error => console.warn('[Community] Seen receipt could not be updated.', error));
+  }
+}
+
+async function repaintActiveSpaceMessages() {
+  if (!activeMessagesSpace) return;
+  await paintSpaceMessages(activeSpaceMessages, activeMessagesSpace, {preserveScroll:true});
+}
+
+function combineSpaceMessagePages() {
+  const unique = new Map();
+  [...olderSpaceMessages, ...liveSpaceMessages].forEach(message => unique.set(message.id, message));
+  return [...unique.values()];
+}
+
+async function loadOlderSpaceMessages() {
+  const space = activeMessagesSpace;
+  if (!space || loadingOlderSpaceMessages || !hasOlderSpaceMessages || !oldestSpaceMessageCursor) return;
+  loadingOlderSpaceMessages = true;
+  const list = $('messagesList');
+  list.classList.add('loading-history');
+  try {
+    const pageQuery = query(
+      collection(db, 'communitySpaces', space.slug, 'messages'),
+      orderBy('createdAt', 'desc'),
+      startAfter(oldestSpaceMessageCursor),
+      limit(30)
+    );
+    const snapshot = await getDocs(pageQuery);
+    const page = snapshot.docs.map(item => ({id:item.id, ...item.data()})).reverse();
+    oldestSpaceMessageCursor = snapshot.docs.at(-1) || oldestSpaceMessageCursor;
+    hasOlderSpaceMessages = snapshot.size === 30;
+    olderSpaceMessages = [...page, ...olderSpaceMessages];
+    await paintSpaceMessages(combineSpaceMessagePages(), space, {preserveScroll:true});
+  } catch (error) {
+    console.warn('[Community] Older messages could not be loaded.', error);
+  } finally {
+    loadingOlderSpaceMessages = false;
+    list.classList.remove('loading-history');
+  }
+}
+
+async function openSpaceMessages(space) {
+  stopSpaceMessages();
+  showTopApplaudedMessages = false;
+  $('messagesTopTab').classList.remove('active');
+  $('messagesTopTab').textContent = '✦ ' + tr('Top','الأعلى');
+  $('messagesSpacePath').textContent = 'a/' + space.slug;
+  $('messagesSpaceTitle').textContent = space.name || tr('Space messages','رسائل المساحة');
+  $('messagesSpaceVisual').innerHTML = spaceVisual(space, 'messages-space-image');
+  $('messagesBack').href = areaUrl(space.slug);
+  $('messagesGate').hidden = true;
+  $('messagesPanel').hidden = true;
+  if (!currentUser) {
+    $('messagesGate').hidden = false;
+    $('messagesGate').innerHTML = '<p class="notice">' + tr('Sign in and connect to this space to view its messages.','سجّل الدخول واتصل بهذه المساحة لعرض رسائلها.') + '</p>';
+    return;
+  }
+  const manager = canManageSpace(space.slug);
+  if (space.chatEnabled !== true) {
+    $('messagesGate').hidden = false;
+    $('messagesGate').innerHTML = manager
+      ? '<div class="messages-enable-card"><span>◯</span><h2>' + tr('Add Messages to this space','أضف الرسائل إلى هذه المساحة') + '</h2><p>' + tr('This is permanent. Messages cannot be disabled or deleted after the channel is created.','هذا الإجراء دائم. لا يمكن تعطيل الرسائل أو حذفها بعد إنشاء القناة.') + '</p><button id="enableSpaceMessages" type="button">' + tr('Enable Messages','تفعيل الرسائل') + '</button></div>'
+      : '<p class="notice">' + tr('This space does not have Messages yet.','لا تحتوي هذه المساحة على رسائل بعد.') + '</p>';
+    $('enableSpaceMessages')?.addEventListener('click', async event => {
+      if (!confirm(tr('Enable permanent Messages for this space? The channel cannot be removed later.','تفعيل رسائل دائمة لهذه المساحة؟ لا يمكن إزالة القناة لاحقاً.'))) return;
+      event.currentTarget.disabled = true;
+      try {
+        await callFunction('setCommunitySpaceConnection', {operation:'enable_space_chat', spaceId:space.slug});
+        communityAreas[space.slug] = {...space, chatEnabled:true};
+        await openSpaceMessages(communityAreas[space.slug]);
+      } catch (error) { console.error(error); showToast(error.message || tr('Messages could not be enabled.','تعذر تفعيل الرسائل.')); event.currentTarget.disabled = false; }
+    });
+    return;
+  }
+  if (!canAccessSpaceChat(space)) {
+    $('messagesGate').hidden = false;
+    const connected = connectedSpaceSlugs.has(space.slug);
+    const [accessSnapshot, chatRequestSnapshot] = await Promise.all([
+      getDoc(doc(db, 'communitySpaces', space.slug, 'access', currentUser.uid)).catch(() => null),
+      getDoc(doc(db, 'communitySpaces', space.slug, 'chatAccessRequests', currentUser.uid)).catch(() => null)
+    ]);
+    const messageBanned = accessSnapshot?.data()?.chatBanned === true;
+    const requestPending = chatRequestSnapshot?.data()?.status === 'pending';
+    if (messageBanned) {
+      $('messagesGate').innerHTML = '<div class="messages-enable-card"><span aria-hidden="true">!</span><h2>' + tr('Messages access removed','تمت إزالة وصول الرسائل') + '</h2><p class="notice error">' + tr('You are banned from this space’s Messages. You can ask an administrator to restore access.', 'أنت محظور من رسائل هذه المساحة. يمكنك طلب استعادة الوصول من المشرف.') + '</p><button type="button" data-request-chat-access>' + tr('Request Messages access','طلب الوصول إلى الرسائل') + '</button></div>';
+      const requestButton = $('messagesGate').querySelector('[data-request-chat-access]');
+      if (requestPending && requestButton) { requestButton.disabled = true; requestButton.textContent = tr('Request pending','الطلب قيد المراجعة'); }
+      requestButton?.addEventListener('click', async event => {
+        event.currentTarget.disabled = true;
+        try {
+          const result = await callFunction('setCommunitySpaceConnection', {operation:'request_space_chat_access', spaceId:space.slug});
+          event.currentTarget.textContent = result.status === 'pending' ? tr('Request pending','الطلب قيد المراجعة') : tr('Messages approved','تمت الموافقة على الرسائل');
+        } catch (error) {
+          showToast(error.message || tr('Messages request could not be sent.','تعذر إرسال طلب الرسائل.'));
+          event.currentTarget.disabled = false;
+        }
+      });
+      return;
+    }
+    $('messagesGate').innerHTML = '<div class="messages-enable-card"><span aria-hidden="true">◯</span><h2>' + tr(connected ? 'Messages approval required' : 'Connect first', connected ? 'مطلوب تصريح الرسائل' : 'اتصل أولاً') + '</h2><p>' + tr(connected ? 'A space administrator must approve your Messages access.' : 'Connect to this space before requesting Messages access.', connected ? 'يجب أن يوافق مشرف المساحة على وصولك إلى الرسائل.' : 'اتصل بهذه المساحة قبل طلب الوصول إلى الرسائل.') + '</p>' + (connected ? '<button type="button" data-request-chat-access>' + tr('Request Messages access','طلب الوصول إلى الرسائل') + '</button>' : '') + '</div>';
+    const normalRequestButton = $('messagesGate').querySelector('[data-request-chat-access]');
+    if (requestPending && normalRequestButton) { normalRequestButton.disabled = true; normalRequestButton.textContent = tr('Request pending','الطلب قيد المراجعة'); }
+    normalRequestButton?.addEventListener('click', async event => {
+      event.currentTarget.disabled = true;
+      try { const result = await callFunction('setCommunitySpaceConnection', {operation:'request_space_chat_access', spaceId:space.slug}); event.currentTarget.textContent = result.status === 'approved' ? tr('Messages approved','تمت الموافقة على الرسائل') : tr('Request pending','الطلب قيد المراجعة'); }
+      catch (error) { showToast(error.message || tr('Messages request could not be sent.','تعذر إرسال طلب الرسائل.')); event.currentTarget.disabled = false; }
+    });
+    return;
+  }
+  $('messagesPanel').hidden = false;
+  activeMessagesSpace = space;
+  unsubscribeSpaceAccess = onSnapshot(doc(db, 'communitySpaces', space.slug, 'access', currentUser.uid), snapshot => {
+    const access = snapshot.data() || {};
+    if (snapshot.exists() && access.canUseChat === true && access.blocked !== true && access.chatBanned !== true) return;
+    if (activeMessagesSpace?.slug !== space.slug) return;
+    stopSpaceMessages();
+    $('messagesPanel').hidden = true;
+    $('messagesGate').hidden = false;
+    $('messagesGate').innerHTML = '<p class="notice error">' + tr('Your Messages access was revoked by the server.','تم إلغاء وصولك إلى الرسائل من الخادم.') + '</p>';
+  }, error => console.warn('[Community] Server access status unavailable.', error));
+  await updateChatPresence(space.slug);
+  chatPresenceTimer = window.setInterval(() => updateChatPresence(space.slug), 45 * 1000);
+  const presenceQuery = query(collection(db, 'communitySpaces', space.slug, 'chatPresence'), orderBy('activeAt', 'desc'), limit(24));
+  unsubscribeSpaceChatPresence = onSnapshot(presenceQuery, snapshot => {
+    activeChatPresence = snapshot.docs.map(item => ({id:item.id, ...item.data()}));
+    renderChatPresence().catch(error => console.warn('[Community] Chat presence could not be rendered.', error));
+  }, error => console.warn('[Community] Chat presence unavailable.', error));
+  $('messagesList').innerHTML = '<div class="post-skeleton short"></div>';
+  const messagesQuery = query(collection(db, 'communitySpaces', space.slug, 'messages'), orderBy('createdAt', 'desc'), limit(30));
+  let firstMessagePage = true;
+  unsubscribeSpaceMessages = onSnapshot(messagesQuery, snapshot => {
+    const list = $('messagesList');
+    const wasNearBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 120;
+    liveSpaceMessages = snapshot.docs.map(item => ({id:item.id, ...item.data()})).reverse();
+    const liveIds = new Set(liveSpaceMessages.map(message => message.id));
+    olderSpaceMessages = olderSpaceMessages.filter(message => !liveIds.has(message.id));
+    if (firstMessagePage) {
+      oldestSpaceMessageCursor = snapshot.docs.at(-1) || null;
+      hasOlderSpaceMessages = snapshot.size === 30;
+    }
+    paintSpaceMessages(combineSpaceMessagePages(), space, {scrollToBottom:firstMessagePage || wasNearBottom}).catch(console.error);
+    firstMessagePage = false;
+  }, error => {
+    console.warn('[Community] Space messages unavailable.', error);
+    $('messagesPanel').hidden = true;
+    $('messagesGate').hidden = false;
+    $('messagesGate').innerHTML = '<p class="notice error">' + tr('You cannot access these space messages. You may have been removed from the chat.','لا يمكنك الوصول إلى رسائل هذه المساحة. ربما تمت إزالتك من الدردشة.') + '</p>';
+  });
+  const readsQuery = query(collection(db, 'communitySpaces', space.slug, 'messageReads'), orderBy('seenAt', 'desc'), limit(500));
+  unsubscribeSpaceMessageReads = onSnapshot(readsQuery, snapshot => {
+    activeSpaceMessageReads = snapshot.docs.map(item => ({id:item.id, ...item.data()}));
+    repaintActiveSpaceMessages().catch(console.error);
+  }, error => console.warn('[Community] Seen receipts unavailable.', error));
+}
+
+async function sendSpaceMessage(spaceId, {text = '', replyToId = '', sharedPostId = '', imagePath = '', audioPath = '', audioDurationMs = 0} = {}) {
+  return callFunction('setCommunitySpaceConnection', {operation:'send_space_message', spaceId, text, replyToId, sharedPostId, imagePath, audioPath, audioDurationMs});
+}
+
+function appendPendingChatMessage({text = '', imageUrl = '', audioUrl = '', audioDurationMs = 0} = {}) {
+  const id = 'pending-' + (crypto.randomUUID?.() || Date.now() + '-' + Math.random().toString(36).slice(2));
+  const name = currentProfile?.displayName || currentUser?.displayName || tr('You','أنت');
+  const photo = currentProfile?.photoBase64 || currentProfile?.photoURL || currentUser?.photoURL || '';
+  const media = imageUrl ? '<div class="chat-message-image pending"><img src="' + escapeHtml(imageUrl) + '" alt=""></div>' : audioUrl ? '<div class="chat-message-audio pending"><span class="chat-message-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><small>' + Math.max(1, Math.ceil(audioDurationMs / 1000)) + 's</small></div>' : '';
+  $('messagesList').insertAdjacentHTML('beforeend', '<article class="space-message mine pending-message" data-pending-message="' + id + '"><a class="space-message-avatar">' + avatarMarkup(name, photo, 'avatar', currentProfile?.verified === true) + '</a><div><div class="space-message-body"><div class="space-message-meta"><a>' + escapeHtml(name) + '</a><span data-pending-status>◌ ' + tr('Sending…','جارٍ الإرسال…') + '</span></div>' + (text ? '<div class="space-message-text">' + escapeHtml(text).replace(/\n/g, '<br>') + '</div>' : '') + media + '</div></div></article>');
+  requestAnimationFrame(() => { $('messagesList').scrollTop = $('messagesList').scrollHeight; });
+  return id;
+}
+
+function updatePendingChatMessage(id, label, failed = false) {
+  const item = $('messagesList').querySelector('[data-pending-message="' + CSS.escape(id) + '"]');
+  const status = item?.querySelector('[data-pending-status]');
+  if (status) status.textContent = (failed ? '!' : '◌') + ' ' + label;
+  item?.classList.toggle('failed', failed);
+  return item;
+}
+
+function eligibleChatSpaces() {
+  return Object.values(communityAreas).filter(area => area.chatEnabled === true && canAccessSpaceChat(area));
+}
+
+async function loadChatInbox() {
+  chatInboxPresenceUnsubscribers.forEach(unsubscribe => unsubscribe());
+  chatInboxPresenceUnsubscribers = [];
+  const gate = $('chatInboxGate');
+  const list = $('chatInboxList');
+  if (!currentUser) {
+    gate.innerHTML = '<p class="notice">' + tr('Sign in to see your space messages.','سجّل الدخول لعرض رسائل مساحاتك.') + ' <a href="' + loginUrl() + '">' + tr('Sign in','تسجيل الدخول') + '</a></p>';
+    list.innerHTML = '';
+    return;
+  }
+  gate.innerHTML = '';
+  list.innerHTML = '<div class="post-skeleton short"></div>';
+  const candidates = Object.values(communityAreas).filter(area => area.chatEnabled === true && (canAccessSpaceChat(area) || connectedSpaceSlugs.has(area.slug)));
+  const accessRecords = await Promise.all(candidates.map(async area => {
+    const snapshot = await getDoc(doc(db, 'communitySpaces', area.slug, 'access', currentUser.uid)).catch(() => null);
+    return [area.slug, snapshot?.data() || {}];
+  }));
+  const accessBySpace = new Map(accessRecords);
+  const hasServerChatAccess = area => {
+    const access = accessBySpace.get(area.slug) || {};
+    return access.canUseChat === true && access.blocked !== true && access.chatBanned !== true;
+  };
+  const allowed = candidates
+    .filter(area => hasServerChatAccess(area) || accessBySpace.get(area.slug)?.chatBanned === true)
+    .sort((a, b) => String(a.name || a.slug).localeCompare(String(b.name || b.slug), currentLanguage));
+  list.innerHTML = allowed.length ? allowed.map(area => {
+    const banned = accessBySpace.get(area.slug)?.chatBanned === true;
+    return '<a class="chat-inbox-item' + (banned ? ' chat-banned' : '') + '" href="/?view=messages&amp;area=' + encodeURIComponent(area.slug) + '" data-chat-inbox-space="' + escapeHtml(area.slug) + '" data-chat-search="' + escapeHtml((area.name + ' ' + area.slug).toLowerCase()) + '">' + spaceVisual(area, 'chat-inbox-avatar') + '<span class="chat-inbox-copy"><span class="chat-inbox-title"><strong>' + escapeHtml(area.name || area.slug) + '</strong><time></time></span><small data-chat-preview>' + (banned ? tr('Banned from this space’s Messages','محظور من رسائل هذه المساحة') : tr('Loading conversation…','جارٍ تحميل المحادثة…')) + '</small></span><span class="chat-inbox-status">' + (banned ? '<b class="chat-banned-badge">' + tr('Banned','محظور') + '</b>' : '<span class="chat-inbox-online" hidden></span><b class="chat-unread-count" hidden></b><i class="chat-inbox-dot" hidden></i>') + '</span></a>';
+  }).join('') : '<div class="connections-empty"><span>◯</span><h2>' + tr('No space chats yet','لا توجد دردشات مساحات بعد') + '</h2><p>' + tr('Connect to a space with Messages enabled to see it here.','اتصل بمساحة مفعّلة فيها الرسائل لتظهر هنا.') + '</p><a href="/?view=spaces" data-route="spaces">' + tr('Discover spaces','اكتشف المساحات') + ' →</a></div>';
+  const readable = allowed.filter(hasServerChatAccess);
+  readable.forEach(area => {
+    const presenceQuery = query(collection(db, 'communitySpaces', area.slug, 'chatPresence'), orderBy('activeAt', 'desc'), limit(8));
+    const unsubscribe = onSnapshot(presenceQuery, async snapshot => {
+      const row = list.querySelector('[data-chat-inbox-space="' + CSS.escape(area.slug) + '"]');
+      const host = row?.querySelector('.chat-inbox-online');
+      if (!host) return;
+      const online = snapshot.docs.map(item => item.data()).filter(item => item.userId && Date.now() - (spaceTimestamp(item.activeAt) * 1000) < 90 * 1000);
+      if (!online.length) { host.hidden = true; host.innerHTML = ''; return; }
+      const profiles = await Promise.all(online.slice(0, 3).map(async item => ({item, profile:await getProfile(item.userId)})));
+      if (!list.contains(row)) return;
+      host.hidden = false;
+      host.title = tr(online.length === 1 ? '1 member online now' : online.length + ' members online now', online.length === 1 ? 'عضو واحد متصل الآن' : online.length + ' أعضاء متصلون الآن');
+      host.innerHTML = profiles.map(({profile}) => avatarMarkup(profile.displayName || profile.username || tr('Member','عضو'), profile.photoBase64 || profile.photoURL, 'avatar', profile.verified === true)).join('') + (online.length > 3 ? '<b>+' + (online.length - 3) + '</b>' : '');
+    }, error => console.warn('[Community] Chat inbox presence unavailable.', error));
+    chatInboxPresenceUnsubscribers.push(unsubscribe);
+  });
+  readable.forEach(async area => {
+    try {
+      const snapshot = await getDocs(query(collection(db, 'communitySpaces', area.slug, 'messages'), orderBy('createdAt', 'desc'), limit(1)));
+      const item = snapshot.docs[0];
+      const row = list.querySelector('[data-chat-inbox-space="' + CSS.escape(area.slug) + '"]');
+      if (!row) return;
+      if (!item) { row.querySelector('[data-chat-preview]').textContent = tr('Start the conversation','ابدأ المحادثة'); return; }
+      const message = item.data();
+      row.querySelector('[data-chat-preview]').textContent = (message.senderId === currentUser.uid ? tr('You: ','أنت: ') : '') + (message.text || (message.audioPath ? tr('Voice message','رسالة صوتية') : message.imagePath ? tr('Photo','صورة') : tr('Shared post','منشور مُشارك'))).slice(0, 90);
+      row.querySelector('time').textContent = formatDate(message.createdAt);
+      const active = message.senderId !== currentUser.uid;
+      row.classList.toggle('has-activity', active);
+      row.querySelector('.chat-inbox-dot').hidden = !active;
+      const receipt = await getDoc(doc(db, 'communitySpaces', area.slug, 'messageReads', currentUser.uid));
+      const unread = message.senderId !== currentUser.uid && (!receipt.exists() || receipt.data().lastMessageId !== item.id);
+      const badge = row.querySelector('.chat-unread-count');
+      badge.hidden = !unread;
+      if (unread) badge.textContent = '1';
+    } catch (error) { console.warn('[Community] Latest chat message unavailable.', error); }
+  });
+}
+
+function stopChatInboxPresence() {
+  chatInboxPresenceUnsubscribers.forEach(unsubscribe => unsubscribe());
+  chatInboxPresenceUnsubscribers = [];
+}
+
+function openPostShareDialog(post) {
+  activeSharePost = post;
+  $('postShareName').textContent = post.title;
+  const spaces = eligibleChatSpaces();
+  $('postShareSpaces').innerHTML = spaces.length
+    ? spaces.map(area => '<button type="button" data-share-chat="' + escapeHtml(area.slug) + '">' + spaceVisual(area, 'post-share-space-image') + '<span><strong>' + escapeHtml(area.name || area.slug) + '</strong><small>a/' + escapeHtml(area.slug) + '</small></span><b>→</b></button>').join('')
+    : '<p class="notice">' + tr('Connect to a space with Messages enabled to send posts there.','اتصل بمساحة مفعّلة فيها الرسائل لإرسال المنشورات إليها.') + '</p>';
+  $('postShareSpaces').querySelectorAll('[data-share-chat]').forEach(button => button.addEventListener('click', async () => {
+    button.disabled = true;
+    try {
+      await sendSpaceMessage(button.dataset.shareChat, {sharedPostId:post.id});
+      $('postShareDialog').close();
+      showToast(tr('Post sent to space messages.','تم إرسال المنشور إلى رسائل المساحة.'));
+    } catch (error) { console.error(error); showToast(error.message || tr('The post could not be sent.','تعذر إرسال المنشور.')); button.disabled = false; }
+  }));
+  $('postShareDialog').showModal();
 }
 
 function loginUrl() {
@@ -1749,6 +2782,12 @@ function navigateTo(url, replace) {
 
 async function handleRoute(scrollToTop) {
   const sequence = ++routeSequence;
+  stopSpaceMessages();
+  stopChatInboxPresence();
+  unsubscribeAreaAccess?.();
+  unsubscribeAreaChatRequest?.();
+  unsubscribeAreaAccess = null;
+  unsubscribeAreaChatRequest = null;
   if (communityDataReady) await communityDataReady;
   const params = new URLSearchParams(location.search);
   const pathRoute = getPathRoute();
@@ -1756,8 +2795,10 @@ async function handleRoute(scrollToTop) {
   const requestedView = params.get('view');
   const publicProfileRoute = pathRoute.profile || params.get('user');
   const requestedArea = pathRoute.area || params.get('area');
-  activeAreaSlug = requestedArea && communityAreas[requestedArea] ? requestedArea : null;
-  const view = publicProfileRoute || requestedView === 'profile' ? 'profile' : requestedView === 'connections' ? 'connections' : requestedView === 'manage-spaces' ? 'manage-spaces' : requestedView === 'selected' ? 'selected' : requestedView === 'spaces' ? 'spaces' : requestedView === 'post' ? 'post' : requestedView === 'space' ? 'space' : 'home';
+  activeAreaSlug = requestedArea && communityAreas[requestedArea] && !blockedSpaceSlugs.has(requestedArea) ? requestedArea : null;
+  const view = publicProfileRoute || requestedView === 'profile' ? 'profile' : requestedView === 'messages' ? 'messages' : requestedView === 'chats' ? 'chats' : requestedView === 'connections' ? 'connections' : requestedView === 'manage-spaces' ? 'manage-spaces' : requestedView === 'selected' ? 'selected' : requestedView === 'spaces' ? 'spaces' : requestedView === 'post' ? 'post' : requestedView === 'space' ? 'space' : 'home';
+  document.body.classList.toggle('messages-fullscreen', view === 'messages');
+  document.body.classList.toggle('profile-setup-fullscreen', view === 'profile' && (requestedView === 'profile' || currentUser?.uid === publicProfileRoute) && currentProfile?.profileComplete !== true);
   const savedFeedMode = localStorage.getItem('communityFeedMode');
   feedMode = currentUser ? (params.has('feed') ? (params.get('feed') === 'discover' ? 'discover' : 'following') : (savedFeedMode === 'discover' ? 'discover' : 'following')) : 'discover';
   localStorage.setItem('communityFeedMode', feedMode);
@@ -1769,6 +2810,8 @@ async function handleRoute(scrollToTop) {
   if (view === 'home') {
     const restrictedArea = Boolean(activeAreaSlug && communityAreas[activeAreaSlug]?.isPrivate && !canAccessPrivateSpace(communityAreas[activeAreaSlug]));
     $('detailContext').hidden = !selectedPostId;
+    const detailBack = $('detailContext').querySelector('a');
+    if (detailBack) detailBack.href = selectedPostId && params.get('return') === 'messages' && activeAreaSlug ? '/?view=messages&area=' + encodeURIComponent(activeAreaSlug) : '/';
     $('areaHeader').hidden = Boolean(selectedPostId) || !activeAreaSlug;
     document.querySelector('.welcome-card').hidden = Boolean(selectedPostId) || Boolean(activeAreaSlug);
     $('quickComposer').hidden = Boolean(selectedPostId) || restrictedArea;
@@ -1794,6 +2837,18 @@ async function handleRoute(scrollToTop) {
     if (!restrictedArea) await loadPosts();
     if (sequence !== routeSequence) return;
     if (selectedPostId && params.get('comments') === '1') openComments(selectedPostId, false);
+  } else if (view === 'chats') {
+    document.title = tr('Messages — AIAS Basra Community','الرسائل — مجتمع AIAS البصرة');
+    await loadChatInbox();
+  } else if (view === 'messages') {
+    const space = requestedArea ? communityAreas[requestedArea] : null;
+    document.title = space ? (space.name + ' ' + tr('Messages','الرسائل')) : tr('Space messages','رسائل المساحة');
+    if (space) await openSpaceMessages(space);
+    else {
+      $('messagesGate').hidden = false;
+      $('messagesPanel').hidden = true;
+      $('messagesGate').innerHTML = '<p class="notice error">' + tr('This space is unavailable.','هذه المساحة غير متاحة.') + '</p>';
+    }
   } else if (view === 'selected') {
     document.title = tr('Selected Projects — AIAS Basra Community','المشاريع المختارة — مجتمع AIAS البصرة');
     await loadSelectedShell();
@@ -1922,15 +2977,10 @@ function bindPostActions(target, posts) {
       button.classList.add('celebrate');
     }
     try {
-      await setDoc(doc(db, 'communityPosts', postId, 'votes', currentUser.uid), {
-        userId: currentUser.uid,
-        value,
-        updatedAt: serverTimestamp()
-      });
-      if (value === 1) await sendNotification(post.userId, 'applause', post);
-      else if (previousValue === 1) await removeNotification(post.userId, 'applause', post.id);
+      const saved = await callFunction('setCommunityPostVote', {postId, value});
       post.meta.mine = value;
-      post.meta.score = nextScore;
+      post.meta.score = Number(saved.score ?? nextScore);
+      paintReaction(value, post.meta.score);
     } catch (error) {
       console.error(error);
       paintReaction(previousValue, previousScore);
@@ -1958,8 +3008,7 @@ function bindPostActions(target, posts) {
   target.querySelectorAll('[data-share]').forEach(button => button.addEventListener('click', async () => {
     const post = byId.get(button.dataset.share);
     if (!post) return;
-    const shareData = {title: post.title + ' — AIAS Basra Community', text: plainPostText(post).slice(0, 140), url: canonicalPostUrl(post)};
-    await shareCommunityItem(shareData, tr('Post link copied.','تم نسخ رابط المنشور.'), tr('The post link could not be shared.','تعذرت مشاركة رابط المنشور.'));
+    openPostShareDialog(post);
   }));
   target.querySelectorAll('[data-moderate-space-post]').forEach(button => button.addEventListener('click', async event => {
     event.preventDefault();
@@ -1976,6 +3025,10 @@ function bindPostActions(target, posts) {
 function renderImageViewerActions() {
   const post = activeImagePost;
   if (!post) return;
+  if (post.chatImage) {
+    $('imageViewerActions').innerHTML = '';
+    return;
+  }
   const meta = post.meta || {mine:0, score:0, commentsCount:0};
   $('imageViewerActions').innerHTML = '<button type="button" data-image-vote="1" class="' + (meta.mine === 1 ? 'active' : '') + '" aria-label="' + tr('Applaud','التصفيق') + '">↑</button><b>' + (meta.score || 0) + '</b><button type="button" data-image-vote="-1" class="' + (meta.mine === -1 ? 'active' : '') + '" aria-label="' + tr('Show less','عرض أقل') + '">↓</button><button type="button" class="image-comment-button" data-image-comments><span aria-hidden="true">◯</span><span>' + (meta.commentsCount || 0) + '</span></button>';
 }
@@ -2024,24 +3077,37 @@ async function voteFromImageViewer(value) {
   const previous = Number(post.meta.mine) || 0;
   const next = previous === value ? 0 : value;
   try {
-    await setDoc(doc(db, 'communityPosts', post.id, 'votes', currentUser.uid), {userId:currentUser.uid, value:next, updatedAt:serverTimestamp()});
-    if (next === 1) await sendNotification(post.userId, 'applause', post);
-    else if (previous === 1) await removeNotification(post.userId, 'applause', post.id);
+    const saved = await callFunction('setCommunityPostVote', {postId:post.id, value:next});
     post.meta.mine = next;
-    post.meta.score = (Number(post.meta.score) || 0) + next - previous;
+    post.meta.score = Number(saved.score ?? ((Number(post.meta.score) || 0) + next - previous));
     document.querySelectorAll('[data-vote-score="' + post.id + '"]').forEach(score => { score.textContent = String(post.meta.score); });
     renderImageViewerActions();
   } catch (error) { console.error(error); showToast(tr('Your reaction could not be saved.','تعذر حفظ تفاعلك.')); }
 }
 
-async function loadPosts() {
+async function loadPosts(preserveContent = false) {
   const target = $('posts');
+  const paintSequence = ++postPaintSequence;
   target.setAttribute('aria-busy', 'true');
-  target.innerHTML = '<div class="post-skeleton"></div><div class="post-skeleton short"></div>';
+  if (!preserveContent || !target.children.length) target.innerHTML = '<div class="post-skeleton"></div><div class="post-skeleton short"></div>';
   try {
     const params = new URLSearchParams(location.search);
-    const selectedPostId = params.get('post');
-    const allPosts = (await getReadablePosts()).docs
+    // A comments sheet uses `post` only to make its URL shareable. It must not
+    // turn the background feed into a single-post view when the post changes.
+    const selectedPostId = params.get('comments') === '1' ? null : params.get('post');
+    const feedScope = [selectedPostId || '', activeAreaSlug || '', feedMode, communityType, communitySort].join('|');
+    if (feedScope !== lastFeedScope) {
+      lastFeedScope = feedScope;
+      feedVisibleLimit = 18;
+    }
+    let sourceDocs;
+    if (selectedPostId) {
+      const selectedSnapshot = await getDoc(doc(db, 'communityPosts', selectedPostId));
+      sourceDocs = selectedSnapshot.exists() ? [selectedSnapshot] : [];
+    } else {
+      sourceDocs = (await getFeedPosts(activeAreaSlug)).docs;
+    }
+    const allPosts = sourceDocs
       .map(item => ({id:item.id, ...item.data()}))
       .filter(post => post.archived !== true && post.published !== false)
       .filter(canViewSpacePost);
@@ -2062,6 +3128,47 @@ async function loadPosts() {
           ? !isProject(post) && !isQuestion(post)
           : post.type === communityType);
       }
+    }
+    // Hydrating a post requires its author, reactions, comments, and sometimes
+    // media. Keep that work to the cards the user can actually see now.
+    const availablePostCount = posts.length;
+    if (!selectedPostId) {
+      posts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+      posts = posts.slice(0, feedVisibleLimit);
+    }
+    if (posts.length) {
+      const previewPosts = posts.map(post => ({
+        ...post,
+        meta:{profile:{}, score:Number(post.score) || 0, mine:0, commentsCount:Number(post.commentsCount) || 0}
+      }));
+      $('feedCount').textContent = selectedPostId ? '' : isArabic() ? previewPosts.length + ' \u0645\u0646\u0634\u0648\u0631' : previewPosts.length + (previewPosts.length === 1 ? ' post' : ' posts');
+      target.innerHTML = previewPosts.map((post, index) => renderPostCard(post, index, Boolean(selectedPostId))).join('');
+      bindPostActions(target, previewPosts);
+      if (!selectedPostId && posts.length < availablePostCount) {
+        target.insertAdjacentHTML('beforeend', '<button class="secondary-button feed-load-more" type="button">' + tr('Load more posts','تحميل المزيد من المنشورات') + '</button>');
+        target.querySelector('.feed-load-more').addEventListener('click', () => { feedVisibleLimit += 18; loadPosts(true); });
+      }
+      target.setAttribute('aria-busy', 'false');
+
+      // Paint post text immediately. Profiles, counters, and media are filled
+      // in without holding the splash screen or blocking interaction.
+      Promise.all(posts.map(async post => {
+        const hydrated = await loadPostImage(post);
+        return {...hydrated, meta:await getPostMeta(hydrated)};
+      })).then(hydratedPosts => {
+        if (paintSequence !== postPaintSequence) return;
+        if (communitySort === 'smart') hydratedPosts = rankDiscoverPosts(hydratedPosts);
+        else hydratedPosts.sort((a, b) => communitySort === 'upvoted'
+          ? b.meta.score - a.meta.score || (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
+          : (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        target.innerHTML = hydratedPosts.map((post, index) => renderPostCard(post, index, Boolean(selectedPostId))).join('');
+        bindPostActions(target, hydratedPosts);
+        if (!selectedPostId && hydratedPosts.length < availablePostCount) {
+          target.insertAdjacentHTML('beforeend', '<button class="secondary-button feed-load-more" type="button">' + tr('Load more posts','تحميل المزيد من المنشورات') + '</button>');
+          target.querySelector('.feed-load-more').addEventListener('click', () => { feedVisibleLimit += 18; loadPosts(true); });
+        }
+      }).catch(error => console.warn('[Community] Post details are still loading.', error));
+      return;
     }
     posts = await Promise.all(posts.map(async post => {
       const hydrated = await loadPostImage(post);
@@ -2090,7 +3197,10 @@ async function loadPosts() {
     }
   } catch (error) {
     console.error(error);
-    target.innerHTML = '<p class="notice error">' + tr('The community feed is taking a break. Please try again in a moment.','خلاصة المجتمع غير متاحة مؤقتاً. حاول مرة أخرى بعد قليل.') + '</p>';
+    const selectedPost = new URLSearchParams(location.search).get('post');
+    target.innerHTML = selectedPost
+      ? '<div class="connections-empty"><span>!</span><h2>' + tr('Post unavailable','المنشور غير متاح') + '</h2><p>' + tr('This post is not available to your account.','هذا المنشور غير متاح لحسابك.') + '</p></div>'
+      : '<p class="notice error">' + tr('The community feed is taking a break. Please try again in a moment.','خلاصة المجتمع غير متاحة مؤقتاً. حاول مرة أخرى بعد قليل.') + '</p>';
   } finally {
     target.setAttribute('aria-busy', 'false');
   }
@@ -2130,7 +3240,7 @@ async function openComments(postId, updateRoute) {
   try {
     const [postSnapshot, commentsSnapshot] = await Promise.all([
       getDoc(doc(db, 'communityPosts', postId)),
-      getDocs(collection(db, 'communityPosts', postId, 'comments'))
+      getDocs(query(collection(db, 'communityPosts', postId, 'comments'), orderBy('createdAt', 'asc'), limit(100)))
     ]);
     if (!postSnapshot.exists()) throw new Error(tr('Post not found','المنشور غير موجود'));
     const post = {id:postId, ...postSnapshot.data()};
@@ -2155,6 +3265,12 @@ async function openComments(postId, updateRoute) {
       '</div>'
     ].join('');
     bindCommentActions(postId, post);
+    unsubscribeComments?.();
+    let commentsReady = false;
+    unsubscribeComments = onSnapshot(query(collection(db, 'communityPosts', postId, 'comments'), orderBy('createdAt', 'asc'), limit(100)), () => {
+      if (!commentsReady) { commentsReady = true; return; }
+      if (activeCommentsPostId === postId) openComments(postId, false);
+    });
     $('commentsOverlay').querySelector('.comments-close').focus();
   } catch (error) {
     console.error(error);
@@ -2180,24 +3296,18 @@ function bindCommentActions(postId, post) {
       event.preventDefault();
       const text = slot.querySelector('textarea').value.trim();
       if (!text || !currentUser) return;
-      const commentRef = await addDoc(collection(db, 'communityPosts', postId, 'comments'), {
-        userId: currentUser.uid,
-        userName: currentProfile?.displayName || currentUser.displayName || tr('Member','عضو'),
-        text,
-        parentId: button.dataset.reply,
-        createdAt: serverTimestamp()
-      });
+      const commentRef = await callFunction('createCommunityComment', {postId, text, parentId:button.dataset.reply});
       const mentions = await resolveMentions(text);
       await Promise.all([
-        sendNotification(button.dataset.user, 'reply', post, button.dataset.reply, commentRef.id),
-        sendMentionNotifications(post, {...mentions, userIds:mentions.userIds.filter(userId => userId !== button.dataset.user)}, commentRef.id)
+        Promise.resolve(),
+        sendMentionNotifications(post, {...mentions, userIds:mentions.userIds.filter(userId => userId !== button.dataset.user)}, commentRef.commentId)
       ]);
       await openComments(postId, false);
     });
   }));
   target.querySelectorAll('[data-delete-comment]').forEach(button => button.addEventListener('click', async () => {
     if (!confirm(tr('Delete this comment permanently?','هل تريد حذف هذا التعليق نهائياً؟'))) return;
-    await deleteDoc(doc(db, 'communityPosts', postId, 'comments', button.dataset.deleteComment));
+    await callFunction('deleteCommunityComment', {postId, commentId:button.dataset.deleteComment});
     await openComments(postId, false);
   }));
   target.querySelectorAll('[data-edit-comment]').forEach(button => button.addEventListener('click', () => {
@@ -2221,7 +3331,7 @@ function bindCommentActions(postId, post) {
       const text = textarea.value.trim();
       if (!text || text === originalText.trim()) { form.querySelector('.comment-edit-cancel').click(); return; }
       form.querySelector('button[type="submit"]').disabled = true;
-      await updateDoc(doc(db, 'communityPosts', postId, 'comments', button.dataset.editComment), {text, editedAt:serverTimestamp()});
+      await callFunction('updateCommunityComment', {postId, commentId:button.dataset.editComment, text});
       await openComments(postId, false);
     });
   }));
@@ -2232,23 +3342,19 @@ function bindCommentActions(postId, post) {
     const submit = form.querySelector('button');
     submit.disabled = true;
     const text = input.value.trim();
-    const commentRef = await addDoc(collection(db, 'communityPosts', postId, 'comments'), {
-      userId: currentUser.uid,
-      userName: currentProfile?.displayName || currentUser.displayName || tr('Member','عضو'),
-      text,
-      parentId: null,
-      createdAt: serverTimestamp()
-    });
+    const commentRef = await callFunction('createCommunityComment', {postId, text, parentId:null});
     const mentions = await resolveMentions(text);
     await Promise.all([
-      sendNotification(post.userId, 'comment', post, commentRef.id),
-      sendMentionNotifications(post, {...mentions, userIds:mentions.userIds.filter(userId => userId !== post.userId)}, commentRef.id)
+      Promise.resolve(),
+      sendMentionNotifications(post, {...mentions, userIds:mentions.userIds.filter(userId => userId !== post.userId)}, commentRef.commentId)
     ]);
     await openComments(postId, false);
   }));
 }
 
 function closeCommentsUi() {
+  unsubscribeComments?.();
+  unsubscribeComments = null;
   activeCommentsPostId = null;
   $('commentsOverlay').hidden = true;
   document.body.classList.remove('comments-open');
@@ -2325,10 +3431,36 @@ function postImageUrls(post) {
   return post?.imageDataUrl ? [post.imageDataUrl] : [];
 }
 
+async function cachedStorageDownloadURL(path) {
+  const key = SMART_CACHE_PREFIX + 'media-url:' + path;
+  try {
+    const saved = JSON.parse(localStorage.getItem(key) || 'null');
+    if (saved?.url && Date.now() - Number(saved.savedAt || 0) < 7 * 24 * 60 * 60 * 1000) return saved.url;
+  } catch {}
+  const url = await getDownloadURL(storageRef(storage, path));
+  try { localStorage.setItem(key, JSON.stringify({url, savedAt:Date.now()})); } catch {}
+  return url;
+}
+
+async function protectedStorageObjectURL(path) {
+  if (protectedMediaUrls.has(path)) return protectedMediaUrls.get(path);
+  const pending = getBlob(storageRef(storage, path)).then(blob => {
+    const url = URL.createObjectURL(blob);
+    protectedMediaUrls.set(path, url);
+    return url;
+  }).catch(error => {
+    protectedMediaUrls.delete(path);
+    throw error;
+  });
+  protectedMediaUrls.set(path, pending);
+  return pending;
+}
+
 async function loadPostImage(post) {
   if (Array.isArray(post.imagePaths) && post.imagePaths.length) {
     try {
-      const urls = await Promise.all(post.imagePaths.map(path => getDownloadURL(storageRef(storage, path))));
+      const loader = post.visibility === 'private' ? protectedStorageObjectURL : cachedStorageDownloadURL;
+      const urls = await Promise.all(post.imagePaths.map(path => loader(path)));
       return {...post, imageDataUrls:urls, imageDataUrl:urls[0] || ''};
     } catch (error) { console.warn('[Community] Stored post media could not be loaded.', error); }
   }
@@ -2392,10 +3524,13 @@ function renderSpaceGate() {
     if (restricted) {
       $('spaceIsPrivate').checked = true;
       $('spaceIsPrivate').disabled = true;
+      $('spaceIsViewOnly').checked = false;
+      $('spaceIsViewOnly').disabled = true;
       $('spaceShowInMainThread').checked = false;
       $('spaceShowInMainThread').disabled = true;
     } else {
       $('spaceIsPrivate').disabled = false;
+      $('spaceIsViewOnly').disabled = false;
       $('spaceShowInMainThread').disabled = false;
     }
     $('spaceIdentity').innerHTML = tr('Creating as ','تنشئ باسم ') + '<strong>@' + escapeHtml(currentProfile.username) + '</strong> · ' + tr('Handles are permanent and unique.','المعرّفات دائمة وفريدة.') ;
@@ -2498,7 +3633,8 @@ async function loadProfilePosts(uid, owner) {
   const target = $('profilePosts');
   target.innerHTML = '<div class="post-skeleton short"></div>';
   try {
-    let posts = (await getReadablePosts()).docs
+    const profilePostsQuery = query(collection(db, 'communityPosts'), where('archived', '==', false), where('userId', '==', uid));
+    let posts = (await smartQuery('posts:user:' + uid, profilePostsQuery)).docs
       .map(item => ({id:item.id, ...item.data()}))
       .filter(post => post.archived !== true && post.published !== false && post.userId === uid)
       .filter(post => owner || !communityAreas[post.communitySlug]?.isPrivate)
@@ -2566,7 +3702,7 @@ async function loadProfile(uid, routedProfile) {
       '<p class="profile-bio">' + escapeHtml(profile.bio || tr('No bio added yet.','لم تُضف نبذة بعد.')) + '</p>',
       interests.length ? '<div class="interest-row">' + interests.map(item => '<span>' + escapeHtml(item) + '</span>').join('') + '</div>' : '',
       owner ? [
-        '<form id="profileForm" class="profile-form" hidden>',
+        '<form id="profileForm" class="profile-form"' + (profile.profileComplete === true ? ' hidden' : '') + '>',
           '<div class="profile-media-grid">',
             '<section class="profile-media-field"><span>' + tr('Profile image','صورة الملف الشخصي') + '</span><div id="profilePhotoPreview" class="profile-media-preview avatar">' + (photo ? '<img src="' + escapeHtml(photo) + '" alt="">' : tr('No image','لا توجد صورة')) + '</div><input id="profilePhotoFile" type="file" accept="image/*"><div class="profile-media-actions"><small id="profilePhotoStatus">' + tr('Square image recommended','يُفضّل استخدام صورة مربعة') + '</small><button id="removeProfilePhoto" class="profile-media-remove" type="button">' + tr('Remove','إزالة') + '</button></div></section>',
             '<section class="profile-media-field"><span>' + tr('Profile banner','غلاف الملف الشخصي') + '</span><div id="profileBannerPreview" class="profile-media-preview banner">' + (banner ? '<img src="' + escapeHtml(banner) + '" alt="">' : tr('No banner','لا يوجد غلاف')) + '</div><input id="profileBannerFile" type="file" accept="image/*"><div class="profile-media-actions"><small id="profileBannerStatus">' + tr('Wide image recommended','يُفضّل استخدام صورة عريضة') + '</small><button id="removeProfileBanner" class="profile-media-remove" type="button">' + tr('Remove','إزالة') + '</button></div></section>',
@@ -2675,12 +3811,12 @@ async function loadProfile(uid, routedProfile) {
             const available = await checkUsernameAvailability($('profileUsername'), $('profileUsernameStatus'), uid);
             if (!available) throw new Error(tr('Choose an available username before saving your profile.','اختر اسم مستخدم متاحاً قبل حفظ ملفك.'));
           }
-          const username = profile.username || await claimUsername(uid, $('profileUsername').value);
+          const username = profile.username || normalizeUsername($('profileUsername').value);
           const [photoURL, bannerURL] = await Promise.all([
             storeCommunityImage(`community/profiles/${uid}/avatar`, nextPhotoBase64),
             storeCommunityImage(`community/profiles/${uid}/banner`, nextBannerBase64)
           ]);
-          await setDoc(doc(db, 'users', uid), {
+          await callFunction('setCommunitySpaceConnection', {operation:'complete_profile',
             username,
             displayName: $('profileName').value.trim(),
             school: $('profileSchool').value.trim(),
@@ -2690,10 +3826,8 @@ async function loadProfile(uid, routedProfile) {
             photoBase64: '',
             bannerBase64: '',
             photoURL,
-            bannerURL,
-            profileComplete: true,
-            updatedAt: serverTimestamp()
-          }, {merge:true});
+            bannerURL
+          });
           invalidateCommunitySearchIndex();
           profileCache.delete(uid);
           currentProfile = await getProfile(uid);
@@ -2824,7 +3958,10 @@ $('profilePrivatePostsToggle').addEventListener('click', () => {
   $('profilePrivatePostsToggle').setAttribute('aria-pressed', String(showOwnPrivateSpacePosts));
   renderProfilePosts();
 });
-$('spaceDirectorySearch').addEventListener('input', renderSpaceDirectory);
+$('spaceDirectorySearch').addEventListener('input', () => {
+  spaceDirectoryPage = 1;
+  renderSpaceDirectory();
+});
 $('selectedShellSearch').addEventListener('input', renderSelectedShell);
 $('connectionsSearch').addEventListener('input', renderConnectionManager);
 document.querySelectorAll('[data-connection-type]').forEach(button => button.addEventListener('click', () => {
@@ -2854,8 +3991,26 @@ $('connectionsList').addEventListener('click', async event => {
 });
 document.querySelectorAll('[data-space-sort]').forEach(button => button.addEventListener('click', () => {
   spaceDirectorySort = button.dataset.spaceSort;
+  spaceDirectoryPage = 1;
   renderSpaceDirectory();
 }));
+document.querySelectorAll('[data-space-filter]').forEach(button => button.addEventListener('click', () => {
+  spaceDirectoryFilter = button.dataset.spaceFilter;
+  spaceDirectoryPage = 1;
+  renderSpaceDirectory();
+}));
+document.querySelectorAll('[data-space-view]').forEach(button => button.addEventListener('click', () => {
+  spaceDirectoryView = button.dataset.spaceView;
+  localStorage.setItem('spaceDirectoryView', spaceDirectoryView);
+  renderSpaceDirectory();
+}));
+$('spaceDirectoryPagination').addEventListener('click', event => {
+  const button = event.target.closest('[data-space-page]');
+  if (!button || button.disabled) return;
+  spaceDirectoryPage = Number(button.dataset.spacePage);
+  renderSpaceDirectory();
+  $('spacesView').scrollIntoView({behavior:'smooth', block:'start'});
+});
 
 $('profilePosts').addEventListener('click', event => {
   const editButton = event.target.closest('[data-edit-profile-post]');
@@ -2969,6 +4124,10 @@ document.addEventListener('keydown', event => {
 $('quickComposer').addEventListener('click', () => navigateTo(composerUrl(), false));
 $('railSpacesExpand').addEventListener('click', () => { railSpacesExpanded = !railSpacesExpanded; renderCommunitySpaces(); });
 $('areaCreate').addEventListener('click', () => navigateTo(composerUrl(), false));
+$('areaMessages').addEventListener('click', async () => {
+  if (!activeAreaSlug) return;
+  navigateTo('/?view=messages&area=' + encodeURIComponent(activeAreaSlug), false);
+});
 $('areaShare').addEventListener('click', async () => {
   const area = activeAreaSlug ? communityAreas[activeAreaSlug] : null;
   if (!area) return;
@@ -2978,14 +4137,114 @@ $('areaShare').addEventListener('click', async () => {
     tr('The space link could not be shared.','تعذرت مشاركة رابط المساحة.')
   );
 });
-$('areaManage').addEventListener('click', openSpaceEditor);
+$('areaManage').addEventListener('click', () => {
+  const area = activeAreaSlug ? communityAreas[activeAreaSlug] : null;
+  if (!area || !canManageSpace(activeAreaSlug)) return;
+  if (area.creatorId === currentUser?.uid) openSpaceEditor();
+  else navigateTo('/?view=manage-spaces', false);
+});
+$('messageReplyCancel').addEventListener('click', () => setMessageReply());
+$('messageImageRemove').addEventListener('click', clearMessageImage);
+$('messageImageInput').addEventListener('change', event => {
+  try { clearMessageVoice(); selectMessageImage(event.target.files?.[0]); }
+  catch (error) { clearMessageImage(); showToast(error.message || tr('Image could not be selected.','تعذر اختيار الصورة.')); }
+});
+$('messageVoiceRecord').addEventListener('click', () => toggleMessageVoiceRecording().catch(error => { console.error(error); clearMessageVoice(); showToast(error.message || tr('Voice recording could not start.','تعذر بدء التسجيل الصوتي.')); }));
+$('messageVoiceRemove').addEventListener('click', clearMessageVoice);
+$('messagesList').addEventListener('scroll', event => {
+  if (event.currentTarget.scrollTop <= 80) loadOlderSpaceMessages();
+}, {passive:true});
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && activeMessagesSpace?.slug) updateChatPresence(activeMessagesSpace.slug);
+});
+$('chatInboxSearch').addEventListener('input', event => {
+  const value = String(event.target.value || '').trim().toLowerCase();
+  $('chatInboxList').querySelectorAll('[data-chat-inbox-space]').forEach(row => { row.hidden = Boolean(value && !row.dataset.chatSearch.includes(value)); });
+});
+$('messageForm').addEventListener('submit', async event => {
+  event.preventDefault();
+  const spaceId = new URLSearchParams(location.search).get('area');
+  const text = $('messageText').value.trim();
+  if (!spaceId || (!text && !activeMessageImage && !activeMessageVoice)) return;
+  const button = event.submitter || $('messageForm').querySelector('button[type="submit"]');
+  const pendingId = appendPendingChatMessage({text, imageUrl:activeMessageImage?.previewUrl || '', audioUrl:activeMessageVoice?.previewUrl || '', audioDurationMs:activeMessageVoice?.durationMs || 0});
+  button.disabled = true;
+  $('messageImageInput').disabled = true;
+  $('messageVoiceRecord').disabled = true;
+  try {
+    if (activeMessageImage) updatePendingChatMessage(pendingId, tr('Uploading photo…','جارٍ رفع الصورة…'));
+    const imagePath = await uploadMessageImage(spaceId);
+    const audioDurationMs = activeMessageVoice?.durationMs || 0;
+    if (activeMessageVoice) updatePendingChatMessage(pendingId, tr('Uploading voice note…','جارٍ رفع الرسالة الصوتية…'));
+    const audioPath = await uploadMessageVoice(spaceId);
+    updatePendingChatMessage(pendingId, tr('Sending…','جارٍ الإرسال…'));
+    await sendSpaceMessage(spaceId, {text, imagePath, audioPath, audioDurationMs, replyToId:activeMessageReply?.id || ''});
+    updatePendingChatMessage(pendingId, tr('Sent','تم الإرسال'));
+    window.setTimeout(() => $('messagesList').querySelector('[data-pending-message="' + CSS.escape(pendingId) + '"]')?.remove(), 1800);
+    $('messageText').value = '';
+    clearMessageImage();
+    clearMessageVoice();
+    setMessageReply();
+  } catch (error) { console.error(error); showToast(error.message || tr('Message could not be sent.','تعذر إرسال الرسالة.')); }
+  finally { button.disabled = false; $('messageImageInput').disabled = false; $('messageVoiceRecord').disabled = false; }
+});
+$('postShareClose').addEventListener('click', () => $('postShareDialog').close());
+$('messageViewersClose').addEventListener('click', () => $('messageViewersDialog').close());
+$('messageReactionClose').addEventListener('click', () => $('messageReactionDialog').close());
+$('messageReactorsClose').addEventListener('click', () => $('messageReactorsDialog').close());
+$('messageReactionPicker').addEventListener('click', async event => {
+  const button = event.target.closest('[data-pick-reaction]');
+  if (!button || !activeReactionMessageId || !activeMessagesSpace) return;
+  $('messageReactionPicker').querySelectorAll('button').forEach(item => { item.disabled = true; });
+  try { await setMessageReaction(activeReactionMessageId, button.dataset.pickReaction, button); $('messageReactionDialog').close(); }
+  catch (error) { $('messageReactionPicker').querySelectorAll('button').forEach(item => { item.disabled = false; }); showToast(error.message || tr('Could not add reaction.','تعذر إضافة التفاعل.')); }
+});
+$('messagesOnline').addEventListener('click', () => openChatOnlineMembers().catch(console.error));
+$('messagesTopTab').addEventListener('click', () => { showTopApplaudedMessages = !showTopApplaudedMessages; $('messagesTopTab').classList.toggle('active', showTopApplaudedMessages); $('messagesTopTab').textContent = showTopApplaudedMessages ? '← ' + tr('All','الكل') : '✦ ' + tr('Top','الأعلى'); repaintActiveSpaceMessages().catch(console.error); });
+$('chatOnlineClose').addEventListener('click', () => $('chatOnlineDialog').close());
+$('postShareExternal').addEventListener('click', async () => {
+  const post = activeSharePost;
+  if (!post) return;
+  await shareCommunityItem(
+    {title:post.title + ' — AIAS Basra Community', text:plainPostText(post).slice(0, 140), url:canonicalPostUrl(post)},
+    tr('Post link copied.','تم نسخ رابط المنشور.'),
+    tr('The post link could not be shared.','تعذرت مشاركة رابط المنشور.')
+  );
+});
 $('manageSpacesList').addEventListener('click', async event => {
+  const activeMenu = event.target.closest('.space-member-menu');
+  $('manageSpacesList').querySelectorAll('.space-member-menu[open]').forEach(menu => { if (menu !== activeMenu) menu.open = false; });
+  const memberTab = event.target.closest('[data-member-tab]');
+  if (memberTab) {
+    const [slug, tab] = memberTab.dataset.memberTab.split('|');
+    $('manageSpacesList').querySelectorAll('[data-member-tab^="' + CSS.escape(slug) + '|"]').forEach(button => button.classList.toggle('active', button === memberTab));
+    $('manageSpacesList').querySelectorAll('[data-member-panel^="' + CSS.escape(slug) + '|"]').forEach(panel => { panel.hidden = panel.dataset.memberPanel !== slug + '|' + tab; });
+    return;
+  }
   const edit = event.target.closest('[data-manage-edit]');
   const approve = event.target.closest('[data-approve-request]');
   const deny = event.target.closest('[data-deny-request]');
   const removeMember = event.target.closest('[data-remove-space-member]');
   const adminControl = event.target.closest('[data-set-space-admin]');
   const warnMember = event.target.closest('[data-warn-space-member]');
+  const chatAccessControl = event.target.closest('[data-review-chat-access]');
+  const blockUser = event.target.closest('[data-block-space-user]');
+  const unblockUser = event.target.closest('[data-unblock-space-user]');
+  if (blockUser || unblockUser) {
+    const control = blockUser || unblockUser;
+    const [slug, userId] = control.dataset[blockUser ? 'blockSpaceUser' : 'unblockSpaceUser'].split('|');
+    control.disabled = true;
+    try { if (blockUser) await blockSpaceUser(slug, userId); else await unblockSpaceUser(slug, userId); }
+    catch (error) { console.error(error); showToast(error.message || tr('Space access could not be changed.','تعذر تغيير الوصول إلى المساحة.')); control.disabled = false; }
+    return;
+  }
+  if (chatAccessControl) {
+    const [slug, userId, approved, ban] = chatAccessControl.dataset.reviewChatAccess.split('|');
+    chatAccessControl.disabled = true;
+    try { await callFunction('setCommunitySpaceConnection', {operation:'review_space_chat_access', spaceId:slug, userId, approved:approved === '1', ban:ban === '1'}); await loadManageSpaces(); }
+    catch (error) { console.error(error); showToast(error.message || tr('Messages access could not be reviewed.','تعذر مراجعة وصول الرسائل.')); chatAccessControl.disabled = false; }
+    return;
+  }
   if (edit) {
     activeAreaSlug = edit.dataset.manageEdit;
     openSpaceEditor();
@@ -3055,10 +4314,14 @@ $('areaConnect').addEventListener('click', async event => {
       return;
     }
     activeAreaConnection = result;
+    if (!activeAreaConnection) {
+      await handleRoute(false);
+      showToast(tr('Space connection removed.','تمت إزالة التواصل مع المساحة.'));
+      return;
+    }
     renderActiveAreaHeader(communityAreas[activeAreaSlug]);
     await refreshAreaConnectionCount(activeAreaSlug);
-    if (!activeAreaConnection) await loadPosts();
-    showToast(activeAreaConnection ? tr('Space connection added.','تمت إضافة التواصل مع المساحة.') : tr('Space connection removed.','تمت إزالة التواصل مع المساحة.'));
+    showToast(tr('Space connection added.','تمت إضافة التواصل مع المساحة.'));
   } catch (error) {
     console.error(error);
     showToast(tr('This space connection could not be updated.','تعذر تحديث التواصل مع هذه المساحة.'));
@@ -3175,6 +4438,10 @@ $('postImageFile').addEventListener('change', async event => {
   renderPostImageComposer();
   $('postImageStatus').textContent = errors[0] || tr(postImages.length + (postImages.length === 1 ? ' image ready.' : ' images ready.'), postImages.length + ' صورة جاهزة.');
 });
+document.addEventListener('click', event => {
+  if (event.target.closest('.space-member-menu')) return;
+  document.querySelectorAll('.space-member-menu[open]').forEach(menu => { menu.open = false; });
+});
 $('postImagePreview').addEventListener('click', event => {
   const button = event.target.closest('[data-remove-gallery-image]');
   if (!button) return;
@@ -3199,6 +4466,46 @@ $('switchAccount').addEventListener('click', async event => {
     button.disabled = false;
   }
 });
+
+function openAccountSwitcher() {
+  if (!currentUser) { location.href = loginUrl(); return; }
+  const name = currentProfile?.displayName || currentUser.displayName || currentProfile?.username || tr('Community member','عضو في المجتمع');
+  const photo = currentProfile?.photoBase64 || currentProfile?.photoURL || currentUser.photoURL || '';
+  $('accountSwitchList').innerHTML = '<div class="account-switch-current">' + avatarMarkup(name, photo, 'avatar', currentProfile?.verified === true) + '<span><strong>' + escapeHtml(name) + '</strong><small>' + escapeHtml(currentProfile?.username ? '@' + currentProfile.username : currentUser.email || '') + '</small></span><b>' + tr('Current','الحالي') + '</b></div>';
+  $('accountSwitchDialog').showModal();
+}
+
+$('accountSwitchClose').addEventListener('click', () => $('accountSwitchDialog').close());
+$('accountSwitchAdd').addEventListener('click', async () => {
+  try { await signOut(auth); location.href = loginUrl(); }
+  catch (error) { console.error(error); showToast(tr('Could not open account switcher.','تعذر فتح تبديل الحساب.')); }
+});
+let profilePressTimer = null;
+const mobileProfileAction = $('mobileProfileAction');
+mobileProfileAction.addEventListener('pointerdown', event => {
+  if (event.pointerType === 'mouse' && event.button !== 0) return;
+  profilePressTimer = window.setTimeout(() => { profilePressTimer = null; openAccountSwitcher(); }, 520);
+});
+['pointerup','pointerleave','pointercancel'].forEach(type => mobileProfileAction.addEventListener(type, () => { if (profilePressTimer) window.clearTimeout(profilePressTimer); profilePressTimer = null; }));
+mobileProfileAction.addEventListener('click', event => { if (!$('accountSwitchDialog').open) return; event.preventDefault(); });
+
+let swipeStart = null;
+const swipeRoutes = ['/', '/?view=spaces', '/?view=post', '/?view=profile', '/?view=chats'];
+document.addEventListener('touchstart', event => {
+  if (window.innerWidth > 699 || document.body.classList.contains('messages-fullscreen') || document.body.classList.contains('profile-setup-fullscreen') || event.target.closest('input,textarea,select,button,a,[contenteditable="true"]')) return;
+  const touch = event.changedTouches[0];
+  swipeStart = {x:touch.clientX, y:touch.clientY};
+}, {passive:true});
+document.addEventListener('touchend', event => {
+  if (!swipeStart) return;
+  const touch = event.changedTouches[0], dx = touch.clientX - swipeStart.x, dy = touch.clientY - swipeStart.y;
+  swipeStart = null;
+  if (Math.abs(dx) < 72 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+  const params = new URLSearchParams(location.search);
+  const current = params.get('view') === 'spaces' ? 1 : params.get('view') === 'post' ? 2 : params.get('view') === 'profile' ? 3 : params.get('view') === 'chats' ? 4 : 0;
+  const next = Math.max(0, Math.min(swipeRoutes.length - 1, current + (dx < 0 ? 1 : -1)));
+  if (next !== current) navigateTo(swipeRoutes[next], false);
+}, {passive:true});
 setCommunityLanguage(currentLanguage, false);
 
 $('postForm').addEventListener('submit', async event => {
@@ -3314,8 +4621,10 @@ $('removeSpaceEditBanner').addEventListener('click', () => {
 });
 $('spaceEditName').addEventListener('input', event => { $('spaceEditNameCount').textContent = event.target.value.length.toLocaleString() + ' / 80'; });
 $('spaceEditDescription').addEventListener('input', event => { $('spaceEditDescriptionCount').textContent = event.target.value.length.toLocaleString() + ' / 360'; });
-$('spaceIsPrivate').addEventListener('change', event => { if (event.target.checked) $('spaceShowInMainThread').checked = false; });
+$('spaceIsPrivate').addEventListener('change', event => { if (event.target.checked) { $('spaceIsViewOnly').checked = false; $('spaceShowInMainThread').checked = false; } });
+$('spaceIsViewOnly').addEventListener('change', event => { if (event.target.checked) $('spaceIsPrivate').checked = false; });
 $('spaceEditIsPrivate').addEventListener('change', syncSpaceVisibilityToggle);
+$('spaceEditIsViewOnly').addEventListener('change', syncSpaceVisibilityToggle);
 $('spaceEditClose').addEventListener('click', closeSpaceEditor);
 $('spaceEditCancel').addEventListener('click', closeSpaceEditor);
 $('spaceEditDialog').addEventListener('cancel', () => { activeEditSpaceSlug = null; });
@@ -3334,9 +4643,16 @@ $('spaceEditForm').addEventListener('submit', async event => {
   try {
     if (editSpaceMediaBusy) throw new Error(tr('Wait for the images to finish preparing.','انتظر حتى يكتمل تجهيز الصور.'));
     const nextPrivate = $('spaceEditIsPrivate').checked;
+    const nextViewOnly = !nextPrivate && $('spaceEditIsViewOnly').checked;
     const nextMainThread = nextPrivate ? false : $('spaceEditShowInMainThread').checked;
-    if (nextPrivate !== (area.isPrivate === true) || nextMainThread !== (area.showInMainThread !== false)) {
-      await callFunction('setCommunitySpaceVisibility', {spaceId:slug, isPrivate:nextPrivate, showInMainThread:nextMainThread});
+    if (nextPrivate !== (area.isPrivate === true) || nextViewOnly !== (area.isViewOnly === true) || nextMainThread !== (area.showInMainThread !== false)) {
+      const confirmation = nextPrivate
+        ? tr('Make this space private? Only approved members will retain access to its posts.', 'جعل هذه المساحة خاصة؟ سيحتفظ الأعضاء الموافق عليهم فقط بالوصول إلى منشوراتها.')
+        : nextViewOnly
+          ? tr('Make this space view only? Members will need approval to post or use Messages.', 'جعل هذه المساحة للعرض فقط؟ سيحتاج الأعضاء إلى موافقة للنشر أو استخدام الرسائل.')
+          : tr('Make this space public? Its posts may become visible in the main thread.', 'جعل هذه المساحة عامة؟ قد تصبح منشوراتها ظاهرة في المسار الرئيسي.');
+      if (!confirm(confirmation)) { button.disabled = false; return; }
+      await callFunction('setCommunitySpaceVisibility', {spaceId:slug, isPrivate:nextPrivate, isViewOnly:nextViewOnly, showInMainThread:nextMainThread});
     }
     const [imageURL, bannerURL] = await Promise.all([
       storeCommunityImage(`community/spaces/${slug}/avatar`, editSpaceImageBase64),
@@ -3397,7 +4713,7 @@ $('spaceForm').addEventListener('submit', async event => {
       $('spaceStatus').textContent = tr('Choose an available space handle before continuing.','اختر معرّف مساحة متاحاً قبل المتابعة.');
       return;
     }
-    const handle = await createCommunitySpace(name, $('spaceHandle').value, description, newSpaceImageBase64, newSpaceBannerBase64, $('spaceIsPrivate').checked, $('spaceShowInMainThread').checked);
+    const handle = await createCommunitySpace(name, $('spaceHandle').value, description, newSpaceImageBase64, newSpaceBannerBase64, $('spaceIsPrivate').checked, $('spaceIsViewOnly').checked, $('spaceShowInMainThread').checked);
     $('spaceForm').reset();
     newSpaceImageBase64 = '';
     newSpaceBannerBase64 = '';
@@ -3419,14 +4735,40 @@ $('spaceForm').addEventListener('submit', async event => {
   }
 });
 
+let smartUiRefreshTimer = null;
+window.addEventListener('community-smart-refresh', event => {
+  window.clearTimeout(smartUiRefreshTimer);
+  smartUiRefreshTimer = window.setTimeout(async () => {
+    const key = String(event.detail?.key || '');
+    try {
+      if (key === 'spaces:active') {
+        await loadCommunitySpaces();
+        if (!$('homeView').hidden) await handleRoute(false);
+      } else if ((key.startsWith('posts:feed') || key.startsWith('posts:space:') || key.startsWith('post-meta:')) && !$('homeView').hidden) {
+        await loadPosts(true);
+      } else if (key.startsWith('posts:user:') && !$('profileView').hidden && activeProfileId) {
+        await loadProfilePosts(activeProfileId, currentUser?.uid === activeProfileId);
+      }
+    } catch (error) { console.warn('[Community] Refreshed data could not be painted.', error); }
+  }, 180);
+});
+
 communityDataReady = loadCommunitySpaces();
 loadPromptOfTheWeek();
 
 onAuthStateChanged(auth, async user => {
   try {
   currentUser = user;
+  unsubscribeCurrentProfile?.();
+  unsubscribeCurrentProfile = null;
   if (user) {
     currentProfile = await getProfile(user.uid);
+    unsubscribeCurrentProfile = onSnapshot(doc(db, 'users', user.uid), snapshot => {
+      if (!snapshot.exists()) return;
+      currentProfile = {mainThreadPostingAccess:true, ...snapshot.data()};
+      profileCache.set(user.uid, Promise.resolve(currentProfile));
+      if (!$('homeView').hidden) handleRoute(false).catch(error => console.warn('[Community] Updated permissions could not be painted.', error));
+    });
     if (currentProfile.username) {
       try { await claimUsername(user.uid, currentProfile.username); }
       catch (error) { console.warn('[Community] Existing username index could not be repaired.', error); }
@@ -3434,16 +4776,22 @@ onAuthStateChanged(auth, async user => {
     const displayName = currentProfile.displayName || user.displayName || tr('Member','عضو');
     const photo = currentProfile.photoBase64 || currentProfile.photoURL || user.photoURL || '';
     $('memberAction').href = profileUrl(user.uid, currentProfile.username);
+    $('mobileProfileAvatar').innerHTML = avatarMarkup(currentProfile.displayName || user.displayName || currentProfile.username || '?', currentProfile.photoBase64 || currentProfile.photoURL || user.photoURL || '', 'mobile-profile-avatar', currentProfile.verified === true);
     $('switchAccount').hidden = false;
     document.querySelectorAll('[data-route="profile"]').forEach(link => { link.href = profileUrl(user.uid, currentProfile.username); });
     $('memberAction').setAttribute('aria-label', tr('Open your community profile','افتح ملفك المجتمعي'));
     $('memberAction').innerHTML = photo ? '<img src="' + escapeHtml(photo) + '" alt="' + escapeHtml(displayName) + '">' : '<span>' + escapeHtml(initials(displayName)) + '</span>';
     $('quickAvatar').innerHTML = photo ? '<img src="' + escapeHtml(photo) + '" alt="">' : escapeHtml(initials(displayName));
   } else {
+    for (const value of protectedMediaUrls.values()) {
+      if (typeof value === 'string' && value.startsWith('blob:')) URL.revokeObjectURL(value);
+    }
+    protectedMediaUrls.clear();
     currentProfile = null;
     railSpacesExpanded = false;
     $('memberAction').href = loginUrl();
     $('switchAccount').hidden = true;
+    $('mobileProfileAvatar').textContent = '◉';
     $('memberAction').setAttribute('aria-label', tr('Sign in','تسجيل الدخول'));
     $('memberAction').innerHTML = '<span>?</span>';
     $('quickAvatar').textContent = 'A';

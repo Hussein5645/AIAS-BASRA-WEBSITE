@@ -55,10 +55,30 @@ service cloud.firestore {
           && assignedPermissions().hasAny([permission]));
     }
 
+    function canReadLivePost(post) {
+      let slug = post.get('communitySlug', 'main');
+      return post.get('published', false) == true
+        && post.get('archived', false) != true
+        && post.get('moderationStatus', 'clear') != 'flagged'
+        && (slug == 'main'
+          || !isAuthenticated()
+          || !exists(/databases/$(database)/documents/communitySpaces/$(slug)/access/$(request.auth.uid))
+          || get(/databases/$(database)/documents/communitySpaces/$(slug)/access/$(request.auth.uid)).data.get('blocked', false) != true)
+        && (post.get('visibility', 'public') == 'public'
+          || (isAuthenticated()
+            && exists(/databases/$(database)/documents/communitySpaces/$(slug)/access/$(request.auth.uid))
+            && get(/databases/$(database)/documents/communitySpaces/$(slug)/access/$(request.auth.uid)).data.get('canReadPosts', false) == true));
+    }
+
+    function canListLivePost(post) {
+      return canReadLivePost(post);
+    }
+
     match /users/{userId} {
-      allow read: if true;
+      allow read: if isAuthenticated() && (request.auth.uid == userId || hasPermission('view_community') || hasPermission('manage_community'));
       allow create: if isAuthenticated()
         && request.auth.uid == userId
+        && request.resource.data.get('profileComplete', false) == false
         && request.resource.data.get('mainThreadPostingAccess', false) == false
         && request.resource.data.get('mainThreadAccessStatus', 'not_requested') == 'not_requested'
         && (!('verified' in request.resource.data) || request.resource.data.verified == false)
@@ -77,13 +97,38 @@ service cloud.firestore {
           && request.resource.data.verifiedBy == signedInEmail())
         || (isAuthenticated()
           && request.auth.uid == userId
-          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['verified', 'verifiedAt', 'verifiedBy', 'mainThreadPostingAccess', 'mainThreadAccessStatus', 'mainThreadAccessRequestedAt', 'mainThreadAccessReviewedAt', 'mainThreadAccessReviewedBy'])
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['verified', 'verifiedAt', 'verifiedBy', 'profileComplete', 'mainThreadPostingAccess', 'mainThreadAccessStatus', 'mainThreadAccessRequestedAt', 'mainThreadAccessReviewedAt', 'mainThreadAccessReviewedBy'])
           && (!('username' in request.resource.data)
             || getAfter(/databases/$(database)/documents/usernames/$(request.resource.data.username)).data.userId == userId)
           && (!('photoBase64' in request.resource.data) || request.resource.data.photoBase64 == '')
           && (!('bannerBase64' in request.resource.data) || request.resource.data.bannerBase64 == '')
           && (!('photoURL' in request.resource.data) || (request.resource.data.photoURL is string && request.resource.data.photoURL.size() <= 2000))
           && (!('bannerURL' in request.resource.data) || (request.resource.data.bannerURL is string && request.resource.data.bannerURL.size() <= 2000)));
+    }
+
+
+    match /publicProfiles/{userId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    function isSpaceOwner(spaceId) {
+      return isAuthenticated()
+        && get(/databases/$(database)/documents/communitySpaces/$(spaceId)).data.creatorId == request.auth.uid;
+    }
+
+    function isSpaceManager(spaceId) {
+      return isSpaceOwner(spaceId)
+        || (isAuthenticated()
+          && exists(/databases/$(database)/documents/communitySpaces/$(spaceId)/admins/$(request.auth.uid)));
+    }
+
+    function isSpaceChatMember(spaceId) {
+      return isAuthenticated()
+        && exists(/databases/$(database)/documents/communitySpaces/$(spaceId)/access/$(request.auth.uid))
+        && get(/databases/$(database)/documents/communitySpaces/$(spaceId)/access/$(request.auth.uid)).data.get('canUseChat', false) == true
+        && get(/databases/$(database)/documents/communitySpaces/$(spaceId)/access/$(request.auth.uid)).data.get('blocked', false) != true
+        && get(/databases/$(database)/documents/communitySpaces/$(spaceId)/access/$(request.auth.uid)).data.get('chatBanned', false) != true;
     }
 
     function validRepostLink(sourcePostId) {
@@ -219,21 +264,7 @@ service cloud.firestore {
 
     match /users/{userId}/connectedSpaces/{spaceId} {
       allow read: if isAuthenticated() && request.auth.uid == userId;
-      allow create: if isAuthenticated()
-        && (request.auth.uid == userId
-          || get(/databases/$(database)/documents/communitySpaces/$(spaceId)).data.creatorId == request.auth.uid)
-        && request.resource.data.userId == userId
-        && request.resource.data.spaceSlug == spaceId
-        && request.resource.data.createdAt == request.time
-        && exists(/databases/$(database)/documents/communitySpaces/$(spaceId))
-        && (get(/databases/$(database)/documents/communitySpaces/$(spaceId)).data.isPrivate != true
-          || (get(/databases/$(database)/documents/communitySpaces/$(spaceId)).data.creatorId == request.auth.uid
-            && exists(/databases/$(database)/documents/communitySpaces/$(spaceId)/connectionRequests/$(userId))
-            && getAfter(/databases/$(database)/documents/communitySpaces/$(spaceId)/connectionRequests/$(userId)).data.status == 'approved'));
-      allow update: if false;
-      allow delete: if hasPermission('manage_community') || (isAuthenticated()
-        && (request.auth.uid == userId
-          || get(/databases/$(database)/documents/communitySpaces/$(spaceId)).data.creatorId == request.auth.uid));
+      allow create, update, delete: if false;
     }
 
     // Public usernames are immutable reservations. The document ID is the
@@ -249,35 +280,7 @@ service cloud.firestore {
 
     match /communitySpaces/{spaceId} {
       allow read: if resource.data.get('archived', false) != true || hasPermission('view_community') || hasPermission('manage_community');
-      allow create: if spaceId != 'main'
-        && spaceId.matches('^[a-z0-9-]{3,32}$')
-        && request.resource.data.name is string
-        && request.resource.data.name.size() > 0
-        && request.resource.data.name.size() <= 80
-        && request.resource.data.description is string
-        && request.resource.data.description.size() > 0
-        && request.resource.data.description.size() <= 360
-        && request.resource.data.symbol is string
-        && request.resource.data.symbol.size() > 0
-        && request.resource.data.symbol.size() <= 4
-        && (!('imageBase64' in request.resource.data) || request.resource.data.imageBase64 == '')
-        && (!('bannerBase64' in request.resource.data) || request.resource.data.bannerBase64 == '')
-        && (!('imageURL' in request.resource.data) || (request.resource.data.imageURL is string && request.resource.data.imageURL.size() <= 2000))
-        && (!('bannerURL' in request.resource.data) || (request.resource.data.bannerURL is string && request.resource.data.bannerURL.size() <= 2000))
-        && (hasPermission('manage_community') || (isAuthenticated()
-          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.profileComplete == true
-          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username is string
-          && request.resource.data.creatorId == request.auth.uid
-          && request.resource.data.creatorUsername == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username
-          && get(/databases/$(database)/documents/usernames/$(request.resource.data.creatorUsername)).data.userId == request.auth.uid
-          && request.resource.data.active == true
-          && request.resource.data.archived == false
-          && request.resource.data.moderationStatus == 'clear'
-          && request.resource.data.isPrivate is bool
-          && request.resource.data.showInMainThread is bool
-          && (request.resource.data.isPrivate == true
-            || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('mainThreadPostingAccess', true) == true)
-          && (request.resource.data.isPrivate == false || request.resource.data.showInMainThread == false)));
+      allow create: if false;
       allow update: if spaceId != 'main'
         && spaceId.matches('^[a-z0-9-]{3,32}$')
         && request.resource.data.name is string
@@ -293,59 +296,31 @@ service cloud.firestore {
         && (!('bannerBase64' in request.resource.data) || request.resource.data.bannerBase64 == '')
         && (!('imageURL' in request.resource.data) || (request.resource.data.imageURL is string && request.resource.data.imageURL.size() <= 2000))
         && (!('bannerURL' in request.resource.data) || (request.resource.data.bannerURL is string && request.resource.data.bannerURL.size() <= 2000))
-        && (hasPermission('manage_community') || (isAuthenticated()
+        && (isAuthenticated()
           && resource.data.creatorId == request.auth.uid
           && request.resource.data.creatorId == resource.data.creatorId
           && request.resource.data.get('creatorUsername', '') == resource.data.get('creatorUsername', '')
           && request.resource.data.get('archived', false) == resource.data.get('archived', false)
           && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['archiveReason', 'archiveCause', 'archiveCascadeId', 'archivedAt', 'archivedBy', 'moderationStatus', 'moderationReason', 'moderationUpdatedAt', 'moderationUpdatedBy'])
           && (!('isPrivate' in request.resource.data) || request.resource.data.isPrivate is bool)
+          && (!('isViewOnly' in request.resource.data) || request.resource.data.isViewOnly is bool)
           && (!('showInMainThread' in request.resource.data) || request.resource.data.showInMainThread is bool)
+          && !(request.resource.data.get('isPrivate', false) == true && request.resource.data.get('isViewOnly', false) == true)
           && (!('isPrivate' in request.resource.data) || request.resource.data.isPrivate == false || request.resource.data.showInMainThread == false)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'description', 'symbol', 'imageBase64', 'bannerBase64', 'imageURL', 'bannerURL', 'updatedAt'])));
-      allow delete: if (hasPermission('manage_community')
-          && resource.data.archived == true
-          && existsAfter(/databases/$(database)/documents/communityModerationTombstones/space/items/$(spaceId)))
-        || (isAuthenticated() && resource.data.creatorId == request.auth.uid && resource.data.get('archived', false) != true);
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'description', 'symbol', 'imageBase64', 'bannerBase64', 'imageURL', 'bannerURL', 'updatedAt']));
+      allow delete: if false;
     }
 
     match /communitySpaces/{spaceId}/connections/{userId} {
       allow read: if true;
-      allow create: if isAuthenticated()
-        && (request.auth.uid == userId
-          || get(/databases/$(database)/documents/communitySpaces/$(spaceId)).data.creatorId == request.auth.uid)
-        && request.resource.data.userId == userId
-        && request.resource.data.spaceSlug == spaceId
-        && request.resource.data.createdAt == request.time
-        && exists(/databases/$(database)/documents/communitySpaces/$(spaceId))
-        && (get(/databases/$(database)/documents/communitySpaces/$(spaceId)).data.isPrivate != true
-          || (get(/databases/$(database)/documents/communitySpaces/$(spaceId)).data.creatorId == request.auth.uid
-            && exists(/databases/$(database)/documents/communitySpaces/$(spaceId)/connectionRequests/$(userId))
-            && getAfter(/databases/$(database)/documents/communitySpaces/$(spaceId)/connectionRequests/$(userId)).data.status == 'approved'));
-      allow update: if false;
-      allow delete: if isAuthenticated()
-        && (request.auth.uid == userId
-          || get(/databases/$(database)/documents/communitySpaces/$(spaceId)).data.creatorId == request.auth.uid);
+      allow create, update, delete: if false;
     }
 
     match /communitySpaces/{spaceId}/connectionRequests/{userId} {
       allow read: if isAuthenticated()
         && (request.auth.uid == userId
-          || get(/databases/$(database)/documents/communitySpaces/$(spaceId)).data.creatorId == request.auth.uid);
-      allow create: if isAuthenticated()
-        && request.auth.uid == userId
-        && request.resource.data.userId == userId
-        && request.resource.data.spaceSlug == spaceId
-        && request.resource.data.status == 'pending'
-        && request.resource.data.requestedAt == request.time
-        && exists(/databases/$(database)/documents/communitySpaces/$(spaceId))
-        && get(/databases/$(database)/documents/communitySpaces/$(spaceId)).data.isPrivate == true;
-      allow update: if isAuthenticated()
-        && get(/databases/$(database)/documents/communitySpaces/$(spaceId)).data.creatorId == request.auth.uid
-        && request.resource.data.userId == resource.data.userId
-        && request.resource.data.spaceSlug == resource.data.spaceSlug
-        && request.resource.data.status in ['approved', 'denied', 'removed'];
-      allow delete: if hasPermission('manage_community') || (isAuthenticated() && request.auth.uid == userId);
+          || isSpaceManager(spaceId));
+      allow create, update, delete: if false;
     }
 
     match /communitySettings/{settingId} {
@@ -359,22 +334,25 @@ service cloud.firestore {
     // Community members publish thoughts, open questions, and Behance projects.
     // Projects live in the main thread and may request review after publishing.
     match /communityPosts/{postId} {
-      allow read: if resource.data.get('archived', false) != true
+      allow get: if canReadLivePost(resource.data)
         || hasPermission('view_community')
         || hasPermission('manage_community')
         || (isAuthenticated()
           && resource.data.userId == request.auth.uid
           && resource.data.archiveCause == 'space_cascade'
           && resource.data.moderationStatus != 'flagged');
+      allow list: if canListLivePost(resource.data)
+        || hasPermission('view_community') || hasPermission('manage_community');
       // Creation is server-owned so identity, publication state, and media counts cannot be forged.
       allow create: if false;
-      allow update: if hasPermission('manage_community') || (isAuthenticated()
+      allow update: if (isAuthenticated()
         && resource.data.userId == request.auth.uid
+        && canReadLivePost(resource.data)
         && request.resource.data.userId == resource.data.userId
         && request.resource.data.type == resource.data.type
         && request.resource.data.communitySlug == resource.data.communitySlug
           && request.resource.data.get('archived', false) == resource.data.get('archived', false)
-        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['archiveReason', 'archiveCause', 'archiveCascadeId', 'archivedAt', 'archivedBy', 'moderationStatus', 'moderationReason', 'moderationUpdatedAt', 'moderationUpdatedBy', 'flaggedAt', 'flaggedBy', 'warningReason', 'warnedAt', 'warnedBy', 'repostedPostId', 'repostedAt', 'published', 'imagePaths', 'mediaCount', 'mediaFinalizedAt'])
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['archiveReason', 'archiveCause', 'archiveCascadeId', 'archivedAt', 'archivedBy', 'moderationStatus', 'moderationReason', 'moderationUpdatedAt', 'moderationUpdatedBy', 'flaggedAt', 'flaggedBy', 'warningReason', 'warnedAt', 'warnedBy', 'repostedPostId', 'repostedAt', 'published', 'visibility', 'imagePaths', 'mediaCount', 'mediaFinalizedAt', 'score', 'upvoteCount', 'downvoteCount', 'commentsCount', 'lastActivityAt'])
         && request.resource.data.get('featured', false) == resource.data.get('featured', false)
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['editedAt'])
           || request.resource.data.editedAt == request.time)
@@ -399,8 +377,7 @@ service cloud.firestore {
     }
 
     match /communityPosts/{postId}/images/{chunkId} {
-      allow read: if !('archived' in get(/databases/$(database)/documents/communityPosts/$(postId)).data)
-        || get(/databases/$(database)/documents/communityPosts/$(postId)).data.archived != true
+      allow read: if canReadLivePost(get(/databases/$(database)/documents/communityPosts/$(postId)).data)
         || hasPermission('view_community') || hasPermission('manage_community')
         || (isAuthenticated()
           && get(/databases/$(database)/documents/communityPosts/$(postId)).data.userId == request.auth.uid
@@ -410,37 +387,20 @@ service cloud.firestore {
     }
 
     match /communityPosts/{postId}/votes/{userId} {
-      allow read: if !('archived' in get(/databases/$(database)/documents/communityPosts/$(postId)).data) || get(/databases/$(database)/documents/communityPosts/$(postId)).data.archived != true || hasPermission('view_community') || hasPermission('manage_community');
-      allow create, update: if isAuthenticated()
-        && request.auth.uid == userId
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.value in [-1, 0, 1];
-      allow delete: if hasPermission('manage_community')
-        || (isAuthenticated() && request.auth.uid == userId)
-        || (isAuthenticated()
-          && get(/databases/$(database)/documents/communityPosts/$(postId)).data.userId == request.auth.uid);
+      allow read: if (isAuthenticated() && request.auth.uid == userId && canReadLivePost(get(/databases/$(database)/documents/communityPosts/$(postId)).data))
+        || hasPermission('view_community') || hasPermission('manage_community');
+      allow create, update, delete: if false;
+    }
+
+    match /users/{userId}/blockedSpaces/{spaceId} {
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow create, update, delete: if false;
     }
 
     match /communityPosts/{postId}/comments/{commentId} {
-      allow read: if !('archived' in get(/databases/$(database)/documents/communityPosts/$(postId)).data) || get(/databases/$(database)/documents/communityPosts/$(postId)).data.archived != true || hasPermission('view_community') || hasPermission('manage_community');
-      allow create: if isAuthenticated()
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.text is string
-        && request.resource.data.text.size() > 0
-        && request.resource.data.text.size() <= 2000
-        && (request.resource.data.parentId == null || request.resource.data.parentId is string);
-      allow update: if isAuthenticated()
-        && resource.data.userId == request.auth.uid
-        && request.resource.data.userId == resource.data.userId
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'editedAt'])
-        && request.resource.data.text is string
-        && request.resource.data.text.size() > 0
-        && request.resource.data.text.size() <= 2000
-        && request.resource.data.editedAt == request.time;
-      allow delete: if hasPermission('manage_community')
-        || (isAuthenticated() && resource.data.userId == request.auth.uid)
-        || (isAuthenticated()
-          && get(/databases/$(database)/documents/communityPosts/$(postId)).data.userId == request.auth.uid);
+      allow read: if canReadLivePost(get(/databases/$(database)/documents/communityPosts/$(postId)).data)
+        || hasPermission('view_community') || hasPermission('manage_community');
+      allow create, update, delete: if false;
     }
 
     match /communitySpaces/{spaceId}/admins/{userId} {
@@ -449,36 +409,76 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    match /communitySpaces/{spaceId}/access/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isSpaceManager(spaceId));
+      // This is the canonical server-owned authorization record used by
+      // Firestore and Storage. Clients can never grant, change, or revoke it.
+      allow create, update, delete: if false;
+    }
+
+    match /communitySpaces/{spaceId}/messages/{messageId} {
+      allow read: if isSpaceChatMember(spaceId);
+      // Message mutations are validated by callable backend operations.
+      allow create, update, delete: if false;
+    }
+
+    match /communitySpaces/{spaceId}/messages/{messageId}/applause/{userId} {
+      allow read: if isSpaceChatMember(spaceId);
+      allow create, update, delete: if false;
+    }
+
+    match /communitySpaces/{spaceId}/messages/{messageId}/reactions/{userId} {
+      allow read: if isSpaceChatMember(spaceId);
+      allow create, update, delete: if false;
+    }
+
+    match /communitySpaces/{spaceId}/messageReads/{userId} {
+      allow read: if isSpaceChatMember(spaceId);
+      // A callable validates membership and the last visible message.
+      allow create, update, delete: if false;
+    }
+
+    match /communitySpaces/{spaceId}/chatPresence/{userId} {
+      allow read: if isSpaceChatMember(spaceId);
+      allow create, update: if isSpaceChatMember(spaceId)
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['userId', 'activeAt'])
+        && request.resource.data.userId == userId
+        && request.resource.data.activeAt == request.time;
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    match /communitySpaces/{spaceId}/chatBans/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isSpaceManager(spaceId));
+      allow create, update, delete: if false;
+    }
+
+    match /communitySpaces/{spaceId}/blocks/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isSpaceManager(spaceId));
+      allow create, update, delete: if false;
+    }
+
+    match /communitySpaces/{spaceId}/chatAccessRequests/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isSpaceManager(spaceId));
+      // Requests and decisions are validated by callable backend operations.
+      allow create, update, delete: if false;
+    }
+
     match /communityModerationAudit/{auditId} {
       allow read: if hasPermission('view_community') || hasPermission('manage_community');
-      allow create: if hasPermission('manage_community')
-        && request.resource.data.moderatorId == request.auth.uid
-        && request.resource.data.moderatorEmail == signedInEmail()
-        && request.resource.data.action in ['flag', 'clear_flag', 'warn', 'archive', 'restore', 'permanent_delete']
-        && request.resource.data.contentType in ['post', 'space']
-        && request.resource.data.reason is string
-        && request.resource.data.reason.size() <= 500
-        && request.resource.data.createdAt == request.time;
-      allow update, delete: if false;
+      allow create, update, delete: if false;
     }
 
     match /communityModerationTombstones/{contentType}/items/{contentId} {
       allow read: if hasPermission('view_community') || hasPermission('manage_community');
-      allow create: if hasPermission('manage_community')
-        && request.resource.data.moderatorId == request.auth.uid
-        && request.resource.data.moderatorEmail == signedInEmail()
-        && request.resource.data.reason is string
-        && request.resource.data.reason.size() <= 500
-        && request.resource.data.restorable == false
-        && request.resource.data.permanentlyDeletedAt == request.time;
-      allow update, delete: if false;
+      allow create, update, delete: if false;
     }
 
     // Role definitions and assignments contain account emails and are visible
     // only to signed-in users. Only super admins may change system access.
     match /config/{document} {
-      allow read: if isAuthenticated();
-      allow write: if isSuperAdmin();
+      allow read: if isAdmin();
+      allow write: if false;
     }
 
     // Content permissions are separated by dashboard area. Education is no

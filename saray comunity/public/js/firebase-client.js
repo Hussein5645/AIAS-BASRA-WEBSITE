@@ -1,6 +1,6 @@
 import {initializeApp, getApp} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import {getAuth} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import {getFirestore} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import {getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import {getFunctions, httpsCallable} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js';
 import {getStorage} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
@@ -19,10 +19,22 @@ try { app = getApp(); } catch { app = initializeApp(firebaseConfig); }
 
 export {app};
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+let firestore;
+try {
+  firestore = initializeFirestore(app, {
+    localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})
+  });
+} catch (error) {
+  // Another module may have initialized Firestore first. Keep the site usable
+  // while still using persistence whenever this shared module loads first.
+  console.warn('[Firebase] Persistent cache initialization fell back to the existing instance.', error);
+  firestore = getFirestore(app);
+}
+export const db = firestore;
 export const storage = getStorage(app);
 export const functions = getFunctions(app, 'us-central1');
 const communityCompatibilityOperations = Object.freeze({
+  checkCommunitySpaceHandle:'check_space_handle',
   requestMainThreadPostingAccess:'request_main_thread_access',
   reviewMainThreadPostingAccess:'review_main_thread_access',
   setCommunitySpaceVisibility:'set_space_visibility',

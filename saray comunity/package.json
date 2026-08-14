@@ -8,6 +8,7 @@
   "scripts": {
     "test": "node --test tests/moderation-policy.test.mjs",
     "test:rules": "firebase emulators:exec --only firestore \"node --test tests/firestore-moderation.test.mjs\"",
+    "test:storage-rules": "firebase emulators:exec --config firebase.security-test.json --only firestore,storage \"node --test tests/storage-access.test.mjs\"",
     "test:hosting": "firebase emulators:exec --only hosting \"node --test tests/hosting-smoke.test.mjs\"",
     "migrate:public-data": "node scripts/migrate-public-firestore.mjs",
     "migrate:community-media": "node scripts/migrate-community-media.mjs",
