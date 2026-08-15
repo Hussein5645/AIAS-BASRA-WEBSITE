@@ -477,7 +477,7 @@ service cloud.firestore {
     // Role definitions and assignments contain account emails and are visible
     // only to signed-in users. Only super admins may change system access.
     match /config/{document} {
-      allow read: if isAdmin();
+      allow read: if isAuthenticated();
       allow write: if false;
     }
 
