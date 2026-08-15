@@ -687,11 +687,20 @@
 
     (function() {
       onAuthStateChanged(auth, async (user) => {
-        if (!user) { clearAccessSession(); window.location.href = 'login.html'; return; }
+        console.log('[DEBUG Admin Auth] User signed in:', user?.email, user?.uid);
+        if (!user) {
+          console.warn('[DEBUG Admin Auth] No user signed in. Redirection to login.html temporarily disabled for debugging.');
+          return;
+        }
         try {
           currentAdminUser = user;
           currentAccess = await getAdminAccess(db, user.email);
-          if (!currentAccess.allowed) { clearAccessSession(); window.location.href = 'index.html'; return; }
+          console.log('[DEBUG Admin Auth] getAdminAccess result:', currentAccess);
+          if (!currentAccess.allowed) {
+            console.error('[DEBUG Admin Auth] currentAccess.allowed is FALSE for user:', user.email, currentAccess);
+            alert('DEBUG: Admin Access denied for ' + user.email + '. Check console for details. (Redirect disabled for debugging)');
+            return;
+          }
           if (currentAccess.isSuperAdmin) currentAccess = await ensureRoleConfiguration(db, currentAccess, user.email);
           persistAccessSession(currentAccess);
           localStorage.setItem('aias_authenticated','true');
@@ -701,9 +710,8 @@
           localStorage.setItem('aias_user_uid', user.uid);
           applyRoleAccess();
         } catch (error) {
-          console.error('Could not load admin access:', error);
-          clearAccessSession();
-          window.location.href = 'index.html';
+          console.error('[DEBUG Admin Auth] Could not load admin access:', error);
+          alert('DEBUG ERROR loading admin access: ' + (error?.message || error) + '. Check console log.');
           return;
         }
         document.getElementById('currentLang').textContent = (localStorage.getItem('language') || 'EN').toUpperCase();

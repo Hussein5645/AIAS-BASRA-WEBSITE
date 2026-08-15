@@ -177,9 +177,10 @@ window.addEventListener('aias-auth-state-updated', syncAuthUI);
             notifyAuthStateUpdated();
             syncAuthUI();
             
-            // Protect admin page for admin users only
+            // Protect admin page for admin users only (Temporarily disabled for debugging)
             if (currentPage === ADMIN_PAGE && !access.allowed) {
-                window.location.href = 'index.html';
+                console.warn('[DEBUG js/auth.js] Admin access disallowed for user:', user.email, access);
+                // window.location.href = 'index.html';
             }
         } else {
             // Keep local auth markers in sync when Firebase user is signed out
@@ -187,9 +188,10 @@ window.addEventListener('aias-auth-state-updated', syncAuthUI);
             notifyAuthStateUpdated();
             syncAuthUI();
 
-            // Protect admin page for signed-out users
+            // Protect admin page for signed-out users (Temporarily disabled for debugging)
             if (currentPage === ADMIN_PAGE) {
-                window.location.href = LOGIN_PAGE;
+                console.warn('[DEBUG js/auth.js] User signed out on ADMIN_PAGE.');
+                // window.location.href = LOGIN_PAGE;
             }
         }
     });
