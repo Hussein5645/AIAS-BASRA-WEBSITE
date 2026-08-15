@@ -322,6 +322,9 @@ class FirestoreAPI {
   // Read all content (current structure only)
   async getAllContent() {
     try {
+      const safeGetDocs = (ref) => getDocs(ref).catch(err => { console.warn('[Firestore API] getDocs skipped:', err); return { docs: [] }; });
+      const safeGetDoc = (ref) => getDoc(ref).catch(err => { console.warn('[Firestore API] getDoc skipped:', err); return { exists: () => false, data: () => ({}) }; });
+
       const [
         eventsSnap,
         librarySnap,
@@ -333,15 +336,15 @@ class FirestoreAPI {
         fbdEventsSnap,
         modelsSnap
       ] = await Promise.all([
-        getDocs(this._colRef(this.paths.eventsCol)),
-        getDocs(this._colRef(this.paths.libraryCol)),
-        getDoc(this._docRef(this.paths.magazineDoc)),
-        getDocs(this._colRef(this.paths.magazineArticlesCol)),
-        getDoc(this._docRef(this.paths.educationDoc)),
-        getDocs(this._colRef(this.paths.educationCoursesCol)),
-        getDoc(this._docRef(this.paths.fbdDoc)),
-        getDocs(this._colRef(this.paths.fbdEventsCol)),
-        getDocs(this._colRef(this.paths.modelsCol))
+        safeGetDocs(this._colRef(this.paths.eventsCol)),
+        safeGetDocs(this._colRef(this.paths.libraryCol)),
+        safeGetDoc(this._docRef(this.paths.magazineDoc)),
+        safeGetDocs(this._colRef(this.paths.magazineArticlesCol)),
+        safeGetDoc(this._docRef(this.paths.educationDoc)),
+        safeGetDocs(this._colRef(this.paths.educationCoursesCol)),
+        safeGetDoc(this._docRef(this.paths.fbdDoc)),
+        safeGetDocs(this._colRef(this.paths.fbdEventsCol)),
+        safeGetDocs(this._colRef(this.paths.modelsCol))
       ]);
 
       // Events

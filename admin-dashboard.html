@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <script type="module" src="js/auth.js"></script>
-  <script type="module" src="js/firestore-api.js?v=20260811-settings"></script>
+  <script type="module" src="js/auth.js?v=20260815_fixed"></script>
+  <script type="module" src="js/firestore-api.js?v=20260815_fixed"></script>
   <script src="js/main.js" defer></script>
   <style>
     :root {
@@ -622,10 +622,10 @@
     import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, getDocs, collection, addDoc, setDoc, serverTimestamp, query, where, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import FirestoreAPI from "./js/firestore-api.js?v=20260811-settings";
+    import FirestoreAPI from "./js/firestore-api.js?v=20260815_fixed";
     import categoriesLoader from "./js/categories-loader.js";
     import { toBase64, uploadFileChunks, createDocumentId } from "./js/file-chunks.js";
-    import { ADMIN_AREAS, DEFAULT_ROLES, canManage, canView, clearAccessSession, ensureRoleConfiguration, getAdminAccess, normalizeEmail, persistAccessSession, saveAssignments, saveRoles } from "./js/rbac.js";
+    import { ADMIN_AREAS, DEFAULT_ROLES, canManage, canView, clearAccessSession, ensureRoleConfiguration, getAdminAccess, normalizeEmail, persistAccessSession, saveAssignments, saveRoles } from "./js/rbac.js?v=20260815_fixed";
     import { moderateCommunityContent } from "./js/community-moderation.js?v=20260813-hosting-fix";
 
     const firebaseConfig = {
