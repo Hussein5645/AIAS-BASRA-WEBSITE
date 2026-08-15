@@ -3379,8 +3379,8 @@ function renderPostTypeFields() {
   $('projectFields').hidden = !project;
   $('postBehanceEmbed').required = project;
   $('postImageGroup').hidden = question || project;
-  $('postContent').required = true;
-  document.querySelector('label[for="postContent"]').textContent = project ? tr('Describe your project','صف مشروعك') : question ? tr('Add helpful context','أضف سياقاً مفيداً') : tr('Tell the community more','أخبر المجتمع بالمزيد');
+  $('postContent').required = question || project;
+  document.querySelector('label[for="postContent"]').textContent = project ? tr('Describe your project','صف مشروعك') : question ? tr('Add helpful context','أضف سياقاً مفيداً') : tr('Tell the community more (optional)','أخبر المجتمع بالمزيد (اختياري)');
   $('postContent').placeholder = project ? tr('Explain the idea, process, and feedback you would like.','اشرح الفكرة وعملية التصميم والملاحظات التي ترغب بها.') : question ? tr('What have you tried, and what kind of answer would help?','ماذا جرّبت، وما نوع الإجابة التي ستفيدك؟') : tr('Share context, a fresh perspective, or invite feedback…','شارك السياق أو منظوراً جديداً أو اطلب آراء الأعضاء…');
   $('postTitle').placeholder = project ? tr('Give your project a clear title','امنح مشروعك عنواناً واضحاً') : question ? tr('Ask one clear, open question','اطرح سؤالاً مفتوحاً وواضحاً') : tr('Share one clear insight or idea','شارك فكرة أو رؤية واضحة');
 }
@@ -4449,7 +4449,27 @@ $('postImagePreview').addEventListener('click', event => {
   renderPostImageComposer();
   $('postImageStatus').textContent = tr(postImages.length + (postImages.length === 1 ? ' image ready.' : ' images ready.'), postImages.length + ' صورة جاهزة.');
 });
-$('removePostImage').addEventListener('click', clearPostImageComposer);
+async function refreshCurrentViewData() {
+  const btn = $('refreshDataButton');
+  if (!btn || btn.disabled) return;
+  btn.disabled = true;
+  btn.classList.add('refreshing');
+  try {
+    renderCommunitySpaces();
+    await handleRoute(false);
+    showToast(tr('Data refreshed','تم تحديث البيانات'));
+  } catch (error) {
+    console.error('[Community] Refresh failed:', error);
+    showToast(error.message || tr('Failed to refresh data','تعذر تحديث البيانات'));
+  } finally {
+    window.setTimeout(() => {
+      btn.classList.remove('refreshing');
+      btn.disabled = false;
+    }, 450);
+  }
+}
+
+$('refreshDataButton')?.addEventListener('click', () => refreshCurrentViewData());
 
 $('communityLanguageToggle').addEventListener('click', () => {
   setCommunityLanguage(isArabic() ? 'en' : 'ar');
@@ -4519,7 +4539,7 @@ $('postForm').addEventListener('submit', async event => {
   const imageChunkCount = imageChunkCounts.reduce((total, count) => total + count, 0);
   const imageMimeTypes = galleryImages.map(image => image.mimeType);
   $('postStatus').classList.remove('success');
-  if (!content) {
+  if (!content && (type === 'question' || type === 'behance' || (!title && galleryImages.length === 0))) {
     $('postStatus').textContent = tr('Write something before publishing.','اكتب شيئاً قبل النشر.');
     return;
   }

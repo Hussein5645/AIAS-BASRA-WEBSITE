@@ -67,18 +67,18 @@ export async function getAdminAccess(db, email) {
   if (!normalizedEmail) return { allowed:false, isSuperAdmin:false, roleId:null, role:null, permissions:[], roles:{...DEFAULT_ROLES}, assignments:{}, legacyAdmins:[] };
 
   const [adminsSnapshot, rolesSnapshot, assignmentsSnapshot] = await Promise.all([
-    getDoc(doc(db, 'config', 'admins')),
-    getDoc(doc(db, 'config', 'roles')),
-    getDoc(doc(db, 'config', 'userRoles'))
+    getDoc(doc(db, 'config', 'admins')).catch(() => null),
+    getDoc(doc(db, 'config', 'roles')).catch(() => null),
+    getDoc(doc(db, 'config', 'userRoles')).catch(() => null)
   ]);
-  const legacyAdmins = adminsSnapshot.exists() && Array.isArray(adminsSnapshot.data().admins)
+  const legacyAdmins = adminsSnapshot?.exists?.() && Array.isArray(adminsSnapshot.data().admins)
     ? adminsSnapshot.data().admins.map(normalizeEmail)
     : [];
-  const storedRoles = rolesSnapshot.exists() && rolesSnapshot.data().roles && typeof rolesSnapshot.data().roles === 'object'
+  const storedRoles = rolesSnapshot?.exists?.() && rolesSnapshot.data().roles && typeof rolesSnapshot.data().roles === 'object'
     ? rolesSnapshot.data().roles
     : {};
   const roles = { ...DEFAULT_ROLES, ...storedRoles };
-  const assignments = assignmentsSnapshot.exists() && assignmentsSnapshot.data().assignments && typeof assignmentsSnapshot.data().assignments === 'object'
+  const assignments = assignmentsSnapshot?.exists?.() && assignmentsSnapshot.data().assignments && typeof assignmentsSnapshot.data().assignments === 'object'
     ? assignmentsSnapshot.data().assignments
     : {};
   const isLegacyAdmin = legacyAdmins.includes(normalizedEmail);

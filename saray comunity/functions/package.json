@@ -9,7 +9,8 @@
     "migrate:community-moderation": "node scripts/backfill-community-moderation.js",
     "migrate:main-thread-access": "node scripts/backfill-main-thread-access.js",
     "migrate:realtime-data": "node scripts/backfill-realtime-data.js",
-    "migrate:server-access": "node scripts/run-backfill-with-firebase-cli.js"
+    "migrate:server-access": "node scripts/run-backfill-with-firebase-cli.js",
+    "add:admin": "node scripts/add-admin.js"
   },
   "dependencies": {
     "firebase-admin": "13.10.0",
