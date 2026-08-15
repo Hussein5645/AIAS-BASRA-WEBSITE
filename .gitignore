@@ -1,31 +1,55 @@
-# System files
+# Operating System files
 .DS_Store
 Thumbs.db
 desktop.ini
+$RECYCLE.BIN/
 
-# Editor files
+# Firebase Community Project (Hosted separately on Firebase)
+saray comunity/
+saray comunity
+
+# IDE & Editor Directories
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# Logs
+# Dependency Directories
+node_modules/
+**/node_modules/
+
+# Build & Compiled Output
+/dist/
+/build/
+**/build/
+.gradle/
+**/.gradle/
+*.aar
+*.tmp
+temp.mjs
+
+# Logs & Debug Output
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+firestore-debug.log*
+firebase-debug.log*
+server-error.log*
+ui-debug.log*
 
-# Temporary files
-/tmp/
-*.tmp
+# Firebase Local State & Caches
+.firebase/
+**/.firebase/
 
-# Build artifacts (if you add a build process later)
-/dist/
-/build/
-node_modules/
+# Binary Downloads & Media Backups (Hosted on Firebase Storage)
+*.apk
+admin-dashboard-backup.html
 
-# Environment files
+# Environment & Secret files
 .env
 .env.local
 .env.*.local
+*.pem
+*.key
