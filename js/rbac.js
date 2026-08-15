@@ -102,14 +102,20 @@ export async function getAdminAccess(db, email) {
 
 export async function ensureRoleConfiguration(db, access, actorEmail) {
   if (!access?.isSuperAdmin) return access;
-  const roles = { ...DEFAULT_ROLES, ...(access.roles || {}) };
-  await setDoc(doc(db, 'config', 'admins'), { admins:[...new Set((access.legacyAdmins || []).map(normalizeEmail))] }, { merge:true });
-  await setDoc(doc(db, 'config', 'roles'), { roles, updatedAt:serverTimestamp(), updatedBy:normalizeEmail(actorEmail) }, { merge:true });
-  const assignmentsSnapshot = await getDoc(doc(db, 'config', 'userRoles'));
-  if (!assignmentsSnapshot.exists()) {
-    await setDoc(doc(db, 'config', 'userRoles'), { assignments:{}, updatedAt:serverTimestamp(), updatedBy:normalizeEmail(actorEmail) });
+  try {
+    const roles = { ...DEFAULT_ROLES, ...(access.roles || {}) };
+    if (access.legacyAdmins?.length) {
+      await setDoc(doc(db, 'config', 'admins'), { admins:[...new Set((access.legacyAdmins || []).map(normalizeEmail))] }, { merge:true }).catch(console.warn);
+    }
+    await setDoc(doc(db, 'config', 'roles'), { roles, updatedAt:serverTimestamp(), updatedBy:normalizeEmail(actorEmail) }, { merge:true }).catch(console.warn);
+    const assignmentsSnapshot = await getDoc(doc(db, 'config', 'userRoles')).catch(() => null);
+    if (assignmentsSnapshot && !assignmentsSnapshot.exists()) {
+      await setDoc(doc(db, 'config', 'userRoles'), { assignments:{}, updatedAt:serverTimestamp(), updatedBy:normalizeEmail(actorEmail) }).catch(console.warn);
+    }
+  } catch (err) {
+    console.warn('[RBAC] ensureRoleConfiguration soft fallback:', err);
   }
-  return getAdminAccess(db, actorEmail);
+  return access;
 }
 
 export async function saveRoles(db, roles, actorEmail) {
