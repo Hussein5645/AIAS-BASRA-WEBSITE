@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -276,6 +276,29 @@
       await postComment(commentInput.value, null, submitButton);
     });
 
+    function injectInArticleAd(contentHtml) {
+      const adMarkup = `
+        <div class="in-article-ad" style="margin: 2rem auto; text-align: center; overflow: hidden; clear: both;">
+          <ins class="adsbygoogle"
+               style="display:block; text-align:center;"
+               data-ad-layout="in-article"
+               data-ad-format="fluid"
+               data-ad-client="ca-pub-1957758165451331"
+               data-ad-slot="8839839545"></ins>
+        </div>
+      `;
+      if (!contentHtml) return adMarkup;
+      const paragraphs = [...contentHtml.matchAll(/<\/p>/gi)];
+      if (paragraphs.length >= 2) {
+        const insertPos = paragraphs[Math.min(1, Math.floor(paragraphs.length / 2))].index + 4;
+        return contentHtml.slice(0, insertPos) + adMarkup + contentHtml.slice(insertPos);
+      } else if (paragraphs.length === 1) {
+        const insertPos = paragraphs[0].index + 4;
+        return contentHtml.slice(0, insertPos) + adMarkup + contentHtml.slice(insertPos);
+      }
+      return contentHtml + adMarkup;
+    }
+
     function renderArticle(article) {
       const preferredLanguage = localStorage.getItem('language') || 'en';
       const translations = article.translations || {};
@@ -290,11 +313,18 @@
       title.textContent = variant.title || 'Article';
       meta.textContent = [variant.author ? `By ${variant.author}` : '', variant.date || ''].filter(Boolean).join(' • ');
       const coverImage = variant.imageUrl || article.imageUrl || '';
-      body.innerHTML = `${coverImage ? `<img class="article-cover" src="${escapeHtml(coverImage)}" alt="${escapeHtml(variant.title)}">` : ''}${variant.content || `<p>${escapeHtml(variant.summary)}</p>`}`;
+      const rawContent = variant.content || `<p>${escapeHtml(variant.summary || '')}</p>`;
+      const finalContent = injectInArticleAd(rawContent);
+      body.innerHTML = `${coverImage ? `<img class="article-cover" src="${escapeHtml(coverImage)}" alt="${escapeHtml(variant.title)}">` : ''}${finalContent}`;
       status.hidden = true;
       body.hidden = false;
       community.hidden = false;
       document.title = `${variant.title || 'Article'} - AIAS Basra`;
+      try {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+      } catch (e) {
+        console.warn('[AdSense] in-article ad push error:', e);
+      }
     }
 
     languageSelect?.addEventListener('change', () => {
