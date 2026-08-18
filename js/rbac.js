@@ -126,7 +126,7 @@ export async function saveRoles(db, roles, actorEmail) {
     safeRoles[id] = {
       name:String(role?.name || '').trim().slice(0,80),
       description:String(role?.description || '').trim().slice(0,240),
-      permissions:[...new Set((role?.permissions || []).map(String).filter(permission => /^(view|manage)_(community|events|articles|library|models3d|fbd)$/.test(permission)))],
+      permissions:[...new Set((role?.permissions || []).map(String).filter(permission => /^(view|manage)_(community|events|articles|library|models3d|fbd|market)$/.test(permission)))],
       builtIn:Boolean(DEFAULT_ROLES[id]?.builtIn)
     };
   });

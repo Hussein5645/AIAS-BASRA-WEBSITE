@@ -733,7 +733,13 @@
           currentAdminUser = user;
           currentAccess = await getAdminAccess(db, user.email);
           if (!currentAccess.allowed) { clearAccessSession(); window.location.href = 'index.html'; return; }
-          if (currentAccess.isSuperAdmin) currentAccess = await ensureRoleConfiguration(db, currentAccess, user.email);
+          if (currentAccess.isSuperAdmin) {
+            try {
+              currentAccess = await ensureRoleConfiguration(db, currentAccess, user.email);
+            } catch(e) {
+              console.warn('[RBAC] Non-blocking ensureRoleConfiguration warning:', e);
+            }
+          }
           persistAccessSession(currentAccess);
           localStorage.setItem('aias_authenticated','true');
           localStorage.setItem('aias_user_email', user.email || '');
@@ -879,6 +885,7 @@
       if (tab==='events') loadExistingEvents();
       if (tab==='articles') loadExistingArticles();
       if (tab==='community') loadCommunityAdminData();
+      if (tab==='market') loadMarketAdminData();
       if (tab==='library') loadExistingLibraryResources();
       if (tab==='models3d') loadExistingModels3D();
       if (tab==='fbd') { loadFbd(); }
