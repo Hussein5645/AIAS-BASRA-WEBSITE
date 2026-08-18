@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    window.switchMarketSubTab = function(subtab) {
+      document.querySelectorAll(".market-subtab-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.marketTab === subtab));
+      document.querySelectorAll(".market-subpanel").forEach(panel => panel.classList.toggle("active", panel.id === "market-subtab-" + subtab));
+    };
+    window.switchMarketSubTab_defined = true;
+      document.querySelectorAll('.market-subtab-btn').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.marketTab === subtab);
+      });
+      document.querySelectorAll('.market-subpanel').forEach(function(panel) {
+        panel.classList.toggle('active', panel.id === 'market-subtab-' + subtab);
+      });
+    };
+  </script>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Dashboard - AIAS Basra</title>
@@ -2833,6 +2847,20 @@
     // MARKET & STORE DASHBOARD MANAGEMENT
     // ==========================================
     let cachedMarketStores = [];
+
+    function resolveImageUrl(img, fallback = 'static/images/branding/LOGO.png') {
+      if (!img) return fallback;
+      if (typeof img === 'string') {
+        const s = img.trim();
+        if (!s || s === '[object Object]') return fallback;
+        return s;
+      }
+      if (typeof img === 'object') {
+        return img.url || img.src || img.downloadURL || img.path || fallback;
+      }
+      return fallback;
+    }
+
     let cachedMarketItems = [];
     let cachedMarketTypes = [];
 
@@ -2956,8 +2984,9 @@
       let html = '<div class="market-store-grid">';
       filtered.forEach(store => {
         const isActive = store.status === 'active';
-        const logo = store.profileImage || 'static/images/branding/LOGO.png';
-        const bannerStyle = store.bannerImage ? "background-image:url('" + store.bannerImage + "');" : "background:linear-gradient(135deg,#321c22,#6b2228);";
+        const logo = resolveImageUrl(store.profileImage, 'static/images/branding/LOGO.png');
+        const bannerUrl = resolveImageUrl(store.bannerImage, "");
+        const bannerStyle = bannerUrl ? "background-image:url('" + bannerUrl + "');" : "background:linear-gradient(135deg,#321c22,#6b2228);";
         const admins = store.storeAdmins || [];
         const storePageUrl = 'https://space-42d87.web.app/store.html?id=' + encodeURIComponent(store.id);
 
@@ -3052,7 +3081,7 @@
 
       filtered.forEach(item => {
         const isActive = item.status !== 'hidden';
-        const img = item.imageUrl || 'static/images/branding/LOGO.png';
+        const img = resolveImageUrl(item.imageUrl, 'static/images/branding/LOGO.png');
         const storeName = storeMap[item.storeId] || item.storeName || item.storeId;
 
         html += `
@@ -3098,16 +3127,16 @@
       document.getElementById('marketStoreName').value = store.name || '';
       document.getElementById('marketStoreSlug').value = store.slug || '';
       document.getElementById('marketStoreBio').value = store.bio || '';
-      document.getElementById('marketStoreProfileUrl').value = store.profileImage || '';
-      document.getElementById('marketStoreBannerUrl').value = store.bannerImage || '';
+      document.getElementById('marketStoreProfileUrl').value = resolveImageUrl(store.profileImage, '');
+      document.getElementById('marketStoreBannerUrl').value = resolveImageUrl(store.bannerImage, '');
       document.getElementById('marketStoreAdminsInput').value = (store.storeAdmins || []).join(', ');
       document.getElementById('marketStoreStatus').value = store.status || 'active';
 
       if (store.profileImage) {
-        document.getElementById('marketStoreProfilePreview').src = store.profileImage;
+        document.getElementById('marketStoreProfilePreview').src = resolveImageUrl(store.profileImage, 'static/images/branding/LOGO.png');
       }
       if (store.bannerImage) {
-        document.getElementById('marketStoreBannerPreview').src = store.bannerImage;
+        document.getElementById('marketStoreBannerPreview').src = resolveImageUrl(store.bannerImage, '');
         document.getElementById('marketStoreBannerPreview').style.display = 'block';
       }
 
