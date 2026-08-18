@@ -1212,34 +1212,22 @@ class FirestoreAPI {
     }
   }
 
-  // ── MARKET TAXONOMY (TAGS & TYPES: SINGLE SOURCE OF TRUTH) ────
+  // ── MARKET TAXONOMY (TAGS & TYPES: PURELY DYNAMIC FROM FIRESTORE) ────
   async getMarketTypes() {
-    const defaultTypes = [
-      { id: "digital_asset", en: "Digital Asset", ar: "أصل رقمي", icon: "💾" },
-      { id: "3d_model", en: "3D Model", ar: "نموذج ثلاثي الأبعاد", icon: "🏛️" },
-      { id: "cad_template", en: "CAD Template / Block", ar: "قالب أوتوكاد", icon: "📐" },
-      { id: "3d_printable", en: "3D Printable", ar: "قابل للطباعة ثلاثية الأبعاد", icon: "🖨️" },
-      { id: "textures", en: "Textures & Materials", ar: "خامات ومواد", icon: "🎨" },
-      { id: "diagrams", en: "Diagrams & Schemes", ar: "مخططات ورسومات", icon: "📊" },
-      { id: "physical_craft", en: "Physical Craft & Tools", ar: "أدوات ومجسمات يدوية", icon: "✂️" },
-      { id: "coursework_ref", en: "Coursework Reference", ar: "مراجع دراسية", icon: "📚" },
-      { id: "software_plugin", en: "Software Plugin / Script", ar: "إضافات وبرمجيات", icon: "⚡" }
-    ];
-
     try {
       const snap = await getDoc(doc(this.db, "config", "marketTypes"));
-      if (snap.exists() && Array.isArray(snap.data().types) && snap.data().types.length > 0) {
+      if (snap.exists() && Array.isArray(snap.data().types)) {
         return snap.data().types;
       }
-      // Auto-create document in Firestore if missing
+      // Ensure document exists in Firestore
       await setDoc(doc(this.db, "config", "marketTypes"), {
-        types: defaultTypes,
+        types: [],
         updatedAt: new Date().toISOString()
       }, { merge: true }).catch(() => null);
-      return defaultTypes;
+      return [];
     } catch (e) {
-      console.warn("Could not fetch config/marketTypes, using default types:", e);
-      return defaultTypes;
+      console.warn("Could not fetch config/marketTypes:", e);
+      return [];
     }
   }
 
@@ -1288,32 +1276,62 @@ class FirestoreAPI {
   }
 
   async getMarketTags() {
-    const defaultTags = [
-      { id: "cad_blocks", en: "CAD Blocks", ar: "بلوكات كاد" },
-      { id: "3d_models", en: "3D Models", ar: "نماذج ثلاثية الأبعاد" },
-      { id: "textures", en: "Textures & Materials", ar: "خامات ومواد" },
-      { id: "diagrams", en: "Diagrams & Schemes", ar: "مخططات ورسومات" },
-      { id: "templates", en: "Portfolio Templates", ar: "قوالب بورتفوليو" },
-      { id: "physical_craft", en: "Physical Material", ar: "أدوات ومجسمات يدوية" },
-      { id: "software_plugins", en: "Software & Plugins", ar: "برمجيات وإضافات" },
-      { id: "coursework", en: "Coursework Reference", ar: "مراجع دراسية" },
-      { id: "urban_design", en: "Urban Design & Maps", ar: "تخطيط عمراني وخرائط" }
-    ];
-
     try {
       const snap = await getDoc(doc(this.db, "config", "marketTags"));
-      if (snap.exists() && Array.isArray(snap.data().tags) && snap.data().tags.length > 0) {
+      if (snap.exists() && Array.isArray(snap.data().tags)) {
         return snap.data().tags;
       }
-      // Auto-create document in Firestore if missing
+      // Ensure document exists in Firestore
       await setDoc(doc(this.db, "config", "marketTags"), {
-        tags: defaultTags,
+        tags: [],
         updatedAt: new Date().toISOString()
       }, { merge: true }).catch(() => null);
-      return defaultTags;
+      return [];
     } catch (e) {
-      console.warn("Could not fetch config/marketTags, using default tags:", e);
-      return defaultTags;
+      console.warn("Could not fetch config/marketTags:", e);
+      return [];
+    }
+  }
+
+  async saveMarketTags(tags) {
+    try {
+      const cleanTags = (tags || []).map(t => ({
+        id: toStr(t.id || t.en.toLowerCase().replace(/[^a-z0-9]+/g, '_')),
+        en: toStr(t.en),
+        ar: toStr(t.ar || t.en)
+      })).filter(t => t.en.length > 0);
+
+      await setDoc(doc(this.db, "config", "marketTags"), {
+        tags: cleanTags,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+      return { success: true, tags: cleanTags };
+    } catch (e) {
+      console.error("Error saving market tags:", e);
+      return { success: false, error: e.message };
+    }
+  }
+
+  async addMarketTagIfMissing(newTag) {
+    try {
+      const current = await this.getMarketTags();
+      const enName = String(newTag.en || newTag).trim();
+      if (!enName) return current;
+      const exists = current.some(t => t.en.toLowerCase() === enName.toLowerCase());
+      if (!exists) {
+        const id = enName.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+        current.push({
+          id,
+          en: enName,
+          ar: String(newTag.ar || enName).trim()
+        });
+        await this.saveMarketTags(current);
+      }
+      return current;
+    } catch (e) {
+      console.warn("Could not auto-append market tag:", e);
+      return [];
     }
   }
 

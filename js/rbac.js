@@ -115,33 +115,11 @@ export async function ensureRoleConfiguration(db, access, actorEmail) {
     }
     const typesSnapshot = await getDoc(doc(db, 'config', 'marketTypes')).catch(() => null);
     if (typesSnapshot && !typesSnapshot.exists()) {
-      const defaultTypes = [
-        { id: "digital_asset", en: "Digital Asset", ar: "أصل رقمي", icon: "💾" },
-        { id: "3d_model", en: "3D Model", ar: "نموذج ثلاثي الأبعاد", icon: "🏛️" },
-        { id: "cad_template", en: "CAD Template / Block", ar: "قالب أوتوكاد", icon: "📐" },
-        { id: "3d_printable", en: "3D Printable", ar: "قابل للطباعة ثلاثية الأبعاد", icon: "🖨️" },
-        { id: "textures", en: "Textures & Materials", ar: "خامات ومواد", icon: "🎨" },
-        { id: "diagrams", en: "Diagrams & Schemes", ar: "مخططات ورسومات", icon: "📊" },
-        { id: "physical_craft", en: "Physical Craft & Tools", ar: "أدوات ومجسمات يدوية", icon: "✂️" },
-        { id: "coursework_ref", en: "Coursework Reference", ar: "مراجع دراسية", icon: "📚" },
-        { id: "software_plugin", en: "Software Plugin / Script", ar: "إضافات وبرمجيات", icon: "⚡" }
-      ];
-      await setDoc(doc(db, 'config', 'marketTypes'), { types: defaultTypes, updatedAt: serverTimestamp(), updatedBy: normalizeEmail(actorEmail) }).catch(console.warn);
+      await setDoc(doc(db, 'config', 'marketTypes'), { types: [], updatedAt: serverTimestamp(), updatedBy: normalizeEmail(actorEmail) }).catch(console.warn);
     }
     const tagsSnapshot = await getDoc(doc(db, 'config', 'marketTags')).catch(() => null);
     if (tagsSnapshot && !tagsSnapshot.exists()) {
-      const defaultTags = [
-        { id: "cad_blocks", en: "CAD Blocks", ar: "بلوكات كاد" },
-        { id: "3d_models", en: "3D Models", ar: "نماذج ثلاثية الأبعاد" },
-        { id: "textures", en: "Textures & Materials", ar: "خامات ومواد" },
-        { id: "diagrams", en: "Diagrams & Schemes", ar: "مخططات ورسومات" },
-        { id: "templates", en: "Portfolio Templates", ar: "قوالب بورتفوليو" },
-        { id: "physical_craft", en: "Physical Material", ar: "أدوات ومجسمات يدوية" },
-        { id: "software_plugins", en: "Software & Plugins", ar: "برمجيات وإضافات" },
-        { id: "coursework", en: "Coursework Reference", ar: "مراجع دراسية" },
-        { id: "urban_design", en: "Urban Design & Maps", ar: "تخطيط عمراني وخرائط" }
-      ];
-      await setDoc(doc(db, 'config', 'marketTags'), { tags: defaultTags, updatedAt: serverTimestamp(), updatedBy: normalizeEmail(actorEmail) }).catch(console.warn);
+      await setDoc(doc(db, 'config', 'marketTags'), { tags: [], updatedAt: serverTimestamp(), updatedBy: normalizeEmail(actorEmail) }).catch(console.warn);
     }
   } catch (err) {
     console.warn('[RBAC] ensureRoleConfiguration soft fallback:', err);
