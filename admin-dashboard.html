@@ -395,6 +395,153 @@
         </div>
       </section>
 
+      
+      <!-- Market management -->
+      <section id="market-tab" class="tab-content">
+        <header class="market-admin-hero">
+          <div>
+            <h2 data-en="Market & Store Management" data-ar="إدارة السوق والمتاجر">Market &amp; Store Management</h2>
+            <p data-en="Register architectural student stores, assign store admins, manage inventory, and configure marketplace types." data-ar="تسجيل متاجر طلبة العمارة، تعيين مديري المتاجر، إدارة المخزون، وتكوين أنواع عناصر السوق.">Register architectural student stores, assign store admins, manage inventory, and configure marketplace types.</p>
+            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:10px;">
+              <a href="https://space-42d87.web.app/market.html" target="_blank" rel="noopener"><span data-en="Open Live Market ↗" data-ar="فتح السوق الحي ↗">Open Live Market ↗</span></a>
+              <a href="#marketStoreAccordion" onclick="document.getElementById('marketStoreAccordion').open=true; document.getElementById('marketStoreName').focus();"><span data-en="+ Register New Store" data-ar="+ تسجيل متجر جديد">+ Register New Store</span></a>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <input id="marketStoreSearch" type="search" placeholder="Search stores..." style="width:100%; padding:.65rem .85rem; border-radius:10px; border:1px solid rgba(255,255,255,.4); background:rgba(255,255,255,.95); font-size:.82rem; color:#2d1b20; outline:none;" />
+          </div>
+        </header>
+
+        <div class="market-admin-stats" aria-label="Market overview">
+          <article class="market-admin-stat"><span>🏬</span><div><strong id="marketTotalStoresCount">0</strong><small data-en="Total Stores" data-ar="إجمالي المتاجر">Total Stores</small></div></article>
+          <article class="market-admin-stat"><span>✓</span><div><strong id="marketActiveStoresCount">0</strong><small data-en="Active Stores" data-ar="المتاجر المفعلة">Active Stores</small></div></article>
+          <article class="market-admin-stat"><span>🛍️</span><div><strong id="marketTotalItemsCount">0</strong><small data-en="Total Items" data-ar="إجمالي العناصر">Total Items</small></div></article>
+          <article class="market-admin-stat"><span>🏷️</span><div><strong id="marketTotalTypesCount">0</strong><small data-en="Market Types" data-ar="أنواع السوق">Market Types</small></div></article>
+        </div>
+
+        <!-- ACCORDION: Market Types Management (Super Admin Editable) -->
+        <details class="accordion" id="marketTypesAccordion" open>
+          <summary data-en="Market Item Types & Categories" data-ar="أنواع وفئات عناصر السوق">Market Item Types &amp; Categories (Saved to Firestore)</summary>
+          <div class="accordion-body panel">
+            <p style="color:var(--muted); font-size:0.8rem; margin-top:0; margin-bottom:15px;">Super Admin can add, edit, and delete the standard Item Types available across all stores and explore filters.</p>
+            
+            <div style="display:grid; grid-template-columns:minmax(0, 1fr) 320px; gap:20px; align-items:start;">
+              <div>
+                <div id="marketTypesList"><p>Loading market types...</p></div>
+              </div>
+
+              <div style="background:#f8fafc; border:1px solid var(--border); border-radius:14px; padding:16px;">
+                <h4 id="marketTypeFormHeading" style="margin:0 0 12px; font-size:0.92rem; color:#1e293b;">Add New Market Type</h4>
+                <form id="marketTypeForm">
+                  <input type="hidden" id="marketTypeId" value="" />
+                  <div class="form-group" style="margin-bottom:10px;">
+                    <label for="marketTypeNameEn" style="font-size:0.74rem;">Type Name (English) *</label>
+                    <input id="marketTypeNameEn" required placeholder="e.g. BIM Revit Family" style="width:100%; padding:6px 10px; font-size:0.8rem;" />
+                  </div>
+                  <div class="form-group" style="margin-bottom:10px;">
+                    <label for="marketTypeNameAr" style="font-size:0.74rem;">Type Name (Arabic)</label>
+                    <input id="marketTypeNameAr" placeholder="e.g. عائلات ريفيت BIM" style="width:100%; padding:6px 10px; font-size:0.8rem;" />
+                  </div>
+                  <div class="form-group" style="margin-bottom:12px;">
+                    <label for="marketTypeIcon" style="font-size:0.74rem;">Emoji Icon</label>
+                    <input id="marketTypeIcon" placeholder="📐" style="width:100%; padding:6px 10px; font-size:0.8rem;" />
+                  </div>
+                  <div style="display:flex; gap:8px;">
+                    <button type="submit" id="saveMarketTypeBtn" class="submit-btn" style="flex:1; padding:8px 12px; font-size:0.8rem;">Save Type</button>
+                    <button type="button" id="cancelMarketTypeEditBtn" class="btn" style="display:none; padding:8px 12px; font-size:0.8rem;" onclick="window.cancelEditMarketType()">Cancel</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <!-- ACCORDION: Register or Edit Store -->
+        <details class="accordion" id="marketStoreAccordion" open>
+          <summary id="marketStoreFormSummary" data-en="Register or Edit Store" data-ar="تسجيل أو تعديل متجر">Register or Edit Store</summary>
+          <div class="accordion-body panel">
+            <div id="marketStoreModeBanner" class="editor-mode-banner" style="display:none;">
+              <div><strong id="marketStoreModeTitle">Editing Store</strong><small id="marketStoreModeSubtitle">Changes will update the store profile and live storefront.</small></div>
+              <button type="button" id="marketStoreCancelEditBtn" class="editor-mode-new">Cancel Edit / New Store</button>
+            </div>
+            <form id="marketStoreForm" novalidate>
+              <input type="hidden" id="marketStoreId" value="" />
+              <div class="two-col">
+                <div class="form-group">
+                  <label for="marketStoreName" data-en="Store Name" data-ar="اسم المتجر">Store Name</label>
+                  <input id="marketStoreName" required placeholder="e.g. Basra CAD Assets" />
+                </div>
+                <div class="form-group">
+                  <label for="marketStoreSlug" data-en="Store Slug (URL Handle)" data-ar="رابط المتجر (Slug)">Store Slug (URL Handle)</label>
+                  <input id="marketStoreSlug" placeholder="e.g. basra-cad-assets" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="marketStoreBio" data-en="Store Bio / Description" data-ar="نبذة عن المتجر / الوصف">Store Bio / Description</label>
+                <textarea id="marketStoreBio" placeholder="Architectural resources, BIM templates, 3D assets for students..."></textarea>
+              </div>
+              <div class="two-col">
+                <div class="form-group">
+                  <label data-en="Profile Logo Image" data-ar="شعار المتجر">Profile Logo Image</label>
+                  <input type="file" id="marketStoreProfileFile" accept="image/*" />
+                  <input type="url" id="marketStoreProfileUrl" placeholder="Or paste image URL" style="margin-top:5px;" />
+                  <div class="img-upload-box">
+                    <img id="marketStoreProfilePreview" class="img-preview-box" src="static/images/branding/LOGO.png" alt="Logo preview" />
+                    <small id="marketStoreProfileStatus" style="color:var(--muted); font-size:.72rem;">Recommended: Square PNG/JPG (200x200)</small>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label data-en="Store Banner Image" data-ar="غلاف المتجر">Store Banner Image</label>
+                  <input type="file" id="marketStoreBannerFile" accept="image/*" />
+                  <input type="url" id="marketStoreBannerUrl" placeholder="Or paste banner image URL" style="margin-top:5px;" />
+                  <div class="img-upload-box">
+                    <img id="marketStoreBannerPreview" class="img-preview-box banner" src="" alt="Banner preview" style="display:none;" />
+                    <small id="marketStoreBannerStatus" style="color:var(--muted); font-size:.72rem;">Recommended: 1200x400 Header Banner</small>
+                  </div>
+                </div>
+              </div>
+              <div class="two-col">
+                <div class="form-group">
+                  <label for="marketStoreAdminsInput" data-en="Store Admins (Emails, comma-separated)" data-ar="مديرو المتجر (البريد الإلكتروني، مفصول بفاصلة)">Store Admins (Emails, comma-separated)</label>
+                  <input id="marketStoreAdminsInput" placeholder="student1@example.com, student2@example.com" />
+                </div>
+                <div class="form-group">
+                  <label for="marketStoreStatus" data-en="Store Status" data-ar="حالة المتجر">Store Status</label>
+                  <select id="marketStoreStatus">
+                    <option value="active">Active (Visible in Explore)</option>
+                    <option value="inactive">Inactive (Hidden from Explore)</option>
+                  </select>
+                </div>
+              </div>
+              <div id="marketStoreErrors" class="error-box"></div>
+              <button type="submit" id="marketStoreSubmitBtn" class="submit-btn" data-en="Register Store" data-ar="تسجيل المتجر">Register Store</button>
+            </form>
+          </div>
+        </details>
+
+        <!-- ACCORDION: Registered Stores -->
+        <details class="accordion" open>
+          <summary data-en="Registered Stores" data-ar="المتاجر المسجلة">Registered Stores</summary>
+          <div class="accordion-body panel">
+            <div id="marketStoresList"><p>Loading stores...</p></div>
+          </div>
+        </details>
+
+        <!-- ACCORDION: Cross-Store Item Moderation -->
+        <details class="accordion" open>
+          <summary data-en="Market Items Moderation" data-ar="مراقبة عناصر السوق">Market Items Moderation</summary>
+          <div class="accordion-body panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+              <select id="marketItemStoreFilter" style="max-width:260px; padding:.5rem .7rem; border-radius:8px; border:1px solid var(--border); font-size:.82rem;">
+                <option value="">All Stores</option>
+              </select>
+              <input id="marketItemSearchInput" type="search" placeholder="Search items..." style="max-width:240px; padding:.5rem .7rem; border-radius:8px; border:1px solid var(--border); font-size:.82rem;" />
+            </div>
+            <div id="marketItemsList"><p>Loading items...</p></div>
+          </div>
+        </details>
+      </section>
+
       <!-- Library -->
       <section id="library-tab" class="tab-content">
         <details class="accordion" open>
@@ -2599,37 +2746,44 @@
 
   
 
+    
     // ==========================================
     // MARKET & STORE DASHBOARD MANAGEMENT
     // ==========================================
     let cachedMarketStores = [];
     let cachedMarketItems = [];
+    let cachedMarketTypes = [];
 
     async function loadMarketAdminData() {
       const storesListEl = document.getElementById('marketStoresList');
       const itemsListEl = document.getElementById('marketItemsList');
+      const typesListEl = document.getElementById('marketTypesList');
       if (storesListEl) storesListEl.innerHTML = '<p>Loading stores...</p>';
       if (itemsListEl) itemsListEl.innerHTML = '<p>Loading items...</p>';
+      if (typesListEl) typesListEl.innerHTML = '<p>Loading market types...</p>';
 
       try {
-        const [stores, items] = await Promise.all([
+        const [stores, items, types] = await Promise.all([
           firestoreAPI.getMarketStores({ includeInactive: true }),
-          firestoreAPI.getMarketItems({ includeHidden: true })
+          firestoreAPI.getMarketItems({ includeHidden: true }),
+          firestoreAPI.getMarketTypes()
         ]);
         cachedMarketStores = stores || [];
         cachedMarketItems = items || [];
+        cachedMarketTypes = types || [];
 
         // Update stats
         const totalStores = cachedMarketStores.length;
         const activeStores = cachedMarketStores.filter(s => s.status === 'active').length;
         const totalItems = cachedMarketItems.length;
-        const activeItems = cachedMarketItems.filter(i => i.status === 'active').length;
+        const totalTypes = cachedMarketTypes.length;
 
         if (document.getElementById('marketTotalStoresCount')) document.getElementById('marketTotalStoresCount').textContent = totalStores;
         if (document.getElementById('marketActiveStoresCount')) document.getElementById('marketActiveStoresCount').textContent = activeStores;
         if (document.getElementById('marketTotalItemsCount')) document.getElementById('marketTotalItemsCount').textContent = totalItems;
-        if (document.getElementById('marketActiveItemsCount')) document.getElementById('marketActiveItemsCount').textContent = activeItems;
+        if (document.getElementById('marketTotalTypesCount')) document.getElementById('marketTotalTypesCount').textContent = totalTypes;
 
+        renderMarketTypesList(cachedMarketTypes);
         renderMarketStoresList(cachedMarketStores);
         populateMarketStoreFilter(cachedMarketStores);
         renderMarketItemsList(cachedMarketItems, cachedMarketStores);
@@ -2637,8 +2791,74 @@
         console.error('Error loading market admin data:', err);
         if (storesListEl) storesListEl.innerHTML = '<p style="color:var(--error)">Error loading stores: ' + (err.message || err) + '</p>';
         if (itemsListEl) itemsListEl.innerHTML = '<p style="color:var(--error)">Error loading items: ' + (err.message || err) + '</p>';
+        if (typesListEl) typesListEl.innerHTML = '<p style="color:var(--error)">Error loading types: ' + (err.message || err) + '</p>';
       }
     }
+
+    function renderMarketTypesList(types) {
+      const container = document.getElementById('marketTypesList');
+      if (!container) return;
+      if (!types || types.length === 0) {
+        container.innerHTML = '<p style="color:var(--muted)">No market types configured. Add one on the right!</p>';
+        return;
+      }
+
+      let html = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:10px;">';
+      types.forEach((t, idx) => {
+        html += `
+          <div style="background:#fff; border:1px solid var(--border); border-radius:12px; padding:12px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+            <div style="display:flex; align-items:center; gap:8px; min-width:0;">
+              <span style="font-size:1.3rem;">${t.icon || '📦'}</span>
+              <div style="min-width:0;">
+                <strong style="display:block; font-size:0.82rem; color:#1e293b; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${t.en}</strong>
+                <small style="display:block; color:var(--muted); font-size:0.7rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${t.ar || ''}</small>
+              </div>
+            </div>
+            <div style="display:flex; gap:4px; flex-shrink:0;">
+              <button type="button" class="mini-btn" style="background:#f1f5f9; color:#334155; padding:4px 8px;" onclick="window.editMarketType('${t.id}')">Edit</button>
+              <button type="button" class="mini-btn" style="background:#fee2e2; color:#991b1b; padding:4px 8px;" onclick="window.deleteMarketType('${t.id}')">×</button>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    window.editMarketType = function(typeId) {
+      const type = cachedMarketTypes.find(t => t.id === typeId);
+      if (!type) return;
+      document.getElementById('marketTypeId').value = type.id;
+      document.getElementById('marketTypeNameEn').value = type.en || '';
+      document.getElementById('marketTypeNameAr').value = type.ar || '';
+      document.getElementById('marketTypeIcon').value = type.icon || '📦';
+      document.getElementById('marketTypeFormHeading').textContent = 'Edit Market Type';
+      document.getElementById('saveMarketTypeBtn').textContent = 'Update Type';
+      document.getElementById('cancelMarketTypeEditBtn').style.display = 'inline-block';
+      document.getElementById('marketTypeNameEn').focus();
+    };
+
+    window.cancelEditMarketType = function() {
+      document.getElementById('marketTypeForm').reset();
+      document.getElementById('marketTypeId').value = '';
+      document.getElementById('marketTypeFormHeading').textContent = 'Add New Market Type';
+      document.getElementById('saveMarketTypeBtn').textContent = 'Save Type';
+      document.getElementById('cancelMarketTypeEditBtn').style.display = 'none';
+    };
+
+    window.deleteMarketType = async function(typeId) {
+      if (!confirm('Are you sure you want to remove this market type?')) return;
+      try {
+        const updated = cachedMarketTypes.filter(t => t.id !== typeId);
+        await firestoreAPI.saveMarketTypes(updated);
+        showMessage('Market type removed and updated in Firestore', 'success');
+        cachedMarketTypes = updated;
+        renderMarketTypesList(cachedMarketTypes);
+        if (document.getElementById('marketTotalTypesCount')) document.getElementById('marketTotalTypesCount').textContent = cachedMarketTypes.length;
+      } catch (err) {
+        alert('Error deleting type: ' + (err.message || err));
+      }
+    };
 
     function renderMarketStoresList(stores) {
       const container = document.getElementById('marketStoresList');
@@ -2893,8 +3113,52 @@
       }
     };
 
-    // Store Form Submit Handler
+    // Store & Types Form Submit Listeners
     document.addEventListener('DOMContentLoaded', () => {
+      // Market Type Form Submit
+      const typeForm = document.getElementById('marketTypeForm');
+      if (typeForm) {
+        typeForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const typeId = document.getElementById('marketTypeId').value.trim();
+          const en = document.getElementById('marketTypeNameEn').value.trim();
+          const ar = document.getElementById('marketTypeNameAr').value.trim();
+          const icon = document.getElementById('marketTypeIcon').value.trim() || '📦';
+
+          if (!en) return;
+          const saveBtn = document.getElementById('saveMarketTypeBtn');
+          saveBtn.disabled = true;
+          saveBtn.textContent = 'Saving...';
+
+          try {
+            const types = [...cachedMarketTypes];
+            if (typeId) {
+              const idx = types.findIndex(t => t.id === typeId);
+              if (idx !== -1) {
+                types[idx] = { ...types[idx], en, ar, icon };
+              }
+            } else {
+              const newId = en.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+              types.push({ id: newId || 'type_' + Date.now(), en, ar, icon });
+            }
+
+            await firestoreAPI.saveMarketTypes(types);
+            showMessage('Market types saved to Firestore successfully!', 'success');
+            cachedMarketTypes = types;
+            renderMarketTypesList(cachedMarketTypes);
+            window.cancelEditMarketType();
+            if (document.getElementById('marketTotalTypesCount')) document.getElementById('marketTotalTypesCount').textContent = cachedMarketTypes.length;
+          } catch (err) {
+            console.error('Error saving market type:', err);
+            alert('Error saving market type: ' + (err.message || err));
+          } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = typeId ? 'Update Type' : 'Save Type';
+          }
+        });
+      }
+
+      // Store Form Submit
       const storeForm = document.getElementById('marketStoreForm');
       if (storeForm) {
         storeForm.addEventListener('submit', async (e) => {
@@ -2970,6 +3234,7 @@
       document.getElementById('marketItemStoreFilter')?.addEventListener('change', () => renderMarketItemsList(cachedMarketItems, cachedMarketStores));
       document.getElementById('marketItemSearchInput')?.addEventListener('input', () => renderMarketItemsList(cachedMarketItems, cachedMarketStores));
     });
+
   </script>
 </body>
 </html>

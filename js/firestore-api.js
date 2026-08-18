@@ -1152,6 +1152,53 @@ class FirestoreAPI {
       return { success: false, error: e.message };
     }
   }
+
+  // ── MARKET TYPES CONFIGURATION (SUPER ADMIN EDITABLE) ─────────
+  async getMarketTypes() {
+    const defaultTypes = [
+      { id: "digital_asset", en: "Digital Asset", ar: "أصل رقمي", icon: "💾" },
+      { id: "3d_model", en: "3D Model", ar: "نموذج ثلاثي الأبعاد", icon: "🏛️" },
+      { id: "cad_template", en: "CAD Template / Block", ar: "قالب أوتوكاد", icon: "📐" },
+      { id: "3d_printable", en: "3D Printable", ar: "قابل للطباعة ثلاثية الأبعاد", icon: "🖨️" },
+      { id: "textures", en: "Textures & Materials", ar: "خامات ومواد", icon: "🎨" },
+      { id: "diagrams", en: "Diagrams & Schemes", ar: "مخططات ورسومات", icon: "📊" },
+      { id: "physical_craft", en: "Physical Craft & Tools", ar: "أدوات ومجسمات يدوية", icon: "✂️" },
+      { id: "coursework_ref", en: "Coursework Reference", ar: "مراجع دراسية", icon: "📚" },
+      { id: "software_plugin", en: "Software Plugin / Script", ar: "إضافات وبرمجيات", icon: "⚡" }
+    ];
+
+    try {
+      const snap = await getDoc(doc(this.db, "config", "marketTypes"));
+      if (snap.exists() && Array.isArray(snap.data().types) && snap.data().types.length > 0) {
+        return snap.data().types;
+      }
+      return defaultTypes;
+    } catch (e) {
+      console.warn("Could not fetch config/marketTypes, using default types:", e);
+      return defaultTypes;
+    }
+  }
+
+  async saveMarketTypes(types) {
+    try {
+      const cleanTypes = (types || []).map(t => ({
+        id: toStr(t.id || t.en.toLowerCase().replace(/[^a-z0-9]+/g, '_')),
+        en: toStr(t.en),
+        ar: toStr(t.ar || t.en),
+        icon: toStr(t.icon || "📦")
+      })).filter(t => t.en.length > 0);
+
+      await setDoc(doc(this.db, "config", "marketTypes"), {
+        types: cleanTypes,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+      return { success: true, types: cleanTypes };
+    } catch (e) {
+      console.error("Error saving market types:", e);
+      return { success: false, error: e.message };
+    }
+  }
 }
 
 window.FirestoreAPI = FirestoreAPI;
