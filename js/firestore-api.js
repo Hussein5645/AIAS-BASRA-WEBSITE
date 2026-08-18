@@ -1212,7 +1212,7 @@ class FirestoreAPI {
     }
   }
 
-  // ── MARKET TYPES CONFIGURATION (SUPER ADMIN EDITABLE) ─────────
+  // ── MARKET TAXONOMY (TAGS & TYPES: SINGLE SOURCE OF TRUTH) ────
   async getMarketTypes() {
     const defaultTypes = [
       { id: "digital_asset", en: "Digital Asset", ar: "أصل رقمي", icon: "💾" },
@@ -1256,6 +1256,96 @@ class FirestoreAPI {
     } catch (e) {
       console.error("Error saving market types:", e);
       return { success: false, error: e.message };
+    }
+  }
+
+  async addMarketTypeIfMissing(newType) {
+    try {
+      const current = await this.getMarketTypes();
+      const enName = String(newType.en || newType).trim();
+      if (!enName) return current;
+      const exists = current.some(t => t.en.toLowerCase() === enName.toLowerCase());
+      if (!exists) {
+        const id = enName.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+        current.push({
+          id,
+          en: enName,
+          ar: String(newType.ar || enName).trim(),
+          icon: String(newType.icon || "📦").trim()
+        });
+        await this.saveMarketTypes(current);
+      }
+      return current;
+    } catch (e) {
+      console.warn("Could not auto-append market type:", e);
+      return [];
+    }
+  }
+
+  async getMarketTags() {
+    const defaultTags = [
+      { id: "cad_blocks", en: "CAD Blocks", ar: "بلوكات كاد" },
+      { id: "3d_models", en: "3D Models", ar: "نماذج ثلاثية الأبعاد" },
+      { id: "textures", en: "Textures & Materials", ar: "خامات ومواد" },
+      { id: "diagrams", en: "Diagrams & Schemes", ar: "مخططات ورسومات" },
+      { id: "templates", en: "Portfolio Templates", ar: "قوالب بورتفوليو" },
+      { id: "physical_craft", en: "Physical Material", ar: "أدوات ومجسمات يدوية" },
+      { id: "software_plugins", en: "Software & Plugins", ar: "برمجيات وإضافات" },
+      { id: "coursework", en: "Coursework Reference", ar: "مراجع دراسية" },
+      { id: "urban_design", en: "Urban Design & Maps", ar: "تخطيط عمراني وخرائط" }
+    ];
+
+    try {
+      const snap = await getDoc(doc(this.db, "config", "marketTags"));
+      if (snap.exists() && Array.isArray(snap.data().tags) && snap.data().tags.length > 0) {
+        return snap.data().tags;
+      }
+      return defaultTags;
+    } catch (e) {
+      console.warn("Could not fetch config/marketTags, using default tags:", e);
+      return defaultTags;
+    }
+  }
+
+  async saveMarketTags(tags) {
+    try {
+      const cleanTags = (tags || []).map(t => ({
+        id: toStr(t.id || t.en.toLowerCase().replace(/[^a-z0-9]+/g, '_')),
+        en: toStr(t.en),
+        ar: toStr(t.ar || t.en)
+      })).filter(t => t.en.length > 0);
+
+      await setDoc(doc(this.db, "config", "marketTags"), {
+        tags: cleanTags,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+      return { success: true, tags: cleanTags };
+    } catch (e) {
+      console.error("Error saving market tags:", e);
+      return { success: false, error: e.message };
+    }
+  }
+
+  async addMarketTagIfMissing(newTag) {
+    try {
+      const current = await this.getMarketTags();
+      const enName = String(newTag.en || newTag).trim();
+      if (!enName) return current;
+      const exists = current.some(t => t.en.toLowerCase() === enName.toLowerCase());
+      if (!exists) {
+        const id = enName.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+        current.push({
+          id,
+          en: enName,
+          ar: String(newTag.ar || enName).trim()
+        });
+        await this.saveMarketTags(current);
+      }
+      return current;
+    } catch (e) {
+      console.warn("Could not auto-append market tag:", e);
+      return [];
     }
   }
 }

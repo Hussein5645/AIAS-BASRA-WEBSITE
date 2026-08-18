@@ -525,45 +525,79 @@
           </div>
         </div>
 
-        <!-- SUBTAB 3: Item Types & Categories -->
+        
+        <!-- SUBTAB 3: Item Types & Tags Taxonomy Manager -->
         <div id="market-subtab-types" class="market-subpanel">
           <div class="market-card-shell">
-            <div style="margin-bottom:1.2rem;">
-              <h3 style="margin:0; font-size:1.1rem; color:#1e293b;" data-en="Standard Item Types &amp; Categories" data-ar="أنواع وفئات عناصر السوق">Standard Item Types &amp; Categories</h3>
-              <p style="margin:4px 0 0; color:var(--muted); font-size:0.78rem;">Super Admin can customize the standard item types saved to Firestore (config/marketTypes) available to all stores and explore filters.</p>
+            <div style="margin-bottom:1.4rem;">
+              <h3 style="margin:0; font-size:1.15rem; color:#1e293b;" data-en="Marketplace Taxonomy: Types &amp; Tags" data-ar="تصنيفات السوق: الأنواع والوسوم">Marketplace Taxonomy: Types &amp; Tags</h3>
+              <p style="margin:4px 0 0; color:var(--muted); font-size:0.8rem;">Single source of truth on Firestore (<code>config/marketTypes</code> &amp; <code>config/marketTags</code>). Standard taxonomy is automatically shared across store creators, filters, and moderation.</p>
             </div>
 
-            <div style="display:grid; grid-template-columns:minmax(0, 1.4fr) minmax(300px, 0.8fr); gap:24px; align-items:start;">
-              <div>
-                <h4 style="margin:0 0 10px; font-size:0.9rem; color:#475569;">Configured Market Types</h4>
-                <div id="marketTypesList"><p>Loading market types...</p></div>
-              </div>
+            <!-- SECTION A: Standard Item Types -->
+            <div style="border-bottom:1px solid var(--border); padding-bottom:1.5rem; margin-bottom:1.5rem;">
+              <h4 style="margin:0 0 10px; font-size:0.95rem; color:var(--brand1);">1. Standard Item Types</h4>
+              <div style="display:grid; grid-template-columns:minmax(0, 1.4fr) minmax(300px, 0.8fr); gap:20px; align-items:start;">
+                <div>
+                  <div id="marketTypesList"><p>Loading market types...</p></div>
+                </div>
 
-              <div style="background:#f8fafc; border:1px solid var(--border); border-radius:16px; padding:18px;">
-                <h4 id="marketTypeFormHeading" style="margin:0 0 12px; font-size:0.95rem; color:#1e293b;">Add New Market Type</h4>
-                <form id="marketTypeForm">
-                  <input type="hidden" id="marketTypeId" value="" />
-                  <div class="form-group" style="margin-bottom:12px;">
-                    <label for="marketTypeNameEn" style="font-size:0.75rem; font-weight:700;">Type Name (English) *</label>
-                    <input id="marketTypeNameEn" required placeholder="e.g. BIM Revit Family" style="width:100%; padding:8px 12px; font-size:0.82rem; border-radius:8px; border:1px solid var(--border);" />
-                  </div>
-                  <div class="form-group" style="margin-bottom:12px;">
-                    <label for="marketTypeNameAr" style="font-size:0.75rem; font-weight:700;">Type Name (Arabic)</label>
-                    <input id="marketTypeNameAr" placeholder="e.g. عائلات ريفيت BIM" style="width:100%; padding:8px 12px; font-size:0.82rem; border-radius:8px; border:1px solid var(--border);" />
-                  </div>
-                  <div class="form-group" style="margin-bottom:14px;">
-                    <label for="marketTypeIcon" style="font-size:0.75rem; font-weight:700;">Emoji Icon</label>
-                    <input id="marketTypeIcon" placeholder="📐" style="width:100%; padding:8px 12px; font-size:0.82rem; border-radius:8px; border:1px solid var(--border);" />
-                  </div>
-                  <div style="display:flex; gap:8px;">
-                    <button type="submit" id="saveMarketTypeBtn" class="submit-btn" style="flex:1; padding:9px 14px; font-size:0.82rem;">Save Type</button>
-                    <button type="button" id="cancelMarketTypeEditBtn" class="btn" style="display:none; padding:9px 14px; font-size:0.82rem;" onclick="window.cancelEditMarketType()">Cancel</button>
-                  </div>
-                </form>
+                <div style="background:#f8fafc; border:1px solid var(--border); border-radius:14px; padding:16px;">
+                  <h4 id="marketTypeFormHeading" style="margin:0 0 10px; font-size:0.9rem; color:#1e293b;">Add Item Type</h4>
+                  <form id="marketTypeForm">
+                    <input type="hidden" id="marketTypeId" value="" />
+                    <div class="form-group" style="margin-bottom:10px;">
+                      <label for="marketTypeNameEn" style="font-size:0.74rem; font-weight:700;">Type Name (English) *</label>
+                      <input id="marketTypeNameEn" required placeholder="e.g. BIM Revit Family" style="width:100%; padding:7px 10px; font-size:0.8rem;" />
+                    </div>
+                    <div class="form-group" style="margin-bottom:10px;">
+                      <label for="marketTypeNameAr" style="font-size:0.74rem; font-weight:700;">Type Name (Arabic)</label>
+                      <input id="marketTypeNameAr" placeholder="e.g. عائلات ريفيت BIM" style="width:100%; padding:7px 10px; font-size:0.8rem;" />
+                    </div>
+                    <div class="form-group" style="margin-bottom:12px;">
+                      <label for="marketTypeIcon" style="font-size:0.74rem; font-weight:700;">Emoji Icon</label>
+                      <input id="marketTypeIcon" placeholder="📐" style="width:100%; padding:7px 10px; font-size:0.8rem;" />
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                      <button type="submit" id="saveMarketTypeBtn" class="submit-btn" style="flex:1; padding:8px 12px; font-size:0.8rem;">Save Type</button>
+                      <button type="button" id="cancelMarketTypeEditBtn" class="btn" style="display:none; padding:8px 12px; font-size:0.8rem;" onclick="window.cancelEditMarketType()">Cancel</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION B: Standard Market Tags -->
+            <div>
+              <h4 style="margin:0 0 10px; font-size:0.95rem; color:var(--brand1);">2. Standard Market Tags / Categories</h4>
+              <div style="display:grid; grid-template-columns:minmax(0, 1.4fr) minmax(300px, 0.8fr); gap:20px; align-items:start;">
+                <div>
+                  <div id="marketTagsList"><p>Loading market tags...</p></div>
+                </div>
+
+                <div style="background:#f8fafc; border:1px solid var(--border); border-radius:14px; padding:16px;">
+                  <h4 id="marketTagFormHeading" style="margin:0 0 10px; font-size:0.9rem; color:#1e293b;">Add Market Tag</h4>
+                  <form id="marketTagForm">
+                    <input type="hidden" id="marketTagId" value="" />
+                    <div class="form-group" style="margin-bottom:10px;">
+                      <label for="marketTagNameEn" style="font-size:0.74rem; font-weight:700;">Tag Name (English) *</label>
+                      <input id="marketTagNameEn" required placeholder="e.g. Parametric Facades" style="width:100%; padding:7px 10px; font-size:0.8rem;" />
+                    </div>
+                    <div class="form-group" style="margin-bottom:12px;">
+                      <label for="marketTagNameAr" style="font-size:0.74rem; font-weight:700;">Tag Name (Arabic)</label>
+                      <input id="marketTagNameAr" placeholder="e.g. واجهات بارامترية" style="width:100%; padding:7px 10px; font-size:0.8rem;" />
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                      <button type="submit" id="saveMarketTagBtn" class="submit-btn" style="flex:1; padding:8px 12px; font-size:0.8rem;">Save Tag</button>
+                      <button type="button" id="cancelMarketTagEditBtn" class="btn" style="display:none; padding:8px 12px; font-size:0.8rem;" onclick="window.cancelEditMarketTag()">Cancel</button>
+                    </div>
+                  </form>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
 
         <!-- SUBTAB 4: Register or Edit Store -->
         <div id="market-subtab-register" class="market-subpanel">
@@ -2869,14 +2903,17 @@
       if (typesListEl) typesListEl.innerHTML = '<p>Loading market types...</p>';
 
       try {
-        const [stores, items, types] = await Promise.all([
+        const [stores, items, types, tags] = await Promise.all([
           firestoreAPI.getMarketStores({ includeInactive: true }),
           firestoreAPI.getMarketItems({ includeHidden: true }),
-          firestoreAPI.getMarketTypes()
+          firestoreAPI.getMarketTypes(),
+          firestoreAPI.getMarketTags()
         ]);
         cachedMarketStores = stores || [];
         cachedMarketItems = items || [];
         cachedMarketTypes = types || [];
+        cachedMarketTags = tags || [];
+        renderMarketTagsList(cachedMarketTags);
 
         // Update stats
         const totalStores = cachedMarketStores.length;
@@ -2900,6 +2937,70 @@
         if (typesListEl) typesListEl.innerHTML = '<p style="color:var(--error)">Error loading types: ' + (err.message || err) + '</p>';
       }
     }
+
+    
+    let cachedMarketTags = [];
+
+    function renderMarketTagsList(tags) {
+      const container = document.getElementById('marketTagsList');
+      if (!container) return;
+      if (!tags || tags.length === 0) {
+        container.innerHTML = '<p style="color:var(--muted)">No market tags configured. Add one on the right!</p>';
+        return;
+      }
+
+      let html = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:10px;">';
+      tags.forEach(t => {
+        html += `
+          <div style="background:#fff; border:1px solid var(--border); border-radius:12px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; gap:6px;">
+            <div style="min-width:0;">
+              <strong style="display:block; font-size:0.82rem; color:#1e293b; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"># ${t.en}</strong>
+              <small style="display:block; color:var(--muted); font-size:0.7rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${t.ar || ''}</small>
+            </div>
+            <div style="display:flex; gap:4px; flex-shrink:0;">
+              <button type="button" class="mini-btn" style="background:#f1f5f9; color:#334155; padding:3px 7px;" onclick="window.editMarketTag('${t.id}')">Edit</button>
+              <button type="button" class="mini-btn" style="background:#fee2e2; color:#991b1b; padding:3px 7px;" onclick="window.deleteMarketTag('${t.id}')">×</button>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    window.editMarketTag = function(tagId) {
+      const tag = cachedMarketTags.find(t => t.id === tagId);
+      if (!tag) return;
+      document.getElementById('marketTagId').value = tag.id;
+      document.getElementById('marketTagNameEn').value = tag.en || '';
+      document.getElementById('marketTagNameAr').value = tag.ar || '';
+      document.getElementById('marketTagFormHeading').textContent = 'Edit Market Tag';
+      document.getElementById('saveMarketTagBtn').textContent = 'Update Tag';
+      document.getElementById('cancelMarketTagEditBtn').style.display = 'inline-block';
+      document.getElementById('marketTagNameEn').focus();
+    };
+
+    window.cancelEditMarketTag = function() {
+      document.getElementById('marketTagForm').reset();
+      document.getElementById('marketTagId').value = '';
+      document.getElementById('marketTagFormHeading').textContent = 'Add Market Tag';
+      document.getElementById('saveMarketTagBtn').textContent = 'Save Tag';
+      document.getElementById('cancelMarketTagEditBtn').style.display = 'none';
+    };
+
+    window.deleteMarketTag = async function(tagId) {
+      if (!confirm('Are you sure you want to remove this market tag?')) return;
+      try {
+        const updated = cachedMarketTags.filter(t => t.id !== tagId);
+        await firestoreAPI.saveMarketTags(updated);
+        showMessage('Market tag removed and updated in Firestore', 'success');
+        cachedMarketTags = updated;
+        renderMarketTagsList(cachedMarketTags);
+      } catch (err) {
+        alert('Error deleting tag: ' + (err.message || err));
+      }
+    };
+
 
     function renderMarketTypesList(types) {
       const container = document.getElementById('marketTypesList');
@@ -3223,6 +3324,47 @@
 
     // Store & Types Form Submit Listeners
     document.addEventListener('DOMContentLoaded', () => {
+      
+      // Market Tag Form Submit
+      const tagForm = document.getElementById('marketTagForm');
+      if (tagForm) {
+        tagForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const tagId = document.getElementById('marketTagId').value.trim();
+          const en = document.getElementById('marketTagNameEn').value.trim();
+          const ar = document.getElementById('marketTagNameAr').value.trim();
+          if (!en) return;
+
+          const saveBtn = document.getElementById('saveMarketTagBtn');
+          saveBtn.disabled = true;
+          saveBtn.textContent = 'Saving...';
+
+          try {
+            const tags = [...cachedMarketTags];
+            if (tagId) {
+              const idx = tags.findIndex(t => t.id === tagId);
+              if (idx !== -1) tags[idx] = { ...tags[idx], en, ar };
+            } else {
+              const newId = en.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+              tags.push({ id: newId || 'tag_' + Date.now(), en, ar });
+            }
+
+            await firestoreAPI.saveMarketTags(tags);
+            showMessage('Market tags saved to Firestore successfully!', 'success');
+            cachedMarketTags = tags;
+            renderMarketTagsList(cachedMarketTags);
+            window.cancelEditMarketTag();
+          } catch (err) {
+            console.error('Error saving market tag:', err);
+            alert('Error saving tag: ' + (err.message || err));
+          } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = tagId ? 'Update Tag' : 'Save Tag';
+          }
+        });
+      }
+
+
       // Market Type Form Submit
       const typeForm = document.getElementById('marketTypeForm');
       if (typeForm) {
