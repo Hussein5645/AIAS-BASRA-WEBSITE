@@ -3280,7 +3280,7 @@
           const bio = document.getElementById('marketStoreBio').value.trim();
           const status = document.getElementById('marketStoreStatus').value;
           const adminsRaw = document.getElementById('marketStoreAdminsInput').value.trim();
-          const storeAdmins = adminsRaw ? adminsRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+          const storeAdmins = adminsRaw ? adminsRaw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean) : [];
 
           if (!name) {
             errorsBox.innerHTML = '<p>Store name is required.</p>';

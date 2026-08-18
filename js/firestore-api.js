@@ -939,10 +939,26 @@ class FirestoreAPI {
   }
 
   // ── MARKET STORES ──────────────────────────────────────────
-  async getMarketStores() {
+  async getMarketStores(opts = {}) {
     try {
       const snap = await getDocs(collection(this.db, "marketStores"));
-      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      let stores = snap.docs.map(d => {
+        const data = d.data() || {};
+        const admins = [
+          ...toArr(data.storeAdmins),
+          ...toArr(data.adminEmails)
+        ].map(e => String(e).trim().toLowerCase()).filter(Boolean);
+        return {
+          id: d.id,
+          ...data,
+          storeAdmins: admins,
+          adminEmails: admins
+        };
+      });
+      if (!opts.includeInactive) {
+        stores = stores.filter(s => s.status !== 'inactive');
+      }
+      return stores;
     } catch (e) {
       console.error("Error fetching market stores:", e);
       return [];
@@ -953,7 +969,17 @@ class FirestoreAPI {
     try {
       const snap = await getDoc(doc(this.db, "marketStores", storeId));
       if (!snap.exists()) return null;
-      return { id: snap.id, ...snap.data() };
+      const data = snap.data() || {};
+      const admins = [
+        ...toArr(data.storeAdmins),
+        ...toArr(data.adminEmails)
+      ].map(e => String(e).trim().toLowerCase()).filter(Boolean);
+      return {
+        id: snap.id,
+        ...data,
+        storeAdmins: admins,
+        adminEmails: admins
+      };
     } catch (e) {
       console.error("Error fetching market store:", e);
       return null;
@@ -962,6 +988,11 @@ class FirestoreAPI {
 
   async createMarketStore(storeData) {
     try {
+      const admins = [
+        ...toArr(storeData.storeAdmins),
+        ...toArr(storeData.adminEmails)
+      ].map(e => String(e).trim().toLowerCase()).filter(Boolean);
+
       const cleanData = {
         name: toStr(storeData.name),
         slug: toStr(storeData.slug || storeData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')),
@@ -969,7 +1000,8 @@ class FirestoreAPI {
         profileImage: toStr(storeData.profileImage),
         bannerImage: toStr(storeData.bannerImage),
         status: storeData.status === 'inactive' ? 'inactive' : 'active',
-        adminEmails: toArr(storeData.adminEmails).map(e => String(e).trim().toLowerCase()).filter(Boolean),
+        storeAdmins: admins,
+        adminEmails: admins,
         adminUids: toArr(storeData.adminUids),
         tags: toArr(storeData.tags).length ? storeData.tags : ["Architecture", "3D Models", "CAD", "Templates"],
         types: toArr(storeData.types).length ? storeData.types : ["3D Model", "CAD Block", "Portfolio Template", "Texture", "Render PSD", "Physical Asset"],
@@ -981,21 +1013,26 @@ class FirestoreAPI {
       return { success: true, id: docRef.id, ...cleanData };
     } catch (e) {
       console.error("Error creating market store:", e);
-      return { success: false, error: e.message };
+      throw new Error(e.message || "Failed to create store");
     }
   }
 
   async updateMarketStore(storeId, patch) {
     try {
       const cleanPatch = { ...patch, updatedAt: new Date().toISOString() };
-      if (cleanPatch.adminEmails) {
-        cleanPatch.adminEmails = toArr(cleanPatch.adminEmails).map(e => String(e).trim().toLowerCase()).filter(Boolean);
+      if (cleanPatch.storeAdmins !== undefined || cleanPatch.adminEmails !== undefined) {
+        const admins = [
+          ...toArr(cleanPatch.storeAdmins),
+          ...toArr(cleanPatch.adminEmails)
+        ].map(e => String(e).trim().toLowerCase()).filter(Boolean);
+        cleanPatch.storeAdmins = admins;
+        cleanPatch.adminEmails = admins;
       }
       await updateDoc(doc(this.db, "marketStores", storeId), cleanPatch);
       return { success: true };
     } catch (e) {
       console.error("Error updating market store:", e);
-      return { success: false, error: e.message };
+      throw new Error(e.message || "Failed to update store");
     }
   }
 
@@ -1005,7 +1042,7 @@ class FirestoreAPI {
       return { success: true };
     } catch (e) {
       console.error("Error deleting market store:", e);
-      return { success: false, error: e.message };
+      throw new Error(e.message || "Failed to delete store");
     }
   }
 
@@ -1014,14 +1051,24 @@ class FirestoreAPI {
       const store = await this.getMarketStore(storeId);
       if (!store) throw new Error("Store not found");
       const normalized = String(email).trim().toLowerCase();
-      const current = toArr(store.adminEmails);
-      if (!current.includes(normalized)) {
-        current.push(normalized);
-        await updateDoc(doc(this.db, "marketStores", storeId), { adminEmails: current, updatedAt: new Date().toISOString() });
-      }
-      return { success: true, adminEmails: current };
+      if (!normalized) throw new Error("Invalid email address");
+
+      const current = [
+        ...toArr(store.storeAdmins),
+        ...toArr(store.adminEmails)
+      ].map(e => String(e).trim().toLowerCase()).filter(Boolean);
+
+      const uniqueAdmins = [...new Set([...current, normalized])];
+
+      await updateDoc(doc(this.db, "marketStores", storeId), {
+        storeAdmins: uniqueAdmins,
+        adminEmails: uniqueAdmins,
+        updatedAt: new Date().toISOString()
+      });
+      return { success: true, storeAdmins: uniqueAdmins, adminEmails: uniqueAdmins };
     } catch (e) {
-      return { success: false, error: e.message };
+      console.error("Error adding store admin:", e);
+      throw new Error(e.message || "Failed to add store admin");
     }
   }
 
@@ -1030,11 +1077,23 @@ class FirestoreAPI {
       const store = await this.getMarketStore(storeId);
       if (!store) throw new Error("Store not found");
       const normalized = String(email).trim().toLowerCase();
-      const updated = toArr(store.adminEmails).filter(e => e !== normalized);
-      await updateDoc(doc(this.db, "marketStores", storeId), { adminEmails: updated, updatedAt: new Date().toISOString() });
-      return { success: true, adminEmails: updated };
+      
+      const current = [
+        ...toArr(store.storeAdmins),
+        ...toArr(store.adminEmails)
+      ].map(e => String(e).trim().toLowerCase()).filter(Boolean);
+
+      const uniqueAdmins = current.filter(e => e !== normalized);
+
+      await updateDoc(doc(this.db, "marketStores", storeId), {
+        storeAdmins: uniqueAdmins,
+        adminEmails: uniqueAdmins,
+        updatedAt: new Date().toISOString()
+      });
+      return { success: true, storeAdmins: uniqueAdmins, adminEmails: uniqueAdmins };
     } catch (e) {
-      return { success: false, error: e.message };
+      console.error("Error removing store admin:", e);
+      throw new Error(e.message || "Failed to remove store admin");
     }
   }
 
