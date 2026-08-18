@@ -1231,6 +1231,11 @@ class FirestoreAPI {
       if (snap.exists() && Array.isArray(snap.data().types) && snap.data().types.length > 0) {
         return snap.data().types;
       }
+      // Auto-create document in Firestore if missing
+      await setDoc(doc(this.db, "config", "marketTypes"), {
+        types: defaultTypes,
+        updatedAt: new Date().toISOString()
+      }, { merge: true }).catch(() => null);
       return defaultTypes;
     } catch (e) {
       console.warn("Could not fetch config/marketTypes, using default types:", e);
@@ -1300,6 +1305,11 @@ class FirestoreAPI {
       if (snap.exists() && Array.isArray(snap.data().tags) && snap.data().tags.length > 0) {
         return snap.data().tags;
       }
+      // Auto-create document in Firestore if missing
+      await setDoc(doc(this.db, "config", "marketTags"), {
+        tags: defaultTags,
+        updatedAt: new Date().toISOString()
+      }, { merge: true }).catch(() => null);
       return defaultTags;
     } catch (e) {
       console.warn("Could not fetch config/marketTags, using default tags:", e);
