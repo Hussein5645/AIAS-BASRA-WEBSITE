@@ -59,7 +59,7 @@
     .delete-btn { background: var(--error); } .delete-btn:hover { filter: brightness(0.95); }
     .edit-btn { background: #3182ce; } .edit-btn:hover { filter: brightness(0.95); }
     .community-review-controls { display:grid; grid-template-columns:1fr 120px; gap:.55rem; margin-bottom:.75rem; }.community-review-controls input,.community-review-controls select { min-width:0; padding:.55rem .65rem; border:1px solid var(--border); border-radius:8px; font:inherit; font-size:.8rem; }.community-review-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.75rem; padding:.8rem 0; border-bottom:1px solid var(--border); }.community-review-row:last-child { border-bottom:0; }.community-review-title { font-weight:800; color:#1f2937; line-height:1.35; }.community-review-meta { color:var(--muted); font-size:.76rem; margin-top:.25rem; }.community-review-actions { display:flex; flex-wrap:wrap; gap:.4rem; justify-content:flex-end; align-content:start; }.community-preview-btn { display:inline-flex; align-items:center; justify-content:center; padding:.45rem .7rem; border-radius:8px; color:#fff!important; background:#334155; text-decoration:none; font-weight:800; font-size:.75rem; box-shadow:0 2px 4px rgba(15,23,42,.2); }.community-preview-btn:hover { background:#0f172a; }.community-status { display:inline-block; border-radius:999px; padding:.14rem .42rem; font-weight:800; font-size:.68rem; }.community-status.pending { color:#92400e; background:#fef3c7; }.community-status.featured { color:#166534; background:#dcfce7; }.community-status.none { color:#475569; background:#e2e8f0; }.community-pagination { display:flex; justify-content:space-between; align-items:center; gap:.5rem; margin-top:.75rem; font-size:.75rem; color:var(--muted); }.community-pagination button { border:1px solid var(--border); background:#fff; border-radius:6px; padding:.35rem .55rem; cursor:pointer; font-weight:700; }.community-pagination button:disabled { opacity:.45; cursor:not-allowed; }
-    #community-tab.active { display:block; }
+    #community-tab.active, #market-tab.active { display:block; }
     .community-admin-hero { position:relative; overflow:hidden; display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,430px); align-items:end; gap:1.5rem; padding:1.5rem; border-radius:18px; color:#fff; background:radial-gradient(circle at 88% 8%,rgba(240,218,161,.3),transparent 30%),linear-gradient(135deg,#321c22,#6b2228 68%,#98584d); box-shadow:0 16px 34px rgba(50,28,34,.16); }
     .community-admin-hero h2 { margin:0; font-size:1.45rem; }.community-admin-hero p { max-width:650px; margin:.45rem 0 0; color:#ead8d3; font-size:.82rem; line-height:1.6; }.community-admin-hero a { display:inline-flex; margin-top:.8rem; color:#f0daa1; font-size:.76rem; font-weight:800; text-decoration:none; }
     .community-admin-search { position:relative; }.community-admin-search input { width:100%; min-height:48px; padding:.7rem .95rem .7rem 2.5rem; border:1px solid rgba(255,255,255,.4); border-radius:14px; outline:0; color:#2d1b20; background:rgba(255,255,255,.96); font:inherit; box-shadow:0 8px 24px rgba(30,14,16,.15); }.community-admin-search input:focus { border-color:#f0daa1; box-shadow:0 0 0 4px rgba(240,218,161,.2),0 8px 24px rgba(30,14,16,.15); }.community-admin-search::before { content:'⌕'; position:absolute; left:.9rem; top:50%; z-index:1; transform:translateY(-52%); color:var(--brand1); font-size:1.2rem; }
@@ -77,11 +77,11 @@
     .permission-matrix { display:grid; gap:.55rem; margin:1rem 0; }.permission-row { display:grid; grid-template-columns:minmax(0,1fr) 150px; gap:.75rem; align-items:center; padding:.7rem; border:1px solid var(--border); border-radius:10px; background:#fafafa; }.permission-row strong,.permission-row small { display:block; }.permission-row small { margin-top:.2rem; color:var(--muted); font-size:.7rem; }.permission-row select { width:100%; padding:.55rem; border:1px solid var(--border); border-radius:8px; background:#fff; font:inherit; }
     .role-list,.assignment-list { display:grid; gap:.6rem; margin-top:.75rem; }.role-item,.assignment-item { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; padding:.85rem; border:1px solid var(--border); border-radius:10px; background:#fff; }.role-item h4,.assignment-item strong { margin:0; color:#263244; }.role-item p,.assignment-item small { display:block; margin:.25rem 0 0; color:var(--muted); font-size:.72rem; }.role-item-actions { display:flex; gap:.35rem; flex-wrap:wrap; justify-content:flex-end; }.role-item-actions button { border:1px solid var(--border); border-radius:7px; background:#fff; padding:.35rem .55rem; cursor:pointer; font:inherit; font-size:.7rem; font-weight:800; }.role-item-actions button.danger { color:#b91c1c; border-color:#fecaca; }
     .role-form-actions { display:flex; gap:.5rem; }.role-form-actions button { flex:1; }.assignment-form { display:grid; grid-template-columns:minmax(0,1fr) 180px auto; gap:.55rem; align-items:end; }.assignment-form .form-group { margin:0; }
-    .tab-content:not(#settings-tab):not(#roles-tab):not(#community-tab).active { display:grid; grid-template-columns:minmax(250px,330px) minmax(0,1fr); gap:1rem; align-items:start; }
-    .tab-content:not(#settings-tab):not(#roles-tab):not(#community-tab).active > details { margin:0; }
-    .tab-content:not(#settings-tab):not(#roles-tab):not(#community-tab).active > details:first-child { position:sticky; top:1.25rem; max-height:calc(100vh - 2.5rem); overflow:auto; }
-    .tab-content:not(#settings-tab):not(#roles-tab):not(#community-tab).active > details > summary { background:#f8fafc; }
-    .tab-content:not(#settings-tab):not(#roles-tab):not(#community-tab) .accordion-body.panel { box-shadow:none; border-radius:0; }
+    .tab-content:not(#settings-tab):not(#roles-tab):not(#community-tab):not(#market-tab):not(#market-tab).active { display:grid; grid-template-columns:minmax(250px,330px) minmax(0,1fr); gap:1rem; align-items:start; }
+    .tab-content:not(#settings-tab):not(#roles-tab):not(#community-tab):not(#market-tab):not(#market-tab).active > details { margin:0; }
+    .tab-content:not(#settings-tab):not(#roles-tab):not(#community-tab):not(#market-tab):not(#market-tab).active > details:first-child { position:sticky; top:1.25rem; max-height:calc(100vh - 2.5rem); overflow:auto; }
+    .tab-content:not(#settings-tab):not(#roles-tab):not(#community-tab):not(#market-tab):not(#market-tab).active > details > summary { background:#f8fafc; }
+    .tab-content:not(#settings-tab):not(#roles-tab):not(#community-tab):not(#market-tab) .accordion-body.panel { box-shadow:none; border-radius:0; }
     .rich-editor-toolbar { display:flex; flex-wrap:wrap; gap:.35rem; padding:.5rem; border:1px solid #d9e1ef; border-bottom:0; border-radius:8px 8px 0 0; background:#f7f9fc; }
     .rich-editor-toolbar button { border:1px solid #cbd5e1; background:#fff; border-radius:5px; padding:.35rem .6rem; cursor:pointer; }
     .rich-editor { min-height:260px; padding:1rem; border:1px solid #d9e1ef; border-radius:0 0 8px 8px; background:#fff; line-height:1.7; }
@@ -150,14 +150,58 @@
       .dashboard { grid-template-columns: 1fr; }
       .sidebar { position: static; height: auto; }
       .two-col,.role-grid,.role-stats,.assignment-form { grid-template-columns: 1fr; }
-      .tab-content:not(#settings-tab):not(#roles-tab):not(#community-tab).active { grid-template-columns:1fr; }
-      .tab-content:not(#settings-tab):not(#roles-tab):not(#community-tab).active > details:first-child { position:static; max-height:none; }
+      .tab-content:not(#settings-tab):not(#roles-tab):not(#community-tab):not(#market-tab):not(#market-tab).active { grid-template-columns:1fr; }
+      .tab-content:not(#settings-tab):not(#roles-tab):not(#community-tab):not(#market-tab):not(#market-tab).active > details:first-child { position:static; max-height:none; }
       .firestore-grid { grid-template-columns:1fr; }
       .community-admin-hero { grid-template-columns:1fr; }.community-admin-stats,.community-admin-grid { grid-template-columns:1fr; }.community-admin-card.wide { grid-column:auto; }
       .community-review-row { grid-template-columns:1fr; }.community-review-actions { justify-content:flex-start; }
     }
   
-    /* Market Admin Styles */
+    
+    /* Market Management Modern Sub-Tab System */
+    .market-admin-hero { position:relative; overflow:hidden; display:flex; justify-content:space-between; align-items:center; gap:1.5rem; padding:1.5rem 1.8rem; border-radius:18px; color:#fff; background:radial-gradient(circle at 88% 8%,rgba(240,218,161,.3),transparent 30%),linear-gradient(135deg,#321c22,#6b2228 68%,#98584d); box-shadow:0 16px 34px rgba(50,28,34,.16); margin-bottom:1.2rem; }
+    .market-admin-hero h2 { margin:0; font-size:1.45rem; }
+    .market-admin-hero p { max-width:650px; margin:.45rem 0 0; color:#ead8d3; font-size:.82rem; line-height:1.6; }
+    .market-admin-hero a { display:inline-flex; align-items:center; gap:.4rem; padding:.5rem 1rem; border-radius:10px; background:rgba(255,255,255,.18); color:#fff; font-size:.78rem; font-weight:800; text-decoration:none; border:1px solid rgba(255,255,255,.3); transition:all .2s ease; }
+    .market-admin-hero a:hover { background:#fff; color:var(--brand1); transform:translateY(-1px); }
+    
+    .market-admin-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:.8rem; margin-bottom:1.2rem; }
+    .market-admin-stat { display:flex; align-items:center; gap:.8rem; padding:1rem 1.2rem; border:1px solid var(--border); border-radius:14px; background:#fff; box-shadow:0 7px 20px rgba(50,28,34,.04); }
+    .market-admin-stat > span { width:44px; height:44px; flex:0 0 auto; display:grid; place-items:center; border-radius:12px; color:var(--brand1); background:#f7ece8; font-size:1.25rem; }
+    .market-admin-stat strong { display:block; color:#2d1b20; font-size:1.25rem; font-weight:800; }
+    .market-admin-stat small { margin-top:.12rem; color:var(--muted); font-size:.72rem; display:block; }
+
+    /* Sub-nav tabs */
+    .market-subnav { display:flex; gap:8px; background:#f1f5f9; padding:5px; border-radius:14px; margin-bottom:1.2rem; border:1px solid var(--border); overflow-x:auto; }
+    .market-subtab-btn { padding:9px 18px; border-radius:10px; border:none; background:transparent; color:#64748b; font-weight:800; font-size:.82rem; cursor:pointer; transition:all .2s ease; display:inline-flex; align-items:center; gap:7px; white-space:nowrap; }
+    .market-subtab-btn:hover { color:#1e293b; background:rgba(255,255,255,.5); }
+    .market-subtab-btn.active { background:#fff; color:var(--brand1); box-shadow:0 3px 10px rgba(0,0,0,0.06); }
+    
+    .market-subpanel { display:none; }
+    .market-subpanel.active { display:block; animation:fadeIn .2s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+
+    .market-card-shell { background:#fff; border:1px solid var(--border); border-radius:16px; padding:1.5rem; box-shadow:0 8px 24px rgba(50,28,34,.04); }
+    .market-store-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:1.2rem; }
+    .market-store-card { border:1px solid var(--border); border-radius:16px; background:#fff; overflow:hidden; box-shadow:0 6px 18px rgba(0,0,0,0.04); display:flex; flex-direction:column; }
+    .market-store-card-header { height:95px; background:#4a2328; position:relative; background-size:cover; background-position:center; }
+    .market-store-card-body { padding:1.2rem; flex:1; display:flex; flex-direction:column; }
+    .market-store-card-avatar { width:56px; height:56px; border-radius:14px; border:3px solid #fff; position:absolute; bottom:-18px; left:16px; background:#fff; object-fit:cover; box-shadow:0 4px 12px rgba(0,0,0,0.15); }
+    .market-store-card-title { margin:1rem 0 .3rem; font-size:1.05rem; font-weight:800; color:#1a202c; display:flex; justify-content:space-between; align-items:center; }
+    .market-store-card-bio { font-size:.78rem; color:var(--muted); line-height:1.5; margin-bottom:.8rem; flex:1; }
+    .market-store-admins-chip { display:inline-flex; align-items:center; gap:4px; font-size:.7rem; background:#f1f5f9; padding:3px 8px; border-radius:6px; margin:2px; color:#475569; }
+    .market-store-admins-chip button { background:none; border:none; color:#ef4444; font-weight:bold; cursor:pointer; padding:0 2px; }
+    .market-badge { display:inline-block; border-radius:999px; padding:.18rem .55rem; font-weight:800; font-size:.68rem; text-transform:uppercase; letter-spacing:.03em; }
+    .market-badge.active { color:#166534; background:#dcfce7; }
+    .market-badge.inactive { color:#991b1b; background:#fee2e2; }
+    .market-actions-row { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:auto; padding-top:.9rem; border-top:1px solid var(--border); }
+    .market-item-table { width:100%; border-collapse:collapse; font-size:.82rem; }
+    .market-item-table th { text-align:left; padding:.75rem; border-bottom:2px solid var(--border); color:var(--muted); font-size:.74rem; font-weight:700; text-transform:uppercase; }
+    .market-item-table td { padding:.85rem .75rem; border-bottom:1px solid var(--border); vertical-align:middle; }
+    .market-item-table tr:hover td { background:#fafaf9; }
+    .market-item-thumb { width:48px; height:48px; border-radius:10px; object-fit:cover; border:1px solid var(--border); }
+
+    /* Market Admin Styles Legacy */
     .market-admin-hero { position:relative; overflow:hidden; display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,380px); align-items:end; gap:1.5rem; padding:1.5rem; border-radius:18px; color:#fff; background:radial-gradient(circle at 88% 8%,rgba(240,218,161,.3),transparent 30%),linear-gradient(135deg,#321c22,#6b2228 68%,#98584d); box-shadow:0 16px 34px rgba(50,28,34,.16); }
     .market-admin-hero h2 { margin:0; font-size:1.45rem; }
     .market-admin-hero p { max-width:650px; margin:.45rem 0 0; color:#ead8d3; font-size:.82rem; line-height:1.6; }
@@ -398,20 +442,20 @@
       
       <!-- Market management -->
       <section id="market-tab" class="tab-content">
+        <!-- Hero Header -->
         <header class="market-admin-hero">
           <div>
             <h2 data-en="Market & Store Management" data-ar="إدارة السوق والمتاجر">Market &amp; Store Management</h2>
-            <p data-en="Register architectural student stores, assign store admins, manage inventory, and configure marketplace types." data-ar="تسجيل متاجر طلبة العمارة، تعيين مديري المتاجر، إدارة المخزون، وتكوين أنواع عناصر السوق.">Register architectural student stores, assign store admins, manage inventory, and configure marketplace types.</p>
-            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:10px;">
-              <a href="https://space-42d87.web.app/market.html" target="_blank" rel="noopener"><span data-en="Open Live Market ↗" data-ar="فتح السوق الحي ↗">Open Live Market ↗</span></a>
-              <a href="#marketStoreAccordion" onclick="document.getElementById('marketStoreAccordion').open=true; document.getElementById('marketStoreName').focus();"><span data-en="+ Register New Store" data-ar="+ تسجيل متجر جديد">+ Register New Store</span></a>
-            </div>
+            <p data-en="Register architectural student stores, assign store admins, moderate marketplace items, and manage categories." data-ar="تسجيل متاجر طلبة العمارة، تعيين مديري المتاجر، مراقبة عناصر السوق، وإدارة الفئات والأنواع.">Register architectural student stores, assign store admins, moderate marketplace items, and manage categories.</p>
           </div>
-          <div style="text-align:right;">
-            <input id="marketStoreSearch" type="search" placeholder="Search stores..." style="width:100%; padding:.65rem .85rem; border-radius:10px; border:1px solid rgba(255,255,255,.4); background:rgba(255,255,255,.95); font-size:.82rem; color:#2d1b20; outline:none;" />
+          <div style="display:flex; gap:10px; align-items:center;">
+            <a href="https://space-42d87.web.app/market.html" target="_blank" rel="noopener">
+              <span data-en="Open Live Market ↗" data-ar="فتح السوق الحي ↗">Open Live Market ↗</span>
+            </a>
           </div>
         </header>
 
+        <!-- Stats Strip -->
         <div class="market-admin-stats" aria-label="Market overview">
           <article class="market-admin-stat"><span>🏬</span><div><strong id="marketTotalStoresCount">0</strong><small data-en="Total Stores" data-ar="إجمالي المتاجر">Total Stores</small></div></article>
           <article class="market-admin-stat"><span>✓</span><div><strong id="marketActiveStoresCount">0</strong><small data-en="Active Stores" data-ar="المتاجر المفعلة">Active Stores</small></div></article>
@@ -419,56 +463,116 @@
           <article class="market-admin-stat"><span>🏷️</span><div><strong id="marketTotalTypesCount">0</strong><small data-en="Market Types" data-ar="أنواع السوق">Market Types</small></div></article>
         </div>
 
-        <!-- ACCORDION: Market Types Management (Super Admin Editable) -->
-        <details class="accordion" id="marketTypesAccordion" open>
-          <summary data-en="Market Item Types & Categories" data-ar="أنواع وفئات عناصر السوق">Market Item Types &amp; Categories (Saved to Firestore)</summary>
-          <div class="accordion-body panel">
-            <p style="color:var(--muted); font-size:0.8rem; margin-top:0; margin-bottom:15px;">Super Admin can add, edit, and delete the standard Item Types available across all stores and explore filters.</p>
-            
-            <div style="display:grid; grid-template-columns:minmax(0, 1fr) 320px; gap:20px; align-items:start;">
+        <!-- Sub-Navigation Tabs Bar -->
+        <nav class="market-subnav" aria-label="Market management tabs">
+          <button type="button" class="market-subtab-btn active" data-market-tab="stores" onclick="window.switchMarketSubTab('stores')">
+            <span>🏬 Registered Stores</span>
+          </button>
+          <button type="button" class="market-subtab-btn" data-market-tab="items" onclick="window.switchMarketSubTab('items')">
+            <span>🛍️ Items Moderation</span>
+          </button>
+          <button type="button" class="market-subtab-btn" data-market-tab="types" onclick="window.switchMarketSubTab('types')">
+            <span>🏷️ Item Types &amp; Categories</span>
+          </button>
+          <button type="button" class="market-subtab-btn" data-market-tab="register" onclick="window.switchMarketSubTab('register')">
+            <span>➕ Register / Edit Store</span>
+          </button>
+        </nav>
+
+        <!-- SUBTAB 1: Stores Management -->
+        <div id="market-subtab-stores" class="market-subpanel active">
+          <div class="market-card-shell">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:1.2rem; flex-wrap:wrap;">
               <div>
+                <h3 style="margin:0; font-size:1.1rem; color:#1e293b;" data-en="Registered Architectural Stores" data-ar="المتاجر المعمارية المسجلة">Registered Architectural Stores</h3>
+                <p style="margin:4px 0 0; color:var(--muted); font-size:0.78rem;">Manage store accounts, assign store admins, and toggle visibility on the marketplace.</p>
+              </div>
+              <div style="display:flex; gap:10px; align-items:center;">
+                <input id="marketStoreSearch" type="search" placeholder="Search stores..." style="width:220px; padding:.55rem .85rem; border-radius:10px; border:1px solid var(--border); font-size:.82rem; outline:none;" />
+                <button type="button" class="submit-btn" style="padding:.55rem .95rem; font-size:.78rem;" onclick="window.switchMarketSubTab('register'); window.marketResetStoreForm();">+ New Store</button>
+              </div>
+            </div>
+            <div id="marketStoresList"><p>Loading stores...</p></div>
+          </div>
+        </div>
+
+        <!-- SUBTAB 2: Items Moderation -->
+        <div id="market-subtab-items" class="market-subpanel">
+          <div class="market-card-shell">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:1.2rem; flex-wrap:wrap;">
+              <div>
+                <h3 style="margin:0; font-size:1.1rem; color:#1e293b;" data-en="Marketplace Items Moderation" data-ar="مراقبة عناصر السوق">Marketplace Items Moderation</h3>
+                <p style="margin:4px 0 0; color:var(--muted); font-size:0.78rem;">Monitor, hide, or delete assets uploaded across student stores.</p>
+              </div>
+              <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <select id="marketItemStoreFilter" style="min-width:180px; padding:.55rem .75rem; border-radius:10px; border:1px solid var(--border); font-size:.82rem;">
+                  <option value="">All Stores</option>
+                </select>
+                <input id="marketItemSearchInput" type="search" placeholder="Search items..." style="width:200px; padding:.55rem .75rem; border-radius:10px; border:1px solid var(--border); font-size:.82rem;" />
+              </div>
+            </div>
+            <div id="marketItemsList"><p>Loading items...</p></div>
+          </div>
+        </div>
+
+        <!-- SUBTAB 3: Item Types & Categories -->
+        <div id="market-subtab-types" class="market-subpanel">
+          <div class="market-card-shell">
+            <div style="margin-bottom:1.2rem;">
+              <h3 style="margin:0; font-size:1.1rem; color:#1e293b;" data-en="Standard Item Types &amp; Categories" data-ar="أنواع وفئات عناصر السوق">Standard Item Types &amp; Categories</h3>
+              <p style="margin:4px 0 0; color:var(--muted); font-size:0.78rem;">Super Admin can customize the standard item types saved to Firestore (config/marketTypes) available to all stores and explore filters.</p>
+            </div>
+
+            <div style="display:grid; grid-template-columns:minmax(0, 1.4fr) minmax(300px, 0.8fr); gap:24px; align-items:start;">
+              <div>
+                <h4 style="margin:0 0 10px; font-size:0.9rem; color:#475569;">Configured Market Types</h4>
                 <div id="marketTypesList"><p>Loading market types...</p></div>
               </div>
 
-              <div style="background:#f8fafc; border:1px solid var(--border); border-radius:14px; padding:16px;">
-                <h4 id="marketTypeFormHeading" style="margin:0 0 12px; font-size:0.92rem; color:#1e293b;">Add New Market Type</h4>
+              <div style="background:#f8fafc; border:1px solid var(--border); border-radius:16px; padding:18px;">
+                <h4 id="marketTypeFormHeading" style="margin:0 0 12px; font-size:0.95rem; color:#1e293b;">Add New Market Type</h4>
                 <form id="marketTypeForm">
                   <input type="hidden" id="marketTypeId" value="" />
-                  <div class="form-group" style="margin-bottom:10px;">
-                    <label for="marketTypeNameEn" style="font-size:0.74rem;">Type Name (English) *</label>
-                    <input id="marketTypeNameEn" required placeholder="e.g. BIM Revit Family" style="width:100%; padding:6px 10px; font-size:0.8rem;" />
-                  </div>
-                  <div class="form-group" style="margin-bottom:10px;">
-                    <label for="marketTypeNameAr" style="font-size:0.74rem;">Type Name (Arabic)</label>
-                    <input id="marketTypeNameAr" placeholder="e.g. عائلات ريفيت BIM" style="width:100%; padding:6px 10px; font-size:0.8rem;" />
+                  <div class="form-group" style="margin-bottom:12px;">
+                    <label for="marketTypeNameEn" style="font-size:0.75rem; font-weight:700;">Type Name (English) *</label>
+                    <input id="marketTypeNameEn" required placeholder="e.g. BIM Revit Family" style="width:100%; padding:8px 12px; font-size:0.82rem; border-radius:8px; border:1px solid var(--border);" />
                   </div>
                   <div class="form-group" style="margin-bottom:12px;">
-                    <label for="marketTypeIcon" style="font-size:0.74rem;">Emoji Icon</label>
-                    <input id="marketTypeIcon" placeholder="📐" style="width:100%; padding:6px 10px; font-size:0.8rem;" />
+                    <label for="marketTypeNameAr" style="font-size:0.75rem; font-weight:700;">Type Name (Arabic)</label>
+                    <input id="marketTypeNameAr" placeholder="e.g. عائلات ريفيت BIM" style="width:100%; padding:8px 12px; font-size:0.82rem; border-radius:8px; border:1px solid var(--border);" />
+                  </div>
+                  <div class="form-group" style="margin-bottom:14px;">
+                    <label for="marketTypeIcon" style="font-size:0.75rem; font-weight:700;">Emoji Icon</label>
+                    <input id="marketTypeIcon" placeholder="📐" style="width:100%; padding:8px 12px; font-size:0.82rem; border-radius:8px; border:1px solid var(--border);" />
                   </div>
                   <div style="display:flex; gap:8px;">
-                    <button type="submit" id="saveMarketTypeBtn" class="submit-btn" style="flex:1; padding:8px 12px; font-size:0.8rem;">Save Type</button>
-                    <button type="button" id="cancelMarketTypeEditBtn" class="btn" style="display:none; padding:8px 12px; font-size:0.8rem;" onclick="window.cancelEditMarketType()">Cancel</button>
+                    <button type="submit" id="saveMarketTypeBtn" class="submit-btn" style="flex:1; padding:9px 14px; font-size:0.82rem;">Save Type</button>
+                    <button type="button" id="cancelMarketTypeEditBtn" class="btn" style="display:none; padding:9px 14px; font-size:0.82rem;" onclick="window.cancelEditMarketType()">Cancel</button>
                   </div>
                 </form>
               </div>
             </div>
           </div>
-        </details>
+        </div>
 
-        <!-- ACCORDION: Register or Edit Store -->
-        <details class="accordion" id="marketStoreAccordion" open>
-          <summary id="marketStoreFormSummary" data-en="Register or Edit Store" data-ar="تسجيل أو تعديل متجر">Register or Edit Store</summary>
-          <div class="accordion-body panel">
-            <div id="marketStoreModeBanner" class="editor-mode-banner" style="display:none;">
-              <div><strong id="marketStoreModeTitle">Editing Store</strong><small id="marketStoreModeSubtitle">Changes will update the store profile and live storefront.</small></div>
-              <button type="button" id="marketStoreCancelEditBtn" class="editor-mode-new">Cancel Edit / New Store</button>
+        <!-- SUBTAB 4: Register or Edit Store -->
+        <div id="market-subtab-register" class="market-subpanel">
+          <div class="market-card-shell">
+            <div id="marketStoreModeBanner" class="editor-mode-banner" style="display:none; margin-bottom:15px;">
+              <div><strong id="marketStoreModeTitle">Editing Store</strong><small id="marketStoreModeSubtitle" style="display:block;">Changes will update the store profile and live storefront.</small></div>
+              <button type="button" id="marketStoreCancelEditBtn" class="editor-mode-new" onclick="window.marketResetStoreForm()">Cancel Edit / New Store</button>
             </div>
+            
+            <div style="margin-bottom:15px;">
+              <h3 id="marketStoreFormTitle" style="margin:0; font-size:1.1rem; color:#1e293b;" data-en="Register New Architectural Store" data-ar="تسجيل متجر معماري جديد">Register New Architectural Store</h3>
+              <p style="margin:4px 0 0; color:var(--muted); font-size:0.78rem;">Create a verified storefront for a student creator or studio. Stores get their own dedicated page on the market.</p>
+            </div>
+
             <form id="marketStoreForm" novalidate>
               <input type="hidden" id="marketStoreId" value="" />
               <div class="two-col">
                 <div class="form-group">
-                  <label for="marketStoreName" data-en="Store Name" data-ar="اسم المتجر">Store Name</label>
+                  <label for="marketStoreName" data-en="Store Name *" data-ar="اسم المتجر *">Store Name *</label>
                   <input id="marketStoreName" required placeholder="e.g. Basra CAD Assets" />
                 </div>
                 <div class="form-group">
@@ -517,29 +621,7 @@
               <button type="submit" id="marketStoreSubmitBtn" class="submit-btn" data-en="Register Store" data-ar="تسجيل المتجر">Register Store</button>
             </form>
           </div>
-        </details>
-
-        <!-- ACCORDION: Registered Stores -->
-        <details class="accordion" open>
-          <summary data-en="Registered Stores" data-ar="المتاجر المسجلة">Registered Stores</summary>
-          <div class="accordion-body panel">
-            <div id="marketStoresList"><p>Loading stores...</p></div>
-          </div>
-        </details>
-
-        <!-- ACCORDION: Cross-Store Item Moderation -->
-        <details class="accordion" open>
-          <summary data-en="Market Items Moderation" data-ar="مراقبة عناصر السوق">Market Items Moderation</summary>
-          <div class="accordion-body panel">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
-              <select id="marketItemStoreFilter" style="max-width:260px; padding:.5rem .7rem; border-radius:8px; border:1px solid var(--border); font-size:.82rem;">
-                <option value="">All Stores</option>
-              </select>
-              <input id="marketItemSearchInput" type="search" placeholder="Search items..." style="max-width:240px; padding:.5rem .7rem; border-radius:8px; border:1px solid var(--border); font-size:.82rem;" />
-            </div>
-            <div id="marketItemsList"><p>Loading items...</p></div>
-          </div>
-        </details>
+        </div>
       </section>
 
       <!-- Library -->
@@ -3031,7 +3113,8 @@
 
       document.getElementById('marketStoreModeBanner').style.display = 'flex';
       document.getElementById('marketStoreSubmitBtn').textContent = 'Update Store';
-      document.getElementById('marketStoreAccordion').open = true;
+      window.switchMarketSubTab('register');
+      document.getElementById('marketStoreFormTitle').textContent = 'Edit Store: ' + (store.name || '');
       document.getElementById('marketStoreName').focus();
     };
 
