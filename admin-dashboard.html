@@ -3,15 +3,11 @@
 <head>
   <script>
     window.switchMarketSubTab = function(subtab) {
-      document.querySelectorAll(".market-subtab-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.marketTab === subtab));
-      document.querySelectorAll(".market-subpanel").forEach(panel => panel.classList.toggle("active", panel.id === "market-subtab-" + subtab));
-    };
-    window.switchMarketSubTab_defined = true;
-      document.querySelectorAll('.market-subtab-btn').forEach(function(btn) {
-        btn.classList.toggle('active', btn.dataset.marketTab === subtab);
+      document.querySelectorAll(".market-subtab-btn").forEach(function(btn) {
+        btn.classList.toggle("active", btn.dataset.marketTab === subtab);
       });
-      document.querySelectorAll('.market-subpanel').forEach(function(panel) {
-        panel.classList.toggle('active', panel.id === 'market-subtab-' + subtab);
+      document.querySelectorAll(".market-subpanel").forEach(function(panel) {
+        panel.classList.toggle("active", panel.id === "market-subtab-" + subtab);
       });
     };
   </script>
