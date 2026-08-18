@@ -2,6 +2,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/fi
 
 export const ADMIN_AREAS = [
   { id: 'community', label: 'Community projects', description: 'Review project submissions and selection requests.' },
+  { id: 'market', label: 'Market & Stores', description: 'Manage market stores, items, and store admins.' },
   { id: 'events', label: 'Events', description: 'View or manage chapter events.' },
   { id: 'articles', label: 'Magazine', description: 'View or manage magazine articles.' },
   { id: 'library', label: 'Library', description: 'View or manage library resources.' },
@@ -19,7 +20,7 @@ export const DEFAULT_ROLES = {
   content_manager: {
     name: 'Content Manager',
     description: 'Manages website content and can view community project requests.',
-    permissions: ['view_community', 'manage_events', 'manage_articles', 'manage_library', 'manage_models3d', 'manage_fbd'],
+    permissions: ['view_community', 'manage_market', 'manage_events', 'manage_articles', 'manage_library', 'manage_models3d', 'manage_fbd'],
     builtIn: true
   },
   community_manager: {

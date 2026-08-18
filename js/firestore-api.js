@@ -1,4 +1,3 @@
-// Firestore API Integration for Content Management (all under content/)
 import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore,
@@ -11,6 +10,7 @@ import {
   deleteDoc,
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 import { uploadFileChunks as storeFileChunks, fetchFileChunks as readFileChunks } from "./file-chunks.js";
 
 // Firebase configuration
@@ -28,6 +28,7 @@ const firebaseConfig = {
 let app;
 try { app = getApp(); } catch { app = initializeApp(firebaseConfig); }
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 // Small sanitizers to make sure we always write the user's inputs (no undefineds)
 const toStr = (v) => (v === undefined || v === null) ? "" : String(v);
@@ -936,7 +937,223 @@ class FirestoreAPI {
       return { success: false, actions: results.actions, errors: [...results.errors, error.message] };
     }
   }
+
+  // ── MARKET STORES ──────────────────────────────────────────
+  async getMarketStores() {
+    try {
+      const snap = await getDocs(collection(this.db, "marketStores"));
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (e) {
+      console.error("Error fetching market stores:", e);
+      return [];
+    }
+  }
+
+  async getMarketStore(storeId) {
+    try {
+      const snap = await getDoc(doc(this.db, "marketStores", storeId));
+      if (!snap.exists()) return null;
+      return { id: snap.id, ...snap.data() };
+    } catch (e) {
+      console.error("Error fetching market store:", e);
+      return null;
+    }
+  }
+
+  async createMarketStore(storeData) {
+    try {
+      const cleanData = {
+        name: toStr(storeData.name),
+        slug: toStr(storeData.slug || storeData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')),
+        bio: toStr(storeData.bio || storeData.description),
+        profileImage: toStr(storeData.profileImage),
+        bannerImage: toStr(storeData.bannerImage),
+        status: storeData.status === 'inactive' ? 'inactive' : 'active',
+        adminEmails: toArr(storeData.adminEmails).map(e => String(e).trim().toLowerCase()).filter(Boolean),
+        adminUids: toArr(storeData.adminUids),
+        tags: toArr(storeData.tags).length ? storeData.tags : ["Architecture", "3D Models", "CAD", "Templates"],
+        types: toArr(storeData.types).length ? storeData.types : ["3D Model", "CAD Block", "Portfolio Template", "Texture", "Render PSD", "Physical Asset"],
+        createdBy: toStr(storeData.createdBy),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      const docRef = await addDoc(collection(this.db, "marketStores"), cleanData);
+      return { success: true, id: docRef.id, ...cleanData };
+    } catch (e) {
+      console.error("Error creating market store:", e);
+      return { success: false, error: e.message };
+    }
+  }
+
+  async updateMarketStore(storeId, patch) {
+    try {
+      const cleanPatch = { ...patch, updatedAt: new Date().toISOString() };
+      if (cleanPatch.adminEmails) {
+        cleanPatch.adminEmails = toArr(cleanPatch.adminEmails).map(e => String(e).trim().toLowerCase()).filter(Boolean);
+      }
+      await updateDoc(doc(this.db, "marketStores", storeId), cleanPatch);
+      return { success: true };
+    } catch (e) {
+      console.error("Error updating market store:", e);
+      return { success: false, error: e.message };
+    }
+  }
+
+  async deleteMarketStore(storeId) {
+    try {
+      await deleteDoc(doc(this.db, "marketStores", storeId));
+      return { success: true };
+    } catch (e) {
+      console.error("Error deleting market store:", e);
+      return { success: false, error: e.message };
+    }
+  }
+
+  async addStoreAdmin(storeId, email) {
+    try {
+      const store = await this.getMarketStore(storeId);
+      if (!store) throw new Error("Store not found");
+      const normalized = String(email).trim().toLowerCase();
+      const current = toArr(store.adminEmails);
+      if (!current.includes(normalized)) {
+        current.push(normalized);
+        await updateDoc(doc(this.db, "marketStores", storeId), { adminEmails: current, updatedAt: new Date().toISOString() });
+      }
+      return { success: true, adminEmails: current };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  }
+
+  async removeStoreAdmin(storeId, email) {
+    try {
+      const store = await this.getMarketStore(storeId);
+      if (!store) throw new Error("Store not found");
+      const normalized = String(email).trim().toLowerCase();
+      const updated = toArr(store.adminEmails).filter(e => e !== normalized);
+      await updateDoc(doc(this.db, "marketStores", storeId), { adminEmails: updated, updatedAt: new Date().toISOString() });
+      return { success: true, adminEmails: updated };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  }
+
+  // ── MARKET ITEMS ───────────────────────────────────────────
+  async getMarketItems(storeId = null) {
+    try {
+      const snap = await getDocs(collection(this.db, "marketItems"));
+      let items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (storeId) {
+        items = items.filter(it => it.storeId === storeId);
+      }
+      return items;
+    } catch (e) {
+      console.error("Error fetching market items:", e);
+      return [];
+    }
+  }
+
+  async getMarketItem(itemId) {
+    try {
+      const snap = await getDoc(doc(this.db, "marketItems", itemId));
+      if (!snap.exists()) return null;
+      return { id: snap.id, ...snap.data() };
+    } catch (e) {
+      console.error("Error fetching market item:", e);
+      return null;
+    }
+  }
+
+  async createMarketItem(itemData) {
+    try {
+      const cleanData = {
+        storeId: toStr(itemData.storeId),
+        storeName: toStr(itemData.storeName),
+        name: toStr(itemData.name),
+        description: toStr(itemData.description),
+        image: toStr(itemData.image),
+        tag: toStr(itemData.tag || "General"),
+        type: toStr(itemData.type || "3D Model"),
+        quantity: toNum(itemData.quantity, 1),
+        deliverTime: toStr(itemData.deliverTime || "Instant Download"),
+        price: toStr(itemData.price || "Free"),
+        status: itemData.status === 'hidden' ? 'hidden' : 'active',
+        createdBy: toStr(itemData.createdBy),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      const docRef = await addDoc(collection(this.db, "marketItems"), cleanData);
+      return { success: true, id: docRef.id, ...cleanData };
+    } catch (e) {
+      console.error("Error creating market item:", e);
+      return { success: false, error: e.message };
+    }
+  }
+
+  async updateMarketItem(itemId, patch) {
+    try {
+      const cleanPatch = { ...patch, updatedAt: new Date().toISOString() };
+      await updateDoc(doc(this.db, "marketItems", itemId), cleanPatch);
+      return { success: true };
+    } catch (e) {
+      console.error("Error updating market item:", e);
+      return { success: false, error: e.message };
+    }
+  }
+
+  async deleteMarketItem(itemId) {
+    try {
+      await deleteDoc(doc(this.db, "marketItems", itemId));
+      return { success: true };
+    } catch (e) {
+      console.error("Error deleting market item:", e);
+      return { success: false, error: e.message };
+    }
+  }
+
+  async setMarketItemStatus(itemId, status) {
+    return this.updateMarketItem(itemId, { status });
+  }
+
+  async uploadMarketFile(file, path) {
+    try {
+      const fileRef = storageRef(storage, `market/${path}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`);
+      await uploadBytes(fileRef, file);
+      const downloadURL = await getDownloadURL(fileRef);
+      return { success: true, url: downloadURL };
+    } catch (e) {
+      console.error("Storage upload failed, fallback to dataURL:", e);
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve({ success: true, url: reader.result });
+        reader.onerror = () => resolve({ success: false, error: "Failed to read file" });
+        reader.readAsDataURL(file);
+      });
+    }
+  }
+
+  async createMarketOrder(orderData) {
+    try {
+      const clean = {
+        itemId: toStr(orderData.itemId),
+        itemName: toStr(orderData.itemName),
+        storeId: toStr(orderData.storeId),
+        storeName: toStr(orderData.storeName),
+        buyerName: toStr(orderData.buyerName),
+        buyerEmail: toStr(orderData.buyerEmail),
+        buyerPhone: toStr(orderData.buyerPhone),
+        notes: toStr(orderData.notes),
+        status: "pending",
+        createdAt: new Date().toISOString()
+      };
+      const ref = await addDoc(collection(this.db, "marketOrders"), clean);
+      return { success: true, id: ref.id, ...clean };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  }
 }
 
 window.FirestoreAPI = FirestoreAPI;
 export default FirestoreAPI;
+

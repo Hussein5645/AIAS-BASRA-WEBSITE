@@ -9,7 +9,380 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <script type="module" src="js/auth.js?v=20260815_fixed"></script>
+  <script type="module" src="js/auth.js?v=20260815_fixed">
+    // ==========================================
+    // MARKET & STORE DASHBOARD MANAGEMENT
+    // ==========================================
+    let cachedMarketStores = [];
+    let cachedMarketItems = [];
+
+    async function loadMarketAdminData() {
+      const storesListEl = document.getElementById('marketStoresList');
+      const itemsListEl = document.getElementById('marketItemsList');
+      if (storesListEl) storesListEl.innerHTML = '<p>Loading stores...</p>';
+      if (itemsListEl) itemsListEl.innerHTML = '<p>Loading items...</p>';
+
+      try {
+        const [stores, items] = await Promise.all([
+          firestoreAPI.getMarketStores({ includeInactive: true }),
+          firestoreAPI.getMarketItems({ includeHidden: true })
+        ]);
+        cachedMarketStores = stores || [];
+        cachedMarketItems = items || [];
+
+        // Update stats
+        const totalStores = cachedMarketStores.length;
+        const activeStores = cachedMarketStores.filter(s => s.status === 'active').length;
+        const totalItems = cachedMarketItems.length;
+        const activeItems = cachedMarketItems.filter(i => i.status === 'active').length;
+
+        if (document.getElementById('marketTotalStoresCount')) document.getElementById('marketTotalStoresCount').textContent = totalStores;
+        if (document.getElementById('marketActiveStoresCount')) document.getElementById('marketActiveStoresCount').textContent = activeStores;
+        if (document.getElementById('marketTotalItemsCount')) document.getElementById('marketTotalItemsCount').textContent = totalItems;
+        if (document.getElementById('marketActiveItemsCount')) document.getElementById('marketActiveItemsCount').textContent = activeItems;
+
+        renderMarketStoresList(cachedMarketStores);
+        populateMarketStoreFilter(cachedMarketStores);
+        renderMarketItemsList(cachedMarketItems, cachedMarketStores);
+      } catch (err) {
+        console.error('Error loading market admin data:', err);
+        if (storesListEl) storesListEl.innerHTML = '<p style="color:var(--error)">Error loading stores: ' + (err.message || err) + '</p>';
+        if (itemsListEl) itemsListEl.innerHTML = '<p style="color:var(--error)">Error loading items: ' + (err.message || err) + '</p>';
+      }
+    }
+
+    function renderMarketStoresList(stores) {
+      const container = document.getElementById('marketStoresList');
+      if (!container) return;
+      if (!stores || stores.length === 0) {
+        container.innerHTML = '<p style="color:var(--muted); padding:1rem;">No registered stores found yet. Register your first store above!</p>';
+        return;
+      }
+
+      const q = (document.getElementById('marketStoreSearch')?.value || '').toLowerCase().trim();
+      const filtered = q ? stores.filter(s => (s.name || '').toLowerCase().includes(q) || (s.bio || '').toLowerCase().includes(q) || (s.slug || '').toLowerCase().includes(q)) : stores;
+
+      let html = '<div class="market-store-grid">';
+      filtered.forEach(store => {
+        const isActive = store.status === 'active';
+        const logo = store.profileImage || 'static/images/branding/LOGO.png';
+        const bannerStyle = store.bannerImage ? "background-image:url('" + store.bannerImage + "');" : "background:linear-gradient(135deg,#321c22,#6b2228);";
+        const admins = store.storeAdmins || [];
+        const storePageUrl = 'store.html?id=' + encodeURIComponent(store.id);
+
+        html += `
+          <div class="market-store-card" data-store-id="${store.id}">
+            <div class="market-store-card-header" style="${bannerStyle}">
+              <img class="market-store-card-avatar" src="${logo}" alt="${store.name}" onerror="this.src='static/images/branding/LOGO.png'" />
+            </div>
+            <div class="market-store-card-body">
+              <div class="market-store-card-title">
+                <span>${store.name}</span>
+                <span class="market-badge ${isActive ? 'active' : 'inactive'}">${isActive ? 'Active' : 'Inactive'}</span>
+              </div>
+              <small style="color:var(--muted); font-size:.72rem; margin-bottom:6px;">Slug: <code>${store.slug || store.id}</code></small>
+              <div class="market-store-card-bio">${store.bio || 'No bio provided.'}</div>
+
+              <div style="margin:6px 0 10px;">
+                <small style="font-weight:700; color:var(--muted); display:block; margin-bottom:4px;">Store Admins (${admins.length}):</small>
+                ${admins.length ? admins.map(email => `<span class="market-store-admins-chip">${email} <button type="button" title="Remove admin" onclick="window.marketRemoveAdmin('${store.id}', '${email}')">×</button></span>`).join('') : '<small style="color:var(--muted)">No assigned admins</small>'}
+                <button type="button" class="mini-btn" style="margin-top:4px;" onclick="window.marketAddAdminPrompt('${store.id}')">+ Add Admin</button>
+              </div>
+
+              <div class="market-actions-row">
+                <a href="${storePageUrl}" target="_blank" class="btn edit-btn" style="background:#334155; text-decoration:none; display:inline-flex; align-items:center;">Visit Store ↗</a>
+                <button type="button" class="btn edit-btn" onclick="window.marketEditStore('${store.id}')">Edit Info</button>
+                <button type="button" class="btn" style="background:${isActive ? '#eab308' : '#22c55e'}" onclick="window.marketToggleStoreStatus('${store.id}', '${store.status}')">${isActive ? 'Deactivate' : 'Activate'}</button>
+                <button type="button" class="btn delete-btn" onclick="window.marketDeleteStore('${store.id}')">Delete</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    function populateMarketStoreFilter(stores) {
+      const select = document.getElementById('marketItemStoreFilter');
+      if (!select) return;
+      const currentVal = select.value;
+      select.innerHTML = '<option value="">All Stores</option>' + stores.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+      select.value = currentVal;
+    }
+
+    function renderMarketItemsList(items, stores) {
+      const container = document.getElementById('marketItemsList');
+      if (!container) return;
+      if (!items || items.length === 0) {
+        container.innerHTML = '<p style="color:var(--muted); padding:1rem;">No market items found yet.</p>';
+        return;
+      }
+
+      const storeFilter = document.getElementById('marketItemStoreFilter')?.value || '';
+      const search = (document.getElementById('marketItemSearchInput')?.value || '').toLowerCase().trim();
+
+      const storeMap = {};
+      (stores || []).forEach(s => { storeMap[s.id] = s.name; });
+
+      const filtered = items.filter(item => {
+        if (storeFilter && item.storeId !== storeFilter) return false;
+        if (search) {
+          const matchName = (item.name || '').toLowerCase().includes(search);
+          const matchTag = (item.tag || '').toLowerCase().includes(search);
+          const matchType = (item.type || '').toLowerCase().includes(search);
+          const matchStore = (storeMap[item.storeId] || '').toLowerCase().includes(search);
+          if (!matchName && !matchTag && !matchType && !matchStore) return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<p style="color:var(--muted); padding:1rem;">No items matching criteria.</p>';
+        return;
+      }
+
+      let html = `
+        <div style="overflow-x:auto;">
+          <table class="market-item-table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Store</th>
+                <th>Tag / Type</th>
+                <th>Quantity</th>
+                <th>Delivery Time</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      filtered.forEach(item => {
+        const isActive = item.status !== 'hidden';
+        const img = item.imageUrl || 'static/images/branding/LOGO.png';
+        const storeName = storeMap[item.storeId] || item.storeName || item.storeId;
+
+        html += `
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <img class="market-item-thumb" src="${img}" alt="${item.name}" onerror="this.src='static/images/branding/LOGO.png'" />
+                <div>
+                  <strong>${item.name}</strong>
+                  <small style="display:block; color:var(--muted); font-size:.7rem;">ID: ${item.id}</small>
+                </div>
+              </div>
+            </td>
+            <td><strong>${storeName}</strong></td>
+            <td>
+              <span class="community-status featured">${item.tag || 'General'}</span>
+              <small style="display:block; color:var(--muted); margin-top:2px;">${item.type || 'Resource'}</small>
+            </td>
+            <td><strong>${item.quantity !== undefined ? item.quantity : 'Unlimited'}</strong></td>
+            <td>${item.deliverTime || 'Instant'}</td>
+            <td>
+              <span class="market-badge ${isActive ? 'active' : 'inactive'}">${isActive ? 'Active' : 'Hidden'}</span>
+            </td>
+            <td>
+              <div style="display:flex; gap:6px;">
+                <button type="button" class="btn" style="background:${isActive ? '#eab308' : '#22c55e'}" onclick="window.marketToggleItemStatus('${item.id}', '${item.status || 'active'}')">${isActive ? 'Hide' : 'Show'}</button>
+                <button type="button" class="btn delete-btn" onclick="window.marketDeleteItem('${item.id}')">Delete</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      html += '</tbody></table></div>';
+      container.innerHTML = html;
+    }
+
+    // Global Store Action Handlers
+    window.marketEditStore = function(storeId) {
+      const store = cachedMarketStores.find(s => s.id === storeId);
+      if (!store) return;
+      document.getElementById('marketStoreId').value = store.id;
+      document.getElementById('marketStoreName').value = store.name || '';
+      document.getElementById('marketStoreSlug').value = store.slug || '';
+      document.getElementById('marketStoreBio').value = store.bio || '';
+      document.getElementById('marketStoreProfileUrl').value = store.profileImage || '';
+      document.getElementById('marketStoreBannerUrl').value = store.bannerImage || '';
+      document.getElementById('marketStoreAdminsInput').value = (store.storeAdmins || []).join(', ');
+      document.getElementById('marketStoreStatus').value = store.status || 'active';
+
+      if (store.profileImage) {
+        document.getElementById('marketStoreProfilePreview').src = store.profileImage;
+      }
+      if (store.bannerImage) {
+        document.getElementById('marketStoreBannerPreview').src = store.bannerImage;
+        document.getElementById('marketStoreBannerPreview').style.display = 'block';
+      }
+
+      document.getElementById('marketStoreModeBanner').style.display = 'flex';
+      document.getElementById('marketStoreSubmitBtn').textContent = 'Update Store';
+      document.getElementById('marketStoreAccordion').open = true;
+      document.getElementById('marketStoreName').focus();
+    };
+
+    window.marketResetStoreForm = function() {
+      document.getElementById('marketStoreForm').reset();
+      document.getElementById('marketStoreId').value = '';
+      document.getElementById('marketStoreProfilePreview').src = 'static/images/branding/LOGO.png';
+      document.getElementById('marketStoreBannerPreview').src = '';
+      document.getElementById('marketStoreBannerPreview').style.display = 'none';
+      document.getElementById('marketStoreModeBanner').style.display = 'none';
+      document.getElementById('marketStoreSubmitBtn').textContent = 'Register Store';
+      document.getElementById('marketStoreErrors').style.display = 'none';
+    };
+
+    window.marketToggleStoreStatus = async function(storeId, currentStatus) {
+      const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+      try {
+        await firestoreAPI.updateMarketStore(storeId, { status: newStatus });
+        showMessage('Store status changed to ' + newStatus, 'success');
+        loadMarketAdminData();
+      } catch (err) {
+        alert('Error updating status: ' + (err.message || err));
+      }
+    };
+
+    window.marketDeleteStore = async function(storeId) {
+      if (!confirm('Are you sure you want to delete this store? All associated store items will also be removed.')) return;
+      try {
+        await firestoreAPI.deleteMarketStore(storeId);
+        showMessage('Store deleted successfully', 'success');
+        loadMarketAdminData();
+      } catch (err) {
+        alert('Error deleting store: ' + (err.message || err));
+      }
+    };
+
+    window.marketAddAdminPrompt = async function(storeId) {
+      const email = prompt('Enter store admin email:');
+      if (!email || !email.trim()) return;
+      try {
+        await firestoreAPI.addStoreAdmin(storeId, email.trim());
+        showMessage('Store admin added', 'success');
+        loadMarketAdminData();
+      } catch (err) {
+        alert('Error adding admin: ' + (err.message || err));
+      }
+    };
+
+    window.marketRemoveAdmin = async function(storeId, email) {
+      if (!confirm('Remove admin ' + email + '?')) return;
+      try {
+        await firestoreAPI.removeStoreAdmin(storeId, email);
+        showMessage('Admin removed', 'success');
+        loadMarketAdminData();
+      } catch (err) {
+        alert('Error removing admin: ' + (err.message || err));
+      }
+    };
+
+    window.marketToggleItemStatus = async function(itemId, currentStatus) {
+      const newStatus = currentStatus === 'hidden' ? 'active' : 'hidden';
+      try {
+        await firestoreAPI.setMarketItemStatus(itemId, newStatus);
+        showMessage('Item status updated to ' + newStatus, 'success');
+        loadMarketAdminData();
+      } catch (err) {
+        alert('Error setting item status: ' + (err.message || err));
+      }
+    };
+
+    window.marketDeleteItem = async function(itemId) {
+      if (!confirm('Are you sure you want to permanently delete this item?')) return;
+      try {
+        await firestoreAPI.deleteMarketItem(itemId);
+        showMessage('Item deleted successfully', 'success');
+        loadMarketAdminData();
+      } catch (err) {
+        alert('Error deleting item: ' + (err.message || err));
+      }
+    };
+
+    // Store Form Submit Handler
+    document.addEventListener('DOMContentLoaded', () => {
+      const storeForm = document.getElementById('marketStoreForm');
+      if (storeForm) {
+        storeForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const errorsBox = document.getElementById('marketStoreErrors');
+          errorsBox.style.display = 'none';
+
+          const storeId = document.getElementById('marketStoreId').value.trim();
+          const name = document.getElementById('marketStoreName').value.trim();
+          const slug = document.getElementById('marketStoreSlug').value.trim();
+          const bio = document.getElementById('marketStoreBio').value.trim();
+          const status = document.getElementById('marketStoreStatus').value;
+          const adminsRaw = document.getElementById('marketStoreAdminsInput').value.trim();
+          const storeAdmins = adminsRaw ? adminsRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+          if (!name) {
+            errorsBox.innerHTML = '<p>Store name is required.</p>';
+            errorsBox.style.display = 'block';
+            return;
+          }
+
+          const submitBtn = document.getElementById('marketStoreSubmitBtn');
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Saving Store...';
+
+          try {
+            let profileImage = document.getElementById('marketStoreProfileUrl').value.trim();
+            let bannerImage = document.getElementById('marketStoreBannerUrl').value.trim();
+
+            const profileFile = document.getElementById('marketStoreProfileFile')?.files[0];
+            const bannerFile = document.getElementById('marketStoreBannerFile')?.files[0];
+
+            if (profileFile) {
+              profileImage = await firestoreAPI.uploadMarketFile(profileFile, 'stores/logos');
+            }
+            if (bannerFile) {
+              bannerImage = await firestoreAPI.uploadMarketFile(bannerFile, 'stores/banners');
+            }
+
+            const storeData = {
+              name,
+              slug,
+              bio,
+              status,
+              profileImage,
+              bannerImage,
+              storeAdmins
+            };
+
+            if (storeId) {
+              await firestoreAPI.updateMarketStore(storeId, storeData);
+              showMessage('Store updated successfully!', 'success');
+            } else {
+              await firestoreAPI.createMarketStore(storeData);
+              showMessage('Store registered successfully!', 'success');
+            }
+
+            window.marketResetStoreForm();
+            loadMarketAdminData();
+          } catch (err) {
+            console.error('Error saving store:', err);
+            errorsBox.innerHTML = '<p>Error: ' + (err.message || err) + '</p>';
+            errorsBox.style.display = 'block';
+          } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = storeId ? 'Update Store' : 'Register Store';
+          }
+        });
+      }
+
+      document.getElementById('marketStoreCancelEditBtn')?.addEventListener('click', window.marketResetStoreForm);
+      document.getElementById('marketStoreSearch')?.addEventListener('input', () => renderMarketStoresList(cachedMarketStores));
+      document.getElementById('marketItemStoreFilter')?.addEventListener('change', () => renderMarketItemsList(cachedMarketItems, cachedMarketStores));
+      document.getElementById('marketItemSearchInput')?.addEventListener('input', () => renderMarketItemsList(cachedMarketItems, cachedMarketStores));
+    });
+
+  </script>
   <script type="module" src="js/firestore-api.js?v=20260815_fixed"></script>
   <script src="js/main.js" defer></script>
   <style>
@@ -156,6 +529,41 @@
       .community-admin-hero { grid-template-columns:1fr; }.community-admin-stats,.community-admin-grid { grid-template-columns:1fr; }.community-admin-card.wide { grid-column:auto; }
       .community-review-row { grid-template-columns:1fr; }.community-review-actions { justify-content:flex-start; }
     }
+  
+    /* Market Admin Styles */
+    .market-admin-hero { position:relative; overflow:hidden; display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,380px); align-items:end; gap:1.5rem; padding:1.5rem; border-radius:18px; color:#fff; background:radial-gradient(circle at 88% 8%,rgba(240,218,161,.3),transparent 30%),linear-gradient(135deg,#321c22,#6b2228 68%,#98584d); box-shadow:0 16px 34px rgba(50,28,34,.16); }
+    .market-admin-hero h2 { margin:0; font-size:1.45rem; }
+    .market-admin-hero p { max-width:650px; margin:.45rem 0 0; color:#ead8d3; font-size:.82rem; line-height:1.6; }
+    .market-admin-hero a { display:inline-flex; align-items:center; gap:.4rem; padding:.4rem .8rem; border-radius:8px; background:rgba(255,255,255,.18); color:#fff; font-size:.76rem; font-weight:800; text-decoration:none; border:1px solid rgba(255,255,255,.3); }
+    .market-admin-hero a:hover { background:#fff; color:var(--brand1); }
+    .market-admin-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:.8rem; margin:1rem 0; }
+    .market-admin-stat { display:flex; align-items:center; gap:.8rem; padding:1rem; border:1px solid var(--border); border-radius:14px; background:#fff; box-shadow:0 7px 20px rgba(50,28,34,.05); }
+    .market-admin-stat > span { width:42px; height:42px; flex:0 0 auto; display:grid; place-items:center; border-radius:12px; color:var(--brand1); background:#f7ece8; font-size:1.2rem; }
+    .market-admin-stat strong { display:block; color:#2d1b20; font-size:1.2rem; font-weight:800; }
+    .market-admin-stat small { margin-top:.12rem; color:var(--muted); font-size:.7rem; display:block; }
+    .market-store-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:1rem; }
+    .market-store-card { border:1px solid var(--border); border-radius:14px; background:#fff; overflow:hidden; box-shadow:0 6px 18px rgba(0,0,0,0.04); display:flex; flex-direction:column; }
+    .market-store-card-header { height:90px; background:#4a2328; position:relative; background-size:cover; background-position:center; }
+    .market-store-card-body { padding:1rem; flex:1; display:flex; flex-direction:column; }
+    .market-store-card-avatar { width:54px; height:54px; border-radius:12px; border:3px solid #fff; position:absolute; bottom:-18px; left:16px; background:#fff; object-fit:cover; box-shadow:0 4px 10px rgba(0,0,0,0.15); }
+    .market-store-card-title { margin:1rem 0 .3rem; font-size:1rem; font-weight:800; color:#1a202c; display:flex; justify-content:space-between; align-items:center; }
+    .market-store-card-bio { font-size:.76rem; color:var(--muted); line-height:1.45; margin-bottom:.8rem; flex:1; }
+    .market-store-admins-chip { display:inline-flex; align-items:center; gap:4px; font-size:.7rem; background:#f1f5f9; padding:2px 8px; border-radius:6px; margin:2px; color:#475569; }
+    .market-store-admins-chip button { background:none; border:none; color:#ef4444; font-weight:bold; cursor:pointer; padding:0 2px; }
+    .market-badge { display:inline-block; border-radius:999px; padding:.15rem .5rem; font-weight:800; font-size:.68rem; text-transform:uppercase; letter-spacing:.03em; }
+    .market-badge.active { color:#166534; background:#dcfce7; }
+    .market-badge.inactive { color:#991b1b; background:#fee2e2; }
+    .market-badge.pending { color:#92400e; background:#fef3c7; }
+    .market-actions-row { display:flex; gap:.4rem; flex-wrap:wrap; margin-top:auto; padding-top:.8rem; border-top:1px solid var(--border); }
+    .img-upload-box { margin-top:.4rem; display:flex; align-items:center; gap:.75rem; }
+    .img-preview-box { width:52px; height:52px; border-radius:10px; border:1px solid var(--border); object-fit:cover; background:#fff; }
+    .img-preview-box.banner { width:120px; height:42px; }
+    .market-item-table { width:100%; border-collapse:collapse; font-size:.82rem; }
+    .market-item-table th { text-align:left; padding:.65rem .75rem; border-bottom:2px solid var(--border); color:var(--muted); font-size:.74rem; font-weight:700; text-transform:uppercase; }
+    .market-item-table td { padding:.75rem; border-bottom:1px solid var(--border); vertical-align:middle; }
+    .market-item-table tr:hover td { background:#fafaf9; }
+    .market-item-thumb { width:46px; height:46px; border-radius:8px; object-fit:cover; border:1px solid var(--border); }
+
   </style>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1957758165451331" crossorigin="anonymous"></script>
   <script async custom-element="amp-auto-ads" src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js"></script>
@@ -188,7 +596,8 @@
     <aside class="sidebar">
       <h3 data-en="Navigate" data-ar="التنقل">Navigate</h3>
       <ul class="nav" id="mainNav">
-        <li><button data-tab="community" data-en="Community" data-ar="Community">Community</button></li>
+        <li><button data-tab="community" data-en="Community" data-ar="المجتمع">Community</button></li>
+        <li><button data-tab="market" data-en="Market" data-ar="السوق">Market</button></li>
         <li><button data-tab="events" class="active" data-en="Events" data-ar="الفعاليات">Events</button></li>
         <li><button data-tab="articles" data-en="Magazine" data-ar="المجلة">Magazine</button></li>
         <li><button data-tab="library" data-en="Library" data-ar="المكتبة">Library</button></li>
