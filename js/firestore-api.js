@@ -1376,6 +1376,43 @@ class FirestoreAPI {
       return [];
     }
   }
+
+  // ── PORTFOLIO EXPLORER TAXONOMY ───────────────────────────────────
+  async getPortfolioTags() {
+    try {
+      const snap = await getDoc(doc(this.db, "config", "portfolioTags"));
+      return snap.exists() && Array.isArray(snap.data().tags) ? snap.data().tags : [];
+    } catch (e) {
+      console.error("Error loading portfolio tags:", e);
+      throw e;
+    }
+  }
+
+  async savePortfolioTags(tags) {
+    try {
+      const cleanTags = [];
+      const usedIds = new Set();
+      for (const source of (tags || []).slice(0, 50)) {
+        const en = toStr(source?.en).trim().slice(0, 60);
+        if (!en) continue;
+        const ar = toStr(source?.ar || en).trim().slice(0, 60);
+        const baseId = toStr(source?.id || en.toLowerCase().replace(/[^a-z0-9]+/g, '_')).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 60) || `tag_${cleanTags.length + 1}`;
+        let id = baseId;
+        let suffix = 2;
+        while (usedIds.has(id)) id = `${baseId}_${suffix++}`.slice(0, 60);
+        usedIds.add(id);
+        cleanTags.push({id, en, ar});
+      }
+      await setDoc(doc(this.db, "config", "portfolioTags"), {
+        tags: cleanTags,
+        updatedAt: new Date().toISOString()
+      }, {merge: true});
+      return {success: true, tags: cleanTags};
+    } catch (e) {
+      console.error("Error saving portfolio tags:", e);
+      return {success: false, error: e.message};
+    }
+  }
 }
 
 window.FirestoreAPI = FirestoreAPI;

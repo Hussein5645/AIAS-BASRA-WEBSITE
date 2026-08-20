@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <script type="module" src="js/auth.js?v=20260815_fixed"></script>
-  <script type="module" src="js/firestore-api.js?v=20260815_fixed"></script>
+  <script type="module" src="js/firestore-api.js?v=20260820_portfolio_tags"></script>
   <script src="js/main.js" defer></script>
   <style>
     :root {
@@ -445,6 +445,7 @@
           <section class="community-admin-card"><header class="community-admin-card-head"><span>✓</span><div><h3>Submitted project approvals</h3><p>Review projects members requested for the Selected Projects page.</p></div></header><div class="community-admin-card-body"><div id="communityAdminList"><p>Loading project requests…</p></div></div></section>
           <section class="community-admin-card"><header class="community-admin-card-head"><span>#</span><div><h3>Manage community spaces</h3><p>Open, archive, or restore spaces created by members.</p></div></header><div class="community-admin-card-body"><p class="community-spaces-note">New spaces are created by members from the Community page. This dashboard only manages existing spaces.</p><div id="communitySpacesAdmin"><p>Loading community spaces…</p></div></div></section>
           <section class="community-admin-card"><header class="community-admin-card-head"><span>✓</span><div><h3>Verify a community account</h3><p>Enter a member’s sign-in email to add the official verification mark to their community identity.</p></div></header><div class="community-admin-card-body"><form id="communityVerificationForm" class="community-verification-form"><div class="form-group"><label for="communityVerificationEmail">Member email</label><input id="communityVerificationEmail" type="email" required autocomplete="email" placeholder="member@example.com"></div><button class="submit-btn" type="submit">Verify account</button><p id="communityVerificationStatus" class="community-verification-status" aria-live="polite"></p></form></div></section>
+          <section class="community-admin-card wide"><header class="community-admin-card-head"><span>🏷️</span><div><h3>Portfolio Explorer tags</h3><p>Add, edit, or remove the profession filters shown in the Portfolio Explorer. Changes are saved in Firebase and appear on the public portfolio page.</p></div></header><div class="community-admin-card-body"><div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.7fr);gap:20px;align-items:start"><div id="portfolioTagsAdminList"><p>Loading portfolio tags…</p></div><div style="background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:16px"><h4 id="portfolioTagFormHeading" style="margin:0 0 10px;font-size:.9rem;color:#1e293b">Add portfolio tag</h4><form id="portfolioTagForm"><input type="hidden" id="portfolioTagId"><div class="form-group" style="margin-bottom:10px"><label for="portfolioTagNameEn">Tag name (English) *</label><input id="portfolioTagNameEn" required maxlength="60" placeholder="e.g. Urban Planning"></div><div class="form-group" style="margin-bottom:12px"><label for="portfolioTagNameAr">Tag name (Arabic)</label><input id="portfolioTagNameAr" maxlength="60" dir="rtl" placeholder="مثال: التخطيط الحضري"></div><div style="display:flex;gap:8px"><button type="submit" id="savePortfolioTagBtn" class="submit-btn" style="flex:1">Save tag</button><button type="button" id="cancelPortfolioTagEditBtn" class="btn" style="display:none" onclick="window.cancelEditPortfolioTag()">Cancel</button></div><p id="portfolioTagFormStatus" style="margin:.7rem 0 0;font-size:.78rem" aria-live="polite"></p></form></div></div></div></section>
           <section class="community-admin-card wide"><header class="community-admin-card-head"><span>?</span><div><h3>Question of the Week</h3><p>Publish a new weekly question or select one already submitted by a community member.</p></div></header><div class="community-admin-card-body"><form id="weeklyQuestionForm" class="community-question-form"><div class="form-group"><label for="weeklyQuestionTitle">Question</label><input id="weeklyQuestionTitle" required maxlength="160" placeholder="What should our community discuss this week?"></div><div class="form-group"><label for="weeklyQuestionContext">Helpful context</label><textarea id="weeklyQuestionContext" required maxlength="2000" placeholder="Add context that helps members give useful answers."></textarea></div><button class="submit-btn" type="submit">Publish as Question of the Week</button><p id="weeklyQuestionStatus" style="margin-top:.75rem" aria-live="polite"></p></form><div id="communityPromptAdmin"><p>Loading community questions…</p></div></div></section>
         </div>
       </section>
@@ -1292,8 +1293,110 @@
     });
 
     async function loadCommunityAdminData() {
-      await Promise.all([loadCommunityAdminPosts(), loadCommunityPromptAdmin(), loadCommunitySpacesAdmin()]);
+      await Promise.all([loadCommunityAdminPosts(), loadCommunityPromptAdmin(), loadCommunitySpacesAdmin(), loadPortfolioTagsAdmin()]);
     }
+
+    let cachedPortfolioTags = [];
+
+    function renderPortfolioTagsAdmin(tags) {
+      const container = document.getElementById('portfolioTagsAdminList');
+      if (!container) return;
+      if (!tags.length) {
+        container.innerHTML = '<p style="color:var(--muted)">No Portfolio Explorer tags are configured. The Explorer will show only “All professions” until you add one.</p>';
+        return;
+      }
+      container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px">${tags.map(tag => `<article style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:11px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="min-width:0"><strong style="display:block;font-size:.84rem;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${communityEscape(tag.en)}</strong><small style="display:block;color:var(--muted);font-size:.72rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" dir="rtl">${communityEscape(tag.ar || tag.en)}</small></div><div style="display:flex;gap:4px;flex-shrink:0"><button type="button" class="mini-btn" style="background:#f1f5f9;color:#334155;padding:4px 8px" data-edit-portfolio-tag="${communityEscape(tag.id)}">Edit</button><button type="button" class="mini-btn" style="background:#fee2e2;color:#991b1b;padding:4px 8px" aria-label="Remove ${communityEscape(tag.en)}" data-delete-portfolio-tag="${communityEscape(tag.id)}">×</button></div></article>`).join('')}</div>`;
+      container.querySelectorAll('[data-edit-portfolio-tag]').forEach(button => button.addEventListener('click', () => window.editPortfolioTag(button.dataset.editPortfolioTag)));
+      container.querySelectorAll('[data-delete-portfolio-tag]').forEach(button => button.addEventListener('click', () => window.deletePortfolioTag(button.dataset.deletePortfolioTag)));
+    }
+
+    async function loadPortfolioTagsAdmin() {
+      const container = document.getElementById('portfolioTagsAdminList');
+      if (!container) return;
+      try {
+        cachedPortfolioTags = await firestoreAPI.getPortfolioTags();
+        renderPortfolioTagsAdmin(cachedPortfolioTags);
+      } catch (error) {
+        console.error('[PortfolioTags] Load failed', error);
+        container.innerHTML = '<p style="color:var(--error)">Could not load portfolio tags from Firebase.</p>';
+      }
+    }
+
+    window.editPortfolioTag = function(tagId) {
+      const tag = cachedPortfolioTags.find(item => item.id === tagId);
+      if (!tag) return;
+      document.getElementById('portfolioTagId').value = tag.id;
+      document.getElementById('portfolioTagNameEn').value = tag.en || '';
+      document.getElementById('portfolioTagNameAr').value = tag.ar || '';
+      document.getElementById('portfolioTagFormHeading').textContent = 'Edit portfolio tag';
+      document.getElementById('savePortfolioTagBtn').textContent = 'Update tag';
+      document.getElementById('cancelPortfolioTagEditBtn').style.display = 'inline-block';
+      document.getElementById('portfolioTagNameEn').focus();
+    };
+
+    window.cancelEditPortfolioTag = function() {
+      document.getElementById('portfolioTagForm').reset();
+      document.getElementById('portfolioTagId').value = '';
+      document.getElementById('portfolioTagFormHeading').textContent = 'Add portfolio tag';
+      document.getElementById('savePortfolioTagBtn').textContent = 'Save tag';
+      document.getElementById('cancelPortfolioTagEditBtn').style.display = 'none';
+      document.getElementById('portfolioTagFormStatus').textContent = '';
+    };
+
+    window.deletePortfolioTag = async function(tagId) {
+      const tag = cachedPortfolioTags.find(item => item.id === tagId);
+      if (!tag || !confirm(`Remove “${tag.en}” from the Portfolio Explorer?`)) return;
+      try {
+        const updated = cachedPortfolioTags.filter(item => item.id !== tagId);
+        const result = await firestoreAPI.savePortfolioTags(updated);
+        if (!result.success) throw new Error(result.error || 'Firebase rejected the update.');
+        cachedPortfolioTags = result.tags;
+        renderPortfolioTagsAdmin(cachedPortfolioTags);
+        if (document.getElementById('portfolioTagId').value === tagId) window.cancelEditPortfolioTag();
+        showMessage('Portfolio tag removed from Firebase.', 'success');
+      } catch (error) {
+        showMessage(error.message || 'Could not remove the portfolio tag.', 'error');
+      }
+    };
+
+    document.getElementById('portfolioTagForm')?.addEventListener('submit', async event => {
+      event.preventDefault();
+      const button = document.getElementById('savePortfolioTagBtn');
+      const status = document.getElementById('portfolioTagFormStatus');
+      const tagId = document.getElementById('portfolioTagId').value.trim();
+      const en = document.getElementById('portfolioTagNameEn').value.trim();
+      const ar = document.getElementById('portfolioTagNameAr').value.trim();
+      if (!canManage(currentAccess, 'community')) { status.style.color = '#b91c1c'; status.textContent = 'You do not have permission to manage Community settings.'; return; }
+      const duplicate = cachedPortfolioTags.some(tag => tag.id !== tagId && tag.en.toLowerCase() === en.toLowerCase());
+      if (duplicate) { status.style.color = '#b91c1c'; status.textContent = 'A portfolio tag with this English name already exists.'; return; }
+      try {
+        button.disabled = true;
+        button.textContent = 'Saving…';
+        const tags = [...cachedPortfolioTags];
+        if (tagId) {
+          const index = tags.findIndex(tag => tag.id === tagId);
+          if (index !== -1) tags[index] = {...tags[index], en, ar};
+        } else {
+          const baseId = en.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || `tag_${Date.now()}`;
+          let id = baseId;
+          let suffix = 2;
+          while (tags.some(tag => tag.id === id)) id = `${baseId}_${suffix++}`;
+          tags.push({id, en, ar});
+        }
+        const result = await firestoreAPI.savePortfolioTags(tags);
+        if (!result.success) throw new Error(result.error || 'Firebase rejected the update.');
+        cachedPortfolioTags = result.tags;
+        renderPortfolioTagsAdmin(cachedPortfolioTags);
+        window.cancelEditPortfolioTag();
+        showMessage('Portfolio Explorer tags saved to Firebase.', 'success');
+      } catch (error) {
+        status.style.color = '#b91c1c';
+        status.textContent = error.message || 'Could not save the portfolio tag.';
+      } finally {
+        button.disabled = false;
+        button.textContent = document.getElementById('portfolioTagId').value ? 'Update tag' : 'Save tag';
+      }
+    });
 
     async function loadCommunityPromptAdmin() {
       const box = document.getElementById('communityPromptAdmin');
