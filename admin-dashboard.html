@@ -3442,10 +3442,10 @@
             const bannerFile = document.getElementById('marketStoreBannerFile')?.files[0];
 
             if (profileFile) {
-              profileImage = await firestoreAPI.uploadMarketFile(profileFile, 'stores/logos');
+              profileImage = await firestoreAPI.uploadMarketFile(profileFile, 'platform/stores/logos');
             }
             if (bannerFile) {
-              bannerImage = await firestoreAPI.uploadMarketFile(bannerFile, 'stores/banners');
+              bannerImage = await firestoreAPI.uploadMarketFile(bannerFile, 'platform/stores/banners');
             }
 
             const storeData = {
