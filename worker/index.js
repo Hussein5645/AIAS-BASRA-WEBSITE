@@ -1,6 +1,7 @@
 import {validPath} from './policy.js';
 import {runtime,context,configureTriggers} from './platform.js';
-import {canAccessMedia,permissions} from './access.js';
+import {canAccessMedia,permissions,isAdministrator} from './access.js';
+import {hosts,canonical,communityPage,safeReturn,authOrigin} from './sites.js';
 import {communityHandlers} from './community/handlers.js';
 import {databaseRoute,batchRoute,functionRoute,storageRoute,mediaRoute,shareRoute,json} from './routes.js';
 import {pushRoute,sendNotification} from './push.js';
@@ -11,12 +12,12 @@ const cookie = (request, key) => (request.headers.get('Cookie') || '').split(';'
 const random = () => Array.from(crypto.getRandomValues(new Uint8Array(32)),x=>x.toString(16).padStart(2,'0')).join('');
 async function hash(value) { return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value))),x=>x.toString(16).padStart(2,'0')).join(''); }
 async function session(request,env) {
-  const token = cookie(request,'aias_session');
+  const token = cookie(request,'__Secure-aias_session')||cookie(request,'aias_session');
   if (!token) return null;
   const row = await env.DB.prepare('SELECT user_json FROM sessions WHERE token_hash=? AND expires_at>?').bind(await hash(token),Date.now()).first();
   return row ? JSON.parse(row.user_json) : null;
 }
-function sessionCookie(token,seconds) { return `aias_session=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${seconds}`; }
+function sessionCookie(token,seconds,url) { return `__Secure-aias_session=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${seconds}${hosts.includes(url.hostname)?'; Domain=aiasbsr.com':''}`; }
 async function createSession(env,profile) {
   let identity=await env.DB.prepare('SELECT * FROM identities WHERE google_subject=?').bind(profile.sub).first();
   if(identity?.disabled)fail(403,'This account is disabled.');
@@ -27,21 +28,32 @@ async function createSession(env,profile) {
   return {user,token};
 }
 async function authRoute(request,env,url) {
-  if (url.pathname==='/api/auth/session') return json({user:await session(request,env)});
+  if (url.pathname==='/api/auth/session') {
+    const user=await session(request,env),headers=new Headers({'Content-Type':'application/json','Cache-Control':'no-store'});
+    if(user&&!cookie(request,'__Secure-aias_session')&&cookie(request,'aias_session')){
+      headers.append('Set-Cookie',sessionCookie(cookie(request,'aias_session'),604800,url));
+      headers.append('Set-Cookie','aias_session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0');
+    }
+    return new Response(JSON.stringify({user}),{headers});
+  }
   if (url.pathname==='/api/auth/logout' && request.method==='POST') {
-    const token=cookie(request,'aias_session');
+    const token=cookie(request,'__Secure-aias_session')||cookie(request,'aias_session');
     if (token) await env.DB.prepare('DELETE FROM sessions WHERE token_hash=?').bind(await hash(token)).run();
-    return json({success:true},200,{'Set-Cookie':sessionCookie('',0)});
+    const headers=new Headers({'Content-Type':'application/json','Cache-Control':'no-store'});
+    headers.append('Set-Cookie',sessionCookie('',0,url));headers.append('Set-Cookie','aias_session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0');
+    return new Response(JSON.stringify({success:true}),{headers});
   }
   if (url.pathname==='/api/auth/start') {
+    if(url.origin!==authOrigin(url)){
+      const central=new URL('/api/auth/start',authOrigin(url));central.searchParams.set('return',safeReturn(url.searchParams.get('return')||'/login.html',url.origin).href);return Response.redirect(central.href,302);
+    }
     if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) fail(503,'Google sign-in needs its Cloudflare OAuth configuration.');
     const state=random();
     const next=url.searchParams.get('return') || '/login.html';
-    const destination=new URL(next,url.origin);
-    if (destination.origin!==url.origin || !['/login.html','/signup.html','/admin-storage.html','/community.html','/admin-dashboard.html'].includes(destination.pathname)) fail(400,'Invalid return address');
+    const destination=safeReturn(next,url.origin);
     const endpoint=new URL('https://accounts.google.com/o/oauth2/v2/auth');
     endpoint.search=new URLSearchParams({client_id:env.GOOGLE_CLIENT_ID,redirect_uri:url.origin+'/api/auth/callback',response_type:'code',scope:'openid email profile',state}).toString();
-    return new Response(null,{status:302,headers:{Location:endpoint.href,'Set-Cookie':`aias_oauth=${state}.${encodeURIComponent(destination.pathname+destination.search)}; Path=/api/auth; HttpOnly; Secure; SameSite=Lax; Max-Age=600`}});
+    return new Response(null,{status:302,headers:{Location:endpoint.href,'Set-Cookie':`aias_oauth=${state}.${encodeURIComponent(destination.href)}; Path=/api/auth; HttpOnly; Secure; SameSite=Lax; Max-Age=600`}});
   }
   if (url.pathname==='/api/auth/callback') {
     const saved=cookie(request,'aias_oauth') || '';
@@ -56,10 +68,9 @@ async function authRoute(request,env,url) {
     const profile=await info.json();
     if (!profile.email_verified) fail(403,'A verified email is required.');
     const {token}=await createSession(env,profile);
-    const target=new URL(decodeURIComponent(next || '%2Flogin.html'),url.origin);
-    if (target.origin!==url.origin) fail(400,'Invalid return address');
+    const target=safeReturn(decodeURIComponent(next || '%2Flogin.html'),url.origin);
     const headers=new Headers({Location:target.href,'Cache-Control':'no-store'});
-    headers.append('Set-Cookie',sessionCookie(token,604800));
+    headers.append('Set-Cookie',sessionCookie(token,604800,url));
     headers.append('Set-Cookie','aias_oauth=; Path=/api/auth; HttpOnly; Secure; SameSite=Lax; Max-Age=0');
     return new Response(null,{status:302,headers});
   }
@@ -88,11 +99,24 @@ export default {
  async fetch(request,env,execution){
   const url=new URL(request.url);
   try{
+   if(url.pathname.includes('%')){
+    const decoded=decodeURIComponent(url.pathname);if(/[\u0000-\u001f\\]/.test(decoded)||decoded.split('/').some(part=>part==='.'||part==='..')||!url.pathname.startsWith('/media/')&&/%[0-9a-f]{2}/i.test(decoded))fail(400,'Invalid path');url.pathname=decoded;request=new Request(url,request);
+   }
+   if(url.pathname.includes('//')){url.pathname=url.pathname.replace(/\/{2,}/g,'/');request=new Request(url,request);}
    if(url.pathname.startsWith('/api/')&&request.method!=='GET'&&request.headers.get('Origin')!==url.origin)fail(403,'Invalid request origin');
    if(url.hostname==='www.aiasbsr.com'){url.hostname='aiasbsr.com';return Response.redirect(url.href,308);}
-   const needsUser=url.pathname.startsWith('/api/')||url.pathname.startsWith('/media/')||url.pathname.startsWith('/share');
+   if(hosts.includes(url.hostname)&&url.hostname!=='aiasbsr.com'&&['/login.html','/signup.html'].includes(url.pathname)){
+    const target=new URL(url.pathname,authOrigin(url));target.searchParams.set('next',safeReturn(url.searchParams.get('next')||'/',url.origin).href);return Response.redirect(target.href,302);
+   }
+   const redirect=canonical(url);if(redirect)return Response.redirect(redirect.href,308);
+   const needsUser=url.pathname.startsWith('/api/')||url.pathname.startsWith('/media/')||url.pathname.startsWith('/share')||communityPage(url)||url.pathname.startsWith('/admin-');
    const user=needsUser?await session(request,env):null;
    return await runtime.run({env,user,execution,origin:url.origin},async()=>{
+    if(communityPage(url)&&!await isAdministrator())return new Response('<!doctype html><html lang="en"><meta name="viewport" content="width=device-width"><title>Private preview</title><body style="font:18px system-ui;max-width:560px;margin:15vh auto;padding:24px"><h1>Private preview</h1><p>Community is available to administrators only.</p><a href="https://aiasbsr.com/admin-dashboard.html">Open admin dashboard</a></body></html>',{status:403,headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'private, no-store','X-Robots-Tag':'noindex, nofollow'}});
+    if(url.pathname.startsWith('/admin-')&&url.pathname.endsWith('.html')&&!await isAdministrator()){
+     if(user)fail(403,'Administrator access is required.');
+     const login=new URL('/login.html',authOrigin(url));login.searchParams.set('next',url.href);return Response.redirect(login.href,302);
+    }
     if(url.pathname.startsWith('/api/')){
      if(!env.DB||!env.MEDIA)fail(503,'Cloudflare database and storage bindings are required.');
      if(request.method!=='GET'&&request.headers.get('Origin')!==url.origin)fail(403,'Invalid request origin');
@@ -114,9 +138,14 @@ export default {
     if(url.pathname.startsWith('/media/'))return serveMedia(request,env,decodeURIComponent(url.pathname.slice(7)));
     if(url.pathname.startsWith('/share'))return shareRoute(request,url);
     if(publicAssets.has(decodeURIComponent(url.pathname.slice(1))))return serveMedia(request,env,decodeURIComponent(url.pathname.slice(1)));
-    if(url.pathname==='/'){url.pathname=url.searchParams.has('post')||url.searchParams.has('view')?'/community.html':'/index.html';return env.ASSETS.fetch(new Request(url,request));}
-    if(/^\/(a|p)\/[^/]+\/?$/.test(url.pathname)||url.pathname==='/community'){url.pathname='/community.html';return env.ASSETS.fetch(new Request(url,request));}
-    return env.ASSETS.fetch(request);
+    const asset=async target=>{
+     const response=await env.ASSETS.fetch(new Request(target,request));
+     if(communityPage(new URL(request.url))||url.pathname.startsWith('/admin-')){const headers=new Headers(response.headers);headers.set('Cache-Control','private, no-store');headers.set('X-Robots-Tag','noindex, nofollow');return new Response(response.body,{status:response.status,headers});}
+     return response;
+    };
+    if(url.pathname==='/'){url.pathname=url.hostname==='professional.aiasbsr.com'?'/portfolios.html':url.hostname==='market.aiasbsr.com'?'/market.html':url.hostname==='community.aiasbsr.com'||url.searchParams.has('post')||url.searchParams.has('view')?'/community.html':'/index.html';return asset(url);}
+    if(/^\/(a|p)\/[^/]+\/?$/.test(url.pathname)||url.pathname==='/community'){url.pathname='/community.html';return asset(url);}
+    return asset(url);
    });
   }catch(error){
    if(!error.status)console.error('Request failed:',error.message);

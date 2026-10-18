@@ -12,10 +12,9 @@
     ];
     let dynamicSearchData = [];
     SEARCH_DATA.push(
-        { title: 'Community', titleAr: 'Community', url: '/community.html', type: 'Page', typeAr: 'Page', description: 'Text posts, profiles, discussions and project submissions', descriptionAr: 'Text posts, profiles, discussions and project submissions', keywords: 'community posts profile discussion behance projects' },
-        { title: 'Selected Projects', titleAr: 'Selected Projects', url: '/community.html?view=selected', type: 'Page', typeAr: 'Page', description: 'Selected community design work', descriptionAr: 'Selected community design work', keywords: 'community selected projects behance' }
+        {title:'BASRA Professional', titleAr:'بصرة للمحترفين', url:'https://professional.aiasbsr.com/', type:'Page', typeAr:'صفحة', description:'Portfolios and professional opportunities', keywords:'professional portfolios work people'},
+        {title:'Market', titleAr:'السوق', url:'https://market.aiasbsr.com/', type:'Page', typeAr:'صفحة', description:'Stores, resources, and portfolio themes', keywords:'market store resources themes'}
     );
-
     function getSearchLanguage() {
         return localStorage.getItem('language') === 'ar' ? 'ar' : 'en';
     }

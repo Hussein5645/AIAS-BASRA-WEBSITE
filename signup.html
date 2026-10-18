@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -254,6 +254,7 @@
             }
         }
     </style>
+<script type="module" src="/js/product-navigation.js"></script>
 </head>
 <body>
     <button class="language-toggle-auth" id="languageToggle" aria-label="Change language">
@@ -381,9 +382,11 @@
         }
 
         function safeNext(fallback) {
-            return requestedNext && !requestedNext.includes('..') && /^[A-Za-z0-9_/-]+(?:\.html)?(?:\?[A-Za-z0-9_%=&.-]+)?$/.test(requestedNext)
-                ? requestedNext
-                : fallback;
+            try {
+                const target = new URL(requestedNext || fallback, location.origin);
+                const trusted = ['aiasbsr.com','professional.aiasbsr.com','market.aiasbsr.com','community.aiasbsr.com'];
+                return target.origin === location.origin || target.protocol === 'https:' && trusted.includes(target.hostname) && !target.port && !target.username && !target.password ? target.href : fallback;
+            } catch { return fallback; }
         }
 
         function normalizeUsername(value) {

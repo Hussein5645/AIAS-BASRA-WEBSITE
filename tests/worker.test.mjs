@@ -21,7 +21,7 @@ async function api(path,body,token='admin-session',method='POST'){
 }
 before(async()=>{
   execFileSync(process.execPath,[path.resolve('node_modules/wrangler/bin/wrangler.js'),'deploy','--dry-run','--outdir','.migration/test-worker'],{stdio:'pipe',windowsHide:true});
-  mf=new Miniflare(convertV4MiniflareOptions({modules:true,script:await readFile('.migration/test-worker/index.js','utf8'),compatibilityDate:'2026-10-18',compatibilityFlags:['nodejs_compat'],d1Databases:['DB'],r2Buckets:['MEDIA'],bindings:{ADMIN_EMAILS:admin.email}}));
+  mf=new Miniflare(convertV4MiniflareOptions({modules:true,script:await readFile('.migration/test-worker/index.js','utf8'),compatibilityDate:'2026-10-18',compatibilityFlags:['nodejs_compat'],d1Databases:['DB'],r2Buckets:['MEDIA'],serviceBindings:{ASSETS:async request=>new Response(new URL(request.url).pathname,{headers:{'Content-Type':'text/html'}})},bindings:{ADMIN_EMAILS:admin.email}}));
   db=await mf.getD1Database('DB');
   for(const file of (await readdir('migrations')).sort()){
    const sql=await readFile('migrations/'+file,'utf8');
@@ -111,4 +111,39 @@ test('batches roll back all changes when a read version is stale',async()=>{
  await api('/api/db',{action:'update',path,data:{title:'Updated'}});
  const result=await api('/api/batch',{operations:[{action:'update',path,data:{title:'Stale'}},{action:'set',path:'content/events/items/rollback',data:{title:'Must roll back'}}],readVersions:{[path]:current.document.version}});
  assert.equal(result.status,409);assert.equal(await db.prepare('SELECT * FROM documents WHERE path=?').bind('content/events/items/rollback').first(),null);
+});
+
+
+test('Community is admin-only across direct links, APIs, and media while public products remain accessible',async()=>{
+ const outsider={uid:'ordinary-visitor',email:'ordinary@example.com'};await session(outsider,'ordinary-session');
+ await api('/api/db',{action:'set',path:'communityPosts/public-preview',data:{userId:'owner',published:true,visibility:'public'}});
+ await api('/api/db',{action:'set',path:'communitySpaces/open-preview',data:{creatorId:'owner',archived:false}});
+ for(const token of ['', 'ordinary-session']){
+  const headers={Cookie:token?'aias_session='+token:''};
+  for(const address of ['https://community.aiasbsr.com/','https://community.aiasbsr.com/community.html','https://example.com/%63ommunity.html','https://example.com//community.html','https://example.com/share/public-preview'])assert.equal((await mf.dispatchFetch(address,{headers})).status,403,address);
+  assert.equal((await api('/api/db',{action:'get',path:'communityPosts/public-preview'},token)).status,token?403:401);
+  assert.equal((await api('/api/functions/createCommunityPost',{text:'bypass'},token)).status,token?403:401);
+  const list=await (await api('/api/db',{action:'list',path:'communitySpaces'},token)).json();assert.equal(list.documents.length,0);
+ }
+ assert.equal((await mf.dispatchFetch('https://example.com/%2563ommunity.html')).status,400);
+ for(const host of ['aiasbsr.com','professional.aiasbsr.com','market.aiasbsr.com'])assert.equal((await mf.dispatchFetch('https://'+host+'/')).status,200);
+ const preview=await mf.dispatchFetch('https://community.aiasbsr.com/',{headers:{Cookie:'aias_session=admin-session'}});assert.equal(preview.status,200);assert.match(preview.headers.get('Cache-Control'),/no-store/);
+ // Even an administrator assigned to Events can open the preview; editing retains its existing permissions.
+ assert.equal((await mf.dispatchFetch('https://community.aiasbsr.com/',{headers:{Cookie:'aias_session=member-session'}})).status,200);
+});
+
+test('legacy sign-in is upgraded to one secure cookie shared across products and logout revokes it everywhere',async()=>{
+ await session(admin,'shared-session');
+ const upgraded=await mf.dispatchFetch('https://aiasbsr.com/api/auth/session',{headers:{Cookie:'aias_session=shared-session'}});
+ assert.match(upgraded.headers.get('Set-Cookie'),/__Secure-aias_session=shared-session/);assert.match(upgraded.headers.get('Set-Cookie'),/Domain=aiasbsr.com/);assert.match(upgraded.headers.get('Set-Cookie'),/HttpOnly/);
+ for(const host of ['professional','market','community'])assert.equal((await (await mf.dispatchFetch('https://'+host+'.aiasbsr.com/api/auth/session',{headers:{Cookie:'__Secure-aias_session=shared-session'}})).json()).user.uid,admin.uid);
+ assert.equal((await mf.dispatchFetch('https://market.aiasbsr.com/api/auth/logout',{method:'POST',headers:{Origin:'https://professional.aiasbsr.com',Cookie:'__Secure-aias_session=shared-session'}})).status,403);
+ const logout=await mf.dispatchFetch('https://market.aiasbsr.com/api/auth/logout',{method:'POST',headers:{Origin:'https://market.aiasbsr.com',Cookie:'__Secure-aias_session=shared-session'}});assert.equal(logout.status,200);
+ assert.equal((await (await mf.dispatchFetch('https://professional.aiasbsr.com/api/auth/session',{headers:{Cookie:'__Secure-aias_session=shared-session'}})).json()).user,null);
+});
+
+test('subdomain login uses the central OAuth client and preserves its destination',async()=>{
+ const response=await mf.dispatchFetch('https://professional.aiasbsr.com/login.html?next=portfolio-builder.html',{redirect:'manual'});assert.equal(response.status,302);
+ const target=new URL(response.headers.get('Location'));assert.equal(target.origin,'https://aiasbsr.com');assert.equal(target.searchParams.get('next'),'https://professional.aiasbsr.com/portfolio-builder.html');
+ assert.equal((await mf.dispatchFetch('https://market.aiasbsr.com/login.html?next=https://evil.example')).status,400);
 });

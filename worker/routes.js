@@ -1,5 +1,5 @@
 import {context,record,Query,commit,HttpsError} from './platform.js';
-import {canRead,canReadPost,authorizeWrite,canAccessMedia,permissions} from './access.js';
+import {canRead,canReadPost,authorizeWrite,canAccessMedia,permissions,isAdministrator,releasedPath} from './access.js';
 import {validPath} from './policy.js';
 import {communityHandlers} from './community/handlers.js';
 export const json=(value,status=200,headers={})=>Response.json(value,{status,headers:{'Cache-Control':'no-store',...headers}});
@@ -44,6 +44,12 @@ export async function batchRoute(request){const data=await body(request);return 
 export async function functionRoute(request,name){
  if(!Object.hasOwn(communityHandlers,name)||['communityShare','syncCommunityPublicProfile'].includes(name))throw new HttpsError('not-found','Unknown function');
  const data=await body(request),user=context().user;
+ if(!await isAdministrator()){
+  const professional=/^(?:save|delete|unpublish|record|remove|set)(?:Portfolio|Business)|^(?:removeSavedPortfolioTheme|submitJobApplication|updateJobApplicationStatus|openDirectConversation|getCommunityAdminAccess)$/;
+  const profile=name==='setCommunitySpaceConnection'&&data.operation==='complete_profile';
+  const direct=name==='setCommunitySpaceConnection'&&['send_space_message','mark_space_messages_seen','toggle_space_message_applause','set_space_message_reaction','edit_space_message','delete_space_message'].includes(data.operation)&&await releasedPath('communitySpaces/'+(data.spaceId||data.communitySlug||''));
+  if(!professional.test(name)&&!profile&&!direct)deny('Community is available to administrators only.');
+ }
  if(name==='getCommunityThread'){
   const id=data.postId||data.parentPostId;if(!id||!validPath('communityPosts/'+id)||!await canReadPost((await record('communityPosts/'+id))?.data))deny('This post is unavailable.');
  }

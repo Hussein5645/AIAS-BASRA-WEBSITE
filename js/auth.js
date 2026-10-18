@@ -114,7 +114,7 @@ function bindLogoutHandler() {
 
         clearLocalAuthState(true);
         window.dispatchEvent(new CustomEvent('aias-auth-state-updated'));
-        window.location.href = '/community.html';
+        window.location.href = 'https://aiasbsr.com/';
     });
 }
 
@@ -162,7 +162,7 @@ window.addEventListener('aias-auth-state-updated', syncAuthUI);
 
             // Protect admin page for admin users only
             if (currentPage === ADMIN_PAGE && !access.allowed) {
-                window.location.href = '/community.html';
+                window.location.href = 'https://aiasbsr.com/';
             }
         } else {
             // Keep local auth markers in sync when Firebase user is signed out

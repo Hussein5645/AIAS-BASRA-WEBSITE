@@ -15,6 +15,16 @@ export async function permissions(){
   return store.permissions=roles?.roles?.[role]?.permissions||[];
 }
 const has=async(name)=>{const list=await permissions();return list.includes('*')||list.includes(name);};
+export const isAdministrator=async()=>(await permissions()).length>0;
+// Professional uses private direct conversations, but never Community spaces or posts.
+export async function releasedPath(path){
+  const p=path.split('/');
+  if(!/^community(?:Posts|Spaces|Settings|Moderation)/.test(p[0]))return true;
+  if(await isAdministrator())return true;
+  if(p[0]!=='communitySpaces')return false;
+  const space=await value('communitySpaces/'+p[1]);
+  return !!context().user&&space?.isDirectMessage===true&&space.directParticipants?.includes(context().user.uid)&&(!p[2]||['messages','messageReads','chatPresence'].includes(p[2]));
+}
 export async function spaceManager(spaceId,user=context().user){if(!user)return false;const space=await value('communitySpaces/'+spaceId);return space?.creatorId===user.uid||!!(await value(`communitySpaces/${spaceId}/admins/${user.uid}`));}
 export async function chatMember(spaceId){
   const user=context().user;if(!user)return false;
@@ -24,6 +34,7 @@ export async function chatMember(spaceId){
   return !!access?.canUseChat&&!access.blocked&&!access.chatBanned;
 }
 export async function canReadPost(post){
+  if(!await isAdministrator())return false;
   if(!post)return false;const user=context().user,slug=post.communitySlug||'main';
   if(await has('view_community')||await has('manage_community'))return true;
   if(user?.uid===post.userId&&post.archived===true&&post.moderationStatus!=='flagged')return true;
@@ -37,6 +48,7 @@ export async function storeAdmin(storeId){
   return store.adminUids?.includes(user.uid)||store.adminEmails?.map(s=>s.toLowerCase()).includes(user.email.toLowerCase())||store.storeAdmins?.map(s=>s.toLowerCase()).includes(user.email.toLowerCase())||false;
 }
 export async function canRead(path,data){
+  if(!await releasedPath(path))return false;
   const user=context().user,p=path.split('/'),root=p[0];
   if((await permissions()).includes('*'))return true;
   if(publicRead(path))return true;
@@ -75,6 +87,7 @@ export async function canRead(path,data){
   return false;
 }
 export async function authorizeWrite(operation,before){
+  if(!await releasedPath(operation.path))throw new HttpsError('permission-denied','Community is available to administrators only.');
   const user=context().user;if(!user)throw new HttpsError('unauthenticated','Sign in to continue.');
   const {path,action}=operation,p=path.split('/'),data=operation.data||{};
   if((await permissions()).includes('*'))return;
@@ -144,6 +157,9 @@ async function authorizeNotification(recipient,data){
 }
 export async function canAccessMedia(key,write=false,remove=false){
   const user=context().user,p=key.split('/');
+  if(p[0]==='community'&&p[1]!=='profiles'&&!await isAdministrator()){
+    if(p[1]!=='space-messages'||!await releasedPath('communitySpaces/'+p[2]))return false;
+  }
   if((await permissions()).includes('*'))return true;
   const community=await has('manage_community'),market=await has('manage_market');
   if(p[0]==='community'){

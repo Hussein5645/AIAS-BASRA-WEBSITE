@@ -41,6 +41,18 @@
     {
       "pattern": "www.aiasbsr.com",
       "custom_domain": true
+    },
+    {
+      "pattern": "professional.aiasbsr.com",
+      "custom_domain": true
+    },
+    {
+      "pattern": "market.aiasbsr.com",
+      "custom_domain": true
+    },
+    {
+      "pattern": "community.aiasbsr.com",
+      "custom_domain": true
     }
   ]
 }

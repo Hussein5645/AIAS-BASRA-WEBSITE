@@ -246,13 +246,12 @@
     .market-item-thumb { width:46px; height:46px; border-radius:8px; object-fit:cover; border:1px solid var(--border); }
 
   </style>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1957758165451331" crossorigin="anonymous"></script>
-  <script async custom-element="amp-auto-ads" src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js"></script>
+<link rel="stylesheet" href="/css/admin-workspace.css">
+
+
 </head>
 <body>
-  <amp-auto-ads type="adsense"
-        data-ad-client="ca-pub-1957758165451331">
-  </amp-auto-ads>
+
   <!-- Admin Header -->
   <div class="admin-header">
     <div class="container">
@@ -275,9 +274,9 @@
   <div class="dashboard">
     <!-- Sidebar -->
     <aside class="sidebar">
-      <h3 data-en="Navigate" data-ar="التنقل">Navigate</h3>
-      <ul class="nav" id="mainNav">
-        <li><button data-tab="community" data-en="Community" data-ar="المجتمع">Community</button></li>
+      <p class="workspace-brand">AIAS BASRA <span>Workspace</span></p><h3 data-en="Manage" data-ar="إدارة الموقع">Manage</h3>
+      <ul class="nav" id="mainNav"><li><button data-tab="overview">Overview</button></li>
+        <li><button data-tab="community" data-en="Community · private" data-ar="المجتمع · خاص">Community · private</button></li>
         <li><button data-tab="market" data-en="Market" data-ar="السوق">Market</button></li>
         <li><button data-tab="events" class="active" data-en="Events" data-ar="الفعاليات">Events</button></li>
         <li><button data-tab="articles" data-en="Magazine" data-ar="المجلة">Magazine</button></li>
@@ -292,6 +291,16 @@
 
     <!-- Main content -->
     <main class="content">
+<section id="overview-tab" class="tab-content">
+<div class="workspace-welcome"><span class="workspace-eyebrow">YOUR WORKSPACE</span><h2>Everything in one place.</h2><p>Manage your website, publish updates, and open your products.</p></div>
+<div class="product-grid">
+<a class="product-card" href="https://aiasbsr.com/"><span class="product-status">PUBLIC</span><h3>Main website</h3><p>Chapter news, events, and resources.</p><strong>Open website →</strong></a>
+<a class="product-card" href="https://professional.aiasbsr.com/"><span class="product-status">PUBLIC</span><h3>BASRA Professional</h3><p>Portfolios, businesses, and opportunities.</p><strong>Open Professional →</strong></a>
+<a class="product-card" href="https://market.aiasbsr.com/"><span class="product-status">PUBLIC</span><h3>Market</h3><p>Stores, products, and portfolio themes.</p><strong>Open Market →</strong></a>
+<a class="product-card private-preview" href="https://community.aiasbsr.com/"><span class="product-status">ADMIN ONLY</span><h3>Community preview</h3><p>Explore work in progress. Only administrators can enter.</p><strong>Open private preview →</strong></a>
+</div>
+<div class="workspace-help"><h3>Start with a section</h3><p>Choose a section in the menu to manage its content. Your account permissions determine which controls are available.</p><a href="/admin-storage.html">Manage uploaded files →</a></div>
+</section>
       <div id="message" class="message"></div>
 
       <!-- Top actions -->
@@ -1055,7 +1064,7 @@
       document.getElementById('sidebarAccessSummary').textContent = currentAccess?.isSuperAdmin ? 'Full system access' : `${visibleAreas.length} visible area${visibleAreas.length === 1 ? '' : 's'}`;
       document.querySelectorAll('#mainNav button[data-tab]').forEach(button => {
         const tab = button.dataset.tab;
-        const visible = tab === 'settings' || tab === 'roles' ? currentAccess.isSuperAdmin : canView(currentAccess, tab);
+        const visible = tab === 'overview' ? currentAccess.allowed : tab === 'settings' || tab === 'roles' ? currentAccess.isSuperAdmin : canView(currentAccess, tab);
         button.hidden = !visible;
         button.closest('li').hidden = !visible;
       });
@@ -1149,11 +1158,13 @@
     window.showTab = function(tab) {
       if (!currentAccess) return;
       const knownArea = ADMIN_AREAS.some(area => area.id === tab);
-      const allowed = tab === 'settings' || tab === 'roles' ? currentAccess.isSuperAdmin : (knownArea && canView(currentAccess, tab));
+      const allowed = tab === 'overview' ? currentAccess.allowed : tab === 'settings' || tab === 'roles' ? currentAccess.isSuperAdmin : (knownArea && canView(currentAccess, tab));
       if (!allowed) return;
       document.querySelectorAll('.content > .tab-content').forEach(t=>t.classList.remove('active'));
       const target = document.getElementById(`${tab}-tab`);
       if (target) target.classList.add('active');
+      document.querySelector('.top-actions').hidden = tab === 'overview';
+      document.querySelectorAll('#mainNav button').forEach(button => {button.classList.toggle('active',button.dataset.tab===tab);button.setAttribute('aria-current',button.dataset.tab===tab?'page':'false');});
       if (tab==='events') loadExistingEvents();
       if (tab==='articles') loadExistingArticles();
       if (tab==='community') loadCommunityAdminData();

@@ -235,7 +235,7 @@ function renderIdentityCard() {
       <div class="pro-presence-cta">
         <div class="pro-presence-badge">✦ Professional Presence</div>
         <h3>Build Your Professional Presence</h3>
-        <p>Create a Portfolio to appear in Space Professional, connect with professionals, and apply for opportunities.</p>
+        <p>Create a Portfolio to appear in BASRA Professional, connect with professionals, and apply for opportunities.</p>
         <a class="pf-button primary w-full" href="${builderHref}">Create Portfolio</a>
       </div>
     `;
@@ -720,7 +720,7 @@ function renderOppApplySection(opp) {
     return `
       <div style="text-align:center;padding:20px;border-radius:16px;background:#f7f3ee;border:1px solid var(--line);">
         <strong style="display:block;font-size:0.95rem;color:var(--ink);margin-bottom:4px;">✦ Portfolio-Based Application</strong>
-        <p style="margin:0 0 14px;font-size:0.84rem;color:var(--muted);">Sign in with your AIAS Basra account to apply directly using your verified Space Portfolio.</p>
+        <p style="margin:0 0 14px;font-size:0.84rem;color:var(--muted);">Sign in with your AIAS Basra account to apply directly using your verified BASRA Professional.</p>
         <a class="pf-button primary" href="login.html?next=${encodeURIComponent(window.location.href)}" style="display:inline-flex;padding:10px 20px;">Sign In to Apply →</a>
       </div>
     `;
@@ -748,8 +748,8 @@ function renderOppApplySection(opp) {
   if (!state.userPortfolio || state.userPortfolio.status !== 'published') {
     return `
       <div style="text-align:center;padding:20px;border-radius:16px;background:#fff5f5;border:1px solid #fed7d7;">
-        <strong style="display:block;font-size:0.92rem;color:#991b1b;margin-bottom:4px;">✦ Space Portfolio Required to Apply</strong>
-        <p style="margin:0 0 14px;font-size:0.82rem;color:#78716c;">You must have a published Space Portfolio to apply for professional studio opportunities.</p>
+        <strong style="display:block;font-size:0.92rem;color:#991b1b;margin-bottom:4px;">✦ BASRA Professional Required to Apply</strong>
+        <p style="margin:0 0 14px;font-size:0.82rem;color:#78716c;">You must have a published BASRA Professional to apply for professional studio opportunities.</p>
         <a class="pf-button primary" href="portfolio-builder.html" style="display:inline-flex;padding:10px 20px;">Create &amp; Publish Portfolio →</a>
       </div>
     `;
@@ -975,7 +975,7 @@ function renderConnectionsView() {
       <div class="pro-placeholder-card">
         <div class="pro-placeholder-icon">👥</div>
         <h3>No Connected Professionals Yet</h3>
-        <p>When you connect with community members who have a published Space Portfolio, they will appear here in your professional network.</p>
+        <p>When you connect with community members who have a published BASRA Professional, they will appear here in your professional network.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
           <button type="button" class="pf-button primary" data-navigate-tab="people">Discover Professionals →</button>
           <a class="pf-button secondary" href="/community.html?view=connections">Community Connections</a>

@@ -11,7 +11,7 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="description" content="AIAS Basra Market — Architectural assets, 3D models, textures, templates, and student design resources.">
   <title data-en="Market — AIAS Basra" data-ar="سوق AIAS — البصرة">Market — AIAS Basra</title>
-  <base href="/community.html">
+  <base href="/">
   <link rel="icon" type="image/png" href="static/images/branding/LOGO.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -672,8 +672,9 @@
       *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
     }
   </style>
+<script type="module" src="/js/product-navigation.js"></script>
 </head>
-<body class="market-page market-locked">
+<body class="market-page">
 
   <!-- Topbar -->
   <header class="community-topbar">
@@ -694,7 +695,7 @@
       </div>
 
       <div class="topbar-actions">
-        <a href="index.html" class="quiet-link" data-en="Community" data-ar="المجتمع">Community</a>
+        <a href="index.html" class="quiet-link" data-en="Home" data-ar="الرئيسية">Home</a>
         <a href="portfolios.html" class="quiet-link" data-en="Portfolios" data-ar="معرض الأعمال">Portfolios</a>
         <div id="authContainer">
           <a href="login.html" class="btn-primary" style="padding:6px 14px; font-size:.76rem;" data-en="Sign in" data-ar="تسجيل الدخول">Sign in</a>
@@ -705,17 +706,8 @@
 
   <!-- Container -->
   <main class="market-container">
-    <section id="marketDevGate" class="market-dev-gate" aria-labelledby="marketDevTitle">
-      <div class="market-dev-mark">⌁</div>
-      <h1 id="marketDevTitle">Market is under development</h1>
-      <p>AIAS Basra Marketplace is being prepared. Enter the access password to preview the current build.</p>
-      <form id="marketDevAccessForm" class="market-dev-form" autocomplete="off">
-        <input id="marketDevPassword" type="password" placeholder="Access password" aria-label="Market access password" />
-        <button type="submit">Enter market</button>
-      </form>
-      <div id="marketDevStatus" class="market-dev-status" role="status" aria-live="polite"></div>
-    </section>
-    <div class="market-live-content" id="marketLiveContent" aria-hidden="true">
+
+    <div class="market-live-content" id="marketLiveContent" aria-hidden="false">
     <!-- Hero Banner -->
     <section class="market-hero-banner">
       <div>

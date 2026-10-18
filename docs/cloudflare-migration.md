@@ -40,3 +40,23 @@ Twenty automated checks passed in the real Workers/D1/R2 runtime, including scop
 Publish the Worker, verify public pages and R2 assets, attach apex and www custom domains, check HTTPS and Google sign-in, and then disable GitHub Pages. The Worker redirects www to the apex. GitHub remains the source repository; uploaded media lives in R2.
 
 Do not delete Firebase production projects or data during cutover. Existing Android APKs were copied intact and may retain compiled settings for old services; rebuilding them requires Android source. Existing browser push subscriptions must be renewed for Web Push on the new origin. AI providers should not be called solely to test credential migration.
+
+
+## Product release and account sharing (2026-10-18)
+
+The public products are the main website (`aiasbsr.com`), BASRA Professional
+(`professional.aiasbsr.com`), and Market (`market.aiasbsr.com`). Legacy product
+HTML links redirect with their query strings preserved. Community remains intact
+at `community.aiasbsr.com`, accessible through the admin dashboard overview.
+The Worker checks administrator permissions for Community pages, posts, spaces,
+functions, and uploads. Anonymous and ordinary signed-in users cannot enter.
+Private direct conversations used inside Professional retain participant checks.
+Existing role permissions still determine which moderation actions an admin may perform.
+
+Google OAuth uses the existing apex callback. A Secure, HttpOnly session cookie
+named `__Secure-aias_session` is shared only across `aiasbsr.com` subdomains.
+Existing host-only sessions are promoted when the apex session endpoint is visited.
+Return addresses use an exact host allowlist; state-changing APIs still require
+same-origin requests. Logout revokes the server session for every product, and
+open tabs refresh their account state when focused. Admin and Community HTML is
+private and not cached. Market's old development password screen is removed.

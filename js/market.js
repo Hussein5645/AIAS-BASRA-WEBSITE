@@ -5,7 +5,6 @@ import {addDoc, collection, doc, getDoc, getDocs, query, serverTimestamp, where}
 
 const FALLBACK_IMAGE = 'static/images/branding/LOGO.png';
 const ADMIN_DASHBOARD_URL = 'https://aiasbsr.com/admin-dashboard.html';
-const MARKET_ACCESS_PASSWORD = 'aias-market';
 const MARKET_ACCESS_KEY = 'aiasMarketDevelopmentAccess';
 const byId = id => document.getElementById(id);
 const text = value => String(value ?? '').trim();
@@ -39,30 +38,7 @@ function unlockMarketAccess() {
   if (liveContent) liveContent.setAttribute('aria-hidden', 'false');
 }
 
-function setupMarketDevelopmentGate() {
-  if (hasMarketAccess()) {
-    unlockMarketAccess();
-    return true;
-  }
-  const form = byId('marketDevAccessForm');
-  const input = byId('marketDevPassword');
-  const status = byId('marketDevStatus');
-  form?.addEventListener('submit', event => {
-    event.preventDefault();
-    if (text(input?.value) === MARKET_ACCESS_PASSWORD) {
-      unlockMarketAccess();
-      initializeMarket().catch(error => {
-        console.error('Error initializing marketplace.', error);
-      });
-      return;
-    }
-    if (status) status.textContent = 'Wrong password. Please try again.';
-    input?.focus();
-    input?.select?.();
-  });
-  input?.focus();
-  return false;
-}
+function setupMarketDevelopmentGate() { unlockMarketAccess(); return true; }
 
 function makeElement(tag, className = '', content = '') {
   const node = document.createElement(tag);

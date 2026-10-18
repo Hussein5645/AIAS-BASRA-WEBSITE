@@ -29,6 +29,14 @@ export function onAuthStateChanged(instance,callback,errorCallback){
   return ()=>listeners.delete(callback);
 }
 export async function signOut(){await request('/api/auth/logout',{});auth.currentUser=null;sessionReady=Promise.resolve(null);cache.clear();for(const callback of listeners)callback(null);}
+let refreshing=false;
+async function refreshSession(){
+  if(refreshing||!sessionReady||document.hidden)return;
+  refreshing=true;
+  try{const {user}=await request('/api/auth/session',undefined,'GET');if(JSON.stringify(user)!==JSON.stringify(auth.currentUser)){auth.currentUser=user;sessionReady=Promise.resolve(user);cache.clear();for(const callback of listeners)callback(user);}}
+  catch(error){console.warn('Could not refresh sign-in status.',error.message);}finally{refreshing=false;}
+}
+window.addEventListener('focus',refreshSession);document.addEventListener('visibilitychange',refreshSession);
 export class GoogleAuthProvider {}
 export function signInWithRedirect(){const target=new URL('/api/auth/start',location.origin);target.searchParams.set('return',location.pathname+location.search);location.assign(target.href);}
 export const getRedirectResult=async()=>null;

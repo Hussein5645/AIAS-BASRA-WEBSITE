@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -42,6 +42,7 @@
     </style>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1957758165451331" crossorigin="anonymous"></script>
   <script async custom-element="amp-auto-ads" src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js"></script>
+<script type="module" src="/js/product-navigation.js"></script>
 </head>
 <body>
   <amp-auto-ads type="adsense"
@@ -72,8 +73,8 @@
                     <span></span>
                     <span></span>
                 </button>
-                <ul class="nav-links" id="navLinks">
-                    <li><a href="/community.html" data-en="Community" data-ar="المجتمع">Community</a></li>
+                <ul class="nav-links" id="navLinks"><li><a href="https://professional.aiasbsr.com/">Professional</a></li><li><a href="https://market.aiasbsr.com/">Market</a></li>
+
                     <li><a href="index.html" class="active" data-en="Home" data-ar="الرئيسية">Home</a></li>
                     <li><a href="events.html" data-en="Events" data-ar="الفعاليات">Events</a></li>
                     <li><a href="magazine.html" data-en="Magazine" data-ar="المجلة">Magazine</a></li>
@@ -112,8 +113,8 @@
                 <p id="heroSubtitle" class="hero-subtitle fade-in-up delay-1" data-en="Building the Future of Architecture Through Innovation, Education, and Community" data-ar="بناء مستقبل الهندسة المعمارية من خلال الابتكار والتعليم والمجتمع">
                     Building the Future of Architecture Through Innovation, Education, and Community
                 </p>
-                <div class="hero-buttons fade-in-up delay-2">
-                    <a href="/community.html" class="btn btn-secondary" data-en="Community" data-ar="المجتمع">Community</a>
+                <div class="hero-buttons fade-in-up delay-2"><a href="https://professional.aiasbsr.com/" class="btn btn-secondary">BASRA Professional</a>
+
                     <a href="about.html" class="btn btn-primary" data-en="Learn More" data-ar="اعرف المزيد">Learn More</a>
                     <a href="events.html" class="btn btn-secondary" data-en="Upcoming Events" data-ar="الفعاليات القادمة">Upcoming Events</a>
                 </div>
@@ -148,7 +149,7 @@
             </div>
         </div>
     </section>
-        <section class="home-articles"><div class="container"><div class="section-header"><h2 class="section-title" data-en="Selected Community Projects" data-ar="مشاريع المجتمع المختارة">Selected Community Projects</h2><p class="section-subtitle" data-en="Behance projects submitted by members and selected by AIAS Basra." data-ar="مشاريع Behance التي قدّمها الأعضاء واختارتها AIAS البصرة.">Behance projects submitted by members and selected by AIAS Basra.</p></div><div id="featuredProjectsGrid" class="home-articles-grid"><div class="loading-container"><p class="loading-text" data-en="Loading selected projects..." data-ar="جارٍ تحميل المشاريع المختارة...">Loading selected projects...</p></div></div><div style="text-align:center;margin-top:2rem;"><a href="/community.html?view=selected" class="btn btn-secondary" data-en="View All Projects" data-ar="عرض جميع المشاريع">View All Projects</a></div></div></section>
+        <section class="home-articles"><div class="container"><div class="section-header"><h2 class="section-title">BASRA Professional</h2><p class="section-subtitle">Discover architectural portfolios, creative practices, and professional opportunities.</p></div><div style="text-align:center"><a class="btn btn-secondary" href="https://professional.aiasbsr.com/">Explore BASRA Professional</a> <a class="btn btn-secondary" href="https://market.aiasbsr.com/">Explore Market</a></div></div></section>
         <!-- Latest Events Section -->
     <section class="latest-events">
         <div class="container">
@@ -425,15 +426,7 @@
             }[character]));
         }
 
-        async function loadFeaturedProjects() {
-            const grid = document.getElementById('featuredProjectsGrid');
-            if (!grid) return;
-            const currentLang = getCurrentLanguage();
-            try {
-                const projects = (await getDocs(collection(communityDb, 'communityPosts'))).docs.map(item => ({ id:item.id, ...item.data() })).filter(post => post.archived !== true && post.featured && post.type === 'behance' && post.published !== false).sort((a,b) => (b.featuredAt?.seconds || b.createdAt?.seconds || 0) - (a.featuredAt?.seconds || a.createdAt?.seconds || 0)).slice(0,3);
-                grid.innerHTML = projects.length ? projects.map(project => `<article class="home-article-card reveal"><div class="home-article-image" style="padding:0;overflow:hidden;background:#fff;"><iframe src="${escapeHtml(project.behanceSrc)}" title="${escapeHtml(project.title)}" style="width:100%;height:180px;border:0;" loading="lazy" allowfullscreen></iframe></div><div class="home-article-content"><div class="home-article-date">${currentLang === 'ar' ? 'مشروع مختار' : 'Selected project'} · ${escapeHtml(project.authorName || (currentLang === 'ar' ? 'عضو في المجتمع' : 'Community member'))}</div><h3 class="home-article-title">${escapeHtml(project.title)}</h3><p class="home-article-summary">${escapeHtml(project.summary)}</p><a class="home-article-link" href="project.html?communityPost=${encodeURIComponent(project.id)}">${currentLang === 'ar' ? 'عرض المشروع ←' : 'View Project →'}</a></div></article>`).join('') : `<div class="empty-state"><p>${currentLang === 'ar' ? 'لا توجد مشاريع مجتمعية مختارة بعد.' : 'No selected community projects yet.'}</p></div>`;
-            } catch (error) { console.error(error); grid.innerHTML = `<div class="empty-state"><p>${currentLang === 'ar' ? 'المشاريع المختارة غير متاحة حالياً.' : 'Selected projects are unavailable right now.'}</p></div>`; }
-        }
+        async function loadFeaturedProjects() {}
 
         async function loadLatestArticles() {
             const articlesGrid = document.getElementById('latestArticlesGrid');

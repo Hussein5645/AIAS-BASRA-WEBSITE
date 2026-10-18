@@ -346,7 +346,7 @@ try{
 
         <div style="margin-top:24px;padding:16px;border-radius:14px;background:#f7f3ee;border:1px solid var(--line);text-align:center;">
           <strong style="display:block;font-size:0.9rem;color:var(--ink);margin-bottom:4px;">✦ Portfolio-Based Application Process</strong>
-          <p style="margin:0 0 10px;font-size:0.8rem;color:var(--muted);">Apply directly with your verified Space Portfolio.</p>
+          <p style="margin:0 0 10px;font-size:0.8rem;color:var(--muted);">Apply directly with your verified BASRA Professional.</p>
           <a class="pf-button primary" href="portfolios.html?tab=${isJob ? 'jobs' : 'internships'}" style="display:inline-flex;">View Opportunity in Discovery →</a>
         </div>
       </div>
