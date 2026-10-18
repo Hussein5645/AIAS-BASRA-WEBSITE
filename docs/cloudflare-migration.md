@@ -60,3 +60,24 @@ Return addresses use an exact host allowlist; state-changing APIs still require
 same-origin requests. Logout revokes the server session for every product, and
 open tabs refresh their account state when focused. Admin and Community HTML is
 private and not cached. Market's old development password screen is removed.
+
+
+## Professional account and workspace redesign
+
+Site registration now uses `/api/professional/register`. It reserves the username,
+updates shared sign-in identity details, creates an independent `professionalAccounts`
+record, and creates a private `portfolioProfiles` draft in one D1 transaction.
+Repeating registration preserves edited or published portfolios. Google sign-in also
+provisions the Professional account record for existing members without publishing
+personal information or creating a second login.
+
+Professional administration has its own `view_professional` / `manage_professional`
+permissions and a built-in Professional Manager role. The account manager and
+portfolio categories live in the Professional dashboard section. Professional
+verification writes only its own record; business controls update business status
+without changing Community verification or posting permissions. The new
+`/api/admin/professional` endpoint is restricted to Professional administrators.
+
+The generated public menu links directly to Professional and Market. Registration
+and public portfolio copy use account terminology. The dashboard, media library,
+article editor, and private moderation tools share the redesigned workspace shell.

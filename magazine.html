@@ -2358,12 +2358,12 @@
                             }
                         }
 
-                        // Community Articles (articles 6-9 or with Community category)
+                        // Professional Articles (articles 6-9 or with Professional category)
                         if (communityArticles) {
                             const community = allArticlesList.slice(6, 9);
                             if (community.length > 0) {
                                 const cards = await Promise.all(community.map((article, index) =>
-                                    createArticleCard(article, index, 'Community')
+                                    createArticleCard(article, index, 'Professional')
                                 ));
                                 communityArticles.innerHTML = cards.join('');
                             } else {

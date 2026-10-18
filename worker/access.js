@@ -51,6 +51,7 @@ export async function canRead(path,data){
   if(!await releasedPath(path))return false;
   const user=context().user,p=path.split('/'),root=p[0];
   if((await permissions()).includes('*'))return true;
+  if(root==='professionalAccounts')return user?.uid===p[1]||await has('view_professional')||await has('manage_professional');
   if(publicRead(path))return true;
   if(root==='config')return !!user;
   if(root==='publicProfiles'||root==='businessAccounts'||root==='businessProfiles'||root==='communitySettings'||root==='usernames')return true;
@@ -101,7 +102,7 @@ export async function authorizeWrite(operation,before){
       if(p[4]==='comments')allowed=deleting?before?.userId===user.uid:creating&&data.userId===user.uid&&text(data.text,5000,1)&&keysOnly(data,['userId','userName','text','parentId','createdAt']);
     }
   }else if(p[0]==='config'){
-    allowed=['marketTypes','marketTags'].includes(p[1])&&await has('manage_market')||p[1]==='portfolioTags'&&await has('manage_community');
+    allowed=['marketTypes','marketTags'].includes(p[1])&&await has('manage_market')||p[1]==='portfolioTags'&&await has('manage_professional');
   }else if(p[0]==='users'){
     if(p.length===2&&p[1]===user.uid&&!deleting){
       const protectedFields=['verified','verifiedAt','verifiedBy','profileComplete','mainThreadPostingAccess','mainThreadAccessStatus','mainThreadAccessRequestedAt','mainThreadAccessReviewedAt','mainThreadAccessReviewedBy','isBusiness','businessStatus','businessApprovedAt','businessApprovedBy'];

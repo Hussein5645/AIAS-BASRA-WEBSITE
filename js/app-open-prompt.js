@@ -1,5 +1,6 @@
 (function () {
   'use strict';
+  if(location.hostname!=='community.aiasbsr.com'&&!location.pathname.startsWith('/admin-'))return;
 
   const DOWNLOAD_PAGE_URL = '/download.html';
   const userAgent = navigator.userAgent || '';

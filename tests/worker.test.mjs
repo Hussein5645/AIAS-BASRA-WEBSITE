@@ -147,3 +147,52 @@ test('subdomain login uses the central OAuth client and preserves its destinatio
  const target=new URL(response.headers.get('Location'));assert.equal(target.origin,'https://aiasbsr.com');assert.equal(target.searchParams.get('next'),'https://professional.aiasbsr.com/portfolio-builder.html');
  assert.equal((await mf.dispatchFetch('https://market.aiasbsr.com/login.html?next=https://evil.example')).status,400);
 });
+
+
+test('site registration automatically creates an independent Professional account and a private portfolio draft',async()=>{
+ const person={uid:'new-professional',email:'new-pro@example.com',displayName:'New Professional'};await session(person,'new-pro-session');
+ const data={username:'new_professional',displayName:'New Professional',school:'University of Basra',city:'Basra',bio:'Architecture student'};
+ assert.equal((await api('/api/professional/register',data,'')).status,401);
+ assert.equal((await api('/api/professional/register',{...data,username:'x'},'new-pro-session')).status,400);
+ const response=await api('/api/professional/register',data,'new-pro-session');assert.equal(response.status,200);assert.equal((await response.json()).destination,'https://professional.aiasbsr.com/portfolio-builder.html');
+ const account=JSON.parse((await db.prepare('SELECT data FROM documents WHERE path=?').bind('professionalAccounts/'+person.uid).first()).data);assert.equal(account.status,'active');assert.equal(account.verified,false);
+ const profile=JSON.parse((await db.prepare('SELECT data FROM documents WHERE path=?').bind('portfolioProfiles/'+person.uid).first()).data);assert.equal(profile.status,'draft');assert.equal(profile.displayName,'New Professional');assert.equal(profile.email,undefined);
+ assert.equal((await api('/api/db',{action:'get',path:'portfolioProfiles/'+person.uid},'')).status,401);
+ assert.equal((await api('/api/db',{action:'get',path:'professionalAccounts/'+person.uid},'')).status,401);
+ // Completing sign-up again must not overwrite an edited/published portfolio.
+ await api('/api/db',{action:'update',path:'portfolioProfiles/'+person.uid,data:{status:'published',tagline:'Preserve my portfolio'}});
+ assert.equal((await api('/api/professional/register',data,'new-pro-session')).status,200);
+ const preserved=JSON.parse((await db.prepare('SELECT data FROM documents WHERE path=?').bind('portfolioProfiles/'+person.uid).first()).data);assert.equal(preserved.tagline,'Preserve my portfolio');assert.equal(preserved.status,'published');
+ assert.equal((await api('/api/db',{action:'set',path:'professionalAccounts/'+person.uid,data:{verified:true}},'new-pro-session')).status,403);
+ assert.equal((await api('/api/professional/register',{...data,username:'new_professional'},'ordinary-session')).status,409);
+});
+
+test('Professional management permissions are independent of Community and never change Community verification',async()=>{
+ const manager={uid:'professional-manager',email:'pro-manager@example.com'},moderator={uid:'community-moderator',email:'moderator@example.com'};
+ await session(manager,'pro-manager-session');await session(moderator,'moderator-session');
+ await api('/api/db',{action:'set',path:'config/roles',data:{roles:{professional_manager:{permissions:['manage_professional']},community_manager:{permissions:['manage_community']},event_editor:{permissions:['manage_events']}}}});
+ await api('/api/db',{action:'set',path:'config/userRoles',data:{assignments:{[manager.email]:'professional_manager',[moderator.email]:'community_manager',[member.email]:'event_editor'}}});
+ assert.equal((await api('/api/admin/professional',undefined,'moderator-session','GET')).status,403);
+ assert.equal((await api('/api/admin/professional',undefined,'ordinary-session','GET')).status,403);
+ assert.equal((await api('/api/admin/professional',undefined,'pro-manager-session','GET')).status,200);
+ const before=(await db.prepare('SELECT data FROM documents WHERE path=?').bind('users/new-professional').first()).data;
+ assert.equal((await api('/api/admin/professional',{uid:'new-professional',action:'verify'},'pro-manager-session')).status,200);
+ assert.equal((await api('/api/admin/professional',{uid:'new-professional',action:'grant_business',businessName:'New Studio'},'pro-manager-session')).status,200);
+ const account=JSON.parse((await db.prepare('SELECT data FROM documents WHERE path=?').bind('professionalAccounts/new-professional').first()).data);assert.equal(account.verified,true);
+ const business=JSON.parse((await db.prepare('SELECT data FROM documents WHERE path=?').bind('businessAccounts/new-professional').first()).data);assert.equal(business.status,'active');
+ assert.equal((await db.prepare('SELECT data FROM documents WHERE path=?').bind('users/new-professional').first()).data,before);
+ assert.equal((await api('/api/db',{action:'set',path:'config/portfolioTags',data:{tags:[]}},'pro-manager-session')).status,200);
+ assert.equal((await api('/api/db',{action:'set',path:'config/portfolioTags',data:{tags:[]}},'moderator-session')).status,403);
+ assert.equal((await api('/api/functions/moderateCommunityContent',{postId:'public-preview',action:'warn'},'pro-manager-session')).status,403);
+ assert.equal((await api('/api/admin/overview',undefined,'admin-session','GET')).status,200);
+});
+
+
+test('existing registered members receive Professional accounts on sign-in without a second registration',async()=>{
+ const response=await api('/api/auth/session',undefined,'member-session','GET');assert.equal(response.status,200);
+ const account=JSON.parse((await db.prepare('SELECT data FROM documents WHERE path=?').bind('professionalAccounts/member-test').first()).data);assert.equal(account.status,'active');
+ const portfolio=JSON.parse((await db.prepare('SELECT data FROM documents WHERE path=?').bind('portfolioProfiles/member-test').first()).data);assert.equal(portfolio.status,'draft');assert.equal(portfolio.username,'test_member');
+ await api('/api/db',{action:'update',path:'portfolioProfiles/member-test',data:{tagline:'Keep existing changes'}});
+ await api('/api/auth/session',undefined,'member-session','GET');
+ assert.equal(JSON.parse((await db.prepare('SELECT data FROM documents WHERE path=?').bind('portfolioProfiles/member-test').first()).data).tagline,'Keep existing changes');
+});

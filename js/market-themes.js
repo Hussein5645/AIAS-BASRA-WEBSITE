@@ -78,7 +78,7 @@ function expandedPreview(theme,paletteId=''){
                     </div>
                     <div class="theme-preview-work-body">
                       <small>PUBLIC INFRASTRUCTURE · BASRA, IRAQ</small>
-                      <strong>Community Design Center</strong>
+                      <strong>Cultural Design Center</strong>
                       <p>Research, urban planning, and computational visualization for community-led public spaces.</p>
                       <div class="theme-preview-work-tags">
                         <span>Architecture</span>
@@ -160,7 +160,7 @@ function card(theme){
               <div class="theme-mini-work-card">
                 <i class="theme-mini-work-cover"></i>
                 <div class="theme-mini-work-info">
-                  <small>Community Center</small>
+                  <small>Cultural Center</small>
                 </div>
               </div>
             </div>
@@ -184,7 +184,7 @@ function card(theme){
           ${theme.palettes.slice(0,6).map(palette=>`<i style="background:${palette.accent}"></i>`).join('')}
         </div>
         <div class="theme-card-meta">
-          <span>By ${esc(theme.creatorName||(isOwner?'You':'Community creator'))}</span>
+          <span>By ${esc(theme.creatorName||(isOwner?'You':'Independent creator'))}</span>
           <span>${theme.palettes.length} palette${theme.palettes.length===1?'':'s'} · ${Number(theme.saves||0)} saves</span>
         </div>
       </div>
@@ -232,7 +232,7 @@ function render(){
     let emptyCopy='Try another search or art direction filter.';
     if(currentTab==='saved'){
       emptyTitle='No saved themes yet';
-      emptyCopy='Browse community themes and click “Save to my account” to access them quickly.';
+      emptyCopy='Browse creator themes and click “Save to my account” to access them quickly.';
     }else if(currentTab==='my'){
       emptyTitle='You haven’t created any themes yet';
       emptyCopy='Design your own custom visual styles with Theme Studio and share them or keep them private.';
@@ -279,7 +279,7 @@ function openTheme(id){
       <div class="theme-detail-heading-main">
         <span>${esc(names[theme.baseTheme]||'PORTFOLIO THEME')}</span>
         <h2>${esc(theme.name)}</h2>
-        <p>By ${esc(theme.creatorName||(isOwner?'You':'Community creator'))}</p>
+        <p>By ${esc(theme.creatorName||(isOwner?'You':'Independent creator'))}</p>
       </div>
       ${isOwner?`
         <span class="theme-status-pill ${isPublished?'published':'private'}">

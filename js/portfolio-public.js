@@ -193,7 +193,7 @@ try{
   const businessSectionHtml = businessProfile ? portfolioBusinessSection(businessProfile, businessPosts, businessOpportunities) : '';
   const portfolioSectionsHtml = (portfolio.sections||[]).map(section=>sectionMarkup(section,works)).join('');
 
-  root.innerHTML=`${switcherBarMarkup}<section class="portfolio-hero">${cover?`<div class="portfolio-banner-art" aria-hidden="true"><span>${esc(portfolio.professionalTitle||'Selected practice')}</span></div>`:''}<div class="pf-shell portfolio-identity${portfolio.avatarVisible===false?' no-avatar':''}">${portfolio.avatarVisible===false?'':`<div class="portfolio-avatar">${displayAvatar?`<img src="${esc(displayAvatar)}" alt="${esc(businessProfile?.name || portfolio.displayName)}">`:esc(initials(businessProfile?.name || portfolio.displayName))}</div>`}${heroCopyMarkup}<div class="portfolio-actions">${connectActionMarkup}${messageActionMarkup}<button class="pf-button secondary pf-share" data-share-portfolio>Share to Community</button>${isOwner?'<button class="pf-button secondary pf-share" data-export-pdf>Export PDF</button>':'<button class="pf-button secondary pf-share" data-view-pdf>View PDF</button>'}<a class="pf-button secondary" href="/community.html?user=${encodeURIComponent(portfolio.username||portfolio.id)}">Community profile</a></div></div></section><div class="pf-shell portfolio-layout${sidebar?'':' no-sidebar'}"><div class="portfolio-main">${businessSectionHtml}${portfolioSectionsHtml}</div>${sidebar}</div>`;
+  root.innerHTML=`${switcherBarMarkup}<section class="portfolio-hero">${cover?`<div class="portfolio-banner-art" aria-hidden="true"><span>${esc(portfolio.professionalTitle||'Selected practice')}</span></div>`:''}<div class="pf-shell portfolio-identity${portfolio.avatarVisible===false?' no-avatar':''}">${portfolio.avatarVisible===false?'':`<div class="portfolio-avatar">${displayAvatar?`<img src="${esc(displayAvatar)}" alt="${esc(businessProfile?.name || portfolio.displayName)}">`:esc(initials(businessProfile?.name || portfolio.displayName))}</div>`}${heroCopyMarkup}<div class="portfolio-actions">${connectActionMarkup}${messageActionMarkup}<button class="pf-button secondary pf-share" data-share-portfolio>Share to Professional</button>${isOwner?'<button class="pf-button secondary pf-share" data-export-pdf>Export PDF</button>':'<button class="pf-button secondary pf-share" data-view-pdf>View PDF</button>'}<a class="pf-button secondary" href="/community.html?user=${encodeURIComponent(portfolio.username||portfolio.id)}">Professional profile</a></div></div></section><div class="pf-shell portfolio-layout${sidebar?'':' no-sidebar'}"><div class="portfolio-main">${businessSectionHtml}${portfolioSectionsHtml}</div>${sidebar}</div>`;
   bindImageFallbacks(root);
   bindWorkImageViewer(root, { gallery: businessProfile?.gallery || [] });
 
@@ -235,7 +235,7 @@ try{
             actorUsername: '',
             type: 'connection',
             postId: '',
-            postTitle: 'Community connection',
+            postTitle: 'Professional connection',
             detailId: targetId,
             read: false,
             createdAt: serverTimestamp()

@@ -10,7 +10,7 @@ export function areaFor(path) {
   if (parts[0] === 'content') return AREA[parts[1]];
   if (/^(community|selected)/.test(parts[0])) return 'community';
   if (/^(market|stores)/.test(parts[0])) return 'market';
-  if (path === 'config/portfolioTags') return 'community';
+  if (path === 'config/portfolioTags' || /^(professionalAccounts|portfolio|business)/.test(parts[0])) return 'professional';
   if (/^config\/market/.test(path)) return 'market';
   return null;
 }

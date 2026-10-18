@@ -1,6 +1,7 @@
 import { callFunction } from './platform-client.js';
 
 export const ADMIN_AREAS = [
+  {id:'professional',label:'BASRA Professional',description:'Manage Professional accounts, businesses, and portfolio categories.'},
   { id: 'community', label: 'Community projects', description: 'Review project submissions and selection requests.' },
   { id: 'events', label: 'Events', description: 'View or manage chapter events.' },
   { id: 'articles', label: 'Magazine', description: 'View or manage magazine articles.' },
@@ -23,6 +24,7 @@ export const DEFAULT_ROLES = {
     permissions: ['view_community', 'manage_market', 'manage_events', 'manage_articles', 'manage_library', 'manage_models3d', 'manage_fbd'],
     builtIn: true
   },
+  professional_manager: {name:'Professional Manager',description:'Manages Professional accounts, businesses, and portfolio categories.',permissions:['manage_professional'],builtIn:true},
   community_manager: {
     name: 'Community Manager',
     description: 'Reviews and manages community project submissions.',
@@ -83,7 +85,7 @@ export async function saveRoles(db, roles, actorEmail) {
     safeRoles[id] = {
       name:String(role?.name || '').trim().slice(0,80),
       description:String(role?.description || '').trim().slice(0,240),
-      permissions:[...new Set((role?.permissions || []).map(String).filter(permission => /^(view|manage)_(community|events|articles|library|models3d|fbd|market)$/.test(permission)))],
+      permissions:[...new Set((role?.permissions || []).map(String).filter(permission => /^(view|manage)_(professional|community|events|articles|library|models3d|fbd|market)$/.test(permission)))],
       builtIn:Boolean(DEFAULT_ROLES[id]?.builtIn)
     };
   });

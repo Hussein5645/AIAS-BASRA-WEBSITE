@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - AIAS Basra Community</title>
+    <title>Sign in - AIAS Basra</title>
     <link rel="icon" type="image/png" href="static/images/branding/LOGO.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -216,8 +216,8 @@
             <div class="logo-icon">🏛️</div>
         </div>
 
-        <h1 data-en="Sign in to Community" data-ar="تسجيل الدخول إلى المجتمع">Sign in to Community</h1>
-        <p class="subtitle" data-en="Join AIAS Basra community discussions, projects, and member spaces." data-ar="انضم إلى نقاشات ومشاريع ومساحات مجتمع AIAS البصرة.">Join AIAS Basra community discussions, projects, and member spaces.</p>
+        <h1 data-en="Sign in to AIAS Basra" data-ar="تسجيل الدخول إلى AIAS البصرة">Sign in to AIAS Basra</h1>
+        <p class="subtitle" data-en="One account for BASRA Professional, Market, and the main website." data-ar="حساب واحد للمحترفين والسوق والموقع الرئيسي.">One account for BASRA Professional, Market, and the main website.</p>
 
         <div id="message" class="message"></div>
 
@@ -246,7 +246,7 @@
 
             document.documentElement.lang = lang === 'ar' ? 'ar' : 'en';
             document.body.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
-            document.title = lang === 'ar' ? 'تسجيل الدخول - مجتمع AIAS البصرة' : 'Login - AIAS Basra Community';
+            document.title = lang === 'ar' ? 'تسجيل الدخول - AIAS البصرة' : 'Sign in - AIAS Basra';
 
             const currentLang = document.getElementById('currentLang');
             if (currentLang) {
@@ -329,7 +329,7 @@
                     window.location.href = signupDestination();
                     return;
                 }
-                showMessage('You are signed in. Entering community...', 'success');
+                showMessage('You are signed in. Opening your account…', 'success');
                 await checkUserRoleAndRedirect(user);
             }
         });

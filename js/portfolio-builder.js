@@ -113,7 +113,7 @@ function bindIdentityCollections(){
 function renderIdentitySettings(){
   $('settingsTitle').textContent='Portfolio identity';
   profile.sidebar={...defaultSidebar(),...(profile.sidebar||{}),fields:Array.isArray(profile.sidebar?.fields)?profile.sidebar.fields:[]};
-  $('settingsPanel').innerHTML=`<div class="builder-form"><div class="builder-notice">This identity belongs only to your portfolio. It can be completely different from your Community profile.</div><button id="useCommunityData" class="builder-community-copy" type="button">↙ Use Community name, details & photo</button>${builderCard('identity','Identity details',`${input('Portfolio display name','displayName',profile.displayName)}${input('Professional title','professionalTitle',profile.professionalTitle)}${input('Short professional statement','tagline',profile.tagline,'textarea')}<div class="builder-inline">${input('Location','location',profile.location)}${input('Availability','availability',profile.availability)}</div>`,true,'Name, role and professional statement')}${builderCard('skills','Professional skills & proficiency',skillEditor(),true,'Edit, rate and arrange your skills')}${builderCard('sidebar','Résumé sidebar',sidebarSettingsMarkup(profile.sidebar),false,'Optional professional details beside your work')}${builderCard('contacts','Contact information',contactEditor(),false,'Public contact methods')}${builderCard('links','Professional links',linkEditor(),false,'Websites and social profiles')}${builderCard('images','Portfolio images',`<label class="builder-visibility-toggle"><span><input data-profile="avatarVisible" type="checkbox"${profile.avatarVisible!==false?' checked':''}> Show image on portfolio page and PDF</span><small>The uploaded avatar or studio logo stays saved when hidden.</small></label>${imageUpload('profileAvatarUpload','Portfolio avatar',profile.avatarUrl,false,'removeProfileAvatar')}${imageUpload('profileCoverUpload','Portfolio cover',profile.coverUrl,false,'removeProfileCover')}`,false,'Avatar and cover image')}</div>`;
+  $('settingsPanel').innerHTML=`<div class="builder-form"><div class="builder-notice">Build your professional identity. Your portfolio starts with the account details you provided at registration.</div><button id="useCommunityData" class="builder-community-copy" type="button">↙ Use my account name, details & photo</button>${builderCard('identity','Identity details',`${input('Portfolio display name','displayName',profile.displayName)}${input('Professional title','professionalTitle',profile.professionalTitle)}${input('Short professional statement','tagline',profile.tagline,'textarea')}<div class="builder-inline">${input('Location','location',profile.location)}${input('Availability','availability',profile.availability)}</div>`,true,'Name, role and professional statement')}${builderCard('skills','Professional skills & proficiency',skillEditor(),true,'Edit, rate and arrange your skills')}${builderCard('sidebar','Résumé sidebar',sidebarSettingsMarkup(profile.sidebar),false,'Optional professional details beside your work')}${builderCard('contacts','Contact information',contactEditor(),false,'Public contact methods')}${builderCard('links','Professional links',linkEditor(),false,'Websites and social profiles')}${builderCard('images','Portfolio images',`<label class="builder-visibility-toggle"><span><input data-profile="avatarVisible" type="checkbox"${profile.avatarVisible!==false?' checked':''}> Show image on portfolio page and PDF</span><small>The uploaded avatar or studio logo stays saved when hidden.</small></label>${imageUpload('profileAvatarUpload','Portfolio avatar',profile.avatarUrl,false,'removeProfileAvatar')}${imageUpload('profileCoverUpload','Portfolio cover',profile.coverUrl,false,'removeProfileCover')}`,false,'Avatar and cover image')}</div>`;
   rememberBuilderCards();
   const sidebarChecks=$('sidebarControls')?.querySelector('.builder-check-grid');
   sidebarChecks?.insertAdjacentHTML('beforebegin',`<label>Section width<select data-sidebar="width"><option value="narrow"${profile.sidebar.width==='narrow'?' selected':''}>Narrow — more room for portfolio content</option><option value="balanced"${profile.sidebar.width==='balanced'?' selected':''}>Balanced</option><option value="wide"${profile.sidebar.width==='wide'?' selected':''}>Wide — more room for résumé details</option></select></label>`);
@@ -125,7 +125,7 @@ function renderIdentitySettings(){
   bindProfileImageRemoval('removeProfileCover','coverUrl','Cover');
   bindSidebarSettings();
   bindIdentityCollections();
-  $('useCommunityData').addEventListener('click',()=>{profile.displayName=communityProfile.displayName||user?.displayName||profile.displayName;profile.professionalTitle=communityProfile.specialization||communityProfile.profession||profile.professionalTitle;profile.location=communityProfile.location||profile.location;profile.avatarUrl=communityProfile.photoURL||user?.photoURL||profile.avatarUrl;profile.contactEmail=user?.email||profile.contactEmail;if(user?.email&&!(profile.contacts||[]).some(contact=>contact.type==='email'&&contact.value===user.email))profile.contacts=[...(profile.contacts||[]),{id:uid(),type:'email',label:'Community email',value:user.email,visible:false}];renderAll();dirty();status('Community details copied — review them before saving')});
+  $('useCommunityData').addEventListener('click',()=>{profile.displayName=communityProfile.displayName||user?.displayName||profile.displayName;profile.professionalTitle=communityProfile.specialization||communityProfile.profession||profile.professionalTitle;profile.location=communityProfile.location||profile.location;profile.avatarUrl=communityProfile.photoURL||user?.photoURL||profile.avatarUrl;profile.contactEmail=user?.email||profile.contactEmail;if(user?.email&&!(profile.contacts||[]).some(contact=>contact.type==='email'&&contact.value===user.email))profile.contacts=[...(profile.contacts||[]),{id:uid(),type:'email',label:'Professional email',value:user.email,visible:false}];renderAll();dirty();status('Professional details copied — review them before saving')});
 }
 function bindSidebarSettings(){const sidebar=profile.sidebar;$('sidebarVisible').addEventListener('change',event=>{sidebar.visible=event.target.checked;renderIdentitySettings();renderPreview();dirty()});$('settingsPanel').querySelectorAll('[data-sidebar]').forEach(control=>control.addEventListener('input',()=>{sidebar[control.dataset.sidebar]=control.value;renderPreview();dirty()}));$('settingsPanel').querySelectorAll('[data-sidebar-toggle]').forEach(control=>control.addEventListener('change',()=>{sidebar[control.dataset.sidebarToggle]=control.checked;renderPreview();dirty()}));bindFieldEditors(sidebar,'sidebarFields',()=>renderIdentitySettings());$('addSidebarField')?.addEventListener('click',()=>{sidebar.fields.push({id:uid(),label:'New detail',value:'',type:'text',labelSize:'standard',valueSize:'standard',visible:true});renderIdentitySettings();renderPreview();dirty()})}
 function bindProfileImageRemoval(buttonId,key,label){$(buttonId)?.addEventListener('click',()=>{queueMediaDelete(profile[key],pendingProfileMediaDeletes);profile[key]='';renderIdentitySettings();renderPreview();dirty();status(`${label} removed — save your portfolio to confirm`)})}
@@ -364,7 +364,7 @@ function renderThemeManagerDialog(dialog, currentTab='my'){
               <i></i><span></span>
             </div>
             <strong>${esc(item.name)}</strong>
-            <small>By ${esc(item.creatorName||'Community creator')} · ${item.palettes.length} palette${item.palettes.length===1?'':'s'}</small>
+            <small>By ${esc(item.creatorName||'Professional creator')} · ${item.palettes.length} palette${item.palettes.length===1?'':'s'}</small>
             <label>Palette
               <select data-saved-palette="${index}">
                 ${item.palettes.map(palette=>`<option value="${esc(palette.id)}">${esc(palette.name)}</option>`).join('')}
@@ -1097,9 +1097,9 @@ function businessOpportunitiesEditorMarkup(){
         <div style="margin-top:14px;padding:12px 14px;background:#fff;border:1px solid #ebdcd5;border-radius:12px;">
           <label style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:0.84rem;cursor:pointer;color:var(--ink);">
             <input type="checkbox" id="bizOppShareCommunity" style="accent-color:var(--wine);" checked>
-            <span>Share to AIAS Basra Community feed</span>
+            <span>Share to AIAS Basra Professional feed</span>
           </label>
-          <p style="margin:4px 0 0 24px;font-size:0.75rem;color:var(--muted);">Publishes a verified studio preview card in the Community feed referencing this opportunity.</p>
+          <p style="margin:4px 0 0 24px;font-size:0.75rem;color:var(--muted);">Publishes a verified studio preview card in the Professional feed referencing this opportunity.</p>
         </div>
         <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
           <button id="saveBizOppBtn" class="pf-button primary btn-sm" type="button"><span>${opp.id?'Save Listing':'Publish Listing'}</span></button>
@@ -1169,9 +1169,9 @@ function businessPostsEditorMarkup(){
         <div style="margin-top:14px;padding:12px 14px;background:#fff;border:1px solid #ebdcd5;border-radius:12px;">
           <label style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:0.84rem;cursor:pointer;color:var(--ink);">
             <input type="checkbox" id="bizPostShareCommunity" style="accent-color:var(--wine);" checked>
-            <span>Share to AIAS Basra Community feed</span>
+            <span>Share to AIAS Basra Professional feed</span>
           </label>
-          <p style="margin:4px 0 0 24px;font-size:0.75rem;color:var(--muted);">Publishes a verified studio preview card in the Community feed referencing this announcement.</p>
+          <p style="margin:4px 0 0 24px;font-size:0.75rem;color:var(--muted);">Publishes a verified studio preview card in the Professional feed referencing this announcement.</p>
         </div>
         <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
           <button id="saveBizPostBtn" class="pf-button primary btn-sm" type="button"><span>${p.id?'Save Update':'Publish Update'}</span></button>
@@ -1469,7 +1469,7 @@ function bindBusinessSettingsEvents(){
           communitySlug: 'main',
           portfolioKind: result.opportunity.type === 'internship' ? 'internship' : 'job',
           portfolioId: result.opportunity.id
-        }).catch(err => console.warn('[Cross-Posting] Failed to share opportunity to Community:', err));
+        }).catch(err => console.warn('[Cross-Posting] Failed to share opportunity to Professional:', err));
       }
       editingBusinessOpportunity=null;
       preserveBuilderScroll(()=>{renderBusinessSettings();renderPreview()});
@@ -1873,7 +1873,7 @@ function listenBizMessengerThreads() {
         id: d.id,
         otherUid,
         name: otherProf.displayName || otherProf.username || app?.applicantName || 'Candidate',
-        role: app ? `${app.opportunityTitle} (${app.opportunityType})` : (otherProf.professionalTitle || 'Community Member'),
+        role: app ? `${app.opportunityTitle} (${app.opportunityType})` : (otherProf.professionalTitle || 'Professional Member'),
         avatar: otherProf.photoBase64 || otherProf.photoURL || '',
         updatedAt: data.updatedAt || data.createdAt || null
       };

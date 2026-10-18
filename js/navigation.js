@@ -86,7 +86,7 @@ class SiteSearch {
         this.searchData = [
             { title: 'Home', url: 'index.html', type: 'page', description: 'Welcome to AIAS Basra Chapter' },
             { title: 'Events', url: 'events.html', type: 'page', description: 'Upcoming and past chapter events' },
-            { title: 'Freedom By Design', url: 'fbd.html', type: 'page', description: 'Community service design projects' },
+            { title: 'Freedom By Design', url: 'fbd.html', type: 'page', description: 'Chapter service design projects' },
             { title: 'Library', url: 'library.html', type: 'page', description: 'Resource repository and downloads' },
             { title: 'Magazine', url: 'magazine.html', type: 'page', description: 'Articles and publications' },
             { title: 'About Us', url: 'about.html', type: 'page', description: 'Learn about AIAS Basra Chapter' },

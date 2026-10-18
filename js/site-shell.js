@@ -2,7 +2,7 @@
     const SEARCH_DATA = [
         { title: 'Home', titleAr: 'الرئيسية', url: 'index.html', type: 'Page', typeAr: 'صفحة', description: 'Welcome to AIAS Basra Chapter', descriptionAr: 'مرحباً بكم في فرع AIAS البصرة', keywords: 'aias basra welcome' },
         { title: 'Events', titleAr: 'الفعاليات', url: 'events.html', type: 'Page', typeAr: 'صفحة', description: 'Upcoming and past chapter events', descriptionAr: 'الفعاليات القادمة والسابقة', keywords: 'workshop lecture activity calendar' },
-        { title: 'Freedom By Design', titleAr: 'الحرية من خلال التصميم', url: 'fbd.html', type: 'Page', typeAr: 'صفحة', description: 'Community service design projects', descriptionAr: 'مشاريع التصميم وخدمة المجتمع', keywords: 'community projects service fbd' },
+        { title: 'Freedom By Design', titleAr: 'الحرية من خلال التصميم', url: 'fbd.html', type: 'Page', typeAr: 'صفحة', description: 'Chapter service design projects', descriptionAr: 'مشاريع التصميم وخدمة المجتمع', keywords: 'community projects service fbd' },
         { title: 'Library', titleAr: 'المكتبة', url: 'library.html', type: 'Page', typeAr: 'صفحة', description: 'Resource repository and downloads', descriptionAr: 'مصادر وملفات للقراءة والتحميل', keywords: 'resources books documents downloads' },
         { title: '3D Models', titleAr: 'النماذج ثلاثية الأبعاد', url: '3d-models.html', type: 'Page', typeAr: 'صفحة', description: 'Browse and preview uploaded 3D models', descriptionAr: 'تصفح واعرض النماذج ثلاثية الأبعاد', keywords: '3d glb model viewer architecture' },
         { title: 'Magazine', titleAr: 'المجلة', url: 'magazine.html', type: 'Page', typeAr: 'صفحة', description: 'Articles and publications', descriptionAr: 'المقالات والمنشورات', keywords: 'articles publications magazine news' },
@@ -236,7 +236,8 @@
                         <span></span>
                     </button>
                     <ul class="nav-links" id="navLinks">
-                        <li class="nav-item"><a href="#" data-mega-menu="communityMegaMenu" class="shell-link-community" data-en="Community" data-ar="Community">Community</a><div class="mega-menu" id="communityMegaMenu"><div class="mega-menu-content"><div class="mega-menu-section"><h3>Community</h3><a href="/community.html" class="mega-menu-link"><div class="mega-menu-icon">Discuss</div><div class="mega-menu-link-content"><div class="mega-menu-link-title">Community Home</div><div class="mega-menu-link-desc">Write text posts and join discussions</div></div></a><a href="/community.html?view=selected" class="mega-menu-link"><div class="mega-menu-icon">Projects</div><div class="mega-menu-link-content"><div class="mega-menu-link-title">Selected Projects</div><div class="mega-menu-link-desc">Curated Behance work from members</div></div></a></div></div></div></li>
+                        <li class="nav-item"><a href="https://professional.aiasbsr.com/" class="shell-link-professional" data-en="Professional" data-ar="المحترفون">Professional</a></li>
+                        <li class="nav-item"><a href="https://market.aiasbsr.com/" class="shell-link-market" data-en="Market" data-ar="السوق">Market</a></li>
                         <li class="nav-item"><a href="index.html" class="shell-link-home" data-en="Home" data-ar="الرئيسية">Home</a></li>
 
                         <li class="nav-item">
@@ -256,7 +257,7 @@
                                             <div class="mega-menu-icon">🏗️</div>
                                             <div class="mega-menu-link-content">
                                             <div class="mega-menu-link-title" data-en="Freedom By Design" data-ar="الحرية بالتصميم">Freedom By Design</div>
-                                            <div class="mega-menu-link-desc" data-en="Community service projects" data-ar="مشاريع خدمة المجتمع">Community service projects</div>
+                                            <div class="mega-menu-link-desc" data-en="Chapter service projects" data-ar="مشاريع خدمة المجتمع">Chapter service projects</div>
                                             </div>
                                         </a>
                                     </div>
@@ -741,7 +742,7 @@
         }
 
         if (currentFile === 'community.html' || currentFile === 'community-projects.html') {
-            setActive('.shell-link-community');
+            setActive('.shell-link-professional');
             return;
         }
 

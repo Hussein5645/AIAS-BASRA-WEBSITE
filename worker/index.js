@@ -2,6 +2,7 @@ import {validPath} from './policy.js';
 import {runtime,context,configureTriggers} from './platform.js';
 import {canAccessMedia,permissions,isAdministrator} from './access.js';
 import {hosts,canonical,communityPage,safeReturn,authOrigin} from './sites.js';
+import {ensureProfessionalAccount,registerProfessional,professionalAdmin} from './professional.js';
 import {communityHandlers} from './community/handlers.js';
 import {databaseRoute,batchRoute,functionRoute,storageRoute,mediaRoute,shareRoute,json} from './routes.js';
 import {pushRoute,sendNotification} from './push.js';
@@ -23,6 +24,7 @@ async function createSession(env,profile) {
   if(identity?.disabled)fail(403,'This account is disabled.');
   if(!identity){const uid=crypto.randomUUID();await env.DB.prepare('INSERT OR IGNORE INTO identities(google_subject,user_id,email,disabled) VALUES(?,?,?,0)').bind(profile.sub,uid,profile.email.toLowerCase()).run();identity=await env.DB.prepare('SELECT * FROM identities WHERE google_subject=?').bind(profile.sub).first();}
   const user = {uid:identity.user_id,email:profile.email.toLowerCase(),displayName:profile.name || '',photoURL:profile.picture || ''};
+  await ensureProfessionalAccount(user);
   const token = random();
   await env.DB.prepare('INSERT INTO sessions(token_hash,user_json,expires_at) VALUES(?,?,?)').bind(await hash(token),JSON.stringify(user),Date.now()+604800000).run();
   return {user,token};
@@ -30,6 +32,7 @@ async function createSession(env,profile) {
 async function authRoute(request,env,url) {
   if (url.pathname==='/api/auth/session') {
     const user=await session(request,env),headers=new Headers({'Content-Type':'application/json','Cache-Control':'no-store'});
+    if(user)await ensureProfessionalAccount(user);
     if(user&&!cookie(request,'__Secure-aias_session')&&cookie(request,'aias_session')){
       headers.append('Set-Cookie',sessionCookie(cookie(request,'aias_session'),604800,url));
       headers.append('Set-Cookie','aias_session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0');
@@ -121,6 +124,14 @@ export default {
      if(!env.DB||!env.MEDIA)fail(503,'Cloudflare database and storage bindings are required.');
      if(request.method!=='GET'&&request.headers.get('Origin')!==url.origin)fail(403,'Invalid request origin');
      if(url.pathname.startsWith('/api/auth/'))return authRoute(request,env,url);
+     if(url.pathname==='/api/professional/register'&&request.method==='POST')return json(await registerProfessional(await request.json()));
+     if(url.pathname==='/api/admin/professional')return json(await professionalAdmin(request));
+     if(url.pathname==='/api/admin/overview'&&request.method==='GET'){
+      if(!await isAdministrator())fail(403,'Administrator access is required.');
+      const result=await env.DB.prepare("SELECT collection, COUNT(*) AS total, SUM(CASE WHEN json_extract(data,'$.status')='published' THEN 1 ELSE 0 END) AS published FROM documents WHERE collection IN ('users','portfolioProfiles','marketStores') GROUP BY collection").all();
+      const rows=Object.fromEntries(result.results.map(row=>[row.collection,row]));
+      return json({accounts:rows.users?.total||0,published:rows.portfolioProfiles?.published||0,stores:rows.marketStores?.total||0});
+     }
      if(url.pathname==='/api/db'&&request.method==='POST')return databaseRoute(request);
      if(url.pathname==='/api/batch'&&request.method==='POST')return batchRoute(request);
      if(url.pathname.startsWith('/api/functions/')&&request.method==='POST')return functionRoute(request,decodeURIComponent(url.pathname.slice(15)));

@@ -438,7 +438,7 @@ async function requireCompleteProfile(request) {
   if (!request.auth?.uid) throw new HttpsError('unauthenticated', 'Sign in to continue.');
   const profile = await db.collection('users').doc(request.auth.uid).get();
   if (!profile.exists || profile.data().profileComplete !== true || !profile.data().username) {
-    throw new HttpsError('failed-precondition', 'Complete your public Community profile first.');
+    throw new HttpsError('failed-precondition', 'Complete your account profile first.');
   }
   return profile.data();
 }
@@ -2051,7 +2051,7 @@ async function requireCommunityAdmin(request) {
 }
 
 function safeCommunityRoles(input = {}) {
-  const allowed = /^(view|manage)_(community|events|articles|library|models3d|fbd)$/;
+  const allowed = /^(view|manage)_(professional|community|events|articles|library|models3d|fbd|market)$/;
   const roles = {};
   Object.entries(input).forEach(([id, role]) => {
     if (!/^[a-z0-9_-]{2,48}$/.test(id)) return;

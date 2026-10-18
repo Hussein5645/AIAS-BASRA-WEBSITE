@@ -250,56 +250,54 @@
 
 
 </head>
-<body>
+<body class="admin-workspace">
 
-  <!-- Admin Header -->
-  <div class="admin-header">
-    <div class="container">
-      <h1 data-en="Admin Dashboard" data-ar="لوحة التحكم الإدارية">Admin Dashboard</h1>
-      <div class="admin-info">
-        <span id="currentRoleBadge" class="access-badge">Checking access…</span>
-        <button class="language-toggle" id="languageToggle" style="display:inline-flex;align-items:center;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-          </svg>
-          <span id="currentLang">EN</span>
-        </button>
-        <a href="index.html" class="home-link" data-en="View Site" data-ar="عرض الموقع">View Site</a>
-        <button class="logout-btn" onclick="logout()" data-en="Logout" data-ar="تسجيل الخروج">Logout</button>
-      </div>
-    </div>
-  </div>
-
+  <header class="workspace-topbar">
+    <a class="workspace-logo" href="/admin-dashboard.html"><span class="workspace-monogram">A</span><span>AIAS BASRA<small>Management workspace</small></span></a>
+    <label class="workspace-search"><span aria-hidden="true">⌕</span><input type="search" id="workspaceSearch" placeholder="Find a section…" aria-label="Find a dashboard section"><kbd>/</kbd></label>
+    <div class="workspace-user"><span id="currentRoleBadge" class="access-badge">Checking access…</span><a href="/" class="workspace-site-link">View website ↗</a><button id="languageToggle" class="language-toggle"><span id="currentLang">EN</span></button><button class="logout-btn" onclick="logout()">Sign out</button></div>
+  </header>
   <div class="dashboard">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <p class="workspace-brand">AIAS BASRA <span>Workspace</span></p><h3 data-en="Manage" data-ar="إدارة الموقع">Manage</h3>
-      <ul class="nav" id="mainNav"><li><button data-tab="overview">Overview</button></li>
-        <li><button data-tab="community" data-en="Community · private" data-ar="المجتمع · خاص">Community · private</button></li>
-        <li><button data-tab="market" data-en="Market" data-ar="السوق">Market</button></li>
-        <li><button data-tab="events" class="active" data-en="Events" data-ar="الفعاليات">Events</button></li>
-        <li><button data-tab="articles" data-en="Magazine" data-ar="المجلة">Magazine</button></li>
-        <li><button data-tab="library" data-en="Library" data-ar="المكتبة">Library</button></li>
-        <li><button data-tab="models3d" data-en="3D Models" data-ar="نماذج ثلاثية الأبعاد">3D Models</button></li>
-        <li><button data-tab="fbd" data-en="FBD" data-ar="FBD">FBD</button></li>
-        <li><button data-tab="settings" data-en="Settings" data-ar="الإعدادات">Settings</button></li>
-        <li><button data-tab="roles">Roles &amp; access</button></li>
+    <aside class="sidebar" aria-label="Workspace navigation">
+      <ul class="nav" id="mainNav">
+        <li><button data-tab="overview"><span class="nav-icon">◫</span>Overview</button></li>
+        <li class="nav-group-label" aria-hidden="true">PRODUCTS</li>
+        <li><button data-tab="professional"><span class="nav-icon">◈</span>Professional</button></li>
+        <li><button data-tab="market"><span class="nav-icon">▤</span>Market</button></li>
+        <li class="nav-group-label" aria-hidden="true">WEBSITE</li>
+        <li><button data-tab="events"><span class="nav-icon">▦</span>Events</button></li>
+        <li><button data-tab="articles"><span class="nav-icon">▧</span>Magazine</button></li>
+        <li><button data-tab="library"><span class="nav-icon">▥</span>Library</button></li>
+        <li><button data-tab="models3d"><span class="nav-icon">◇</span>3D models</button></li>
+        <li><button data-tab="fbd"><span class="nav-icon">✳</span>Freedom by Design</button></li>
+        <li class="nav-group-label" aria-hidden="true">WORKSPACE</li>
+        <li><a href="/admin-storage.html"><span class="nav-icon">▣</span>Media library</a></li>
+        <li><button data-tab="settings"><span class="nav-icon">⚙</span>Settings</button></li>
+        <li><button data-tab="roles"><span class="nav-icon">◎</span>Roles &amp; access</button></li>
+        <li class="nav-group-label" aria-hidden="true">PRIVATE PREVIEW</li>
+        <li><button data-tab="community"><span class="nav-icon">◌</span>Community <small>ADMIN</small></button></li>
       </ul>
-      <div class="access-card"><strong id="sidebarRoleName">Loading role…</strong><span id="sidebarUserEmail"></span><span id="sidebarAccessSummary"></span></div>
+      <p id="workspaceSearchEmpty" hidden>No matching sections.</p>
+      <div class="access-card"><span class="workspace-avatar" aria-hidden="true">A</span><div><strong id="sidebarRoleName">Loading role…</strong><span id="sidebarUserEmail"></span><span id="sidebarAccessSummary"></span></div></div>
     </aside>
 
     <!-- Main content -->
-    <main class="content">
-<section id="overview-tab" class="tab-content">
-<div class="workspace-welcome"><span class="workspace-eyebrow">YOUR WORKSPACE</span><h2>Everything in one place.</h2><p>Manage your website, publish updates, and open your products.</p></div>
-<div class="product-grid">
-<a class="product-card" href="https://aiasbsr.com/"><span class="product-status">PUBLIC</span><h3>Main website</h3><p>Chapter news, events, and resources.</p><strong>Open website →</strong></a>
-<a class="product-card" href="https://professional.aiasbsr.com/"><span class="product-status">PUBLIC</span><h3>BASRA Professional</h3><p>Portfolios, businesses, and opportunities.</p><strong>Open Professional →</strong></a>
-<a class="product-card" href="https://market.aiasbsr.com/"><span class="product-status">PUBLIC</span><h3>Market</h3><p>Stores, products, and portfolio themes.</p><strong>Open Market →</strong></a>
-<a class="product-card private-preview" href="https://community.aiasbsr.com/"><span class="product-status">ADMIN ONLY</span><h3>Community preview</h3><p>Explore work in progress. Only administrators can enter.</p><strong>Open private preview →</strong></a>
+    <main class="content"><div class="workspace-breadcrumb">Workspace <span>/</span> <strong id="workspaceBreadcrumb">Overview</strong></div><div class="workspace-page-heading"><div><h1 id="workspacePageTitle">Overview</h1><p id="workspacePageDescription">Your products, content, and people at a glance.</p></div><a id="workspaceOpenProduct" href="/" class="workspace-outline">Open website ↗</a></div>
+<section id="overview-tab" class="tab-content active">
+<div class="workspace-stats">
+<article><span>REGISTERED ACCOUNTS</span><strong id="overviewAccountCount">—</strong><small>One account across your products</small></article>
+<article><span>PUBLISHED PORTFOLIOS</span><strong id="overviewPublishedCount">—</strong><small>Live on BASRA Professional</small></article>
+<article><span>MARKET STORES</span><strong id="overviewStoresCount">—</strong><small>Your marketplace directory</small></article>
 </div>
-<div class="workspace-help"><h3>Start with a section</h3><p>Choose a section in the menu to manage its content. Your account permissions determine which controls are available.</p><a href="/admin-storage.html">Manage uploaded files →</a></div>
+<div class="workspace-section-title"><h2>Your products</h2><span>3 public destinations</span></div>
+<div class="product-grid">
+<a class="product-card" href="https://aiasbsr.com/"><span class="product-symbol">A</span><span class="product-status">Live</span><h3>Main website</h3><p>Chapter stories, events, and resources.</p><strong>aiasbsr.com ↗</strong></a>
+<a class="product-card" href="https://professional.aiasbsr.com/"><span class="product-symbol">P</span><span class="product-status">Live</span><h3>BASRA Professional</h3><p>Portfolios, people, and creative practice.</p><strong>professional.aiasbsr.com ↗</strong></a>
+<a class="product-card" href="https://market.aiasbsr.com/"><span class="product-symbol">M</span><span class="product-status">Live</span><h3>Market</h3><p>Student stores and design resources.</p><strong>market.aiasbsr.com ↗</strong></a>
+</div>
+<div class="workspace-section-title"><h2>Make something happen</h2><span>Quick actions</span></div>
+<div class="workspace-quick-actions"><button data-workspace-tab="events"><span>＋</span><strong>Publish an event</strong><small>Bring your next gathering to life</small></button><button data-workspace-tab="professional"><span>◎</span><strong>Manage Professional</strong><small>Accounts, businesses, and categories</small></button><a href="/admin-storage.html"><span>↑</span><strong>Upload a file</strong><small>Keep your content in one place</small></a></div>
+<div class="workspace-private"><div><span class="product-status private">Admin only</span><h3>Community preview</h3><p>Private work in progress. Public users cannot enter.</p></div><a href="https://community.aiasbsr.com/" class="workspace-outline">Open preview ↗</a></div>
 </section>
       <div id="message" class="message"></div>
 
@@ -310,7 +308,7 @@
       </div>
 
       <!-- Events -->
-      <section id="events-tab" class="tab-content active">
+      <section id="events-tab" class="tab-content">
         <details class="accordion" open>
           <summary data-en="Existing Events" data-ar="الفعاليات الحالية">Existing Events</summary>
           <div class="accordion-body panel">
@@ -446,16 +444,26 @@
         </details>
       </section>
 
+<section id="professional-tab" class="tab-content">
+<div class="workspace-panel-tabs" role="tablist" aria-label="Professional management"><button id="professionalAccountsTab" role="tab" aria-selected="true" aria-controls="professionalAccountsPanel" data-professional-panel="accounts">Accounts &amp; businesses</button><button id="professionalCategoriesTab" role="tab" aria-selected="false" aria-controls="professionalCategoriesPanel" data-professional-panel="categories">Portfolio categories</button></div>
+<div id="professionalAccountsPanel" role="tabpanel" aria-labelledby="professionalAccountsTab">
+<div class="workspace-panel"><div class="workspace-panel-heading"><div><h2>Professional accounts</h2><p>Manage professional identities and business status independently.</p></div><button id="professionalRefresh" class="workspace-outline">Refresh</button></div>
+<div class="professional-toolbar"><label><span class="sr-only">Search Professional accounts</span><input id="professionalSearch" type="search" placeholder="Search by name, username, or email"></label><label><span class="sr-only">Filter accounts</span><select id="professionalFilter"><option value="all">All accounts</option><option value="published">Published portfolios</option><option value="business">Business accounts</option><option value="verified">Verified accounts</option></select></label><span id="professionalCount">Loading accounts…</span></div>
+<p id="professionalStatus" role="status" aria-live="polite"></p><div id="professionalAccounts" class="professional-accounts" aria-busy="true"></div><div class="workspace-pagination"><button id="professionalPrevious" class="workspace-outline">← Previous</button><span id="professionalPageInfo"></span><button id="professionalNext" class="workspace-outline">Next →</button></div></div></div>
+<div id="professionalCategoriesPanel" role="tabpanel" aria-labelledby="professionalCategoriesTab" hidden>
+          <section class="community-admin-card wide professional-categories"><header class="community-admin-card-head"><span>🏷️</span><div><h3>Professional categories</h3><p>Add, edit, or remove the profession filters shown in the Portfolio Explorer. Changes appear on the public portfolio page.</p></div></header><div class="community-admin-card-body"><div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.7fr);gap:20px;align-items:start"><div id="portfolioTagsAdminList"><p>Loading portfolio tags…</p></div><div style="background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:16px"><h4 id="portfolioTagFormHeading" style="margin:0 0 10px;font-size:.9rem;color:#1e293b">Add portfolio tag</h4><form id="portfolioTagForm"><input type="hidden" id="portfolioTagId"><div class="form-group" style="margin-bottom:10px"><label for="portfolioTagNameEn">Tag name (English) *</label><input id="portfolioTagNameEn" required maxlength="60" placeholder="e.g. Urban Planning"></div><div class="form-group" style="margin-bottom:12px"><label for="portfolioTagNameAr">Tag name (Arabic)</label><input id="portfolioTagNameAr" maxlength="60" dir="rtl" placeholder="مثال: التخطيط الحضري"></div><div style="display:flex;gap:8px"><button type="submit" id="savePortfolioTagBtn" class="submit-btn" style="flex:1">Save tag</button><button type="button" id="cancelPortfolioTagEditBtn" class="btn" style="display:none" onclick="window.cancelEditPortfolioTag()">Cancel</button></div><p id="portfolioTagFormStatus" style="margin:.7rem 0 0;font-size:.78rem" aria-live="polite"></p></form></div></div></div></section>
+</div>
+</section>
+
       <!-- Community management -->
       <section id="community-tab" class="tab-content">
-        <header class="community-admin-hero"><div><h2>Community management</h2><p>Review featured-project requests, manage member spaces, control posting access, and grant verified Business Status.</p><a href="/community.html" target="_blank" rel="noopener">Open the community ↗</a> <a href="/admin-community-moderation.html">Open moderation &amp; archives →</a> <a href="/admin-community-users.html">Manage posting access →</a> <a href="/admin-community-users.html?tab=business">Business Accounts →</a></div><label class="community-admin-search"><span class="sr-only">Search Community management</span><input id="communityAdminSearch" type="search" autocomplete="off" placeholder="Search projects, spaces, or questions"></label></header>
+        <header class="community-admin-hero"><div><h2>Community management</h2><p>Review featured-project requests, manage member spaces, control posting access.</p><a href="/community.html" target="_blank" rel="noopener">Open the community ↗</a> <a href="/admin-community-moderation.html">Open moderation &amp; archives →</a> <a href="/admin-community-users.html">Manage posting access →</a></div><label class="community-admin-search"><span class="sr-only">Search Community management</span><input id="communityAdminSearch" type="search" autocomplete="off" placeholder="Search projects, spaces, or questions"></label></header>
         <div class="community-admin-stats" aria-label="Community overview"><article class="community-admin-stat"><span>✓</span><div><strong id="communityPendingCount">—</strong><small>Pending project requests</small></div></article><article class="community-admin-stat"><span>#</span><div><strong id="communitySpacesCount">—</strong><small>Active member spaces</small></div></article><article class="community-admin-stat"><span>?</span><div><strong id="communityQuestionState">—</strong><small>Question of the Week</small></div></article></div>
         <div class="community-admin-grid">
-          <section class="community-admin-card"><header class="community-admin-card-head"><span>🏛️</span><div><h3>Business Accounts Management</h3><p>Grant, suspend, or restore verified Business Status for architecture studios, firms, and practice profiles.</p></div></header><div class="community-admin-card-body"><p style="font-size:0.8rem;color:var(--muted);margin:0 0 12px">Search community members by username, email, or UID, and grant official Business Status without creating separate login credentials.</p><a href="/admin-community-users.html?tab=business" class="firestore-button primary" target="_blank" rel="noopener">Open Business Accounts Manager ↗</a></div></section>
           <section class="community-admin-card"><header class="community-admin-card-head"><span>✓</span><div><h3>Submitted project approvals</h3><p>Review projects members requested for the Selected Projects page.</p></div></header><div class="community-admin-card-body"><div id="communityAdminList"><p>Loading project requests…</p></div></div></section>
           <section class="community-admin-card"><header class="community-admin-card-head"><span>#</span><div><h3>Manage community spaces</h3><p>Open, archive, or restore spaces created by members.</p></div></header><div class="community-admin-card-body"><p class="community-spaces-note">New spaces are created by members from the Community page. This dashboard only manages existing spaces.</p><div id="communitySpacesAdmin"><p>Loading community spaces…</p></div></div></section>
           <section class="community-admin-card"><header class="community-admin-card-head"><span>✓</span><div><h3>Verify a community account</h3><p>Enter a member’s sign-in email to add the official verification mark to their community identity.</p></div></header><div class="community-admin-card-body"><form id="communityVerificationForm" class="community-verification-form"><div class="form-group"><label for="communityVerificationEmail">Member email</label><input id="communityVerificationEmail" type="email" required autocomplete="email" placeholder="member@example.com"></div><button class="submit-btn" type="submit">Verify account</button><p id="communityVerificationStatus" class="community-verification-status" aria-live="polite"></p></form></div></section>
-          <section class="community-admin-card wide"><header class="community-admin-card-head"><span>🏷️</span><div><h3>Portfolio Explorer tags</h3><p>Add, edit, or remove the profession filters shown in the Portfolio Explorer. Changes appear on the public portfolio page.</p></div></header><div class="community-admin-card-body"><div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.7fr);gap:20px;align-items:start"><div id="portfolioTagsAdminList"><p>Loading portfolio tags…</p></div><div style="background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:16px"><h4 id="portfolioTagFormHeading" style="margin:0 0 10px;font-size:.9rem;color:#1e293b">Add portfolio tag</h4><form id="portfolioTagForm"><input type="hidden" id="portfolioTagId"><div class="form-group" style="margin-bottom:10px"><label for="portfolioTagNameEn">Tag name (English) *</label><input id="portfolioTagNameEn" required maxlength="60" placeholder="e.g. Urban Planning"></div><div class="form-group" style="margin-bottom:12px"><label for="portfolioTagNameAr">Tag name (Arabic)</label><input id="portfolioTagNameAr" maxlength="60" dir="rtl" placeholder="مثال: التخطيط الحضري"></div><div style="display:flex;gap:8px"><button type="submit" id="savePortfolioTagBtn" class="submit-btn" style="flex:1">Save tag</button><button type="button" id="cancelPortfolioTagEditBtn" class="btn" style="display:none" onclick="window.cancelEditPortfolioTag()">Cancel</button></div><p id="portfolioTagFormStatus" style="margin:.7rem 0 0;font-size:.78rem" aria-live="polite"></p></form></div></div></div></section>
+
           <section class="community-admin-card wide"><header class="community-admin-card-head"><span>?</span><div><h3>Question of the Week</h3><p>Publish a new weekly question or select one already submitted by a community member.</p></div></header><div class="community-admin-card-body"><form id="weeklyQuestionForm" class="community-question-form"><div class="form-group"><label for="weeklyQuestionTitle">Question</label><input id="weeklyQuestionTitle" required maxlength="160" placeholder="What should our community discuss this week?"></div><div class="form-group"><label for="weeklyQuestionContext">Helpful context</label><textarea id="weeklyQuestionContext" required maxlength="2000" placeholder="Add context that helps members give useful answers."></textarea></div><button class="submit-btn" type="submit">Publish as Question of the Week</button><p id="weeklyQuestionStatus" style="margin-top:.75rem" aria-live="polite"></p></form><div id="communityPromptAdmin"><p>Loading community questions…</p></div></div></section>
         </div>
       </section>
@@ -947,7 +955,7 @@
 
   <script type="module">
     /*************************************************
-     * تهيئة Firebase و FirestoreAPI
+     * تهيئة Cloudflare و FirestoreAPI
      *************************************************/
     import { initializeApp, getApp } from "/js/cloudflare-client.js";
     import { getAuth, signOut, onAuthStateChanged } from "/js/cloudflare-client.js";
@@ -1050,7 +1058,8 @@
           });
         }
 
-        const firstVisibleTab = document.querySelector('#mainNav button[data-tab]:not([hidden])')?.dataset.tab;
+        const requestedTab=location.hash.slice(1);
+        const firstVisibleTab = [...document.querySelectorAll('#mainNav button[data-tab]:not([hidden])')].find(button=>button.dataset.tab===requestedTab)?.dataset.tab || 'overview';
         if (firstVisibleTab) { document.querySelectorAll('#mainNav button').forEach(button => button.classList.toggle('active', button.dataset.tab === firstVisibleTab)); showTab(firstVisibleTab); }
       });
     })();
@@ -1168,6 +1177,9 @@
       if (tab==='events') loadExistingEvents();
       if (tab==='articles') loadExistingArticles();
       if (tab==='community') loadCommunityAdminData();
+      if (tab==='professional') loadPortfolioTagsAdmin();
+      window.aiasWorkspaceState={tab,access:currentAccess};
+      window.dispatchEvent(new CustomEvent('aias-workspace-tab',{detail:window.aiasWorkspaceState}));
       if (tab==='market') loadMarketAdminData();
       if (tab==='library') loadExistingLibraryResources();
       if (tab==='models3d') loadExistingModels3D();
@@ -1302,7 +1314,7 @@
     });
 
     async function loadCommunityAdminData() {
-      await Promise.all([loadCommunityAdminPosts(), loadCommunityPromptAdmin(), loadCommunitySpacesAdmin(), loadPortfolioTagsAdmin()]);
+      await Promise.all([loadCommunityAdminPosts(), loadCommunityPromptAdmin(), loadCommunitySpacesAdmin()]);
     }
 
     let cachedPortfolioTags = [];
@@ -1327,7 +1339,7 @@
         renderPortfolioTagsAdmin(cachedPortfolioTags);
       } catch (error) {
         console.error('[PortfolioTags] Load failed', error);
-        container.innerHTML = '<p style="color:var(--error)">Could not load portfolio tags from Firebase.</p>';
+        container.innerHTML = '<p style="color:var(--error)">Could not load portfolio tags from Cloudflare.</p>';
       }
     }
 
@@ -1358,11 +1370,11 @@
       try {
         const updated = cachedPortfolioTags.filter(item => item.id !== tagId);
         const result = await firestoreAPI.savePortfolioTags(updated);
-        if (!result.success) throw new Error(result.error || 'Firebase rejected the update.');
+        if (!result.success) throw new Error(result.error || 'The update could not be saved.');
         cachedPortfolioTags = result.tags;
         renderPortfolioTagsAdmin(cachedPortfolioTags);
         if (document.getElementById('portfolioTagId').value === tagId) window.cancelEditPortfolioTag();
-        showMessage('Portfolio tag removed from Firebase.', 'success');
+        showMessage('Portfolio tag removed.', 'success');
       } catch (error) {
         showMessage(error.message || 'Could not remove the portfolio tag.', 'error');
       }
@@ -1375,7 +1387,7 @@
       const tagId = document.getElementById('portfolioTagId').value.trim();
       const en = document.getElementById('portfolioTagNameEn').value.trim();
       const ar = document.getElementById('portfolioTagNameAr').value.trim();
-      if (!canManage(currentAccess, 'community')) { status.style.color = '#b91c1c'; status.textContent = 'You do not have permission to manage Community settings.'; return; }
+      if (!canManage(currentAccess, 'professional')) { status.style.color = '#b91c1c'; status.textContent = 'Professional management permission is required.'; return; }
       const duplicate = cachedPortfolioTags.some(tag => tag.id !== tagId && tag.en.toLowerCase() === en.toLowerCase());
       if (duplicate) { status.style.color = '#b91c1c'; status.textContent = 'A portfolio tag with this English name already exists.'; return; }
       try {
@@ -1393,11 +1405,11 @@
           tags.push({id, en, ar});
         }
         const result = await firestoreAPI.savePortfolioTags(tags);
-        if (!result.success) throw new Error(result.error || 'Firebase rejected the update.');
+        if (!result.success) throw new Error(result.error || 'The update could not be saved.');
         cachedPortfolioTags = result.tags;
         renderPortfolioTagsAdmin(cachedPortfolioTags);
         window.cancelEditPortfolioTag();
-        showMessage('Portfolio Explorer tags saved to Firebase.', 'success');
+        showMessage('Portfolio Explorer tags saved.', 'success');
       } catch (error) {
         status.style.color = '#b91c1c';
         status.textContent = error.message || 'Could not save the portfolio tag.';
@@ -3598,5 +3610,6 @@
     });
 
   </script>
+<script type="module" src="/js/admin-workspace.js"></script>
 </body>
 </html>

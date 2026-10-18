@@ -193,7 +193,7 @@ function renderIdentityCard() {
     const p = state.userPortfolio;
     const avatar = safeUrl(p.avatarUrl || p.coverUrl);
     const skills = (Array.isArray(p.skills) ? p.skills : []).slice(0, 3);
-    const title = p.professionalTitle || p.tagline || 'Community Practitioner';
+    const title = p.professionalTitle || p.tagline || 'Professional Practitioner';
     const loc = p.location || 'AIAS Basra';
 
     container.innerHTML = `
@@ -224,7 +224,7 @@ function renderIdentityCard() {
       <div class="pro-presence-cta">
         <div class="pro-presence-badge">🏛️ Verified Business</div>
         <h3>Manage Your Studio Profile</h3>
-        <p>Your Community account has verified Business Status. Manage and publish your studio profile.</p>
+        <p>Your Professional account has verified Business Status. Manage and publish your studio profile.</p>
         <a class="pf-button primary w-full" href="business-builder.html">Open Business Builder</a>
       </div>
     `;
@@ -423,7 +423,7 @@ export function professionalBizPostCard(post) {
 
       <div class="pro-biz-feed-foot">
         <a class="pf-button secondary btn-sm" href="portfolio.html?id=${encodeURIComponent(post.ownerUid)}">View Studio ↗</a>
-        <a class="pf-button secondary btn-sm" href="/community.html?view=post&portfolioKind=biz_post&portfolioId=${encodeURIComponent(post.id)}">Share to Community ↗</a>
+        <a class="pf-button secondary btn-sm" href="/community.html?view=post&portfolioKind=biz_post&portfolioId=${encodeURIComponent(post.id)}">Share to Professional ↗</a>
       </div>
     </article>
   `;
@@ -585,7 +585,7 @@ function renderSuggestedPortfolios() {
 
   container.innerHTML = suggestions.map(p => {
     const avatar = safeUrl(p.avatarUrl || p.coverUrl);
-    const title = p.professionalTitle || p.tagline || 'Community Practitioner';
+    const title = p.professionalTitle || p.tagline || 'Professional Practitioner';
     return `
       <a class="pro-suggested-item" href="portfolio.html?id=${encodeURIComponent(p.id)}">
         <span class="pro-suggested-avatar">
@@ -958,7 +958,7 @@ function renderConnectionsView() {
       <div class="pro-placeholder-card">
         <div class="pro-placeholder-icon">◎</div>
         <h3>Sign In to View Connections</h3>
-        <p>Sign in to your AIAS Basra Community account to view your professional connections and network with colleagues.</p>
+        <p>Sign in to your AIAS Basra Professional account to view your professional connections and network with colleagues.</p>
         <a class="pf-button primary" href="login.html?next=portfolios.html%3Ftab%3Dconnections">Sign In →</a>
       </div>
     `;
@@ -975,10 +975,10 @@ function renderConnectionsView() {
       <div class="pro-placeholder-card">
         <div class="pro-placeholder-icon">👥</div>
         <h3>No Connected Professionals Yet</h3>
-        <p>When you connect with community members who have a published BASRA Professional, they will appear here in your professional network.</p>
+        <p>When you connect with registered members who have a published BASRA Professional, they will appear here in your professional network.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
           <button type="button" class="pf-button primary" data-navigate-tab="people">Discover Professionals →</button>
-          <a class="pf-button secondary" href="/community.html?view=connections">Community Connections</a>
+          <a class="pf-button secondary" href="/community.html?view=connections">Professional Connections</a>
         </div>
       </div>
     `;
@@ -988,7 +988,7 @@ function renderConnectionsView() {
   container.innerHTML = `
     <div class="pro-connections-header-bar">
       <span>Manage all community and space connections:</span>
-      <a class="pro-community-conn-btn" href="/community.html?view=connections">Community Connection Manager ↗</a>
+      <a class="pro-community-conn-btn" href="/community.html?view=connections">Professional Connection Manager ↗</a>
     </div>
     <div class="pf-grid pro-people-grid">${visible.map(professionalPersonCard).join('')}</div>
   `;
@@ -1085,7 +1085,7 @@ async function handleToggleConnection(targetUserId, targetName = 'Professional')
         actorUsername: state.userProfileData?.username || '',
         type: 'connection',
         postId: '',
-        postTitle: 'Community connection',
+        postTitle: 'Professional connection',
         detailId: targetUserId,
         read: false,
         createdAt: serverTimestamp()

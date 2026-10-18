@@ -89,9 +89,9 @@ async function init() {
 
     // Load community posts authored by this business
     const postsSnap = await getDocs(query(
-      collection(db, 'communityPosts'),
-      where('userId', '==', business.id),
-      where('archived', '==', false)
+      collection(db, 'businessPosts'),
+      where('ownerUid', '==', business.id),
+      where('status', '==', 'published')
     ));
     const posts = postsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
@@ -251,13 +251,11 @@ async function init() {
           <div class="pro-biz-posts-list">
             ${posts.length ? posts.map(post => `
               <article class="pro-biz-post-card">
-                <h3><a href="/community.html?post=${encodeURIComponent(post.id)}">${esc(post.title || 'Community post')}</a></h3>
-                <p>${esc(post.summary || post.content || '').slice(0, 180)}…</p>
-                <div class="pro-biz-post-footer">
-                  <a class="pf-button secondary btn-sm" href="/community.html?post=${encodeURIComponent(post.id)}">Read on Community →</a>
-                </div>
+                <h3>${esc(post.title || 'Studio update')}</h3>
+                <p>${esc(post.summary || post.text || post.content || '').slice(0, 180)}…</p>
+
               </article>
-            `).join('') : emptyState('No community posts', 'This business account has not published any community updates yet.')}
+            `).join('') : emptyState('No studio updates', 'This business account has not published any studio updates yet.')}
           </div>
         </div>
 
@@ -340,7 +338,7 @@ async function init() {
               actorUsername: '',
               type: 'connection',
               postId: '',
-              postTitle: 'Community connection',
+              postTitle: 'Professional connection',
               detailId: targetId,
               read: false,
               createdAt: serverTimestamp()

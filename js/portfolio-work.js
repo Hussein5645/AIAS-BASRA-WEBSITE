@@ -62,7 +62,7 @@ try{
     connectBtnMarkup = `<button id="workAuthorConnectBtn" class="pf-button ${isConnected ? 'connected-btn' : 'primary'} pf-connect-btn" type="button"><span>${isConnected ? '✓ Connected' : '+ Connect'}</span></button>`;
   }
 
-  root.innerHTML=workPageMarkup(work,portfolio,{actions:`<div class="pf-hero-actions"><a class="pf-button secondary" href="portfolio.html?id=${encodeURIComponent(portfolio.id)}">View portfolio</a>${connectBtnMarkup}<button class="pf-button secondary pf-share" data-share-work>Share to Community</button></div>`});
+  root.innerHTML=workPageMarkup(work,portfolio,{actions:`<div class="pf-hero-actions"><a class="pf-button secondary" href="portfolio.html?id=${encodeURIComponent(portfolio.id)}">View portfolio</a>${connectBtnMarkup}<button class="pf-button secondary pf-share" data-share-work>Share to Professional</button></div>`});
   bindWorkImageViewer(root,work);
 
   const connectBtn = document.getElementById('workAuthorConnectBtn');
@@ -102,7 +102,7 @@ try{
             actorUsername: '',
             type: 'connection',
             postId: '',
-            postTitle: 'Community connection',
+            postTitle: 'Professional connection',
             detailId: targetId,
             read: false,
             createdAt: serverTimestamp()
