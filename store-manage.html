@@ -1,16 +1,1451 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
-  <meta charset="UTF-8">
-  <title>Redirecting to Store Management...</title>
-  <script>
-    (function() {
-      const search = window.location.search || '';
-      window.location.replace('https://space-42d87.web.app/store-manage.html' + search);
-    })();
-  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Store - AIAS Basra Market</title>
+  <meta name="description" content="Manage store inventory, items, tags, and orders on AIAS Basra." />
+  <link rel="icon" type="image/png" href="static/images/branding/LOGO.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Manrope:wght@200..800&family=Noto+Sans+Arabic:wght@100..900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/community.css?v=20260818-manage" />
+  <style>
+    body {
+      background: var(--paper, #f6f3ed);
+      color: var(--ink, #211a1b);
+      font-family: var(--font-body, 'DM Sans', sans-serif);
+      margin: 0;
+      padding: 0;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 8% 12%, rgba(240,218,161,.3), transparent 22rem),
+        radial-gradient(circle at 92% 80%, rgba(148,92,80,.08), transparent 26rem);
+    }
+
+    .manage-container {
+      width: min(1360px, calc(100% - 40px));
+      margin: 28px auto 80px;
+    }
+
+    /* Store Management Hero */
+    .manage-hero {
+      position: relative;
+      border-radius: 24px;
+      overflow: hidden;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, var(--wine-deep, #3d1115), var(--wine, #661f22));
+      box-shadow: 0 16px 40px rgba(61, 17, 21, 0.12);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #fff;
+    }
+    .manage-hero-banner {
+      height: 140px;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+      background-color: #3b1418;
+    }
+    .manage-hero-banner::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.7));
+    }
+    .manage-hero-body {
+      padding: 0 28px 22px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .manage-hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: -42px;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .manage-avatar-frame {
+      width: 90px;
+      height: 90px;
+      border-radius: 20px;
+      border: 4px solid #fff;
+      background: #fff;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      position: relative;
+      z-index: 2;
+    }
+    .manage-avatar-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .manage-hero-title {
+      margin: 0;
+      font: 800 clamp(1.3rem, 3.5vw, 1.75rem) var(--font-display);
+      letter-spacing: -0.03em;
+    }
+    .manage-admin-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #16a34a;
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      font-weight: 800;
+    }
+    .manage-hero-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* Stats strip */
+    .manage-stats-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .manage-stat-card {
+      background: #fff;
+      border: 1px solid var(--line, #e2d8ce);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 6px 18px rgba(61, 17, 21, 0.03);
+    }
+    .manage-stat-card > span {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 1.25rem;
+      background: #f7ece8;
+      color: var(--wine);
+    }
+    .manage-stat-card strong {
+      display: block;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--ink);
+    }
+    .manage-stat-card small {
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    /* Sub-nav tabs */
+    .manage-tabs-bar {
+      display: flex;
+      gap: 8px;
+      background: #eeeae5;
+      padding: 5px;
+      border-radius: 14px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+    }
+    .manage-tab-btn {
+      padding: 9px 20px;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 0.84rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .manage-tab-btn:hover {
+      background: rgba(255,255,255,0.6);
+      color: var(--ink);
+    }
+    .manage-tab-btn.active {
+      background: #fff;
+      color: var(--wine);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .manage-tab-panel {
+      display: none;
+    }
+    .manage-tab-panel.active {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .manage-card {
+      background: #fffdfa;
+      border: 1px solid var(--line, #e2d8ce);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(61, 17, 21, 0.04);
+      margin-bottom: 24px;
+    }
+
+    /* Items Table */
+    .manage-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+    .manage-table th {
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 2px solid var(--line);
+      color: var(--muted);
+      font-size: 0.74rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .manage-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+    }
+    .manage-table tr:hover td {
+      background: #fcfbfa;
+    }
+    .manage-item-thumb {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 1px solid var(--line);
+    }
+
+    .manage-badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .manage-badge.active { background: #dcfce7; color: #166534; }
+    .manage-badge.hidden { background: #fee2e2; color: #991b1b; }
+    .manage-badge.pending { background: #fef3c7; color: #92400e; }
+    .manage-badge.completed { background: #dcfce7; color: #166534; }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      background: linear-gradient(135deg, var(--wine), var(--clay));
+      color: #fff;
+      padding: 9px 18px;
+      border-radius: 11px;
+      font-weight: 800;
+      font-size: 0.84rem;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(102, 31, 34, 0.25);
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      background: #fff;
+      color: var(--ink);
+      padding: 9px 16px;
+      border-radius: 11px;
+      font-weight: 700;
+      font-size: 0.84rem;
+      border: 1px solid var(--line);
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn-secondary:hover {
+      background: #f7f4ef;
+    }
+    .mini-btn {
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .mini-btn:hover { background: #f1ece6; }
+    .mini-btn.danger { color: #dc2626; border-color: #fecaca; }
+    .mini-btn.danger:hover { background: #fee2e2; }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.74rem;
+      font-weight: 800;
+      color: var(--muted);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #fff;
+      font: inherit;
+      font-size: 0.84rem;
+      box-sizing: border-box;
+    }
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    /* Modal */
+    .manage-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      background: rgba(33, 26, 27, 0.65);
+      backdrop-filter: blur(6px);
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.22s ease, visibility 0.22s ease;
+    }
+    .manage-modal-backdrop.is-open {
+      opacity: 1;
+      visibility: visible;
+    }
+    .manage-modal {
+      width: min(650px, 100%);
+      max-height: 90vh;
+      overflow-y: auto;
+      background: #fffdfa;
+      border-radius: 22px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+      border: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+    }
+    .manage-modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line);
+    }
+    .manage-modal-head h3 {
+      margin: 0;
+      font: 800 1.15rem var(--font-display);
+      color: var(--ink);
+    }
+    .manage-modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: #fff;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: var(--muted);
+    }
+    .manage-modal-body {
+      padding: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .manage-stats-strip { grid-template-columns: repeat(2, 1fr); }
+      .form-grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
-<body style="font-family:sans-serif; text-align:center; padding-top:50px; background:#f6f3ed;">
-  <p>Redirecting to AIAS Store Management...</p>
+<body>
+
+  <!-- Topbar -->
+  <header class="community-topbar">
+    <div class="topbar-inner">
+      <a href="index.html" class="community-wordmark" aria-label="AIAS Basra Home">
+        <span class="logo-frame"><img src="static/images/branding/LOGO.png" alt="AIAS Logo" /></span>
+        <span>
+          <strong>AIAS BASRA</strong>
+          <small>Store Management</small>
+        </span>
+      </a>
+
+      <div class="topbar-actions">
+        <a id="backToStoreLink" href="store.html" class="btn-secondary" style="font-size:.78rem; padding:6px 14px;">
+          <span>← View Live Store</span>
+        </a>
+        <a href="market.html" class="quiet-link">Explore Market</a>
+        <div id="authContainer"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Container -->
+  <main class="manage-container">
+    <!-- Store Management Hero -->
+    <section class="manage-hero">
+      <div id="storeBanner" class="manage-hero-banner"></div>
+      <div class="manage-hero-body">
+        <div class="manage-hero-top">
+          <div style="display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap;">
+            <div class="manage-avatar-frame">
+              <img id="storeLogo" src="static/images/branding/LOGO.png" alt="Store Logo" />
+            </div>
+            <div>
+              <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <h1 id="storeName" class="manage-hero-title">Loading Store...</h1>
+                <span class="manage-admin-pill">Store Admin Panel</span>
+              </div>
+              <small id="storeSlugText" style="color:var(--sand); opacity:0.85; font-size:.76rem; display:block; margin-top:3px;"></small>
+            </div>
+          </div>
+
+          <div class="manage-hero-actions">
+            <button type="button" class="btn-primary" onclick="window.openAddItemModal()">
+              <span>+ Add New Item</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Strip -->
+    <div class="manage-stats-strip">
+      <article class="manage-stat-card">
+        <span>🛍️</span>
+        <div>
+          <strong id="statTotalItems">0</strong>
+          <small>Total Items</small>
+        </div>
+      </article>
+      <article class="manage-stat-card">
+        <span>👁️</span>
+        <div>
+          <strong id="statActiveItems">0</strong>
+          <small>Active (Visible)</small>
+        </div>
+      </article>
+      <article class="manage-stat-card">
+        <span>🔒</span>
+        <div>
+          <strong id="statHiddenItems">0</strong>
+          <small>Hidden Items</small>
+        </div>
+      </article>
+      <article class="manage-stat-card">
+        <span>📬</span>
+        <div>
+          <strong id="statOrdersCount">0</strong>
+          <small>Customer Requests</small>
+        </div>
+      </article>
+    </div>
+
+    <!-- Management Sub-Tabs -->
+    <nav class="manage-tabs-bar">
+      <button type="button" class="manage-tab-btn active" data-tab="items" onclick="window.switchManageTab('items')">
+        <span>🛍️ Items &amp; Inventory</span>
+      </button>
+      <button type="button" class="manage-tab-btn" data-tab="orders" onclick="window.switchManageTab('orders')">
+        <span>📬 Customer Orders / Inquiries</span>
+      </button>
+      <button type="button" class="manage-tab-btn" data-tab="profile" onclick="window.switchManageTab('profile')">
+        <span>⚙️ Store Profile &amp; Settings</span>
+      </button>
+      <button type="button" class="manage-tab-btn" data-tab="tags" onclick="window.switchManageTab('tags')">
+        <span>🏷️ Tags &amp; Categories</span>
+      </button>
+    </nav>
+
+    <!-- TAB 1: Items & Inventory -->
+    <div id="tab-items" class="manage-tab-panel active">
+      <div class="manage-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px; flex-wrap:wrap;">
+          <div>
+            <h3 style="margin:0; font-size:1.15rem; color:#1e293b;">Store Inventory &amp; Items</h3>
+            <p style="margin:4px 0 0; color:var(--muted); font-size:0.8rem;">Add, edit, hide, or remove resources offered in your storefront.</p>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <input id="itemSearchInput" type="search" placeholder="Search your items..." style="width:220px; padding:7px 12px; border-radius:10px; border:1px solid var(--line); font-size:0.82rem;" />
+            <button type="button" class="btn-primary" onclick="window.openAddItemModal()">+ Add Item</button>
+          </div>
+        </div>
+
+        <div style="overflow-x:auto;">
+          <table class="manage-table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Tag / Type</th>
+                <th>Quantity</th>
+                <th>Delivery Time</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="storeItemsTableBody">
+              <tr>
+                <td colspan="6" style="text-align:center; padding:30px; color:var(--muted);">Loading store items...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Customer Orders / Inquiries -->
+    <div id="tab-orders" class="manage-tab-panel">
+      <div class="manage-card">
+        <div style="margin-bottom:18px;">
+          <h3 style="margin:0; font-size:1.15rem; color:#1e293b;">Customer Order Requests</h3>
+          <p style="margin:4px 0 0; color:var(--muted); font-size:0.8rem;">Direct buyer requests submitted for your store's items.</p>
+        </div>
+
+        <div style="overflow-x:auto;">
+          <table class="manage-table">
+            <thead>
+              <tr>
+                <th>Buyer</th>
+                <th>Contact</th>
+                <th>Item Requested</th>
+                <th>Notes / Requirements</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="storeOrdersTableBody">
+              <tr>
+                <td colspan="6" style="text-align:center; padding:30px; color:var(--muted);">Loading customer orders...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: Store Profile & Settings -->
+    <div id="tab-profile" class="manage-tab-panel">
+      <div class="manage-card">
+        <div style="margin-bottom:18px;">
+          <h3 style="margin:0; font-size:1.15rem; color:#1e293b;">Store Profile &amp; Branding</h3>
+          <p style="margin:4px 0 0; color:var(--muted); font-size:0.8rem;">Update your storefront title, bio, profile logo, and cover banner.</p>
+        </div>
+
+        <form id="storeSettingsForm">
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Store Name *</label>
+              <input id="settingStoreName" required />
+            </div>
+            <div class="form-group">
+              <label>Store Handle / Slug</label>
+              <input id="settingStoreSlug" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Store Bio / Description</label>
+            <textarea id="settingStoreBio" style="min-height:90px;"></textarea>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Profile Logo Image</label>
+              <input type="file" id="settingLogoFile" accept="image/*" />
+              <input type="url" id="settingLogoUrl" placeholder="Or paste direct image URL" style="margin-top:6px;" />
+            </div>
+            <div class="form-group">
+              <label>Store Header Banner</label>
+              <input type="file" id="settingBannerFile" accept="image/*" />
+              <input type="url" id="settingBannerUrl" placeholder="Or paste banner image URL" style="margin-top:6px;" />
+            </div>
+          </div>
+
+          <button type="submit" id="saveStoreSettingsBtn" class="btn-primary" style="margin-top:10px;">
+            <span>Save Store Profile</span>
+          </button>
+          <p id="storeSettingsStatus" style="margin-top:8px; font-weight:700; font-size:0.8rem;"></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- TAB 4: Tags & Categories (Bilingual Creation & Management) -->
+    <div id="tab-tags" class="manage-tab-panel">
+      <div class="manage-card">
+        <div style="margin-bottom:20px; border-bottom:1px solid var(--line); padding-bottom:14px;">
+          <h3 style="margin:0; font-size:1.2rem; color:#1e293b;">Marketplace Tags &amp; Types Management</h3>
+          <p style="margin:4px 0 0; color:var(--muted); font-size:0.82rem;">Store Admins can add new bilingual categories (Tags) and item types saved directly to Firestore (<code>config/marketTags</code> &amp; <code>config/marketTypes</code>). These are instantly available for your items and public explore filters.</p>
+        </div>
+
+        <!-- 1. Market Tags Section -->
+        <div style="margin-bottom:28px; border-bottom:1px solid var(--line); padding-bottom:24px;">
+          <h4 style="margin:0 0 14px; font-size:1rem; color:var(--wine); display:flex; align-items:center; gap:6px;">
+            <span>🏷️</span> Market Tags / Categories
+          </h4>
+          <div style="display:grid; grid-template-columns:minmax(0, 1.4fr) minmax(300px, 0.8fr); gap:20px; align-items:start;">
+            <div>
+              <div id="storeTagsList"><p style="color:var(--muted)">Loading tags from Firestore...</p></div>
+            </div>
+
+            <div style="background:#f8fafc; border:1px solid var(--line); border-radius:16px; padding:18px;">
+              <h5 style="margin:0 0 12px; font-size:0.92rem; color:#1e293b;">+ Add New Market Tag</h5>
+              <form id="storeAddTagForm">
+                <div class="form-group" style="margin-bottom:10px;">
+                  <label style="font-size:0.72rem;">Tag Name (English) *</label>
+                  <input id="newTagEn" required placeholder="e.g. Parametric Facades" style="padding:7px 10px; font-size:0.82rem;" />
+                </div>
+                <div class="form-group" style="margin-bottom:12px;">
+                  <label style="font-size:0.72rem;">Tag Name (Arabic / بالعربية) *</label>
+                  <input id="newTagAr" required placeholder="e.g. واجهات بارامترية" style="padding:7px 10px; font-size:0.82rem;" />
+                </div>
+                <button type="submit" id="saveTagBtn" class="btn-primary" style="width:100%; padding:8px 14px; font-size:0.82rem;">
+                  <span>Add Tag to Marketplace</span>
+                </button>
+                <p id="storeTagStatus" style="margin-top:6px; font-size:0.76rem; text-align:center; font-weight:700;"></p>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Market Types Section -->
+        <div>
+          <h4 style="margin:0 0 14px; font-size:1rem; color:var(--wine); display:flex; align-items:center; gap:6px;">
+            <span>📦</span> Market Item Types
+          </h4>
+          <div style="display:grid; grid-template-columns:minmax(0, 1.4fr) minmax(300px, 0.8fr); gap:20px; align-items:start;">
+            <div>
+              <div id="storeTypesList"><p style="color:var(--muted)">Loading types from Firestore...</p></div>
+            </div>
+
+            <div style="background:#f8fafc; border:1px solid var(--line); border-radius:16px; padding:18px;">
+              <h5 style="margin:0 0 12px; font-size:0.92rem; color:#1e293b;">+ Add New Market Type</h5>
+              <form id="storeAddTypeForm">
+                <div class="form-group" style="margin-bottom:10px;">
+                  <label style="font-size:0.72rem;">Type Name (English) *</label>
+                  <input id="newTypeEn" required placeholder="e.g. BIM Revit Family" style="padding:7px 10px; font-size:0.82rem;" />
+                </div>
+                <div class="form-group" style="margin-bottom:10px;">
+                  <label style="font-size:0.72rem;">Type Name (Arabic / بالعربية) *</label>
+                  <input id="newTypeAr" required placeholder="e.g. عائلات ريفيت BIM" style="padding:7px 10px; font-size:0.82rem;" />
+                </div>
+                <div class="form-group" style="margin-bottom:12px;">
+                  <label style="font-size:0.72rem;">Emoji Icon</label>
+                  <input id="newTypeIcon" placeholder="📐" style="padding:7px 10px; font-size:0.82rem;" />
+                </div>
+                <button type="submit" id="saveTypeBtn" class="btn-primary" style="width:100%; padding:8px 14px; font-size:0.82rem;">
+                  <span>Add Type to Marketplace</span>
+                </button>
+                <p id="storeTypeStatus" style="margin-top:6px; font-size:0.76rem; text-align:center; font-weight:700;"></p>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL: Add / Edit Store Item -->
+  <div id="itemModal" class="manage-modal-backdrop">
+    <div class="manage-modal">
+      <div class="manage-modal-head">
+        <h3 id="itemModalTitle">Add Store Item</h3>
+        <button class="manage-modal-close" onclick="window.closeItemModal()">×</button>
+      </div>
+      <div class="manage-modal-body">
+        <form id="itemForm">
+          <input type="hidden" id="modalItemId" />
+
+          <div class="form-group">
+            <label>Item Title *</label>
+            <input id="modalItemName" required placeholder="e.g. Modern Architecture 3D Model Pack" />
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Category / Tag *</label>
+              <select id="modalItemTagSelect" required>
+                <option value="">-- Select Category / Tag --</option>
+              </select>
+              <small style="color:var(--muted); font-size:0.72rem; display:block; margin-top:3px;">Need a new tag? Create it under <a href="#tab-tags" onclick="window.switchManageTab('tags')" style="color:var(--wine); font-weight:bold;">Tags &amp; Categories</a></small>
+            </div>
+
+            <div class="form-group">
+              <label>Item Type *</label>
+              <select id="modalItemTypeSelect" required>
+                <option value="">-- Select Item Type --</option>
+              </select>
+              <small style="color:var(--muted); font-size:0.72rem; display:block; margin-top:3px;">Need a new type? Create it under <a href="#tab-tags" onclick="window.switchManageTab('tags')" style="color:var(--wine); font-weight:bold;">Tags &amp; Categories</a></small>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Quantity / Stock</label>
+              <input id="modalItemQuantity" placeholder="e.g. 10 or Unlimited" value="Unlimited" />
+            </div>
+            <div class="form-group">
+              <label>Delivery Time</label>
+              <input id="modalItemDelivery" placeholder="e.g. Instant, 1-2 Days" value="Instant Download" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Item Image (Upload File or URL)</label>
+            <input type="file" id="modalItemImageFile" accept="image/*" />
+            <input type="url" id="modalItemImageUrl" placeholder="Or paste direct image URL" style="margin-top:6px;" />
+          </div>
+
+          <div class="form-group">
+            <label>Item Description *</label>
+            <textarea id="modalItemDescription" required placeholder="Specifications, formats (DWG, SKP, RVT, OBJ, PDF), resolution, included assets..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Status</label>
+            <select id="modalItemStatus">
+              <option value="active">Active (Visible in Store &amp; Market)</option>
+              <option value="hidden">Hidden (Store admin only)</option>
+            </select>
+          </div>
+
+          <button type="submit" id="saveItemBtn" class="btn-primary" style="width:100%; margin-top:10px;">
+            <span>Save Store Item</span>
+          </button>
+          <p id="itemModalError" style="color:#e53e3e; font-size:0.8rem; margin-top:8px; display:none;"></p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { auth, db } from './js/platform-client.js';
+    import { canManage, getAdminAccess } from './js/rbac.js';
+    import { onAuthStateChanged } from '/js/cloudflare-client.js';
+    import {
+      collection, doc, getDoc, getDocs, query, where, addDoc, setDoc, updateDoc, deleteDoc, serverTimestamp
+    } from '/js/cloudflare-client.js';
+    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from '/js/cloudflare-client.js';
+
+    let currentStore = null;
+    let currentStoreItems = [];
+    let currentOrders = [];
+    let activeUser = null;
+    let isStoreAdmin = false;
+    let isPlatformAdmin = false;
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const storeId = urlParams.get('id') || urlParams.get('store');
+
+    async function init() {
+      onAuthStateChanged(auth, async (user) => {
+        activeUser = user;
+        updateAuthUI(user);
+
+        if (!storeId) {
+          alert('No store specified.');
+          window.location.href = 'market.html';
+          return;
+        }
+
+        await loadStoreData(storeId);
+      });
+    }
+
+    async function loadStoreData(id) {
+      try {
+        const storeDocRef = doc(db, 'marketStores', id);
+        const storeSnap = await getDoc(storeDocRef);
+
+        if (!storeSnap.exists()) {
+          const q = query(collection(db, 'marketStores'), where('slug', '==', id));
+          const querySnap = await getDocs(q);
+          if (!querySnap.empty) {
+            currentStore = { id: querySnap.docs[0].id, ...querySnap.docs[0].data() };
+          } else {
+            alert('Store not found.');
+            window.location.href = 'market.html';
+            return;
+          }
+        } else {
+          currentStore = { id: storeSnap.id, ...storeSnap.data() };
+        }
+
+        // Verify Admin Access
+        const signedInEmail = (activeUser?.email || '').trim().toLowerCase();
+        const signedInUid = activeUser?.uid || '';
+
+        const rawAdmins = [
+          ...(Array.isArray(currentStore.storeAdmins) ? currentStore.storeAdmins : []),
+          ...(Array.isArray(currentStore.adminEmails) ? currentStore.adminEmails : []),
+          ...(typeof currentStore.storeAdmins === 'string' ? currentStore.storeAdmins.split(',') : []),
+          ...(typeof currentStore.adminEmails === 'string' ? currentStore.adminEmails.split(',') : [])
+        ];
+        const storeAdmins = rawAdmins.map(e => String(e).trim().toLowerCase()).filter(Boolean);
+
+        const rawUids = [
+          ...(Array.isArray(currentStore.adminUids) ? currentStore.adminUids : []),
+          currentStore.ownerUid,
+          currentStore.createdBy
+        ].filter(Boolean);
+
+        isStoreAdmin = (signedInEmail && storeAdmins.includes(signedInEmail)) || (signedInUid && rawUids.includes(signedInUid));
+        let platformAccess = null;
+        if (activeUser) {
+          try {
+            platformAccess = await getAdminAccess(db, activeUser.email);
+          } catch (accessError) {
+            console.warn('Could not confirm platform marketplace access.', accessError);
+          }
+        }
+        isPlatformAdmin = canManage(platformAccess, 'market');
+
+        if (!activeUser) {
+          showAuthRequiredView(currentStore);
+          return;
+        }
+
+        if (!isStoreAdmin && !isPlatformAdmin) {
+          showAccessDeniedView(currentStore, signedInEmail, storeAdmins);
+          return;
+        }
+
+        const taxonomyTab = document.querySelector('[data-tab="tags"]');
+        const taxonomyPanel = document.getElementById('tab-tags');
+        if (taxonomyTab) taxonomyTab.hidden = !isPlatformAdmin;
+        if (taxonomyPanel && !isPlatformAdmin) taxonomyPanel.hidden = true;
+        document.querySelectorAll('a[href="#tab-tags"]').forEach(link => {
+          const hint = link.closest('small');
+          if (hint) hint.hidden = !isPlatformAdmin;
+        });
+
+        renderStoreHero();
+        populateStoreSettings();
+        await loadDynamicTaxonomy();
+        await Promise.all([
+          loadStoreItems(),
+          loadStoreOrders()
+        ]);
+      } catch (err) {
+        console.error('Error loading store data:', err);
+        alert('Error: ' + err.message);
+      }
+    }
+
+    function renderStoreHero() {
+      document.title = `Manage: ${currentStore.name} - AIAS Basra Market`;
+      document.getElementById('storeName').textContent = currentStore.name;
+      document.getElementById('storeSlugText').textContent = `@${currentStore.slug || currentStore.id}`;
+      document.getElementById('backToStoreLink').href = `store.html?id=${encodeURIComponent(currentStore.id)}`;
+
+      if (currentStore.profileImage) {
+        document.getElementById('storeLogo').src = currentStore.profileImage;
+      }
+      if (currentStore.bannerImage) {
+        document.getElementById('storeBanner').style.backgroundImage = `url('${currentStore.bannerImage}')`;
+      }
+    }
+
+    async function loadStoreItems() {
+      try {
+        const q = query(collection(db, 'marketItems'), where('storeId', '==', currentStore.id));
+        const snap = await getDocs(q);
+        currentStoreItems = [];
+        snap.forEach(d => currentStoreItems.push({ id: d.id, ...d.data() }));
+        renderItemsTable();
+        const statEl = document.getElementById('statTotalItems');
+        if (statEl) statEl.textContent = currentStoreItems.length;
+      } catch (err) {
+        console.error('Error loading items:', err);
+      }
+    }
+
+    function renderItemsTable() {
+      const tbody = document.getElementById('itemsTableBody');
+      if (!tbody) return;
+      const search = (document.getElementById('itemSearchInput')?.value || '').toLowerCase().trim();
+
+      const filtered = currentStoreItems.filter(item => {
+        if (!search) return true;
+        return (item.name || '').toLowerCase().includes(search) ||
+               (item.tag || '').toLowerCase().includes(search) ||
+               (item.type || '').toLowerCase().includes(search);
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--muted);">No store items found. Click "+ Add New Item" above!</td></tr>';
+        return;
+      }
+
+      let html = '';
+      filtered.forEach(item => {
+        const img = escapeHtml(item.imageUrl || 'static/images/branding/LOGO.png');
+        const isActive = item.status !== 'hidden';
+        const safeName = escapeHtml(item.name || 'Untitled item');
+        const safeTag = escapeHtml(item.tag || 'General');
+        const safeType = escapeHtml(item.type || 'Asset');
+        const safeQuantity = escapeHtml(item.quantity ?? 'Unlimited');
+        const safeStatus = escapeHtml(item.status || 'active');
+        const safeId = escapeHtml(item.id);
+        html += `
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <img src="${img}" style="width:40px; height:40px; border-radius:8px; object-fit:cover; border:1px solid var(--line);" onerror="this.src='static/images/branding/LOGO.png'" />
+                 <strong style="color:var(--ink);">${safeName}</strong>
+              </div>
+            </td>
+            <td><span class="badge" style="background:#f1f5f9; color:#334155;"># ${safeTag}</span></td>
+            <td><span class="badge" style="background:#ede9fe; color:#6d28d9;">${safeType}</span></td>
+            <td>${safeQuantity}</td>
+            <td><span class="badge ${isActive ? 'badge-active' : 'badge-hidden'}">${safeStatus}</span></td>
+            <td>
+              <div class="action-cell">
+                <button class="action-btn" onclick="window.openEditItemModal('${safeId}')">Edit</button>
+                <button class="action-btn" onclick="window.toggleItemVisibility('${safeId}', '${safeStatus}')">${isActive ? 'Hide' : 'Show'}</button>
+                <button class="action-btn delete" onclick="window.deleteItemConfirm('${safeId}')">Delete</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+    }
+
+    async function loadStoreOrders() {
+      try {
+        const q = query(collection(db, 'marketOrders'), where('storeId', '==', currentStore.id));
+        const snap = await getDocs(q);
+        currentOrders = [];
+        snap.forEach(d => currentOrders.push({ id: d.id, ...d.data() }));
+        renderOrdersTable();
+        const statEl = document.getElementById('statTotalOrders');
+        if (statEl) statEl.textContent = currentOrders.length;
+      } catch (err) {
+        console.error('Error loading orders:', err);
+      }
+    }
+
+    function renderOrdersTable() {
+      const tbody = document.getElementById('ordersTableBody');
+      if (!tbody) return;
+      if (!currentOrders || currentOrders.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--muted);">No customer orders/inquiries yet.</td></tr>';
+        return;
+      }
+
+      let html = '';
+      currentOrders.forEach(ord => {
+        const isCompleted = ord.status === 'completed';
+        const contact = String(ord.buyerContact || ord.buyerPhone || ord.buyerEmail || '').trim();
+        const contactEmail = contact.includes('@') ? contact : String(ord.buyerEmail || '').trim();
+        const contactPhone = contact.includes('@') ? '' : contact.replace(/[^0-9]/g, '');
+        const itemName = currentStoreItems.find(item => item.id === ord.itemId)?.name || 'Item';
+        const safeItemName = escapeHtml(itemName);
+        const safeBuyerName = escapeHtml(ord.buyerName || 'Buyer');
+        const safeContact = escapeHtml(contact || '-');
+        const safeNotes = escapeHtml(ord.notes || '-');
+        const safeStatus = escapeHtml(ord.status || 'pending');
+        const safeId = escapeHtml(ord.id);
+        const waLink = contactPhone ? `https://wa.me/${contactPhone}` : '#';
+        const mailLink = contactEmail ? `mailto:${encodeURIComponent(contactEmail)}?subject=Inquiry%20regarding%20${encodeURIComponent(itemName)}` : '#';
+
+        html += `
+          <tr>
+            <td><strong>${safeItemName}</strong></td>
+            <td>
+              <div><strong>${safeBuyerName}</strong></div>
+              <small style="color:var(--muted);">${safeContact}</small>
+            </td>
+            <td>${safeContact}</td>
+            <td><small style="color:#475569;">${safeNotes}</small></td>
+            <td><span class="badge ${isCompleted ? 'badge-active' : 'badge-hidden'}">${safeStatus}</span></td>
+            <td>
+              <div class="action-cell">
+                ${contactPhone ? `<a href="${waLink}" target="_blank" rel="noopener" class="action-btn" style="text-decoration:none; color:#16a34a;">WhatsApp</a>` : ''}
+                ${contactEmail ? `<a href="${mailLink}" class="action-btn" style="text-decoration:none; color:#2563eb;">Email</a>` : ''}
+                <button class="action-btn" onclick="window.toggleOrderStatus('${safeId}', '${safeStatus}')">${isCompleted ? 'Mark Pending' : 'Mark Completed'}</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+    }
+
+    function populateStoreSettings() {
+      document.getElementById('settingStoreName').value = currentStore.name || '';
+      document.getElementById('settingStoreSlug').value = currentStore.slug || '';
+      document.getElementById('settingStoreBio').value = currentStore.bio || '';
+      document.getElementById('settingLogoUrl').value = currentStore.profileImage || '';
+      document.getElementById('settingBannerUrl').value = currentStore.bannerImage || '';
+    }
+
+    let marketTypes = [];
+    let marketTags = [];
+
+    async function loadDynamicTaxonomy() {
+      try {
+        const [typesSnap, tagsSnap] = await Promise.all([
+          getDoc(doc(db, 'config', 'marketTypes')),
+          getDoc(doc(db, 'config', 'marketTags'))
+        ]);
+
+        marketTypes = (typesSnap.exists() && Array.isArray(typesSnap.data().types)) ? typesSnap.data().types : [];
+        marketTags = (tagsSnap.exists() && Array.isArray(tagsSnap.data().tags)) ? tagsSnap.data().tags : [];
+
+        populateTaxonomySelects();
+        renderTaxonomyTabLists();
+      } catch (e) {
+        console.warn('Could not load market taxonomy from config:', e);
+        marketTypes = [];
+        marketTags = [];
+        populateTaxonomySelects();
+        renderTaxonomyTabLists();
+      }
+    }
+
+    function populateTaxonomySelects() {
+      const typeSelect = document.getElementById('modalItemTypeSelect');
+      if (typeSelect) {
+        const current = typeSelect.value;
+        typeSelect.innerHTML = '<option value="">-- Select Item Type --</option>' + marketTypes.map(t => `<option value="${t.en}">${t.en} (${t.ar || ''})${t.icon ? ' ' + t.icon : ''}</option>`).join('');
+        typeSelect.value = current;
+      }
+
+      const tagSelect = document.getElementById('modalItemTagSelect');
+      if (tagSelect) {
+        const current = tagSelect.value;
+        tagSelect.innerHTML = '<option value="">-- Select Category / Tag --</option>' + marketTags.map(t => `<option value="${t.en}">${t.en} (${t.ar || ''})</option>`).join('');
+        tagSelect.value = current;
+      }
+    }
+
+    function renderTaxonomyTabLists() {
+      const tagsContainer = document.getElementById('storeTagsList');
+      if (tagsContainer) {
+        if (!marketTags || marketTags.length === 0) {
+          tagsContainer.innerHTML = '<p style="color:var(--muted); font-size:0.84rem;">No market tags configured yet. Create one on the right!</p>';
+        } else {
+          let html = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:10px;">';
+          marketTags.forEach(t => {
+            html += `
+              <div style="background:#fff; border:1px solid var(--line); border-radius:12px; padding:10px 14px;">
+                <strong style="display:block; font-size:0.84rem; color:var(--ink);"># ${t.en}</strong>
+                <small style="color:var(--muted); font-size:0.74rem;">${t.ar || ''}</small>
+              </div>
+            `;
+          });
+          html += '</div>';
+          tagsContainer.innerHTML = html;
+        }
+      }
+
+      const typesContainer = document.getElementById('storeTypesList');
+      if (typesContainer) {
+        if (!marketTypes || marketTypes.length === 0) {
+          typesContainer.innerHTML = '<p style="color:var(--muted); font-size:0.84rem;">No market types configured yet. Create one on the right!</p>';
+        } else {
+          let html = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:10px;">';
+          marketTypes.forEach(t => {
+            html += `
+              <div style="background:#fff; border:1px solid var(--line); border-radius:12px; padding:10px 14px; display:flex; align-items:center; gap:8px;">
+                <span style="font-size:1.3rem;">${t.icon || '📦'}</span>
+                <div>
+                  <strong style="display:block; font-size:0.84rem; color:var(--ink);">${t.en}</strong>
+                  <small style="color:var(--muted); font-size:0.74rem;">${t.ar || ''}</small>
+                </div>
+              </div>
+            `;
+          });
+          html += '</div>';
+          typesContainer.innerHTML = html;
+        }
+      }
+    }
+
+    window.switchManageTab = function(tab) {
+      document.querySelectorAll('.manage-tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+      document.querySelectorAll('.manage-tab-panel').forEach(panel => panel.classList.toggle('active', panel.id === `tab-${tab}`));
+    };
+
+    // Item Modal Operations
+    window.openAddItemModal = function() {
+      document.getElementById('itemForm').reset();
+      document.getElementById('modalItemId').value = '';
+      document.getElementById('itemModalTitle').textContent = 'Add Store Item';
+      const errEl = document.getElementById('itemModalError');
+      if (errEl) errEl.style.display = 'none';
+      document.getElementById('itemModal').classList.add('is-open');
+    };
+
+    window.openEditItemModal = function(itemId) {
+      const item = currentStoreItems.find(i => i.id === itemId);
+      if (!item) return;
+
+      document.getElementById('modalItemId').value = item.id;
+      document.getElementById('modalItemName').value = item.name || '';
+      document.getElementById('modalItemQuantity').value = item.quantity || 'Unlimited';
+      document.getElementById('modalItemDelivery').value = item.deliverTime || 'Instant Download';
+      document.getElementById('modalItemImageUrl').value = item.imageUrl || '';
+      document.getElementById('modalItemDescription').value = item.description || '';
+      document.getElementById('modalItemStatus').value = item.status || 'active';
+
+      const tagSelect = document.getElementById('modalItemTagSelect');
+      if (tagSelect) tagSelect.value = item.tag || '';
+
+      const typeSelect = document.getElementById('modalItemTypeSelect');
+      if (typeSelect) typeSelect.value = item.type || '';
+
+      document.getElementById('itemModalTitle').textContent = 'Edit Store Item';
+      const errEl = document.getElementById('itemModalError');
+      if (errEl) errEl.style.display = 'none';
+      document.getElementById('itemModal').classList.add('is-open');
+    };
+
+    window.closeItemModal = function() {
+      document.getElementById('itemModal').classList.remove('is-open');
+    };
+
+    window.toggleItemVisibility = async function(itemId, currentStatus) {
+      const newStatus = currentStatus === 'hidden' ? 'active' : 'hidden';
+      try {
+        await updateDoc(doc(db, 'marketItems', itemId), {
+          status: newStatus,
+          updatedAt: serverTimestamp()
+        });
+        await loadStoreItems();
+      } catch (err) {
+        alert('Error updating status: ' + err.message);
+      }
+    };
+
+    window.deleteItemConfirm = async function(itemId) {
+      if (!confirm('Are you sure you want to delete this item?')) return;
+      try {
+        await deleteDoc(doc(db, 'marketItems', itemId));
+        await loadStoreItems();
+      } catch (err) {
+        alert('Error deleting item: ' + err.message);
+      }
+    };
+
+    window.toggleOrderStatus = async function(orderId, currentStatus) {
+      const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
+      try {
+        await updateDoc(doc(db, 'marketOrders', orderId), { status: newStatus });
+        await loadStoreOrders();
+      } catch (err) {
+        alert('Error updating order: ' + err.message);
+      }
+    };
+
+
+
+    document.getElementById('itemForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errEl = document.getElementById('itemModalError');
+      errEl.style.display = 'none';
+
+      const itemId = document.getElementById('modalItemId').value.trim();
+      const name = document.getElementById('modalItemName').value.trim();
+      const tag = document.getElementById('modalItemTagSelect').value.trim();
+      const type = document.getElementById('modalItemTypeSelect').value.trim();
+      const quantity = document.getElementById('modalItemQuantity').value.trim() || 'Unlimited';
+      const deliverTime = document.getElementById('modalItemDelivery').value.trim() || 'Instant Download';
+      const description = document.getElementById('modalItemDescription').value.trim();
+      const status = document.getElementById('modalItemStatus').value;
+
+      if (!name || !tag || !type || !description) {
+        errEl.textContent = 'Please fill in all required fields.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      const saveBtn = document.getElementById('saveItemBtn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+
+      try {
+        let imageUrl = document.getElementById('modalItemImageUrl').value.trim();
+        const file = document.getElementById('modalItemImageFile')?.files[0];
+
+        if (file) {
+          const st = getStorage();
+          const fRef = storageRef(st, `market/stores/${currentStore.id}/items/${Date.now()}_${file.name}`);
+          const uploadRes = await uploadBytes(fRef, file);
+          imageUrl = await getDownloadURL(uploadRes.ref);
+        }
+
+        const itemPayload = {
+          storeId: currentStore.id,
+          storeName: currentStore.name,
+          name,
+          tag,
+          type,
+          quantity,
+          deliverTime,
+          description,
+          status,
+          imageUrl: imageUrl || 'static/images/branding/LOGO.png',
+          updatedAt: serverTimestamp()
+        };
+
+        if (itemId) {
+          await updateDoc(doc(db, 'marketItems', itemId), itemPayload);
+        } else {
+          itemPayload.createdAt = serverTimestamp();
+          await addDoc(collection(db, 'marketItems'), itemPayload);
+        }
+
+        window.closeItemModal();
+        await loadStoreItems();
+      } catch (err) {
+        console.error('Error saving item:', err);
+        errEl.textContent = err.message || 'Error saving item';
+        errEl.style.display = 'block';
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Store Item';
+      }
+    });
+
+    // Store Settings Form Submit
+    document.getElementById('storeSettingsForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const statusEl = document.getElementById('storeSettingsStatus');
+      const submitBtn = document.getElementById('saveStoreSettingsBtn');
+
+      const name = document.getElementById('settingStoreName').value.trim();
+      const slug = document.getElementById('settingStoreSlug').value.trim();
+      const bio = document.getElementById('settingStoreBio').value.trim();
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving Profile...';
+
+      try {
+        let profileImage = document.getElementById('settingLogoUrl').value.trim();
+        let bannerImage = document.getElementById('settingBannerUrl').value.trim();
+
+        const logoFile = document.getElementById('settingLogoFile')?.files[0];
+        const bannerFile = document.getElementById('settingBannerFile')?.files[0];
+
+        const st = getStorage();
+        if (logoFile) {
+          const fRef = storageRef(st, `market/stores/${currentStore.id}/profile/${Date.now()}_${logoFile.name}`);
+          const uploadRes = await uploadBytes(fRef, logoFile);
+          profileImage = await getDownloadURL(uploadRes.ref);
+        }
+        if (bannerFile) {
+          const fRef = storageRef(st, `market/stores/${currentStore.id}/banner/${Date.now()}_${bannerFile.name}`);
+          const uploadRes = await uploadBytes(fRef, bannerFile);
+          bannerImage = await getDownloadURL(uploadRes.ref);
+        }
+
+        const updateData = {
+          name,
+          slug,
+          bio,
+          profileImage: profileImage || currentStore.profileImage || '',
+          bannerImage: bannerImage || currentStore.bannerImage || '',
+          updatedAt: serverTimestamp()
+        };
+
+        await updateDoc(doc(db, 'marketStores', currentStore.id), updateData);
+        currentStore = { ...currentStore, ...updateData };
+        renderStoreHero();
+
+        statusEl.style.color = '#16a34a';
+        statusEl.textContent = '✓ Store profile updated successfully!';
+        setTimeout(() => { statusEl.textContent = ''; }, 3000);
+      } catch (err) {
+        console.error('Error saving store profile:', err);
+        statusEl.style.color = '#dc2626';
+        statusEl.textContent = 'Error: ' + err.message;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Save Store Profile';
+      }
+    });
+
+
+    // Add Tag Form Submit
+    document.getElementById('storeAddTagForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const en = document.getElementById('newTagEn').value.trim();
+      const ar = document.getElementById('newTagAr').value.trim();
+      const statusEl = document.getElementById('storeTagStatus');
+      const submitBtn = document.getElementById('saveTagBtn');
+
+      if (!en || !ar) return;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving Tag...';
+
+      try {
+        const id = en.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+        const current = [...marketTags];
+        const exists = current.some(t => t.en.toLowerCase() === en.toLowerCase());
+        if (!exists) {
+          current.push({ id, en, ar });
+          await setDoc(doc(db, 'config', 'marketTags'), { tags: current, updatedAt: serverTimestamp() }, { merge: true });
+          marketTags = current;
+          populateTaxonomySelects();
+          renderTaxonomyTabLists();
+          document.getElementById('storeAddTagForm').reset();
+          statusEl.style.color = '#16a34a';
+          statusEl.textContent = '✓ Tag added successfully to Firestore!';
+          setTimeout(() => { statusEl.textContent = ''; }, 3000);
+        } else {
+          statusEl.style.color = '#eab308';
+          statusEl.textContent = 'Tag already exists.';
+        }
+      } catch (err) {
+        console.error('Error saving tag:', err);
+        statusEl.style.color = '#dc2626';
+        statusEl.textContent = 'Error: ' + err.message;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Add Tag to Marketplace';
+      }
+    });
+
+    // Add Type Form Submit
+    document.getElementById('storeAddTypeForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const en = document.getElementById('newTypeEn').value.trim();
+      const ar = document.getElementById('newTypeAr').value.trim();
+      const icon = document.getElementById('newTypeIcon').value.trim() || '📦';
+      const statusEl = document.getElementById('storeTypeStatus');
+      const submitBtn = document.getElementById('saveTypeBtn');
+
+      if (!en || !ar) return;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving Type...';
+
+      try {
+        const id = en.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+        const current = [...marketTypes];
+        const exists = current.some(t => t.en.toLowerCase() === en.toLowerCase());
+        if (!exists) {
+          current.push({ id, en, ar, icon });
+          await setDoc(doc(db, 'config', 'marketTypes'), { types: current, updatedAt: serverTimestamp() }, { merge: true });
+          marketTypes = current;
+          populateTaxonomySelects();
+          renderTaxonomyTabLists();
+          document.getElementById('storeAddTypeForm').reset();
+          statusEl.style.color = '#16a34a';
+          statusEl.textContent = '✓ Type added successfully to Firestore!';
+          setTimeout(() => { statusEl.textContent = ''; }, 3000);
+        } else {
+          statusEl.style.color = '#eab308';
+          statusEl.textContent = 'Type already exists.';
+        }
+      } catch (err) {
+        console.error('Error saving type:', err);
+        statusEl.style.color = '#dc2626';
+        statusEl.textContent = 'Error: ' + err.message;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Add Type to Marketplace';
+      }
+    });
+
+
+    document.getElementById('itemSearchInput')?.addEventListener('input', renderItemsTable);
+
+    function updateAuthUI(user) {
+      const container = document.getElementById('authContainer');
+      if (user) {
+        const initial = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
+        container.innerHTML = `
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div class="topbar-avatar" title="${user.email}">${initial}</div>
+          </div>
+        `;
+      }
+    }
+
+    function showAuthRequiredView(store) {
+      document.querySelector('.manage-container').innerHTML = `
+        <div class="manage-card" style="text-align:center; padding:50px 20px; max-width:550px; margin:40px auto;">
+          <span style="font-size:3rem; display:block; margin-bottom:12px;">🔒</span>
+          <h2 style="margin:0 0 10px; font-size:1.35rem; color:#1e293b;">Sign In Required</h2>
+          <p style="color:var(--muted); font-size:0.88rem; line-height:1.6; margin-bottom:20px;">
+            You need to sign in with your Store Admin account to manage <strong>${store.name}</strong>.
+          </p>
+          <div style="display:flex; justify-content:center; gap:10px;">
+            <a href="login.html?redirect=${encodeURIComponent(window.location.href)}" class="btn-primary" style="padding:10px 22px;">Sign In to Store Admin</a>
+            <a href="store.html?id=${encodeURIComponent(store.id)}" class="btn-secondary" style="padding:10px 18px;">View Store</a>
+          </div>
+        </div>
+      `;
+    }
+
+    function showAccessDeniedView(store, currentEmail, storeAdmins) {
+      document.querySelector('.manage-container').innerHTML = `
+        <div class="manage-card" style="text-align:center; padding:50px 20px; max-width:600px; margin:40px auto;">
+          <span style="font-size:3rem; display:block; margin-bottom:12px;">⛔</span>
+          <h2 style="margin:0 0 10px; font-size:1.35rem; color:#dc2626;">Access Denied</h2>
+          <p style="color:var(--muted); font-size:0.88rem; line-height:1.6; margin-bottom:15px;">
+            Your signed-in account (<code>${currentEmail || 'Anonymous'}</code>) is not registered as an administrator for <strong>${store.name}</strong>.
+          </p>
+          <div style="background:#f8fafc; border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:20px; text-align:left; font-size:0.8rem;">
+            <strong>Assigned store admins for this store:</strong>
+            <p style="margin:6px 0 0; color:#475569; word-break:break-all;">
+              ${storeAdmins.length ? storeAdmins.join(', ') : 'No admin emails assigned yet. Please contact the platform admin.'}
+            </p>
+          </div>
+          <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
+            <a href="login.html?redirect=${encodeURIComponent(window.location.href)}" class="btn-primary" style="padding:10px 18px;">Switch Account</a>
+            <a href="store.html?id=${encodeURIComponent(store.id)}" class="btn-secondary" style="padding:10px 18px;">Return to Storefront</a>
+          </div>
+        </div>
+      `;
+    }
+
+    init();
+  </script>
 </body>
 </html>

@@ -305,7 +305,7 @@
     <section class="gallery-section">
         <div class="container">
 
-            
+
             <div class="gallery-header">
                 <h1>Gallery</h1>
                 <p id="gallery-subtitle">Loading gallery...</p>
@@ -336,7 +336,7 @@
     <script type="module">
         import FirestoreAPI from './js/firestore-api.js';
         const api = new FirestoreAPI();
-        
+
         let eventId = window.location.hash.substring(1);
         let images = [];
         let currentImageIndex = 0;
@@ -359,7 +359,7 @@
                 if (r.success) {
                     const allEvents = r.content.events || [];
                     const allFbdEvents = (r.content.education && r.content.education.fbd && r.content.education.fbd.events) ? r.content.education.fbd.events : [];
-                    
+
                     eventDetails = allEvents.find(e => e.id === eventId) || allFbdEvents.find(e => e.id === eventId);
                 }
 
@@ -367,7 +367,7 @@
                     // Update header with event info
                     const h1 = headerContainer.querySelector('h1');
                     h1.textContent = eventDetails.title || 'Event Gallery';
-                    
+
                     // Create an event details card
                     const detailsDiv = document.createElement('div');
                     detailsDiv.className = 'event-gallery-details';
@@ -378,24 +378,24 @@
                     detailsDiv.style.background = 'var(--white)';
                     detailsDiv.style.borderRadius = '12px';
                     detailsDiv.style.boxShadow = 'var(--shadow-md)';
-                    
+
                     let html = `<p style="color: var(--text-secondary); margin-bottom: 1rem;">
                         <strong>Date:</strong> ${eventDetails.time ? new Date(eventDetails.time).toLocaleString() : 'TBA'}<br>
                         <strong>Location:</strong> ${eventDetails.location || 'TBA'}<br>
                         ${eventDetails.type ? `<strong>Type:</strong> ${eventDetails.type}<br>` : ''}
                     </p>`;
-                    
+
                     if (eventDetails.description) {
                         html += `<p style="margin-bottom: 1.5rem; line-height: 1.6;">${eventDetails.description}</p>`;
                     }
-                    
+
                     if (eventDetails.registerUrl) {
                         html += `<a href="${eventDetails.registerUrl}" target="_blank" class="action-btn btn-register" style="display: inline-block; padding: 0.75rem 1.5rem; background: var(--primary-color); color: white; border-radius: 8px; text-decoration: none; font-weight: 600;">Register Now</a>`;
                     }
-                    
+
                     detailsDiv.innerHTML = html;
                     headerContainer.appendChild(detailsDiv);
-                    
+
                     // If event has main image, display it big? No, just load gallery.
                 }
 
@@ -403,18 +403,18 @@
 
                 // Try fetching from events first
                 let fetchedImages = await api.fetchGalleryImages(api.paths.eventsCol, eventId);
-                
+
                 // If empty, try FBD events
                 if (!fetchedImages || fetchedImages.length === 0) {
                     fetchedImages = await api.fetchGalleryImages(api.paths.fbdEventsCol, eventId);
                 }
-                
+
                 if (!fetchedImages || fetchedImages.length === 0) {
                     subtitle.textContent = "Empty Gallery";
                     showEmptyMessage();
                     return;
                 }
-                
+
                 subtitle.textContent = `Gallery (${fetchedImages.length} images)`;
                 images = fetchedImages;
                 displayGallery();
@@ -434,15 +434,15 @@
             images.forEach((base64Data, index) => {
                 const item = document.createElement('div');
                 item.className = 'gallery-item';
-                
+
                 const img = document.createElement('img');
                 img.src = base64Data;
                 img.alt = `Gallery image ${index + 1}`;
                 img.loading = 'lazy';
-                
+
                 item.appendChild(img);
                 item.addEventListener('click', () => openLightbox(index));
-                
+
                 grid.appendChild(item);
             });
 
@@ -494,7 +494,7 @@
         function updateLightbox() {
             const lightboxImage = document.getElementById('lightbox-image');
             const counter = document.getElementById('lightbox-counter');
-            
+
             lightboxImage.src = images[currentImageIndex];
             counter.textContent = `${currentImageIndex + 1} / ${images.length}`;
         }
@@ -513,7 +513,7 @@
         document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
         document.getElementById('lightbox-next').addEventListener('click', nextImage);
         document.getElementById('lightbox-prev').addEventListener('click', prevImage);
-        
+
         document.getElementById('lightbox').addEventListener('click', (e) => {
             if (e.target.id === 'lightbox') {
                 closeLightbox();

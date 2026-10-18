@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - AIAS Basra</title>
+    <title>Login - AIAS Basra Community</title>
     <link rel="icon" type="image/png" href="static/images/branding/LOGO.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script type="module" src="js/auth.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -17,206 +16,150 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', 'DM Sans', sans-serif;
+            background: radial-gradient(circle at 85% 15%, rgba(240, 218, 161, 0.25), transparent 40%),
+                        linear-gradient(135deg, #321c22 0%, #661f22 55%, #8c3e43 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 2rem;
+            padding: 2rem 1.25rem;
         }
 
         .container {
-            background: white;
-            padding: 3rem;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 450px;
+            background: #fffdfa;
+            padding: 3rem 2.5rem;
+            border-radius: 24px;
+            box-shadow: 0 24px 70px rgba(22, 10, 13, 0.45);
+            max-width: 440px;
             width: 100%;
-            animation: slideIn 0.6s ease-out;
+            border: 1px solid rgba(102, 31, 34, 0.12);
+            animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+            text-align: center;
         }
 
         @keyframes slideIn {
             from {
                 opacity: 0;
-                transform: translateY(-30px);
+                transform: translateY(-24px) scale(0.97);
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0) scale(1);
             }
         }
 
         .logo-container {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .logo-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        h1 {
-            color: #2d3748;
-            font-size: 1.8rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-            text-align: center;
-        }
-
-        .subtitle {
-            color: #718096;
-            font-size: 0.9rem;
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        .form-group {
             margin-bottom: 1.5rem;
         }
 
-        label {
-            display: block;
-            color: #4a5568;
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
+        .logo-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto;
+            display: grid;
+            place-items: center;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #661f22, #8c3e43);
+            color: #fff;
+            font-size: 2rem;
+            box-shadow: 0 10px 25px rgba(102, 31, 34, 0.28);
         }
 
-        input[type="email"],
-        input[type="password"] {
-            width: 100%;
-            padding: 1rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s ease;
+        h1 {
+            color: #2b171c;
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.4rem;
         }
 
-        input[type="email"]:focus,
-        input[type="password"]:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 1rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .submit-btn:active {
-            transform: translateY(0);
+        .subtitle {
+            color: #7a6e70;
+            font-size: 0.88rem;
+            margin-bottom: 2rem;
+            line-height: 1.5;
         }
 
         .message {
-            padding: 0.75rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
+            padding: 0.85rem;
+            border-radius: 12px;
+            margin-bottom: 1.25rem;
+            font-size: 0.86rem;
             display: none;
+            text-align: start;
         }
 
         .message.error {
-            background: #fff5f5;
-            color: #e53e3e;
-            border-left: 4px solid #e53e3e;
+            background: #fff3f3;
+            color: #a12d35;
+            border: 1px solid #f3c2c5;
             display: block;
         }
 
         .message.success {
-            background: #f0fff4;
-            color: #38a169;
-            border-left: 4px solid #38a169;
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
             display: block;
-        }
-
-        .signup-link {
-            text-align: center;
-            margin-top: 1.5rem;
-            color: #718096;
-            font-size: 0.9rem;
-        }
-
-        .signup-link a {
-            color: #667eea;
-            font-weight: 600;
-            text-decoration: none;
-        }
-
-        .signup-link a:hover {
-            text-decoration: underline;
-        }
-
-        .divider {
-            display: flex;
-            align-items: center;
-            text-align: center;
-            margin: 1.5rem 0;
-            color: #718096;
-        }
-
-        .divider::before,
-        .divider::after {
-            content: '';
-            flex: 1;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .divider span {
-            padding: 0 1rem;
-            font-size: 0.9rem;
         }
 
         .google-btn {
             width: 100%;
-            padding: 1rem;
-            background: white;
-            color: #2d3748;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
+            min-height: 52px;
+            padding: 0 1.25rem;
+            background: #fff;
+            color: #2b171c;
+            border: 1.5px solid #ded3cc;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+            font-family: inherit;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
+            gap: 0.85rem;
+            box-shadow: 0 4px 14px rgba(42, 24, 28, 0.05);
         }
 
         .google-btn:hover {
-            border-color: #667eea;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            border-color: #661f22;
+            box-shadow: 0 8px 24px rgba(102, 31, 34, 0.16);
             transform: translateY(-2px);
         }
 
         .google-btn svg {
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
+            flex: 0 0 auto;
         }
 
         .google-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+            transform: none;
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 1.75rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #efe8e3;
+            color: #7a6e70;
+            font-size: 0.88rem;
+        }
+
+        .signup-link a {
+            color: #661f22;
+            font-weight: 800;
+            text-decoration: none;
+            margin-inline-start: 4px;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
         }
 
         .language-toggle-auth {
@@ -226,15 +169,21 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.35);
-            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.12);
             color: white;
-            padding: 0.5rem 0.75rem;
+            padding: 0.5rem 0.85rem;
             border-radius: 999px;
             cursor: pointer;
-            backdrop-filter: blur(8px);
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
+            backdrop-filter: blur(10px);
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 0.8rem;
+            transition: background 0.2s ease;
+        }
+
+        .language-toggle-auth:hover {
+            background: rgba(255, 255, 255, 0.22);
         }
 
         .language-toggle-auth svg {
@@ -244,21 +193,15 @@
 
         @media (max-width: 480px) {
             .container {
-                padding: 2rem 1.5rem;
+                padding: 2.25rem 1.5rem;
             }
-
             h1 {
                 font-size: 1.5rem;
             }
         }
     </style>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1957758165451331" crossorigin="anonymous"></script>
-  <script async custom-element="amp-auto-ads" src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js"></script>
 </head>
 <body>
-  <amp-auto-ads type="adsense"
-        data-ad-client="ca-pub-1957758165451331">
-  </amp-auto-ads>
     <button class="language-toggle-auth" id="languageToggle" aria-label="Change language">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/>
@@ -271,9 +214,9 @@
         <div class="logo-container">
             <div class="logo-icon">🏛️</div>
         </div>
-        
-        <h1 data-en="Welcome Back" data-ar="مرحباً بعودتك">Welcome Back</h1>
-        <p class="subtitle" data-en="Login to your AIAS Basra account" data-ar="سجّل الدخول إلى حساب AIAS البصرة الخاص بك">Login to your AIAS Basra account</p>
+
+        <h1 data-en="Sign in to Community" data-ar="تسجيل الدخول إلى المجتمع">Sign in to Community</h1>
+        <p class="subtitle" data-en="Join AIAS Basra community discussions, projects, and member spaces." data-ar="انضم إلى نقاشات ومشاريع ومساحات مجتمع AIAS البصرة.">Join AIAS Basra community discussions, projects, and member spaces.</p>
 
         <div id="message" class="message"></div>
 
@@ -289,12 +232,8 @@
 
         <div class="signup-link">
             <span data-en="Don't have an account?" data-ar="ليس لديك حساب؟">Don't have an account?</span>
-            <a href="signup.html" data-en="Sign up here" data-ar="سجل هنا">Sign up here</a>
+            <a href="signup.html" id="signupLink" data-en="Create account here" data-ar="أنشئ حساباً هنا">Create account here</a>
         </div>
-        <button type="button" class="google-btn" id="visitorBtn">
-            <span data-en="👀 Continue as Visitor" data-ar="👀 المتابعة كزائر">👀 Continue as Visitor</span>
-        </button>
-
     </div>
 
     <script>
@@ -306,7 +245,7 @@
 
             document.documentElement.lang = lang === 'ar' ? 'ar' : 'en';
             document.body.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
-            document.title = lang === 'ar' ? 'تسجيل الدخول - AIAS البصرة' : 'Login - AIAS Basra';
+            document.title = lang === 'ar' ? 'تسجيل الدخول - مجتمع AIAS البصرة' : 'Login - AIAS Basra Community';
 
             const currentLang = document.getElementById('currentLang');
             if (currentLang) {
@@ -335,24 +274,13 @@
 
     <!-- Firebase SDK -->
     <script type="module">
-        // Import Firebase modules
-        import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithCredential, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { initializeApp, getApp } from "/js/cloudflare-client.js";
+        import { getAuth, signInWithCredential, GoogleAuthProvider, onAuthStateChanged } from "/js/cloudflare-client.js";
+        import { getFirestore, doc, getDoc } from "/js/cloudflare-client.js";
         import { getAdminAccess, persistAccessSession } from "./js/rbac.js";
 
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAvPMOgz1w7SFylBY8cmn9nf9GQvn-IRNI",
-            authDomain: "space-42d87.firebaseapp.com",
-            projectId: "space-42d87",
-            storageBucket: "space-42d87.firebasestorage.app",
-            messagingSenderId: "658382934950",
-            appId: "1:658382934950:web:c61b6fa237b203e6bf7567",
-            measurementId: "G-Q7Y482TMEY"
-        };
+        const firebaseConfig = { projectId: "aias-basra" };
 
-        // Initialize Firebase (with error handling for multiple initializations)
         let app;
         try {
             app = getApp();
@@ -364,6 +292,7 @@
 
         const messageDiv = document.getElementById('message');
         const googleSignInBtn = document.getElementById('googleSignIn');
+        const signupLink = document.getElementById('signupLink');
         const requestedNext = new URLSearchParams(window.location.search).get('next') || '';
 
         function safeNext(fallback) {
@@ -376,60 +305,36 @@
             return requestedNext ? 'signup.html?next=' + encodeURIComponent(requestedNext) : 'signup.html';
         }
 
+        if (signupLink) {
+            signupLink.href = signupDestination();
+        }
+
         function showMessage(text, type) {
             messageDiv.textContent = text;
             messageDiv.className = `message ${type}`;
             messageDiv.style.display = 'block';
         }
 
-        async function finishRelaySignIn() {
-            const relayResult = new URLSearchParams(window.location.hash.slice(1));
-            const idToken = relayResult.get('google_id_token');
-            const accessToken = relayResult.get('google_access_token');
-            const relayError = relayResult.get('auth_error');
-            if (!idToken && !accessToken && !relayError) return;
 
-            // Remove the credential from the address bar before doing any
-            // network work or recording browser history.
-            history.replaceState(null, '', window.location.pathname + window.location.search);
-            if (relayError) throw new Error(relayError);
-            await signInWithCredential(auth, GoogleAuthProvider.credential(idToken || null, accessToken || null));
-        }
 
-        finishRelaySignIn().catch((error) => {
-            console.error('Google relay sign-in error:', error);
-            googleSignInBtn.disabled = false;
-            showMessage('Sign-in failed: ' + error.message, 'error');
-        });
 
-        // Check if user is already logged in
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // A new Google identity cannot finish registration until it
-                // has supplied its public Community profile.
                 const profileSnap = await getDoc(doc(db, 'users', user.uid));
                 if (!profileSnap.exists() || !profileSnap.data().profileComplete) {
                     window.location.href = signupDestination();
                     return;
                 }
-                showMessage('You are already signed in. Redirecting...', 'success');
+                showMessage('You are signed in. Entering community...', 'success');
                 await checkUserRoleAndRedirect(user);
             }
-        });
-
-        // Continue as visitor
-        const visitorBtn = document.getElementById('visitorBtn');
-        visitorBtn.addEventListener('click', () => {
-            localStorage.setItem('aias_authenticated', 'false');
-            localStorage.setItem('aias_visitor_mode', 'true');
-            window.location.href = 'index.html';
         });
 
         async function checkUserRoleAndRedirect(user) {
             try {
                 const access = await getAdminAccess(db, user.email);
-                
-                // Store session data
+
                 localStorage.setItem('aias_authenticated', 'true');
                 localStorage.setItem('aias_user_email', user.email);
                 localStorage.setItem('aias_user_name', user.displayName || '');
@@ -438,16 +343,16 @@
                 localStorage.setItem('aias_user_uid', user.uid);
                 localStorage.setItem('aias_visitor_mode', 'false');
 
-                // Preserve an in-site destination (for example, a Community
-                // post) while rejecting external redirect targets.
-                window.location.href = safeNext(access.allowed ? 'admin-dashboard.html' : 'index.html');
+                const destination = safeNext('/');
+                window.location.href = destination === 'admin-dashboard.html'
+                    ? 'https://aiasbsr.com/admin-dashboard.html'
+                    : destination;
             } catch (error) {
                 console.error('Error checking user role:', error);
                 showMessage('Error checking user permissions. Please try again.', 'error');
             }
         }
 
-        // Handle Google Sign-In button click
         googleSignInBtn.addEventListener('click', async () => {
             try {
                 googleSignInBtn.disabled = true;
@@ -455,7 +360,7 @@
 
                 const returnUrl = new URL(window.location.href);
                 returnUrl.hash = '';
-                const relayUrl = new URL('https://space-42d87.firebaseapp.com/auth-relay.html');
+                const relayUrl = new URL('/api/auth/start', location.origin);
                 relayUrl.searchParams.set('return', returnUrl.href);
                 window.location.assign(relayUrl.href);
 
@@ -466,6 +371,5 @@
             }
         });
     </script>
-    <script src="/js/app-open-prompt.js?v=20260811" defer></script>
 </body>
 </html>

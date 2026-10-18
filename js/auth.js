@@ -1,19 +1,11 @@
 // Authentication check for protected pages with Firebase integration
-import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { initializeApp, getApp } from "/js/cloudflare-client.js";
+import { getAuth, onAuthStateChanged } from "/js/cloudflare-client.js";
+import { getFirestore } from "/js/cloudflare-client.js";
 import { clearAccessSession, getAdminAccess, persistAccessSession } from "./rbac.js";
 
 // Firebase configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyAvPMOgz1w7SFylBY8cmn9nf9GQvn-IRNI",
-    authDomain: "space-42d87.firebaseapp.com",
-    projectId: "space-42d87",
-    storageBucket: "space-42d87.firebasestorage.app",
-    messagingSenderId: "658382934950",
-    appId: "1:658382934950:web:c61b6fa237b203e6bf7567",
-    measurementId: "G-Q7Y482TMEY"
-};
+const firebaseConfig = { projectId: "aias-basra" };
 
 // Initialize Firebase (with error handling for multiple initializations)
 let app;
@@ -24,14 +16,6 @@ try {
 }
 const auth = getAuth(app);
 const db = getFirestore(app);
-
-function hasFirebaseSession() {
-    try {
-        return Object.keys(localStorage).some((key) => key.startsWith('firebase:authUser:'));
-    } catch (error) {
-        return false;
-    }
-}
 
 function setElementVisibility(element, visible, displayWhenVisible) {
     if (!element) return;
@@ -58,8 +42,7 @@ function setElementVisibility(element, visible, displayWhenVisible) {
 function updateNavigationAuthUI() {
     const isAuthenticated =
         localStorage.getItem('aias_authenticated') === 'true' ||
-        sessionStorage.getItem('aias_authenticated') === 'true' ||
-        hasFirebaseSession();
+        sessionStorage.getItem('aias_authenticated') === 'true';
     const isAdmin = localStorage.getItem('aias_is_admin') === 'true';
     const userName = localStorage.getItem('aias_user_name');
     const userEmail = localStorage.getItem('aias_user_email');
@@ -123,7 +106,7 @@ function bindLogoutHandler() {
         event.preventDefault();
 
         try {
-            const { signOut } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js");
+            const { signOut } = await import("/js/cloudflare-client.js");
             await signOut(auth);
         } catch (error) {
             console.error('Firebase sign-out failed, continuing with local cleanup:', error);
@@ -131,7 +114,7 @@ function bindLogoutHandler() {
 
         clearLocalAuthState(true);
         window.dispatchEvent(new CustomEvent('aias-auth-state-updated'));
-        window.location.href = 'index.html';
+        window.location.href = '/community.html';
     });
 }
 
@@ -151,14 +134,14 @@ window.addEventListener('aias-auth-state-updated', syncAuthUI);
 (function() {
     const LOGIN_PAGE = 'login.html';
     const ADMIN_PAGE = 'admin-dashboard.html';
-    
+
     // Get current page filename
     const currentPage = window.location.pathname.split('/').pop();
-    
+
     function notifyAuthStateUpdated() {
         window.dispatchEvent(new CustomEvent('aias-auth-state-updated'));
     }
-    
+
     // Check Firebase authentication state
     onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -176,11 +159,10 @@ window.addEventListener('aias-auth-state-updated', syncAuthUI);
             localStorage.setItem('aias_visitor_mode', 'false');
             notifyAuthStateUpdated();
             syncAuthUI();
-            
-            // Protect admin page for admin users only (Temporarily disabled for debugging)
+
+            // Protect admin page for admin users only
             if (currentPage === ADMIN_PAGE && !access.allowed) {
-                console.warn('[DEBUG js/auth.js] Admin access disallowed for user:', user.email, access);
-                // window.location.href = 'index.html';
+                window.location.href = '/community.html';
             }
         } else {
             // Keep local auth markers in sync when Firebase user is signed out
@@ -188,12 +170,11 @@ window.addEventListener('aias-auth-state-updated', syncAuthUI);
             notifyAuthStateUpdated();
             syncAuthUI();
 
-            // Protect admin page for signed-out users (Temporarily disabled for debugging)
+            // Protect admin page for signed-out users
             if (currentPage === ADMIN_PAGE) {
-                console.warn('[DEBUG js/auth.js] User signed out on ADMIN_PAGE.');
-                // window.location.href = LOGIN_PAGE;
+                window.location.href = LOGIN_PAGE;
             }
         }
     });
-    
+
 })();

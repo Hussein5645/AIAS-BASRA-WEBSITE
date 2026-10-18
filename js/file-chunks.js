@@ -1,13 +1,8 @@
 // Firestore Base64 chunk storage helpers.
-import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, collection, getDocs, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { initializeApp, getApp } from "/js/cloudflare-client.js";
+import { getFirestore, doc, collection, getDocs, deleteDoc, setDoc, ref, uploadBytes, getDownloadURL, getStorage, deleteObject } from "/js/cloudflare-client.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAvPMOgz1w7SFylBY8cmn9nf9GQvn-IRNI",
-  authDomain: "space-42d87.firebaseapp.com", projectId: "space-42d87",
-  storageBucket: "space-42d87.firebasestorage.app", messagingSenderId: "658382934950",
-  appId: "1:658382934950:web:c61b6fa237b203e6bf7567"
-};
+const firebaseConfig = { projectId: "aias-basra" };
 let app;
 try { app = getApp(); } catch { app = initializeApp(firebaseConfig); }
 const db = getFirestore(app);
@@ -35,20 +30,18 @@ export async function uploadFileChunks(pathArray, docId, subcollectionName, base
     throw new Error("A valid parent path, document ID, and subcollection name are required.");
   }
   if (typeof base64Data !== "string") throw new TypeError("base64Data must be a string.");
+  const file=await (await fetch(base64Data)).blob();
+  const key=[...pathArray,docId,subcollectionName,crypto.randomUUID()].join('/');
+  const target=ref(getStorage(),key);
+  await uploadBytes(target,file);
+  const url=await getDownloadURL(target);
   const chunksRef = collection(parentRef(pathArray, docId), subcollectionName);
   const existing = await getDocs(chunksRef);
-  await Promise.all(existing.docs.map(chunk => deleteDoc(chunk.ref)));
-  let chunkCount = 0;
-  for (let start = 0; start < base64Data.length; start += BASE64_CHUNK_SIZE) {
-    const index = Math.floor(start / BASE64_CHUNK_SIZE);
-    await setDoc(doc(chunksRef, `chunk_${index}`), {
-      data: base64Data.slice(start, start + BASE64_CHUNK_SIZE), index
-    });
-    chunkCount += 1;
-  }
+  await setDoc(doc(chunksRef,'file'),{data:url,index:0,fileKey:key,storage:'r2'});
+  await Promise.all(existing.docs.map(async chunk=>{if(chunk.id!=='file')await deleteDoc(chunk.ref);const old=chunk.data().fileKey;if(old&&old!==key)await deleteObject(ref(getStorage(),old));}));
   // The parent may not exist yet, so this must be a merge write rather than updateDoc.
   await setDoc(parentRef(pathArray, docId), { hasImageChunks: true }, { merge: true });
-  return { chunkCount, docId };
+  return { chunkCount:1, docId };
 }
 
 export async function fetchFileChunks(pathArray, docId, subcollectionName) {

@@ -166,15 +166,15 @@
       .community-admin-hero { grid-template-columns:1fr; }.community-admin-stats,.community-admin-grid { grid-template-columns:1fr; }.community-admin-card.wide { grid-column:auto; }
       .community-review-row { grid-template-columns:1fr; }.community-review-actions { justify-content:flex-start; }
     }
-  
-    
+
+
     /* Market Management Modern Sub-Tab System */
     .market-admin-hero { position:relative; overflow:hidden; display:flex; justify-content:space-between; align-items:center; gap:1.5rem; padding:1.5rem 1.8rem; border-radius:18px; color:#fff; background:radial-gradient(circle at 88% 8%,rgba(240,218,161,.3),transparent 30%),linear-gradient(135deg,#321c22,#6b2228 68%,#98584d); box-shadow:0 16px 34px rgba(50,28,34,.16); margin-bottom:1.2rem; }
     .market-admin-hero h2 { margin:0; font-size:1.45rem; }
     .market-admin-hero p { max-width:650px; margin:.45rem 0 0; color:#ead8d3; font-size:.82rem; line-height:1.6; }
     .market-admin-hero a { display:inline-flex; align-items:center; gap:.4rem; padding:.5rem 1rem; border-radius:10px; background:rgba(255,255,255,.18); color:#fff; font-size:.78rem; font-weight:800; text-decoration:none; border:1px solid rgba(255,255,255,.3); transition:all .2s ease; }
     .market-admin-hero a:hover { background:#fff; color:var(--brand1); transform:translateY(-1px); }
-    
+
     .market-admin-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:.8rem; margin-bottom:1.2rem; }
     .market-admin-stat { display:flex; align-items:center; gap:.8rem; padding:1rem 1.2rem; border:1px solid var(--border); border-radius:14px; background:#fff; box-shadow:0 7px 20px rgba(50,28,34,.04); }
     .market-admin-stat > span { width:44px; height:44px; flex:0 0 auto; display:grid; place-items:center; border-radius:12px; color:var(--brand1); background:#f7ece8; font-size:1.25rem; }
@@ -186,7 +186,7 @@
     .market-subtab-btn { padding:9px 18px; border-radius:10px; border:none; background:transparent; color:#64748b; font-weight:800; font-size:.82rem; cursor:pointer; transition:all .2s ease; display:inline-flex; align-items:center; gap:7px; white-space:nowrap; }
     .market-subtab-btn:hover { color:#1e293b; background:rgba(255,255,255,.5); }
     .market-subtab-btn.active { background:#fff; color:var(--brand1); box-shadow:0 3px 10px rgba(0,0,0,0.06); }
-    
+
     .market-subpanel { display:none; }
     .market-subpanel.active { display:block; animation:fadeIn .2s ease; }
     @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
@@ -341,7 +341,7 @@
                   <label for="eventSeats" data-en="Available Seats" data-ar="المقاعد المتاحة">Available Seats</label>
                   <input type="number" id="eventSeats" name="seats" min="1" value="10" required/>
                 </div>
-                
+
                 <div class="form-group">
                   <label for="eventImageUrl" data-en="Image URL (Optional)" data-ar="رابط الصورة (اختياري)">Image URL (Optional)</label>
                   <input id="eventImageUrl" name="imageUrl" type="url" placeholder="https://example.com/image.jpg"/>
@@ -354,8 +354,8 @@
                   <label for="eventRegisterUrl" data-en="Register Button URL (Optional)" data-ar="رابط زر التسجيل (اختياري)">Register Button URL (Optional)</label>
                   <input id="eventRegisterUrl" name="registerUrl" type="url" placeholder="https://example.com/register"/>
                 </div>
-                
-                
+
+
               </div>
               <div class="form-group">
                 <label for="eventDescription" data-en="Description" data-ar="الوصف">Description</label>
@@ -439,19 +439,19 @@
 
       <!-- Community management -->
       <section id="community-tab" class="tab-content">
-        <header class="community-admin-hero"><div><h2>Community management</h2><p>Review featured-project requests, manage member spaces, control posting access, and grant verified Business Status.</p><a href="https://space-42d87.web.app/" target="_blank" rel="noopener">Open the community ↗</a> <a href="https://space-42d87.web.app/admin-community-moderation.html">Open moderation &amp; archives →</a> <a href="https://space-42d87.web.app/admin-community-users.html">Manage posting access →</a> <a href="https://space-42d87.web.app/admin-community-users.html?tab=business">Business Accounts →</a></div><label class="community-admin-search"><span class="sr-only">Search Community management</span><input id="communityAdminSearch" type="search" autocomplete="off" placeholder="Search projects, spaces, or questions"></label></header>
+        <header class="community-admin-hero"><div><h2>Community management</h2><p>Review featured-project requests, manage member spaces, control posting access, and grant verified Business Status.</p><a href="/community.html" target="_blank" rel="noopener">Open the community ↗</a> <a href="/admin-community-moderation.html">Open moderation &amp; archives →</a> <a href="/admin-community-users.html">Manage posting access →</a> <a href="/admin-community-users.html?tab=business">Business Accounts →</a></div><label class="community-admin-search"><span class="sr-only">Search Community management</span><input id="communityAdminSearch" type="search" autocomplete="off" placeholder="Search projects, spaces, or questions"></label></header>
         <div class="community-admin-stats" aria-label="Community overview"><article class="community-admin-stat"><span>✓</span><div><strong id="communityPendingCount">—</strong><small>Pending project requests</small></div></article><article class="community-admin-stat"><span>#</span><div><strong id="communitySpacesCount">—</strong><small>Active member spaces</small></div></article><article class="community-admin-stat"><span>?</span><div><strong id="communityQuestionState">—</strong><small>Question of the Week</small></div></article></div>
         <div class="community-admin-grid">
-          <section class="community-admin-card"><header class="community-admin-card-head"><span>🏛️</span><div><h3>Business Accounts Management</h3><p>Grant, suspend, or restore verified Business Status for architecture studios, firms, and practice profiles.</p></div></header><div class="community-admin-card-body"><p style="font-size:0.8rem;color:var(--muted);margin:0 0 12px">Search community members by username, email, or UID, and grant official Business Status without creating separate login credentials.</p><a href="https://space-42d87.web.app/admin-community-users.html?tab=business" class="firestore-button primary" target="_blank" rel="noopener">Open Business Accounts Manager ↗</a></div></section>
+          <section class="community-admin-card"><header class="community-admin-card-head"><span>🏛️</span><div><h3>Business Accounts Management</h3><p>Grant, suspend, or restore verified Business Status for architecture studios, firms, and practice profiles.</p></div></header><div class="community-admin-card-body"><p style="font-size:0.8rem;color:var(--muted);margin:0 0 12px">Search community members by username, email, or UID, and grant official Business Status without creating separate login credentials.</p><a href="/admin-community-users.html?tab=business" class="firestore-button primary" target="_blank" rel="noopener">Open Business Accounts Manager ↗</a></div></section>
           <section class="community-admin-card"><header class="community-admin-card-head"><span>✓</span><div><h3>Submitted project approvals</h3><p>Review projects members requested for the Selected Projects page.</p></div></header><div class="community-admin-card-body"><div id="communityAdminList"><p>Loading project requests…</p></div></div></section>
           <section class="community-admin-card"><header class="community-admin-card-head"><span>#</span><div><h3>Manage community spaces</h3><p>Open, archive, or restore spaces created by members.</p></div></header><div class="community-admin-card-body"><p class="community-spaces-note">New spaces are created by members from the Community page. This dashboard only manages existing spaces.</p><div id="communitySpacesAdmin"><p>Loading community spaces…</p></div></div></section>
           <section class="community-admin-card"><header class="community-admin-card-head"><span>✓</span><div><h3>Verify a community account</h3><p>Enter a member’s sign-in email to add the official verification mark to their community identity.</p></div></header><div class="community-admin-card-body"><form id="communityVerificationForm" class="community-verification-form"><div class="form-group"><label for="communityVerificationEmail">Member email</label><input id="communityVerificationEmail" type="email" required autocomplete="email" placeholder="member@example.com"></div><button class="submit-btn" type="submit">Verify account</button><p id="communityVerificationStatus" class="community-verification-status" aria-live="polite"></p></form></div></section>
-          <section class="community-admin-card wide"><header class="community-admin-card-head"><span>🏷️</span><div><h3>Portfolio Explorer tags</h3><p>Add, edit, or remove the profession filters shown in the Portfolio Explorer. Changes are saved in Firebase and appear on the public portfolio page.</p></div></header><div class="community-admin-card-body"><div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.7fr);gap:20px;align-items:start"><div id="portfolioTagsAdminList"><p>Loading portfolio tags…</p></div><div style="background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:16px"><h4 id="portfolioTagFormHeading" style="margin:0 0 10px;font-size:.9rem;color:#1e293b">Add portfolio tag</h4><form id="portfolioTagForm"><input type="hidden" id="portfolioTagId"><div class="form-group" style="margin-bottom:10px"><label for="portfolioTagNameEn">Tag name (English) *</label><input id="portfolioTagNameEn" required maxlength="60" placeholder="e.g. Urban Planning"></div><div class="form-group" style="margin-bottom:12px"><label for="portfolioTagNameAr">Tag name (Arabic)</label><input id="portfolioTagNameAr" maxlength="60" dir="rtl" placeholder="مثال: التخطيط الحضري"></div><div style="display:flex;gap:8px"><button type="submit" id="savePortfolioTagBtn" class="submit-btn" style="flex:1">Save tag</button><button type="button" id="cancelPortfolioTagEditBtn" class="btn" style="display:none" onclick="window.cancelEditPortfolioTag()">Cancel</button></div><p id="portfolioTagFormStatus" style="margin:.7rem 0 0;font-size:.78rem" aria-live="polite"></p></form></div></div></div></section>
+          <section class="community-admin-card wide"><header class="community-admin-card-head"><span>🏷️</span><div><h3>Portfolio Explorer tags</h3><p>Add, edit, or remove the profession filters shown in the Portfolio Explorer. Changes appear on the public portfolio page.</p></div></header><div class="community-admin-card-body"><div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.7fr);gap:20px;align-items:start"><div id="portfolioTagsAdminList"><p>Loading portfolio tags…</p></div><div style="background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:16px"><h4 id="portfolioTagFormHeading" style="margin:0 0 10px;font-size:.9rem;color:#1e293b">Add portfolio tag</h4><form id="portfolioTagForm"><input type="hidden" id="portfolioTagId"><div class="form-group" style="margin-bottom:10px"><label for="portfolioTagNameEn">Tag name (English) *</label><input id="portfolioTagNameEn" required maxlength="60" placeholder="e.g. Urban Planning"></div><div class="form-group" style="margin-bottom:12px"><label for="portfolioTagNameAr">Tag name (Arabic)</label><input id="portfolioTagNameAr" maxlength="60" dir="rtl" placeholder="مثال: التخطيط الحضري"></div><div style="display:flex;gap:8px"><button type="submit" id="savePortfolioTagBtn" class="submit-btn" style="flex:1">Save tag</button><button type="button" id="cancelPortfolioTagEditBtn" class="btn" style="display:none" onclick="window.cancelEditPortfolioTag()">Cancel</button></div><p id="portfolioTagFormStatus" style="margin:.7rem 0 0;font-size:.78rem" aria-live="polite"></p></form></div></div></div></section>
           <section class="community-admin-card wide"><header class="community-admin-card-head"><span>?</span><div><h3>Question of the Week</h3><p>Publish a new weekly question or select one already submitted by a community member.</p></div></header><div class="community-admin-card-body"><form id="weeklyQuestionForm" class="community-question-form"><div class="form-group"><label for="weeklyQuestionTitle">Question</label><input id="weeklyQuestionTitle" required maxlength="160" placeholder="What should our community discuss this week?"></div><div class="form-group"><label for="weeklyQuestionContext">Helpful context</label><textarea id="weeklyQuestionContext" required maxlength="2000" placeholder="Add context that helps members give useful answers."></textarea></div><button class="submit-btn" type="submit">Publish as Question of the Week</button><p id="weeklyQuestionStatus" style="margin-top:.75rem" aria-live="polite"></p></form><div id="communityPromptAdmin"><p>Loading community questions…</p></div></div></section>
         </div>
       </section>
 
-      
+
       <!-- Market management -->
       <section id="market-tab" class="tab-content">
         <!-- Hero Header -->
@@ -461,7 +461,7 @@
             <p data-en="Register architectural student stores, assign store admins, moderate marketplace items, and manage categories." data-ar="تسجيل متاجر طلبة العمارة، تعيين مديري المتاجر، مراقبة عناصر السوق، وإدارة الفئات والأنواع.">Register architectural student stores, assign store admins, moderate marketplace items, and manage categories.</p>
           </div>
           <div style="display:flex; gap:10px; align-items:center;">
-            <a href="https://space-42d87.web.app/market.html" target="_blank" rel="noopener">
+            <a href="/market.html" target="_blank" rel="noopener">
               <span data-en="Open Live Market ↗" data-ar="فتح السوق الحي ↗">Open Live Market ↗</span>
             </a>
           </div>
@@ -527,7 +527,7 @@
           </div>
         </div>
 
-        
+
         <!-- SUBTAB 3: Item Types & Tags Taxonomy Manager -->
         <div id="market-subtab-types" class="market-subpanel">
           <div class="market-card-shell">
@@ -608,7 +608,7 @@
               <div><strong id="marketStoreModeTitle">Editing Store</strong><small id="marketStoreModeSubtitle" style="display:block;">Changes will update the store profile and live storefront.</small></div>
               <button type="button" id="marketStoreCancelEditBtn" class="editor-mode-new" onclick="window.marketResetStoreForm()">Cancel Edit / New Store</button>
             </div>
-            
+
             <div style="margin-bottom:15px;">
               <h3 id="marketStoreFormTitle" style="margin:0; font-size:1.1rem; color:#1e293b;" data-en="Register New Architectural Store" data-ar="تسجيل متجر معماري جديد">Register New Architectural Store</h3>
               <p style="margin:4px 0 0; color:var(--muted); font-size:0.78rem;">Create a verified storefront for a student creator or studio. Stores get their own dedicated page on the market.</p>
@@ -858,7 +858,7 @@
               </div>
               <div class="two-col">
                 <div class="form-group"><label for="fbdEventSeats" data-en="Available Seats" data-ar="المقاعد المتاحة">Available Seats</label><input id="fbdEventSeats" name="seats" type="number" min="1" value="10" required/></div>
-                
+
               </div>
               <div class="form-group">
                 <label for="fbdEventImageUrl" data-en="Image URL (Optional)" data-ar="رابط الصورة (اختياري)">Image URL (Optional)</label>
@@ -872,8 +872,8 @@
                 <label for="fbdEventRegisterUrl" data-en="Register Button URL (Optional)" data-ar="رابط زر التسجيل (اختياري)">Register Button URL (Optional)</label>
                 <input type="url" id="fbdEventRegisterUrl" name="registerUrl" placeholder="https://example.com/register"/>
               </div>
-              
-              
+
+
               <div class="form-group"><label for="fbdEventDescription" data-en="Description" data-ar="الوصف">Description</label><textarea id="fbdEventDescription" name="description" required></textarea></div>
               <div id="fbdEventErrors" class="error-box"></div>
               <button type="submit" id="fbdEventSubmitBtn" class="submit-btn" data-en="Add FBD Event" data-ar="إضافة فعالية FBD">Add FBD Event</button>
@@ -884,6 +884,11 @@
 
       <!-- Settings -->
       <section id="settings-tab" class="tab-content">
+        <section class="firestore-card" style="margin-bottom:1rem" aria-labelledby="cloudflareMediaTitle">
+          <h3 id="cloudflareMediaTitle">Cloudflare media library</h3>
+          <p>Manage images, documents, and 3D files in the new R2 library. This workspace requires its Cloudflare sign-in setup before uploads are available.</p>
+          <div class="firestore-actions"><a href="admin-storage.html" class="firestore-button primary">Open media library ↗</a></div>
+        </section>
         <div class="firestore-grid">
           <section class="firestore-card" aria-labelledby="firestoreConnectionTitle">
             <h3 id="firestoreConnectionTitle">Firestore connection</h3>
@@ -935,24 +940,16 @@
     /*************************************************
      * تهيئة Firebase و FirestoreAPI
      *************************************************/
-    import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, getDocs, collection, addDoc, setDoc, serverTimestamp, query, where, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { initializeApp, getApp } from "/js/cloudflare-client.js";
+    import { getAuth, signOut, onAuthStateChanged } from "/js/cloudflare-client.js";
+    import { getFirestore, doc, getDoc, getDocs, collection, addDoc, setDoc, serverTimestamp, query, where, limit } from "/js/cloudflare-client.js";
     import FirestoreAPI from "./js/firestore-api.js?v=20260815_fixed";
     import categoriesLoader from "./js/categories-loader.js";
     import { toBase64, uploadFileChunks, createDocumentId } from "./js/file-chunks.js";
     import { ADMIN_AREAS, DEFAULT_ROLES, canManage, canView, clearAccessSession, ensureRoleConfiguration, getAdminAccess, normalizeEmail, persistAccessSession, saveAssignments, saveRoles } from "./js/rbac.js?v=20260815_fixed";
     import { moderateCommunityContent } from "./js/community-moderation.js?v=20260813-hosting-fix";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAvPMOgz1w7SFylBY8cmn9nf9GQvn-IRNI",
-      authDomain: "space-42d87.firebaseapp.com",
-      projectId: "space-42d87",
-      storageBucket: "space-42d87.firebasestorage.app",
-      messagingSenderId: "658382934950",
-      appId: "1:658382934950:web:c61b6fa237b203e6bf7567",
-      measurementId: "G-Q7Y482TMEY"
-    };
+    const firebaseConfig = { projectId: "aias-basra" };
 
     let app;
     try { app = getApp(); } catch { app = initializeApp(firebaseConfig); }
@@ -1029,10 +1026,10 @@
           return;
         }
         document.getElementById('currentLang').textContent = (localStorage.getItem('language') || 'EN').toUpperCase();
-        
+
         // Populate category dropdowns from JSON
         await populateCategoryDropdowns();
-        
+
         // Add language toggle event listener to re-populate categories
         const langToggle = document.getElementById('languageToggle');
         if (langToggle) {
@@ -1043,7 +1040,7 @@
             }, 100);
           });
         }
-        
+
         const firstVisibleTab = document.querySelector('#mainNav button[data-tab]:not([hidden])')?.dataset.tab;
         if (firstVisibleTab) { document.querySelectorAll('#mainNav button').forEach(button => button.classList.toggle('active', button.dataset.tab === firstVisibleTab)); showTab(firstVisibleTab); }
       });
@@ -1077,15 +1074,15 @@
     async function populateCategoryDropdowns() {
       try {
         console.log('[Admin Dashboard] Loading categories from JSON...');
-        
+
         // Get current language
         const currentLang = localStorage.getItem('language') || 'en';
-        
+
         // Load event types
         const eventTypes = await categoriesLoader.getEventTypes();
         const eventTypeSelect = document.getElementById('eventType');
         const fbdEventTypeSelect = document.getElementById('fbdEventType');
-        
+
         if (eventTypeSelect) {
           const currentValue = eventTypeSelect.value;
           eventTypeSelect.innerHTML = eventTypes.map(type => {
@@ -1096,7 +1093,7 @@
           }).join('');
           if (currentValue) eventTypeSelect.value = currentValue;
         }
-        
+
         if (fbdEventTypeSelect) {
           const currentValue = fbdEventTypeSelect.value;
           fbdEventTypeSelect.innerHTML = eventTypes.map(type => {
@@ -1106,24 +1103,24 @@
           }).join('');
           if (currentValue) fbdEventTypeSelect.value = currentValue;
         }
-        
+
         // Load library categories (basic)
         const libraryCategories = await categoriesLoader.getLibraryCategoriesBasic();
         const libCategorySelect = document.getElementById('libCategory');
-        
+
         if (libCategorySelect) {
           const currentValue = libCategorySelect.value;
           libCategorySelect.innerHTML = libraryCategories.map(cat => {
             // Handle both old format and new format with translations
             const value = cat.value;
-            const label = typeof cat.label === 'string' 
-              ? cat.label 
+            const label = typeof cat.label === 'string'
+              ? cat.label
               : (currentLang === 'ar' ? cat.label.ar : cat.label.en);
             return `<option value="${value}">${label}</option>`;
           }).join('');
           if (currentValue) libCategorySelect.value = currentValue;
         }
-        
+
         console.log('[Admin Dashboard] ✓ Categories loaded successfully');
       } catch (error) {
         console.error('[Admin Dashboard] ✗ Error loading categories:', error);
@@ -1410,8 +1407,8 @@
         const selected = allQuestions.find(post => post.id === selectedId);
         const questionState = document.getElementById('communityQuestionState');
         if (questionState) questionState.textContent = selected ? 'Selected' : 'Not set';
-        const current = selected ? `<div style="margin-bottom:.9rem;padding:.75rem;border-radius:9px;background:#f0fff4"><strong>Current Question of the Week</strong><div class="community-review-title" style="margin-top:.3rem">${communityEscape(selected.title)}</div><a class="community-preview-btn" style="margin-top:.55rem" href="https://space-42d87.web.app/?post=${encodeURIComponent(selected.id)}" target="_blank" rel="noopener">Open question</a></div>` : '<p class="notice">No Question of the Week is selected.</p>';
-        const list = questions.length ? `<div class="community-review-list">${questions.slice(0,20).map(post => `<article class="community-review-row"><div><div class="community-review-title">${communityEscape(post.title)}</div><div class="community-review-meta">@${communityEscape(post.authorUsername || post.authorName || 'member')}${post.id === selectedId ? ' · <span class="community-status featured">current</span>' : ''}</div></div><div class="community-review-actions"><a class="community-preview-btn" href="https://space-42d87.web.app/?post=${encodeURIComponent(post.id)}" target="_blank" rel="noopener">Open</a>${post.id === selectedId ? '' : `<button class="btn edit-btn" type="button" data-set-weekly-question="${post.id}" ${canManage(currentAccess, 'community') ? '' : 'disabled'}>Set for this week</button>`}</div></article>`).join('')}</div>` : `<p>${communityAdminQuery ? 'No questions match the Community search.' : 'No community questions have been posted yet.'}</p>`;
+        const current = selected ? `<div style="margin-bottom:.9rem;padding:.75rem;border-radius:9px;background:#f0fff4"><strong>Current Question of the Week</strong><div class="community-review-title" style="margin-top:.3rem">${communityEscape(selected.title)}</div><a class="community-preview-btn" style="margin-top:.55rem" href="/community.html?post=${encodeURIComponent(selected.id)}" target="_blank" rel="noopener">Open question</a></div>` : '<p class="notice">No Question of the Week is selected.</p>';
+        const list = questions.length ? `<div class="community-review-list">${questions.slice(0,20).map(post => `<article class="community-review-row"><div><div class="community-review-title">${communityEscape(post.title)}</div><div class="community-review-meta">@${communityEscape(post.authorUsername || post.authorName || 'member')}${post.id === selectedId ? ' · <span class="community-status featured">current</span>' : ''}</div></div><div class="community-review-actions"><a class="community-preview-btn" href="/community.html?post=${encodeURIComponent(post.id)}" target="_blank" rel="noopener">Open</a>${post.id === selectedId ? '' : `<button class="btn edit-btn" type="button" data-set-weekly-question="${post.id}" ${canManage(currentAccess, 'community') ? '' : 'disabled'}>Set for this week</button>`}</div></article>`).join('')}</div>` : `<p>${communityAdminQuery ? 'No questions match the Community search.' : 'No community questions have been posted yet.'}</p>`;
         box.innerHTML = current + '<h3 style="margin:.2rem 0 .55rem">Available questions</h3>' + list + '<p id="promptAdminStatus" style="margin-top:.75rem" aria-live="polite"></p>';
         box.querySelectorAll('[data-set-weekly-question]').forEach(button => button.addEventListener('click', () => setQuestionOfWeek(button.dataset.setWeeklyQuestion, document.getElementById('promptAdminStatus'))));
       } catch (error) {
@@ -1737,10 +1734,10 @@
       try {
         const r = await firestoreAPI.getAllContent();
         const w = r.success ? r.content.education?.weeklyWorkshop : null;
-        if (w) { 
-          weekTitle.value = w.weekTitle || ''; 
-          lecturerName.value = w.lecturerName || ''; 
-          weekDescription.value = w.description || ''; 
+        if (w) {
+          weekTitle.value = w.weekTitle || '';
+          lecturerName.value = w.lecturerName || '';
+          weekDescription.value = w.description || '';
           workshopUrl.value = w.workshopUrl || '';
         }
       } catch (e) { console.error(e); }
@@ -2369,9 +2366,9 @@
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      
+
       const mode = eventForm.dataset.mode || 'add';
-      
+
       // Debug: Direct read before building payload
       console.log('[DEBUG DIRECT READ]', {
         title: eventTitle.value,
@@ -2386,7 +2383,7 @@
         galleryUrl: eventGalleryUrl.value,
         description: eventDescription.value
       });
-      
+
       const payload = {
         title: eventTitle.value.trim(),
         time: toISO(eventTime.value),
@@ -2442,7 +2439,7 @@
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      
+
       const mode = articleForm.dataset.mode || 'add';
       const language = articleLanguage?.value || 'en';
       const payload = {
@@ -2529,7 +2526,7 @@
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      
+
       const mode = libraryForm.dataset.mode || 'add';
       const payload = {
         name: libName.value.trim(),
@@ -2630,7 +2627,7 @@
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      
+
       const payload = {
         weekTitle: weekTitle.value.trim(),
         lecturerName: lecturerName.value.trim(),
@@ -2658,7 +2655,7 @@
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      
+
       const mode = courseForm.dataset.mode || 'add';
       const payload = {
         title: courseTitle.value.trim(),
@@ -2722,9 +2719,9 @@
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      
+
       const mode = fbdEventForm.dataset.mode || 'add';
-      
+
       // Debug: Direct read before building payload
       console.log('[DEBUG DIRECT READ - FBD]', {
         title: fbdEventTitle.value,
@@ -2739,7 +2736,7 @@
         galleryUrl: fbdEventGalleryUrl.value,
         description: fbdEventDescription.value
       });
-      
+
       const payload = {
         title: fbdEventTitle.value.trim(),
         time: toISO(fbdEventTime.value),
@@ -2900,7 +2897,7 @@
     document.getElementById('inspectFirestoreBtn').addEventListener('click', inspectFirestoreStructure);
     document.getElementById('repairFirestoreBtn').addEventListener('click', fixFirestoreStructure);
 
-    
+
       // --- Background Upload Handlers ---
       const addUploadListener = (inputId, statusId, isGallery, pathsGetter, docIdInputId) => {
         const el = document.getElementById(inputId);
@@ -2908,20 +2905,20 @@
         el.addEventListener('change', async (e) => {
             const files = e.target.files;
             if (!files || files.length === 0) return;
-            
+
             let docId = document.getElementById(docIdInputId).value;
             if (!docId) {
                 docId = firestoreAPI.generateId(pathsGetter());
                 document.getElementById(docIdInputId).value = docId;
             }
-            
+
             const statusEl = document.getElementById(statusId);
             const form = document.getElementById(docIdInputId === 'eventId' ? 'eventForm' : 'fbdEventForm');
             const submitBtn = form.querySelector('button[type="submit"]');
-            
+
             submitBtn.disabled = true;
             statusEl.textContent = 'Preparing upload...';
-            
+
             try {
                 if (isGallery) {
                     const b64s = [];
@@ -2942,7 +2939,7 @@
                     await firestoreAPI.uploadFileChunks(pathsGetter(), docId, 'imageChunks', b64);
                     statusEl.textContent = 'Main image uploaded.';
                     form.dataset.mainUploaded = 'true';
-                    
+
                     // If event already exists, update it to reflect the new image immediately
                     if (form.dataset.mode === 'edit') {
                         if (docIdInputId === 'eventId') await firestoreAPI.updateEvent(docId, { hasImageChunks: true });
@@ -2974,9 +2971,9 @@
       });
     };
 
-  
 
-    
+
+
     // ==========================================
     // MARKET & STORE DASHBOARD MANAGEMENT
     // ==========================================
@@ -3042,7 +3039,7 @@
       }
     }
 
-    
+
     let cachedMarketTags = [];
 
     function renderMarketTagsList(tags) {
@@ -3189,7 +3186,7 @@
         const bannerUrl = resolveImageUrl(store.bannerImage, "");
         const bannerStyle = bannerUrl ? "background-image:url('" + bannerUrl + "');" : "background:linear-gradient(135deg,#321c22,#6b2228);";
         const admins = store.storeAdmins || [];
-        const storePageUrl = 'https://space-42d87.web.app/store.html?id=' + encodeURIComponent(store.id);
+        const storePageUrl = '/store.html?id=' + encodeURIComponent(store.id);
 
         html += `
           <div class="market-store-card" data-store-id="${store.id}">
@@ -3428,7 +3425,7 @@
 
     // Store & Types Form Submit Listeners
     document.addEventListener('DOMContentLoaded', () => {
-      
+
       // Market Tag Form Submit
       const tagForm = document.getElementById('marketTagForm');
       if (tagForm) {

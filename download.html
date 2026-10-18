@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#661f22">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="AIAS Basra">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="description" content="Install the AIAS Basra Community app on iOS and Android. Standalone mobile web app available now, native APK coming soon.">
+  <title>Get the app — AIAS Basra Community</title>
+  <link rel="icon" href="/static/images/branding/LOGO.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--wine:#661f22;--deep:#3d1115;--clay:#945c50;--sand:#f0daa1;--paper:#f6f3ed;--card:#fffdfa;--ink:#211a1b;--muted:#71676a;--line:#e8e0d8;--green:#2e7d4d;--amber:#b47517}
+    *{box-sizing:border-box}
+    body{min-height:100vh;margin:0;color:var(--ink);background:radial-gradient(circle at 8% 12%,rgba(240,218,161,.42),transparent 24rem),radial-gradient(circle at 92% 80%,rgba(148,92,80,.13),transparent 27rem),var(--paper);font-family:"DM Sans",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+    .topbar{height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 max(20px,calc((100% - 1100px)/2));border-bottom:1px solid rgba(102,31,34,.09);background:rgba(255,253,250,.88);backdrop-filter:blur(18px)}
+    .brand,.back{display:flex;align-items:center;color:var(--wine);text-decoration:none}
+    .brand{gap:11px;font:800 .95rem Manrope,sans-serif}
+    .brand img{width:42px;height:42px;object-fit:cover;border-radius:13px;background:var(--wine)}
+    .back{gap:7px;font-size:.76rem;font-weight:800}
+    .page{width:min(1100px,100%);min-height:calc(100vh - 72px);display:grid;grid-template-columns:minmax(0,1.08fr) minmax(330px,.92fr);align-items:center;gap:clamp(35px,7vw,90px);margin:auto;padding:50px 28px 70px}
+    .eyebrow{color:var(--clay);font-size:.64rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+    .hero h1{max-width:660px;margin:13px 0 17px;font:800 clamp(2.6rem,6.5vw,5.4rem)/.96 Manrope,sans-serif;letter-spacing:-.06em}
+    .hero>p{max-width:590px;margin:0;color:var(--muted);font-size:clamp(.92rem,2vw,1.06rem);line-height:1.7}
+    .platforms{display:flex;flex-wrap:wrap;gap:9px;margin-top:26px}
+    .platforms span{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:#fffdfa;font-size:.7rem;font-weight:800}
+    .platforms i{width:8px;height:8px;border-radius:50%;background:var(--green)}
+    .platforms .soon i{background:var(--amber)}
+    .download-card{overflow:hidden;border:1px solid rgba(102,31,34,.12);border-radius:28px;background:var(--card);box-shadow:0 28px 75px rgba(61,17,21,.14)}
+    .card-head{position:relative;overflow:hidden;display:flex;align-items:center;gap:16px;padding:26px;color:#fff;background:linear-gradient(130deg,#3d1115,#661f22 64%,#945c50)}
+    .app-icon{width:68px;height:68px;object-fit:cover;border:2px solid rgba(240,218,161,.35);border-radius:20px;background:#fff}
+    .card-head small,.card-head strong,.card-head span{display:block}
+    .card-head small{color:var(--sand);font-size:.58rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+    .card-head strong{margin-top:4px;font:800 1.25rem Manrope,sans-serif}
+    .card-head span{margin-top:3px;color:rgba(255,255,255,.72);font-size:.72rem}
+    .card-body{padding:24px}
+
+    /* Device Tabs */
+    .device-tabs{display:flex;gap:6px;background:#eee8e2;padding:4px;border-radius:14px;margin-bottom:20px}
+    .device-tab{flex:1;border:0;background:transparent;padding:10px 14px;border-radius:11px;font-weight:800;font-size:.78rem;color:var(--muted);cursor:pointer;transition:.2s all;display:flex;align-items:center;justify-content:center;gap:7px}
+    .device-tab.active{background:#fff;color:var(--wine);box-shadow:0 3px 12px rgba(61,17,21,.08)}
+
+    .install-box{display:grid;gap:14px}
+    .install-desc{margin:0;color:var(--muted);font-size:.8rem;line-height:1.6}
+    .action-row{display:grid;gap:9px}
+
+    .download-button{width:100%;min-height:54px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 20px;border:0;border-radius:15px;color:#fff;background:var(--wine);cursor:pointer;font:800 .85rem "DM Sans",sans-serif;box-shadow:0 10px 24px rgba(102,31,34,.2);text-decoration:none}
+    .download-button:hover{filter:brightness(1.05)}
+    .download-button.secondary{background:#f3ece4;color:var(--wine);box-shadow:none;border:1px solid var(--line)}
+    .download-button.disabled{background:#ede6e0;color:#8a7c79;box-shadow:none;cursor:not-allowed;opacity:.85}
+
+    .guide-steps{border:1px solid var(--line);background:#faf7f2;border-radius:16px;padding:16px;margin-top:6px}
+    .guide-steps strong{display:flex;align-items:center;gap:7px;font-size:.76rem;color:var(--wine);margin-bottom:11px}
+    .guide-steps ol{margin:0;padding-left:18px;display:grid;gap:8px;color:#4f4547;font-size:.74rem;line-height:1.55}
+    .guide-steps ol li{padding-left:4px}
+    .kbd-icon{display:inline-flex;align-items:center;justify-content:center;padding:2px 7px;border:1px solid #dcd1c5;border-radius:7px;background:#fff;font-weight:900;font-size:.75rem;color:var(--wine);margin:0 2px}
+
+    .native-status-box{margin-top:20px;padding:16px;border:1px dashed #d8cbbf;border-radius:16px;background:#fffdf9}
+    .native-status-box .head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .native-status-box strong{font-size:.74rem;color:var(--ink)}
+    .native-status-box .badge{padding:4px 9px;border-radius:999px;background:#fef3db;color:var(--amber);font-size:.64rem;font-weight:800}
+    .native-status-box p{margin:7px 0 0;color:var(--muted);font-size:.7rem;line-height:1.55}
+
+    .language{position:fixed;right:16px;bottom:16px;min-height:40px;padding:0 14px;border:1px solid var(--line);border-radius:12px;color:var(--wine);background:var(--card);cursor:pointer;font-weight:800;box-shadow:0 8px 24px rgba(61,17,21,.1)}
+
+    @media(max-width:780px){
+      .topbar{height:64px;padding:0 15px}
+      .brand span{display:none}
+      .page{grid-template-columns:1fr;gap:32px;padding:35px 15px 80px}
+      .hero{text-align:center}
+      .hero h1{font-size:clamp(2.4rem,12vw,3.8rem)}
+      .hero>p{margin-inline:auto}
+      .platforms{justify-content:center}
+      .download-card{border-radius:23px}
+      .card-head,.card-body{padding:20px}
+      .app-icon{width:60px;height:60px;border-radius:16px}
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/community.html"><img src="/static/images/branding/LOGO.png" alt=""><span>AIAS Basra Community</span></a>
+    <a class="back" href="/community.html"><span aria-hidden="true">←</span><span data-en="Back to Community" data-ar="العودة إلى المجتمع">Back to Community</span></a>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <span class="eyebrow" data-en="COMMUNITY ON MOBILE" data-ar="المجتمع على هاتفك">COMMUNITY ON MOBILE</span>
+      <h1 data-en="Take the conversation with you." data-ar="خذ الحوار معك أينما ذهبت.">Take the conversation with you.</h1>
+      <p data-en="Install the AIAS Basra Community app directly on your phone for immediate access, offline reading, and a smooth standalone mobile experience." data-ar="ثبّت تطبيق مجتمع AIAS البصرة مباشرة على هاتفك للوصول الفوري، والتصفح السريع، وتجربة شاشة كاملة متكاملة.">Install the AIAS Basra Community app directly on your phone for immediate access, offline reading, and a smooth standalone mobile experience.</p>
+      <div class="platforms">
+        <span><i></i><b data-en="Web App available for iOS & Android" data-ar="تطبيق الويب متاح لـ iOS و Android">Web App available for iOS & Android</b></span>
+        <span class="soon"><i></i><b data-en="Android APK coming soon" data-ar="نسخة أندرويد APK قريباً">Android APK coming soon</b></span>
+        <span class="soon"><i></i><b data-en="iOS App coming soon" data-ar="نسخة iOS قريباً">iOS App coming soon</b></span>
+      </div>
+    </section>
+
+    <article class="download-card">
+      <header class="card-head">
+        <img class="app-icon" src="/static/images/branding/LOGO.png" alt="">
+        <div>
+          <small data-en="OFFICIAL MOBILE WEB APP" data-ar="تطبيق الويب الرسمي">OFFICIAL MOBILE WEB APP</small>
+          <strong>AIAS Basra Community</strong>
+          <span id="appSubtitle" data-en="Installable on Android & iOS" data-ar="قابل للتثبيت على Android و iOS">Installable on Android & iOS</span>
+        </div>
+      </header>
+
+      <div class="card-body">
+        <div class="device-tabs" role="tablist">
+          <button id="androidTab" class="device-tab active" type="button" role="tab" aria-selected="true">
+            <span aria-hidden="true">🤖</span><span data-en="Android" data-ar="أندرويد">Android</span>
+          </button>
+          <button id="iosTab" class="device-tab" type="button" role="tab" aria-selected="false">
+            <span aria-hidden="true">🍏</span><span data-en="iOS (iPhone / iPad)" data-ar="آيفون وآيباد">iOS (iPhone / iPad)</span>
+          </button>
+        </div>
+
+        <!-- Android Panel -->
+        <div id="androidPanel" class="install-box">
+          <p class="install-desc" data-en="Install the Community app on your Android device. It will appear on your home screen and app drawer just like a native app." data-ar="ثبّت تطبيق المجتمع على جهاز أندرويد الخاص بك. سيظهر على شاشتك الرئيسية وقائمة التطبيقات تماماً كتطبيق أصلي.">Install the Community app on your Android device. It will appear on your home screen and app drawer just like a native app.</p>
+
+          <div class="action-row">
+            <button id="installAndroidBtn" class="download-button" type="button">
+              <span id="installBtnText" data-en="Install on Android" data-ar="تثبيت على أندرويد">Install on Android</span>
+              <b aria-hidden="true">＋</b>
+            </button>
+            <a class="download-button secondary" href="/community.html">
+              <span data-en="Open Web App in Browser" data-ar="فتح تطبيق الويب في المتصفح">Open Web App in Browser</span>
+              <b aria-hidden="true">→</b>
+            </a>
+          </div>
+
+          <div class="guide-steps">
+            <strong data-en="How to install on Android" data-ar="خطوات التثبيت على أندرويد">How to install on Android</strong>
+            <ol>
+              <li data-en="Tap the “Install on Android” button above (or tap your browser menu ⋮)." data-ar="اضغط على زر &quot;تثبيت على أندرويد&quot; أعلاه (أو افتح قائمة المتصفح ⋮).">Tap the “Install on Android” button above (or tap your browser menu <span class="kbd-icon">⋮</span>).</li>
+              <li data-en="Select “Install app” or “Add to Home screen”." data-ar="اختر &quot;تثبيت التطبيق&quot; أو &quot;إضافة إلى الشاشة الرئيسية&quot;.">Select “Install app” or “Add to Home screen”.</li>
+              <li data-en="Tap “Install” to confirm and launch from your home screen." data-ar="اضغط &quot;تثبيت&quot; للتأكيد وافتح التطبيق من شاشتك الرئيسية.">Tap “Install” to confirm and launch from your home screen.</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- iOS Panel -->
+        <div id="iosPanel" class="install-box" hidden>
+          <p class="install-desc" data-en="Add the Community app to your iPhone or iPad home screen via Safari for a full-screen, app-like experience." data-ar="أضف تطبيق المجتمع إلى شاشة iPhone أو iPad الرئيسية عبر متصفح Safari لتجربة شاشة كاملة متكاملة.">Add the Community app to your iPhone or iPad home screen via Safari for a full-screen, app-like experience.</p>
+
+          <div class="action-row">
+            <a class="download-button" href="/community.html">
+              <span data-en="Open in Safari to Install" data-ar="فتح في Safari للتثبيت">Open in Safari to Install</span>
+              <b aria-hidden="true">↗</b>
+            </a>
+          </div>
+
+          <div class="guide-steps">
+            <strong data-en="How to install on iPhone & iPad (Safari)" data-ar="خطوات التثبيت على iPhone و iPad (Safari)">How to install on iPhone & iPad (Safari)</strong>
+            <ol>
+              <li data-en="Open this website in Safari and tap the Share button." data-ar="افتح هذا الموقع في Safari واضغط على زر المشاركة.">Open this website in Safari and tap the Share button <span class="kbd-icon">⎋</span>.</li>
+              <li data-en="Scroll down the share sheet and tap “Add to Home Screen”." data-ar="مرر لأسفل في القائمة واضغط &quot;إضافة إلى الشاشة الرئيسية&quot;.">Scroll down the share sheet and tap “Add to Home Screen” <span class="kbd-icon">⊞</span>.</li>
+              <li data-en="Tap “Add” in the top right corner. The icon will appear on your home screen." data-ar="اضغط على &quot;إضافة&quot; في الزاوية العلوية. سيظهر التطبيق على شاشتك الرئيسية.">Tap “Add” in the top right corner. The icon will appear on your home screen.</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Native APK & Store Status -->
+        <div class="native-status-box">
+          <div class="head">
+            <strong data-en="Standalone Native Apps (APK / App Store)" data-ar="التطبيقات الأصلية (APK / App Store)">Standalone Native Apps (APK / App Store)</strong>
+            <span class="badge" data-en="Coming Soon" data-ar="قريباً">Coming Soon</span>
+          </div>
+          <p data-en="Native standalone Android APK and iOS packages are currently in development. In the meantime, installing the mobile web app above gives you the full, instant app experience." data-ar="حزم Android APK وتطبيقات iOS الأصلية قيد التطوير حالياً. وفي الوقت الحالي، يمنحك تثبيت تطبيق الويب أعلاه التجربة الكاملة والفورية.">Native standalone Android APK and iOS packages are currently in development. In the meantime, installing the mobile web app above gives you the full, instant app experience.</p>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <button class="language" id="languageButton" type="button">العربية</button>
+
+  <script>
+    (() => {
+      const $ = id => document.getElementById(id);
+      const translatable = () => document.querySelectorAll('[data-en][data-ar]');
+      let arabic = false;
+      let deferredPrompt = null;
+
+      const ua = navigator.userAgent || '';
+      const isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+      function applyLanguage(value) {
+        arabic = value;
+        document.documentElement.lang = value ? 'ar' : 'en';
+        document.documentElement.dir = value ? 'rtl' : 'ltr';
+        translatable().forEach(node => {
+          node.textContent = node.dataset[value ? 'ar' : 'en'];
+        });
+        $('languageButton').textContent = value ? 'English' : 'العربية';
+        document.title = value ? 'تثبيت التطبيق — مجتمع AIAS البصرة' : 'Get the app — AIAS Basra Community';
+      }
+
+      try {
+        applyLanguage(localStorage.getItem('language') === 'ar');
+      } catch {
+        applyLanguage(false);
+      }
+
+      $('languageButton').addEventListener('click', () => {
+        applyLanguage(!arabic);
+        try {
+          localStorage.setItem('language', arabic ? 'ar' : 'en');
+        } catch {}
+      });
+
+      function switchTab(target) {
+        const isAndroid = target === 'android';
+        $('androidTab').classList.toggle('active', isAndroid);
+        $('androidTab').setAttribute('aria-selected', String(isAndroid));
+        $('iosTab').classList.toggle('active', !isAndroid);
+        $('iosTab').setAttribute('aria-selected', String(!isAndroid));
+        $('androidPanel').hidden = !isAndroid;
+        $('iosPanel').hidden = isAndroid;
+      }
+
+      $('androidTab').addEventListener('click', () => switchTab('android'));
+      $('iosTab').addEventListener('click', () => switchTab('ios'));
+
+      if (isIOS) {
+        switchTab('ios');
+      }
+
+      // PWA Install capture for Android / Chrome / Edge
+      window.addEventListener('beforeinstallprompt', event => {
+        event.preventDefault();
+        deferredPrompt = event;
+        const btn = $('installAndroidBtn');
+        if (btn) {
+          btn.style.boxShadow = '0 10px 28px rgba(102,31,34,.35)';
+        }
+      });
+
+      $('installAndroidBtn')?.addEventListener('click', async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          if (outcome === 'accepted') {
+            deferredPrompt = null;
+          }
+        } else {
+          // If already installed or browser hasn't fired beforeinstallprompt, guide the user
+          alert(arabic
+            ? 'لتثبيت التطبيق:\n1. اضغط على قائمة المتصفح (⋮)\n2. اختر "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"'
+            : 'To install the app:\n1. Tap the browser menu (⋮)\n2. Choose "Install app" or "Add to Home screen"');
+        }
+      });
+
+      window.addEventListener('appinstalled', () => {
+        deferredPrompt = null;
+        const label = $('installBtnText');
+        if (label) {
+          label.textContent = arabic ? 'تم التثبيت بنجاح ✓' : 'App Installed ✓';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

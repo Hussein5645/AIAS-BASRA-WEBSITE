@@ -1,0 +1,301 @@
+.theme-community{font-family:var(--theme-body-font)!important;font-size:calc(1rem * var(--theme-body-scale));--pf-shell:var(--theme-content-width)}.theme-community h1,.theme-community h2,.theme-community h3,.theme-community h4,.theme-community .portfolio-copy .title,.theme-community .pf-card strong{font-family:var(--theme-heading-font)!important}.theme-community .pf-shell,.theme-community .portfolio-layout{width:min(var(--theme-content-width),100%)!important;max-width:var(--theme-content-width)!important;padding-left:var(--theme-page-gutter)!important;padding-right:var(--theme-page-gutter)!important}.theme-community .portfolio-hero{min-height:var(--theme-hero-height)!important}.theme-community .portfolio-copy h1{font-size:clamp(calc(2.4rem * var(--theme-heading-scale)),calc(7vw * var(--theme-heading-scale)),calc(7rem * var(--theme-heading-scale)))!important}.theme-community.theme-hero-solid .portfolio-hero{background:var(--palette-ink)!important;color:var(--palette-hero-ink)!important}.theme-community.theme-hero-surface .portfolio-hero{background:var(--palette-surface)!important;color:var(--palette-ink)!important;border-bottom:var(--theme-section-border) solid var(--accent)}.theme-community.theme-hero-surface .portfolio-copy :is(h1,p,.title){color:var(--palette-ink)!important}.theme-community.theme-hero-accent .portfolio-hero{background:var(--accent)!important;color:#fff!important}.theme-community.theme-align-center .portfolio-copy{text-align:center!important;justify-items:center}.theme-community.theme-align-right .portfolio-copy{text-align:right!important;justify-items:end}.theme-community .portfolio-identity{grid-template-columns:var(--theme-avatar-size) minmax(0,1fr)!important;gap:clamp(18px,3vw,42px)!important}.theme-community .portfolio-avatar{width:var(--theme-avatar-size)!important;max-width:none!important;transform:none!important;box-shadow:none!important}.theme-community.theme-avatar-square .portfolio-avatar{aspect-ratio:1!important;border-radius:0!important}.theme-community.theme-avatar-rounded .portfolio-avatar{aspect-ratio:1!important;border-radius:var(--theme-section-radius)!important}.theme-community.theme-avatar-circle .portfolio-avatar{aspect-ratio:1!important;border-radius:50%!important}.theme-community.theme-avatar-portrait .portfolio-avatar{aspect-ratio:4/5!important;border-radius:calc(var(--theme-section-radius) * .7)!important}.theme-community.theme-compose-portrait-right .portfolio-identity{grid-template-columns:minmax(0,1fr) var(--theme-avatar-size)!important}.theme-community.theme-compose-portrait-right .portfolio-avatar{grid-column:2!important;grid-row:1!important}.theme-community.theme-compose-portrait-right .portfolio-copy{grid-column:1!important;grid-row:1!important}.theme-community.theme-compose-stacked .portfolio-identity{display:flex!important;flex-direction:column!important;align-items:center!important;text-align:center!important}.theme-community.theme-compose-stacked .portfolio-copy{justify-items:center!important}.theme-community .portfolio-main>section,.theme-community .portfolio-side>section{border-radius:var(--theme-section-radius)!important;border-width:var(--theme-section-border)!important;padding:var(--theme-section-padding)!important;box-shadow:var(--theme-section-shadow)!important}.theme-community .portfolio-field,.theme-community .portfolio-contact-item{border-radius:calc(var(--theme-section-radius) * .65)!important}.theme-community .portfolio-work-grid .pf-card{border-radius:var(--theme-work-radius)!important;box-shadow:var(--theme-section-shadow)!important}.theme-community .portfolio-work-grid .pf-card-cover{aspect-ratio:var(--theme-work-ratio)!important}.theme-community.theme-label-title :is(.portfolio-section-heading h2,.portfolio-side h2,.pf-card-kicker){text-transform:capitalize!important;letter-spacing:.02em!important}.theme-community.theme-label-none :is(.portfolio-section-heading h2,.portfolio-side h2,.pf-card-kicker){text-transform:none!important;letter-spacing:normal!important}
+.theme-community.theme-sidebar-left .portfolio-layout:not(.no-sidebar){grid-template-columns:var(--theme-sidebar-width, 330px) minmax(0,1fr)!important}.theme-community.theme-sidebar-left .portfolio-layout:not(.no-sidebar)>.portfolio-side{grid-column:1!important;grid-row:1!important;width:100%!important;max-width:var(--theme-sidebar-width, 330px)!important}.theme-community.theme-sidebar-left .portfolio-layout:not(.no-sidebar)>.portfolio-main{grid-column:2!important;grid-row:1!important;min-width:0!important}.theme-community:not(.theme-sidebar-left) .portfolio-layout:not(.no-sidebar),.theme-community.theme-sidebar-right .portfolio-layout:not(.no-sidebar){grid-template-columns:minmax(0,1fr) var(--theme-sidebar-width, 330px)!important}.theme-community:not(.theme-sidebar-left) .portfolio-layout:not(.no-sidebar)>.portfolio-main,.theme-community.theme-sidebar-right .portfolio-layout:not(.no-sidebar)>.portfolio-main{grid-column:1!important;grid-row:1!important;min-width:0!important}.theme-community:not(.theme-sidebar-left) .portfolio-layout:not(.no-sidebar)>.portfolio-side,.theme-community.theme-sidebar-right .portfolio-layout:not(.no-sidebar)>.portfolio-side{grid-column:2!important;grid-row:1!important;width:100%!important;max-width:var(--theme-sidebar-width, 330px)!important}.theme-community.theme-sidebar-style-panel .portfolio-side{padding:var(--theme-section-padding);background:var(--palette-surface);border-radius:var(--theme-section-radius);box-shadow:var(--theme-section-shadow)}.theme-community.theme-sidebar-style-accent .portfolio-side{padding:var(--theme-section-padding);background:var(--accent);color:#fff;border-radius:var(--theme-section-radius)}.theme-community.theme-sidebar-style-accent .portfolio-side :is(h2,strong,small,a,span){color:#fff!important}
+/* =========================================================
+   MOBILE PREVIEW FRAME RULES (Runtime theme styles in frames)
+   ========================================================= */
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community,
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) :is(.portfolio-page, .builder-preview, .theme-community),
+:is(#builderPreviewFrame.mobile, #themePreviewFrame.mobile, #detailPreviewFrame.mobile) :is(#builderPreview, #themePreview, #expandedThemePreview, .portfolio-page, .builder-preview, .theme-community){
+  width:100%!important;
+  max-width:390px!important;
+  margin:0 auto!important;
+  box-sizing:border-box!important;
+}
+
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community :is(.pf-shell, .portfolio-layout),
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) :is(.portfolio-page, .builder-preview, .theme-community) :is(.pf-shell, .portfolio-layout),
+:is(#builderPreviewFrame.mobile, #themePreviewFrame.mobile, #detailPreviewFrame.mobile) :is(.pf-shell, .portfolio-layout){
+  padding-left:14px!important;
+  padding-right:14px!important;
+  width:100%!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community.theme-sidebar-left .portfolio-layout:not(.no-sidebar),
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community.theme-sidebar-right .portfolio-layout:not(.no-sidebar),
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community .portfolio-layout:not(.no-sidebar),
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-layout,
+:is(#builderPreviewFrame.mobile, #themePreviewFrame.mobile, #detailPreviewFrame.mobile) .portfolio-layout{
+  grid-template-columns:1fr!important;
+  display:flex!important;
+  flex-direction:column!important;
+  gap:16px!important;
+  padding:16px 14px 40px!important;
+  width:100%!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community.theme-sidebar-left .portfolio-layout:not(.no-sidebar)>.portfolio-side,
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community.theme-sidebar-right .portfolio-layout:not(.no-sidebar)>.portfolio-side,
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community .portfolio-side,
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-side,
+:is(#builderPreviewFrame.mobile, #themePreviewFrame.mobile, #detailPreviewFrame.mobile) .portfolio-side{
+  grid-column:auto!important;
+  grid-row:auto!important;
+  max-width:100%!important;
+  width:100%!important;
+  min-width:0!important;
+  order:1!important;
+  box-sizing:border-box!important;
+}
+
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community.theme-sidebar-left .portfolio-layout:not(.no-sidebar)>.portfolio-main,
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community.theme-sidebar-right .portfolio-layout:not(.no-sidebar)>.portfolio-main,
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community .portfolio-main,
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-main,
+:is(#builderPreviewFrame.mobile, #themePreviewFrame.mobile, #detailPreviewFrame.mobile) .portfolio-main{
+  grid-column:auto!important;
+  grid-row:auto!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  order:2!important;
+  box-sizing:border-box!important;
+}
+
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community .portfolio-hero,
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-hero,
+:is(#builderPreviewFrame.mobile, #themePreviewFrame.mobile, #detailPreviewFrame.mobile) .portfolio-hero{
+  min-height:auto!important;
+  padding:20px 14px!important;
+}
+
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community .portfolio-identity,
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community.theme-compose-portrait-right .portfolio-identity,
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community.theme-compose-stacked .portfolio-identity,
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-identity,
+:is(#builderPreviewFrame.mobile, #themePreviewFrame.mobile, #detailPreviewFrame.mobile) .portfolio-identity{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  text-align:center!important;
+  grid-template-columns:none!important;
+  gap:12px!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+}
+
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community .portfolio-avatar,
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community.theme-compose-portrait-right .portfolio-avatar,
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-avatar,
+:is(#builderPreviewFrame.mobile, #themePreviewFrame.mobile, #detailPreviewFrame.mobile) .portfolio-avatar{
+  width:84px!important;
+  height:84px!important;
+  max-width:84px!important;
+  min-width:84px!important;
+  margin:0 auto!important;
+  grid-column:auto!important;
+  grid-row:auto!important;
+  order:1!important;
+}
+
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community .portfolio-copy,
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community.theme-compose-portrait-right .portfolio-copy,
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-copy,
+:is(#builderPreviewFrame.mobile, #themePreviewFrame.mobile, #detailPreviewFrame.mobile) .portfolio-copy{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  grid-column:auto!important;
+  grid-row:auto!important;
+  text-align:center!important;
+  justify-items:center!important;
+  order:2!important;
+}
+
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community .portfolio-copy h1,
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-copy h1,
+:is(#builderPreviewFrame.mobile, #themePreviewFrame.mobile, #detailPreviewFrame.mobile) .portfolio-copy h1{
+  font-size:clamp(1.8rem,6.5vw,2.35rem)!important;
+  margin:4px 0 8px!important;
+  line-height:1.12!important;
+  word-break:break-word!important;
+  text-align:center!important;
+}
+
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community .portfolio-copy p,
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-copy p,
+:is(#builderPreviewFrame.mobile, #themePreviewFrame.mobile, #detailPreviewFrame.mobile) .portfolio-copy p{
+  font-size:.88rem!important;
+  line-height:1.55!important;
+  max-width:100%!important;
+  margin:0 auto!important;
+  text-align:center!important;
+}
+
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community .portfolio-main>section,
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community .portfolio-side>section,
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) :is(.portfolio-page, .builder-preview, .theme-community) :is(.portfolio-main section, .portfolio-side section),
+:is(#builderPreviewFrame.mobile, #themePreviewFrame.mobile, #detailPreviewFrame.mobile) :is(.portfolio-main section, .portfolio-side section){
+  padding:16px 14px!important;
+  margin-bottom:14px!important;
+  border-radius:14px!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+}
+
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community .portfolio-field-grid,
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-field-grid,
+:is(#builderPreviewFrame.mobile, #themePreviewFrame.mobile, #detailPreviewFrame.mobile) .portfolio-field-grid{
+  grid-template-columns:1fr!important;
+  gap:8px!important;
+}
+
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) .theme-community .portfolio-work-grid,
+:is(.builder-preview-frame.mobile, .theme-preview-frame.mobile, .theme-detail-preview-frame.mobile) :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-work-grid,
+:is(#builderPreviewFrame.mobile, #themePreviewFrame.mobile, #detailPreviewFrame.mobile) .portfolio-work-grid{
+  grid-template-columns:1fr!important;
+  gap:14px!important;
+}
+
+/* =========================================================
+   REAL MOBILE VIEWPORTS (@media screen and max-width: 899px)
+   ========================================================= */
+@media screen and (max-width:899px){
+  .theme-community .pf-shell,
+  .theme-community .portfolio-layout,
+  :is(.portfolio-page, .builder-preview, .theme-community) .pf-shell,
+  :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-layout{
+    padding-left:14px!important;
+    padding-right:14px!important;
+    width:100%!important;
+    max-width:100%!important;
+    box-sizing:border-box!important;
+  }
+
+  .theme-community.theme-sidebar-left .portfolio-layout:not(.no-sidebar),
+  .theme-community.theme-sidebar-right .portfolio-layout:not(.no-sidebar),
+  .theme-community .portfolio-layout:not(.no-sidebar),
+  :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-layout{
+    grid-template-columns:1fr!important;
+    display:flex!important;
+    flex-direction:column!important;
+    gap:16px!important;
+    padding:16px 14px 40px!important;
+  }
+
+  .theme-community.theme-sidebar-left .portfolio-layout:not(.no-sidebar)>.portfolio-side,
+  .theme-community.theme-sidebar-right .portfolio-layout:not(.no-sidebar)>.portfolio-side,
+  .theme-community .portfolio-side,
+  :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-side{
+    grid-column:auto!important;
+    grid-row:auto!important;
+    max-width:100%!important;
+    width:100%!important;
+    min-width:0!important;
+    order:1!important;
+    box-sizing:border-box!important;
+  }
+
+  .theme-community.theme-sidebar-left .portfolio-layout:not(.no-sidebar)>.portfolio-main,
+  .theme-community.theme-sidebar-right .portfolio-layout:not(.no-sidebar)>.portfolio-main,
+  .theme-community .portfolio-main,
+  :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-main{
+    grid-column:auto!important;
+    grid-row:auto!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    order:2!important;
+    box-sizing:border-box!important;
+  }
+
+  .theme-community .portfolio-hero,
+  :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-hero{
+    min-height:auto!important;
+    padding:20px 14px!important;
+  }
+
+  .theme-community .portfolio-identity,
+  .theme-community.theme-compose-portrait-right .portfolio-identity,
+  .theme-community.theme-compose-stacked .portfolio-identity,
+  :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-identity{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    text-align:center!important;
+    grid-template-columns:none!important;
+    gap:12px!important;
+    width:100%!important;
+    box-sizing:border-box!important;
+  }
+
+  .theme-community .portfolio-avatar,
+  .theme-community.theme-compose-portrait-right .portfolio-avatar,
+  :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-avatar{
+    width:84px!important;
+    height:84px!important;
+    max-width:84px!important;
+    min-width:84px!important;
+    margin:0 auto!important;
+    grid-column:auto!important;
+    grid-row:auto!important;
+    order:1!important;
+  }
+
+  .theme-community .portfolio-copy,
+  .theme-community.theme-compose-portrait-right .portfolio-copy,
+  :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-copy{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    grid-column:auto!important;
+    grid-row:auto!important;
+    text-align:center!important;
+    justify-items:center!important;
+    order:2!important;
+  }
+
+  .theme-community .portfolio-copy h1,
+  :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-copy h1{
+    font-size:clamp(1.8rem,6.5vw,2.35rem)!important;
+    margin:4px 0 8px!important;
+    line-height:1.12!important;
+    word-break:break-word!important;
+    text-align:center!important;
+  }
+
+  .theme-community .portfolio-copy p,
+  :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-copy p{
+    font-size:.88rem!important;
+    line-height:1.55!important;
+    max-width:100%!important;
+    margin:0 auto!important;
+    text-align:center!important;
+  }
+
+  .theme-community .portfolio-main>section,
+  .theme-community .portfolio-side>section,
+  :is(.portfolio-page, .builder-preview, .theme-community) :is(.portfolio-main section, .portfolio-side section){
+    padding:16px 14px!important;
+    margin-bottom:14px!important;
+    border-radius:14px!important;
+    width:100%!important;
+    box-sizing:border-box!important;
+  }
+
+  .theme-community .portfolio-field-grid,
+  :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-field-grid{
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+  }
+
+  .theme-community .portfolio-work-grid,
+  :is(.portfolio-page, .builder-preview, .theme-community) .portfolio-work-grid{
+    grid-template-columns:1fr!important;
+    gap:14px!important;
+  }
+}
+@media print{.theme-community{--theme-page-gutter:0px;--theme-section-shadow:none;--theme-hero-height:auto}.theme-community .pf-shell,.theme-community .portfolio-layout{width:100%!important;max-width:none!important}.theme-community .portfolio-main>section,.theme-community .portfolio-side>section{box-shadow:none!important}}

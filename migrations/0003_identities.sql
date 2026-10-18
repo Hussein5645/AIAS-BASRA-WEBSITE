@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS identities (
+  google_subject TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL UNIQUE,
+  email TEXT NOT NULL,
+  disabled INTEGER NOT NULL DEFAULT 0
+);

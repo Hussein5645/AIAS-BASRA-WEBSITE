@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Community User & Business Access - AIAS Basra</title>
+  <style>
+    :root {
+      --wine: #6b2228;
+      --wine-dark: #321c22;
+      --muted: #68717d;
+      --line: #e1d9d2;
+      --bg: #f6f2ee;
+      --surface: #ffffff;
+      --text: #221c1d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--text);
+    }
+    .head {
+      padding: 20px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--wine-dark), var(--wine), #9b5e4d);
+    }
+    .head > div, .page {
+      max-width: 1100px;
+      margin: auto;
+    }
+    .head > div {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .head h1 { margin: 0; font-size: 1.35rem; }
+    .head p { margin: 5px 0 0; color: #ead8d3; font-size: .8rem; }
+    .head a { color: #fff; text-decoration: underline; font-size: .82rem; }
+    .head a:hover { opacity: .85; }
+    .page { padding: 16px; }
+
+    /* Top Mode Tabs */
+    .mode-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      border-bottom: 2px solid var(--line);
+      padding-bottom: 8px;
+    }
+    .mode-tab-btn {
+      padding: 9px 18px;
+      border: 0;
+      border-radius: 10px;
+      background: #e9e2db;
+      color: #554a4b;
+      font-weight: 750;
+      font-size: .84rem;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .mode-tab-btn.active {
+      background: var(--wine);
+      color: #fff;
+    }
+
+    .tools {
+      display: grid;
+      grid-template-columns: 1fr 220px;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(50,28,34,0.03);
+    }
+    .tools input, .tools select {
+      min-height: 43px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      font: inherit;
+      outline: none;
+    }
+    .tools input:focus, .tools select:focus {
+      border-color: var(--wine);
+    }
+    .summary {
+      color: var(--muted);
+      font-size: .8rem;
+      font-weight: 600;
+      margin: 12px 0;
+    }
+    .list { display: grid; gap: 10px; }
+    .user {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 4px 14px rgba(50,28,34,0.03);
+    }
+    .user-info { min-width: 0; flex: 1; }
+    .user h2 { margin: 0; font-size: .98rem; }
+    .user p { margin: 4px 0 6px; color: var(--muted); font-size: .76rem; overflow-wrap: anywhere; }
+    .user-meta-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: #eee;
+      font-size: .68rem;
+      font-weight: 800;
+    }
+    .badge.pending { color: #8a4b05; background: #fff1d6; }
+    .badge.approved, .badge.active { color: #166534; background: #dcfce7; }
+    .badge.suspended { color: #854d0e; background: #fef9c3; }
+    .badge.denied, .badge.revoked, .badge.restricted, .badge.none { color: #991b1b; background: #fee2e2; }
+    .badge.regular { color: #475569; background: #f1f5f9; }
+
+    .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .actions button {
+      min-height: 36px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 8px;
+      color: #fff;
+      background: #657080;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: .78rem;
+      transition: opacity .15s, transform .15s;
+    }
+    .actions button:hover:not(:disabled) {
+      opacity: .92;
+      transform: translateY(-1px);
+    }
+    .actions button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+    .actions .grant { background: #15803d; }
+    .actions .warn { background: #d97706; }
+    .actions .deny { background: #a23a42; }
+
+    .state {
+      padding: 36px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: 14px;
+      background: #fff;
+    }
+    .notice {
+      display: none;
+      margin-bottom: 12px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: .84rem;
+      font-weight: 700;
+    }
+    .notice.show { display: block; }
+    .notice.ok { color: #166534; background: #dcfce7; border: 1px solid #bbf7d0; }
+    .notice.error { color: #991b1b; background: #fee2e2; border: 1px solid #fecaca; }
+
+    @media (max-width: 720px) {
+      .user { flex-direction: column; align-items: flex-start; }
+      .tools { grid-template-columns: 1fr; }
+      .actions { width: 100%; justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <header class="head">
+    <div>
+      <div>
+        <h1 id="pageTitle">Community Account Administration</h1>
+        <p id="pageDesc">Manage posting access, Business Status applications, and verified Business Accounts.</p>
+      </div>
+      <div>
+        <a href="admin-community-moderation.html">Moderation</a> ·
+        <a href="https://aiasbsr.com/admin-dashboard.html">Master Dashboard</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div id="notice" class="notice"></div>
+
+    <!-- Mode Selector Tabs -->
+    <nav class="mode-tabs" aria-label="Administration section tabs">
+      <button id="tabPosting" class="mode-tab-btn active" type="button">Main-thread Posting Access</button>
+      <button id="tabApplications" class="mode-tab-btn" type="button">Business Applications</button>
+      <button id="tabBusiness" class="mode-tab-btn" type="button">Business Accounts Management</button>
+    </nav>
+
+    <!-- Toolbar -->
+    <section class="tools">
+      <input id="search" type="search" placeholder="Search by name, email, username, or UID…">
+      <select id="filter">
+        <option value="all">All accounts</option>
+      </select>
+    </section>
+
+    <p id="summary" class="summary"></p>
+
+    <!-- Results List -->
+    <section id="list" class="list">
+      <div class="state">Checking administrator access…</div>
+    </section>
+  </main>
+
+  <script type="module">
+    import {auth, db, callFunction} from './js/platform-client.js';
+    import {onAuthStateChanged} from '/js/cloudflare-client.js';
+    import {collection, getDocs, query, where} from '/js/cloudflare-client.js';
+    import {canManage, canView, getAdminAccess} from './js/rbac.js';
+
+    const $ = id => document.getElementById(id);
+    const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+    let users = [];
+    let applications = [];
+    let access = null;
+    let currentMode = 'posting'; // 'posting' | 'applications' | 'business'
+
+    const postingStatusOf = u => u.mainThreadPostingAccess !== false ? 'approved' : (u.mainThreadAccessStatus || 'restricted');
+    const businessStatusOf = u => (u.isBusiness === true || u.businessStatus === 'active') ? 'active' : (['suspended', 'removed'].includes(u.businessStatus) ? u.businessStatus : 'regular');
+
+    function showNotice(message, type = 'ok') {
+      const notice = $('notice');
+      notice.className = `notice show ${type}`;
+      notice.textContent = message;
+      clearTimeout(notice._timeout);
+      notice._timeout = setTimeout(() => notice.className = 'notice', 4500);
+    }
+
+    function setupFilters() {
+      const filter = $('filter');
+      if (currentMode === 'posting') {
+        filter.innerHTML = `
+          <option value="all">All accounts</option>
+          <option value="pending">Pending requests</option>
+          <option value="approved">Approved access</option>
+          <option value="restricted">Restricted</option>
+        `;
+      } else if (currentMode === 'business') {
+        filter.innerHTML = `
+          <option value="all">All accounts</option>
+          <option value="active">Active Business Status</option>
+          <option value="suspended">Suspended Business Status</option>
+          <option value="removed">Removed Business Status</option>
+          <option value="regular">Regular Community Accounts</option>
+        `;
+      } else {
+        filter.innerHTML = `
+          <option value="all">All applications</option>
+          <option value="submitted">Submitted</option>
+          <option value="under_review">Under review</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+          <option value="withdrawn">Withdrawn</option>
+          <option value="draft">Draft</option>
+        `;
+      }
+    }
+
+    function render() {
+      const q = $('search').value.trim().toLowerCase();
+      const filterVal = $('filter').value;
+      const editable = canManage(access, 'community');
+
+      if (currentMode === 'posting') {
+        const rows = users.filter(u => {
+          const status = postingStatusOf(u);
+          const matchesFilter = (filterVal === 'all' || status === filterVal || (filterVal === 'restricted' && !['approved', 'pending'].includes(status)));
+          const matchesSearch = !q || [u.displayName, u.email, u.username, u.id].join(' ').toLowerCase().includes(q);
+          return matchesFilter && matchesSearch;
+        });
+
+        const pendingCount = users.filter(u => postingStatusOf(u) === 'pending').length;
+        $('summary').textContent = `${rows.length} account(s) shown · ${pendingCount} pending posting request(s)`;
+
+        $('list').innerHTML = rows.length ? rows.map(u => {
+          const status = postingStatusOf(u);
+          return `
+            <article class="user">
+              <div class="user-info">
+                <h2>${esc(u.displayName || u.username || 'Community member')}</h2>
+                <p>${esc(u.email || 'No email')} ${u.username ? '· @' + esc(u.username) : ''} · <small>UID: ${esc(u.id)}</small></p>
+                <div class="user-meta-row">
+                  <span class="badge ${esc(status)}">${esc(status)}</span>
+                </div>
+              </div>
+              <div class="actions">
+                ${status !== 'approved' ? `<button class="grant" data-action="grant-posting" data-id="${esc(u.id)}" ${editable ? '' : 'disabled'}>Grant Posting Access</button>` : `<button data-action="revoke-posting" data-id="${esc(u.id)}" ${editable ? '' : 'disabled'}>Revoke</button>`}
+                ${status === 'pending' ? `<button class="deny" data-action="deny-posting" data-id="${esc(u.id)}" ${editable ? '' : 'disabled'}>Deny</button>` : ''}
+              </div>
+            </article>
+          `;
+        }).join('') : '<div class="state">No accounts match this filter.</div>';
+      } else if(currentMode==='business') {
+        // Business Accounts Mode
+        const rows = users.filter(u => {
+          const bStatus = businessStatusOf(u);
+          const matchesFilter = (filterVal === 'all' || bStatus === filterVal);
+          const matchesSearch = !q || [u.displayName, u.email, u.username, u.id, u.businessName].join(' ').toLowerCase().includes(q);
+          return matchesFilter && matchesSearch;
+        });
+
+        const activeBizCount = users.filter(u => businessStatusOf(u) === 'active').length;
+        const suspendedBizCount = users.filter(u => businessStatusOf(u) === 'suspended').length;
+        $('summary').textContent = `${rows.length} account(s) shown · ${activeBizCount} active business(es) · ${suspendedBizCount} suspended`;
+
+        $('list').innerHTML = rows.length ? rows.map(u => {
+          const bStatus = businessStatusOf(u);
+          let badgeMarkup = '';
+          let actionMarkup = '';
+
+          if (bStatus === 'active') {
+            badgeMarkup = `<span class="badge active">Business Status: Active</span>`;
+            actionMarkup = `
+              <button class="warn" data-action="suspend-business" data-id="${esc(u.id)}" ${editable ? '' : 'disabled'}>Suspend Business Status</button>
+              <button class="deny" data-action="remove-business" data-id="${esc(u.id)}" ${editable ? '' : 'disabled'}>Remove Business Status</button>
+            `;
+          } else if (bStatus === 'suspended') {
+            badgeMarkup = `<span class="badge suspended">Business Status: Suspended</span>`;
+            actionMarkup = `
+              <button class="grant" data-action="restore-business" data-id="${esc(u.id)}" ${editable ? '' : 'disabled'}>Restore Business Status</button>
+              <button class="deny" data-action="remove-business" data-id="${esc(u.id)}" ${editable ? '' : 'disabled'}>Remove Business Status</button>
+            `;
+          } else if (bStatus === 'removed') {
+            badgeMarkup = `<span class="badge denied">Business Status: Removed</span>`;
+            actionMarkup = '<span>A new approved application is required.</span>';
+          } else {
+            badgeMarkup = `<span class="badge regular">Regular Community Account</span>`;
+            actionMarkup = '<span>Business Status requires an approved application.</span>';
+          }
+
+          return `
+            <article class="user">
+              <div class="user-info">
+                <h2>${esc(u.displayName || u.username || 'Community member')}</h2>
+                <p>${esc(u.email || 'No email')} ${u.username ? '· @' + esc(u.username) : ''} · <small>UID: ${esc(u.id)}</small></p>
+                <div class="user-meta-row">
+                  ${badgeMarkup}
+                  ${u.verified ? '<span class="badge approved">Verified</span>' : ''}
+                </div>
+              </div>
+              <div class="actions">
+                ${actionMarkup}
+              </div>
+            </article>
+          `;
+        }).join('') : '<div class="state">No accounts match this filter.</div>';
+      } else {
+        const rows = applications.filter(application => {
+          const matchesFilter = filterVal === 'all' || application.status === filterVal;
+          const matchesSearch = !q || [application.studioName, application.legalName, application.contactEmail, application.applicantUid].join(' ').toLowerCase().includes(q);
+          return matchesFilter && matchesSearch;
+        });
+        const pendingCount = applications.filter(application => ['submitted', 'under_review'].includes(application.status)).length;
+        $('summary').textContent = `${rows.length} application(s) shown · ${pendingCount} awaiting decision`;
+        $('list').innerHTML = rows.length ? rows.map(application => `
+          <article class="user">
+            <div class="user-info">
+              <h2>${esc(application.studioName || application.legalName || 'Business application')}</h2>
+              <p>${esc(application.contactEmail || '')} · <small>Applicant UID: ${esc(application.applicantUid)}</small></p>
+              <p>${esc(application.description || '')}</p>
+              <div class="user-meta-row"><span class="badge ${esc(application.status)}">${esc(application.status)}</span>${application.rejectionReason ? `<span>${esc(application.rejectionReason)}</span>` : ''}</div>
+            </div>
+            <div class="actions">
+              ${application.status === 'submitted' ? `<button data-action="start-review" data-id="${esc(application.applicantUid)}" ${editable ? '' : 'disabled'}>Start Review</button>` : ''}
+              ${['submitted', 'under_review'].includes(application.status) ? `<button class="grant" data-action="approve-application" data-id="${esc(application.applicantUid)}" ${editable ? '' : 'disabled'}>Approve</button><button class="deny" data-action="reject-application" data-id="${esc(application.applicantUid)}" ${editable ? '' : 'disabled'}>Reject</button>` : ''}
+            </div>
+          </article>
+        `).join('') : '<div class="state">No applications match this filter.</div>';
+      }
+
+      bindActionEvents();
+    }
+
+    function bindActionEvents() {
+      document.querySelectorAll('[data-action]').forEach(btn => {
+        btn.onclick = async () => {
+          const action = btn.dataset.action;
+          const userId = btn.dataset.id;
+          btn.disabled = true;
+
+          try {
+            if (action === 'grant-posting' || action === 'revoke-posting' || action === 'deny-posting') {
+              const decision = action === 'grant-posting' ? 'grant' : (action === 'deny-posting' ? 'deny' : 'revoke');
+              await callFunction('reviewMainThreadPostingAccess', { userId, decision });
+              showNotice('Main-thread posting access updated successfully.');
+            } else if (action === 'start-review' || action === 'approve-application' || action === 'reject-application') {
+              const decision = action === 'start-review' ? 'start_review' : action === 'approve-application' ? 'approve' : 'reject';
+              const rejectionReason = decision === 'reject' ? prompt('Rejection reason shown to the applicant:') : '';
+              if (decision === 'reject' && rejectionReason === null) { btn.disabled = false; return; }
+              const feedback = decision !== 'reject' ? (prompt('Review feedback shown to the applicant (optional):') || '') : '';
+              await callFunction('reviewBusinessApplication', {applicationId:userId, decision, rejectionReason, feedback});
+              showNotice(`Business application updated: ${decision}`);
+            } else if (action === 'restore-business' || action === 'suspend-business' || action === 'remove-business') {
+              let bizAction = 'restore';
+              let notes = '';
+
+              if (action === 'restore-business') {
+                bizAction = 'restore';
+              } else if (action === 'suspend-business') {
+                bizAction = 'suspend';
+                if (!confirm('Are you sure you want to suspend Business Status for this account? (Normal community access will be preserved)')) {
+                  btn.disabled = false;
+                  return;
+                }
+              } else if (action === 'remove-business') {
+                bizAction = 'remove';
+                if (!confirm('Are you sure you want to completely remove Business Status? (The Community account will NOT be deleted)')) {
+                  btn.disabled = false;
+                  return;
+                }
+              }
+
+              await callFunction('setBusinessAccountStatus', {
+                userId,
+                action: bizAction,
+                notes
+              });
+
+              showNotice(`Business Status updated: ${bizAction}`);
+            }
+
+            await loadData();
+          } catch (error) {
+            console.error(error);
+            showNotice(error.message || 'Operation failed.', 'error');
+            btn.disabled = false;
+          }
+        };
+      });
+    }
+
+    async function loadData() {
+      $('list').innerHTML = '<div class="state">Loading accounts…</div>';
+      try {
+        const [userSnapshot, applicationSnapshot] = await Promise.all([getDocs(collection(db, 'users')), getDocs(query(collection(db, 'businessApplications'), where('reviewVisible', '==', true)))]);
+        users = userSnapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+        applications = applicationSnapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+        render();
+      } catch (error) {
+        console.error(error);
+        $('list').innerHTML = '<div class="state">Could not load accounts.</div>';
+        showNotice(error.message || 'Loading failed.', 'error');
+      }
+    }
+
+    // Switch mode
+    $('tabPosting').onclick = () => {
+      currentMode = 'posting';
+      $('tabPosting').classList.add('active');
+      $('tabBusiness').classList.remove('active');
+      $('tabApplications').classList.remove('active');
+      setupFilters();
+      render();
+    };
+
+    $('tabBusiness').onclick = () => {
+      currentMode = 'business';
+      $('tabBusiness').classList.add('active');
+      $('tabPosting').classList.remove('active');
+      $('tabApplications').classList.remove('active');
+      setupFilters();
+      render();
+    };
+
+    $('tabApplications').onclick = () => {
+      currentMode = 'applications';
+      $('tabApplications').classList.add('active');
+      $('tabPosting').classList.remove('active');
+      $('tabBusiness').classList.remove('active');
+      setupFilters();
+      render();
+    };
+
+    $('search').oninput = render;
+    $('filter').onchange = render;
+
+    // Initialize
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('tab') === 'business') {
+      currentMode = 'business';
+      $('tabBusiness').classList.add('active');
+      $('tabPosting').classList.remove('active');
+      $('tabApplications').classList.remove('active');
+    } else if (urlParams.get('tab') === 'applications') {
+      currentMode = 'applications';
+      $('tabApplications').classList.add('active');
+      $('tabPosting').classList.remove('active');
+      $('tabBusiness').classList.remove('active');
+    }
+    setupFilters();
+
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        location.href = 'login.html?next=admin-community-users.html';
+        return;
+      }
+      access = await getAdminAccess(db, user.email);
+      if (!canView(access, 'community')) {
+        location.href = 'https://aiasbsr.com/admin-dashboard.html';
+        return;
+      }
+      await loadData();
+    });
+  </script>
+</body>
+</html>

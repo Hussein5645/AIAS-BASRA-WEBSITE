@@ -43,8 +43,24 @@ ui-debug.log*
 .firebase/
 **/.firebase/
 
-# Binary Downloads & Media Backups (Hosted on Firebase Storage)
+# Binary downloads and uploads live in Cloudflare R2.
 *.apk
+*.png
+*.jpg
+*.JPG
+*.jpeg
+*.gif
+*.webp
+*.ico
+*.pdf
+*.glb
+*.gltf
+*.zip
+*.mp4
+*.mp3
+*.woff
+*.woff2
+*.ttf
 admin-dashboard-backup.html
 
 # Environment & Secret files
@@ -53,3 +69,10 @@ admin-dashboard-backup.html
 .env.*.local
 *.pem
 *.key
+
+# Cloudflare local state and credentials
+.wrangler/
+.dev.vars
+.dev.vars.*
+.migration/
+media-inventory.json

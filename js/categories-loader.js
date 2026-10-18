@@ -19,13 +19,13 @@ class CategoriesLoader {
         try {
             console.log('[Categories] Loading categories from', this.dataPath);
             const response = await fetch(this.dataPath);
-            
+
             if (!response.ok) {
                 throw new Error(`Failed to load categories: ${response.status} ${response.statusText}`);
             }
-            
+
             const data = await response.json();
-            
+
             if (!data.categories) {
                 console.warn('[Categories] No categories found in data.json, using defaults');
                 this.cache = this.getDefaultCategories();
@@ -33,7 +33,7 @@ class CategoriesLoader {
                 this.cache = data.categories;
                 console.log('[Categories] ✓ Categories loaded successfully');
             }
-            
+
             return this.cache;
         } catch (error) {
             console.error('[Categories] ✗ Error loading categories:', error);

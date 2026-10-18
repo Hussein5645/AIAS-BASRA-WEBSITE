@@ -88,17 +88,17 @@
 <section class="view-toggle">
     <div class="search-container">
         <span class="search-icon">🔍</span>
-        <input 
-            type="text" 
-            class="search-input" 
-            id="searchInput" 
+        <input
+            type="text"
+            class="search-input"
+            id="searchInput"
             placeholder="Search events by title, description, or location..."
             data-en="Search events by title, description, or location..."
             data-ar="ابحث عن الفعاليات بالعنوان أو الوصف أو الموقع..."
         >
         <button class="clear-search" id="clearSearch" aria-label="Clear search">✕</button>
     </div>
-    
+
     <div class="view-toggle-group">
 <button class="view-btn active" data-view="list" data-en="List" data-ar="قائمة">
 <span>📋</span> List
@@ -222,13 +222,13 @@
                         currentView = view;
                         showView(view);
                     }
-                    
+
                     // Handle hide completed button
                     if (e.target.id === 'hideCompletedBtn' || e.target.closest('#hideCompletedBtn')) {
                         const btn = e.target.id === 'hideCompletedBtn' ? e.target : e.target.closest('#hideCompletedBtn');
                         hideCompleted = !hideCompleted;
                         btn.classList.toggle('active');
-                        
+
                         // Update button text
                         if (hideCompleted) {
                             btn.innerHTML = '<span>🔼</span> Show Completed';
@@ -239,7 +239,7 @@
                             btn.setAttribute('data-en', '🔽 Hide Completed');
                             btn.setAttribute('data-ar', '🔽 إخفاء المكتملة');
                         }
-                        
+
                         toggleCompletedEvents();
                     }
                 });
@@ -251,24 +251,24 @@
             const timelineView = document.getElementById('timelineView');
             const buttons = document.querySelectorAll('.view-btn');
             const eventsGrid = document.querySelector('.events-grid');
-            
+
             // Remove active class from all buttons
             buttons.forEach(btn => btn.classList.remove('active'));
-            
+
             // Add active class to clicked button
             const activeBtn = document.querySelector(`.view-btn[data-view="${view}"]`);
             if (activeBtn) activeBtn.classList.add('active');
-            
+
             if (view === 'timeline') {
                 gridView.style.display = 'none';
                 timelineView.style.display = 'block';
             } else {
                 gridView.style.display = 'block';
                 timelineView.style.display = 'none';
-                
+
                 // Update grid container class
                 eventsGrid.className = 'events-grid';
-                
+
                 if (view === 'list') {
                     eventsGrid.classList.add('view-list');
                 } else if (view === 'compact') {
@@ -276,7 +276,7 @@
                 }
             }
         }
-        
+
         function toggleCompletedEvents() {
             filterEvents(); // Use the unified filter function
         }
@@ -285,22 +285,22 @@
         function initSearch() {
             const searchInput = document.getElementById('searchInput');
             const clearBtn = document.getElementById('clearSearch');
-            
+
             if (searchInput) {
                 // Handle input changes
                 searchInput.addEventListener('input', (e) => {
                     searchQuery = e.target.value.toLowerCase().trim();
-                    
+
                     // Show/hide clear button
                     if (searchQuery) {
                         clearBtn.classList.add('visible');
                     } else {
                         clearBtn.classList.remove('visible');
                     }
-                    
+
                     filterEvents();
                 });
-                
+
                 // Handle clear button
                 if (clearBtn) {
                     clearBtn.addEventListener('click', () => {
@@ -313,28 +313,28 @@
                 }
             }
         }
-        
+
         // Filter events based on search query and completed status
         function filterEvents() {
             const allEventCards = document.querySelectorAll('.event-card');
             const timelineItems = document.querySelectorAll('.timeline-item');
             let visibleCount = 0;
-            
+
             allEventCards.forEach(card => {
                 const title = card.querySelector('.event-title')?.textContent.toLowerCase() || '';
                 const description = card.querySelector('.event-description')?.textContent.toLowerCase() || '';
                 const location = card.querySelector('.meta-item span:last-child')?.textContent.toLowerCase() || '';
                 const isPast = card.querySelector('.status-past');
-                
+
                 // Check if event matches search query
-                const matchesSearch = !searchQuery || 
-                    title.includes(searchQuery) || 
-                    description.includes(searchQuery) || 
+                const matchesSearch = !searchQuery ||
+                    title.includes(searchQuery) ||
+                    description.includes(searchQuery) ||
                     location.includes(searchQuery);
-                
+
                 // Check if event should be hidden due to completed filter
                 const shouldHideCompleted = hideCompleted && isPast;
-                
+
                 if (matchesSearch && !shouldHideCompleted) {
                     card.style.display = '';
                     card.classList.remove('completed-hidden');
@@ -346,15 +346,15 @@
                     }
                 }
             });
-            
+
             // Filter timeline items
             timelineItems.forEach(item => {
                 const title = item.querySelector('h3')?.textContent.toLowerCase() || '';
                 const isPast = item.classList.contains('completed');
-                
+
                 const matchesSearch = !searchQuery || title.includes(searchQuery);
                 const shouldHideCompleted = hideCompleted && isPast;
-                
+
                 if (matchesSearch && !shouldHideCompleted) {
                     item.style.display = '';
                     item.classList.remove('completed-hidden');
@@ -365,19 +365,19 @@
                     }
                 }
             });
-            
+
             // Show "no results" message if needed
             showNoResultsMessage(visibleCount);
         }
-        
+
         // Show/hide no results message
         function showNoResultsMessage(visibleCount) {
             const gridContainer = document.querySelector('#gridView .events-grid');
             const timelineContainer = document.getElementById('timelineContainer');
-            
+
             // Remove existing no-results messages
             document.querySelectorAll('.no-results').forEach(el => el.remove());
-            
+
             if (visibleCount === 0 && searchQuery) {
                 const noResultsHTML = `
                     <div class="no-results">
@@ -386,7 +386,7 @@
                         <p class="no-results-message">No events match "${searchQuery}". Try a different search term.</p>
                     </div>
                 `;
-                
+
                 if (currentView === 'timeline') {
                     timelineContainer.insertAdjacentHTML('afterbegin', noResultsHTML);
                 } else {
@@ -399,12 +399,12 @@
         async function loadEvents() {
             const gridContainer = document.querySelector('#gridView .events-grid');
             const timelineContainer = document.getElementById('timelineContainer');
-            
+
             console.log('[Events] Container elements found:', {
                 gridContainer: !!gridContainer,
                 timelineContainer: !!timelineContainer
             });
-            
+
             if (!gridContainer) {
                 console.error('[Events] Error: Grid container not found!');
                 return;
@@ -413,7 +413,7 @@
                 console.error('[Events] Error: Timeline container not found!');
                 return;
             }
-            
+
             // Show loading state
             gridContainer.innerHTML = `
                 <div class="loading-container">
@@ -430,17 +430,17 @@
 
             try {
                 console.log('[Events] Loading events using Data Loader...');
-                
+
                 // Use Data Loader to fetch events
                 const result = await dataLoader.getEvents();
-                
+
                 if (!result.success) {
                     throw new Error(result.error || 'Failed to load events');
                 }
-                
+
                 const events = result.events;
                 console.log(`[Events] ✓ Loaded ${events.length} events from Data Loader`);
-                
+
                 // Always log fetched events for debugging
                 if (events.length > 0) {
                     console.log('[Events] Fetched events details:');
@@ -451,13 +451,13 @@
                             time: e.time,
                             location: e.location,
                             seats: e.seats ?? 'N/A',
-                            description: e.description && e.description.length > 50 
-                                ? e.description.substring(0, 50) + '...' 
+                            description: e.description && e.description.length > 50
+                                ? e.description.substring(0, 50) + '...'
                                 : e.description
                         });
                     });
                 }
-                
+
                 // Additional debug logging
                 if (DEBUG && events.length > 0) {
                     console.log('[Events] Debug mode enabled - Full event details');
@@ -469,27 +469,27 @@
                     }));
                     console.table(debugSummary);
                 }
-                
+
                 if (events && events.length > 0) {
                     console.log('[Events] ✓ Events array has data, proceeding to render...');
                     // Clear existing content
                     gridContainer.innerHTML = '';
                     timelineContainer.innerHTML = '';
-                    
+
                     // Populate grid view
                     events.forEach(event => {
                         const dateInfo = dataLoader.formatDate(event.time);
                         const isPast = dataLoader.isPastEvent(event.time);
-                        
+
                         // Skip events with invalid dates
                         if (!dateInfo) {
                             console.warn('[Events] Skipping event with invalid date:', event.title);
                             return;
                         }
-                        
+
                         const status = isPast ? 'Completed' : 'Upcoming';
                         const statusClass = isPast ? 'status-past' : 'status-upcoming';
-                        
+
                         const eventCard = `<div class="event-card reveal">
                             <div class="event-date-badge">
                                 <div class="event-day">${dateInfo.day}</div>
@@ -517,22 +517,22 @@
                                 </div>
                                 <p class="event-description">${event.description}</p>
                                 <div class="event-actions">
-                                    ${!isPast ? 
+                                    ${!isPast ?
                                           `${event.registerUrl ? `<a href="${event.registerUrl}" class="action-btn btn-register" target="_blank" rel="noopener noreferrer">Register Now</a>` : ''}
-                                          <a href="gallery.html#${event.id}" class="action-btn btn-details" style="flex: none;">View Details</a>` : 
+                                          <a href="gallery.html#${event.id}" class="action-btn btn-details" style="flex: none;">View Details</a>` :
                                           `<a href="gallery.html#${event.id}" class="action-btn btn-details" style="flex: none; width: 100%;">View Gallery & Details</a>`
                                       }
                                 </div>
                             </div>
                         </div>`;
-                        
+
                         gridContainer.innerHTML += eventCard;
-                        
+
                         // Add to timeline view (both past and future events)
                         const timelineStatusClass = isPast ? 'completed' : 'upcoming';
                         const timelineStatusLabel = isPast ? 'Completed' : 'Upcoming';
                         const timelineItemClass = isPast ? 'timeline-item completed reveal' : 'timeline-item reveal';
-                        
+
                         const timelineItem = `<div class="${timelineItemClass}">
                             <div class="timeline-content">
                                 <span class="timeline-status ${timelineStatusClass}">${timelineStatusLabel}</span>
@@ -542,18 +542,18 @@
                             </div>
                             <div class="timeline-dot"></div>
                         </div>`;
-                        
+
                         timelineContainer.innerHTML += timelineItem;
                     });
-                    
+
                     console.log('[Events] ✓ Rendered events to DOM:', {
                         gridItemsCount: gridContainer.children.length,
                         timelineItemsCount: timelineContainer.children.length
                     });
-                    
+
                     // Apply current view after loading
                     showView(currentView);
-                    
+
                     // Apply hide completed filter if active
                     if (hideCompleted) {
                         toggleCompletedEvents();

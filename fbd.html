@@ -17,36 +17,36 @@
             padding: 8rem 0 4rem;
             text-align: center;
         }
-        
+
         .fbd-hero h1 {
             font-size: 3rem;
             margin-bottom: 1rem;
         }
-        
+
         .about-section {
             padding: 5rem 0;
         }
-        
+
         .about-content {
             max-width: 900px;
             margin: 0 auto;
             text-align: center;
         }
-        
+
         .about-content p {
             color: var(--text-secondary);
             line-height: 1.8;
             font-size: 1.1rem;
             margin-bottom: 2rem;
         }
-        
+
         .impact-stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 2rem;
             margin-top: 3rem;
         }
-        
+
         .stat-box {
             background: var(--white);
             padding: 2rem;
@@ -54,7 +54,7 @@
             box-shadow: var(--shadow-sm);
             text-align: center;
         }
-        
+
         .stat-number {
             font-size: 3rem;
             font-weight: 800;
@@ -64,17 +64,17 @@
             background-clip: text;
             margin-bottom: 0.5rem;
         }
-        
+
         .stat-label {
             color: var(--text-secondary);
             font-weight: 600;
         }
-        
+
         .events-section {
             background: var(--light-bg);
             padding: 5rem 0;
         }
-        
+
         .events-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -90,7 +90,7 @@
         #fbdEventsContainer.view-timeline { display:block; max-width:900px; margin:0 auto; padding-left:2rem; border-left:3px solid var(--accent-color); }
         #fbdEventsContainer.view-timeline .event-card { position:relative; display:grid; grid-template-columns:180px 1fr; margin-bottom:1rem; overflow:visible; }
         #fbdEventsContainer.view-timeline .event-card::before { content:''; position:absolute; left:-2.65rem; top:1.5rem; width:.9rem; height:.9rem; border:3px solid var(--white); border-radius:50%; background:var(--accent-color); box-shadow:0 0 0 2px var(--accent-color); }
-        
+
         .event-card {
             background: var(--white);
             border-radius: 12px;
@@ -99,12 +99,12 @@
             transition: all 0.3s ease;
             cursor: pointer;
         }
-        
+
         .event-card:hover {
             transform: translateY(-10px);
             box-shadow: var(--shadow-xl);
         }
-        
+
         .event-image {
             height: 200px;
             background: var(--gradient-2);
@@ -113,25 +113,25 @@
             justify-content: center;
             font-size: 4rem;
         }
-        
+
         .event-content {
             padding: 2rem;
         }
-        
+
         .event-title {
             font-size: 1.5rem;
             color: var(--primary-color);
             margin-bottom: 1rem;
             font-weight: 600;
         }
-        
+
         .event-meta {
             display: flex;
             flex-direction: column;
             gap: 0.75rem;
             margin-bottom: 1rem;
         }
-        
+
         .meta-item {
             display: flex;
             align-items: center;
@@ -139,18 +139,18 @@
             color: var(--text-secondary);
             font-size: 0.95rem;
         }
-        
+
         .event-description {
             color: var(--text-secondary);
             line-height: 1.6;
             margin-bottom: 1.5rem;
         }
-        
+
         .event-actions {
             display: flex;
             gap: 1rem;
         }
-        
+
         .action-btn {
             flex: 1;
             padding: 0.75rem;
@@ -161,12 +161,12 @@
             transition: all 0.3s ease;
             text-align: center;
         }
-        
+
         .btn-register {
             background: var(--gradient-1);
             color: var(--white);
         }
-        
+
         .btn-register:hover {
             transform: scale(1.05);
             box-shadow: var(--shadow-md);
@@ -215,15 +215,15 @@
             font-size: 0.85rem;
             font-weight: 600;
         }
-        
+
         .status-upcoming { color: #10b981; }
         .status-past { color: #6b7280; }
-        
+
         @media (max-width: 768px) {
             .fbd-hero h1 {
                 font-size: 2rem;
             }
-            
+
             .events-grid {
                 grid-template-columns: 1fr;
             }
@@ -294,7 +294,7 @@
             </div>
             <div class="about-content">
                 <p id="fbdAbout" data-en="Freedom By Design (FBD) is AIAS’s community-driven program that turns design into real impact. Led by architecture students, FBD creates small-scale build projects that improve public spaces, support communities, and enhance accessibility for people in need. Through hands-on design and construction, students learn real-world skills while delivering meaningful solutions — proving that architecture can serve people, create opportunity, and inspire change." data-ar="الحرية بالتصميم (FBD) هو برنامج يقوده المجتمع في AIAS والذي يحول التصميم إلى تأثير حقيقي. بقيادة طلاب الهندسة المعمارية، تقوم FBD بإنشاء مشاريع بناء صغيرة الحجم تعمل على تحسين الأماكن العامة، ودعم المجتمعات، وتعزيز إمكانية الوصول للأشخاص المحتاجين. من خلال التصميم والبناء العملي، يتعلم الطلاب مهارات العالم الحقيقي بينما يقدمون حلولاً هادفة - مما يثبت أن الهندسة المعمارية يمكن أن تخدم الناس، وتخلق الفرص، وتلهم التغيير.">Freedom By Design (FBD) is AIAS’s community-driven program that turns design into real impact. Led by architecture students, FBD creates small-scale build projects that improve public spaces, support communities, and enhance accessibility for people in need. Through hands-on design and construction, students learn real-world skills while delivering meaningful solutions — proving that architecture can serve people, create opportunity, and inspire change.</p>
-                
+
                 <div class="impact-stats">
                     <div class="stat-box reveal">
                         <div class="stat-number" id="statCompleted">0</div>
@@ -414,17 +414,17 @@
         async function loadFBDData() {
             try {
                 console.log('[FBD] Loading FBD using Data Loader...');
-                
+
                 // Use Data Loader to fetch education
                 const result = await dataLoader.getEducation();
-                
+
                 if (!result.success) {
                     throw new Error(result.error || 'Failed to load FBD');
                 }
-                
+
                 const educationData = result.education;
                 console.log('[FBD] ✓ Education content loaded');
-                
+
                 if (educationData && educationData.fbd) {
                     const stats = educationData.fbd.stats || {};
                     const statCompleted = document.getElementById('statCompleted');
@@ -433,18 +433,18 @@
                     if (statCompleted) statCompleted.textContent = stats.projectsCompleted || '0';
                     if (statStudents) statStudents.textContent = stats.studentsInvolved || '0';
                     if (statCommunity) statCommunity.textContent = stats.communityServed || '0';
-                    
+
                     // Load events
                     const eventsContainer = document.getElementById('fbdEventsContainer');
                     const events = educationData.fbd.events || [];
-                    
+
                     console.log(`[FBD] ✓ Loaded ${events.length} FBD events`);
                     console.log('[FBD] Page title:', educationData.fbd.pageTitle || 'Not set');
                     const aboutText = educationData.fbd.about || 'Not set';
-                    console.log('[FBD] About text:', aboutText.length > 100 
-                        ? aboutText.substring(0, 100) + '...' 
+                    console.log('[FBD] About text:', aboutText.length > 100
+                        ? aboutText.substring(0, 100) + '...'
                         : aboutText);
-                    
+
                     // Always log fetched FBD events for debugging
                     if (events.length > 0) {
                         console.log('[FBD] FBD events details:');
@@ -458,7 +458,7 @@
                             });
                         });
                     }
-                    
+
                     // Additional debug logging
                     if (DEBUG && events.length > 0) {
                         console.log('[FBD] Debug mode enabled - Full FBD details');
@@ -470,22 +470,22 @@
                         }));
                         console.table(debugSummary);
                     }
-                    
+
                     if (events && events.length > 0) {
                         eventsContainer.innerHTML = events.map(event => {
                             const dateInfo = dataLoader.formatDate(event.time);
                             const isPast = dataLoader.isPastEvent(event.time);
-                            
+
                             // Skip events with invalid dates
                             if (!dateInfo) {
                                 console.warn('[FBD] Skipping event with invalid date:', event.title);
                                 return '';
                             }
-                            
+
                             const status = isPast ? 'Completed' : 'Upcoming';
                             const statusClass = isPast ? 'status-past' : 'status-upcoming';
                             const hasImages = Boolean(event.imageUrl || event.hasImageChunks || event.hasGalleryImages);
-                            
+
                             return `
                                 <div class="event-card reveal">
                                     <div class="event-date-badge">
@@ -533,12 +533,12 @@
                 // Show error message
                 const fbdAbout = document.getElementById('fbdAbout');
                 const eventsContainer = document.getElementById('fbdEventsContainer');
-                
+
                 if (fbdAbout) {
                     fbdAbout.textContent = 'Unable to load FBD information. Please try refreshing the page.';
                     fbdAbout.style.color = 'var(--text-secondary)';
                 }
-                
+
                 if (eventsContainer) {
                     eventsContainer.innerHTML = `
                         <div class="error-container" style="text-align: center; padding: 2rem; background: var(--card-bg); border-radius: 8px;">
@@ -551,7 +551,7 @@
                 }
             }
         }
-        
+
         // Load data when page loads
         document.addEventListener('DOMContentLoaded', loadFBDData);
     </script>

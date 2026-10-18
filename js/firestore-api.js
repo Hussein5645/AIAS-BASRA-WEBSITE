@@ -1,4 +1,4 @@
-import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { initializeApp, getApp } from "/js/cloudflare-client.js";
 import {
   getFirestore,
   doc,
@@ -9,20 +9,12 @@ import {
   updateDoc,
   deleteDoc,
   getDocs
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+} from "/js/cloudflare-client.js";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "/js/cloudflare-client.js";
 import { uploadFileChunks as storeFileChunks, fetchFileChunks as readFileChunks } from "./file-chunks.js";
 
 // Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyAvPMOgz1w7SFylBY8cmn9nf9GQvn-IRNI",
-  authDomain: "space-42d87.firebaseapp.com",
-  projectId: "space-42d87",
-  storageBucket: "space-42d87.firebasestorage.app",
-  messagingSenderId: "658382934950",
-  appId: "1:658382934950:web:c61b6fa237b203e6bf7567",
-  measurementId: "G-Q7Y482TMEY"
-};
+const firebaseConfig = { projectId: "aias-basra" };
 
 // Initialize Firebase (with error handling for multiple initializations)
 let app;
@@ -106,7 +98,7 @@ function validateRequiredFields(obj, requiredFields) {
   const missing = [];
   for (const f of requiredFields) {
     const v = obj[f];
-    
+
     const isEmptyArray = Array.isArray(v) && v.length === 0;
     if (v === undefined || v === null || isEmptyArray) {
       missing.push(f);
@@ -1077,7 +1069,7 @@ class FirestoreAPI {
       const store = await this.getMarketStore(storeId);
       if (!store) throw new Error("Store not found");
       const normalized = String(email).trim().toLowerCase();
-      
+
       const current = [
         ...toArr(store.storeAdmins),
         ...toArr(store.adminEmails)
@@ -1181,13 +1173,7 @@ class FirestoreAPI {
       const downloadURL = await getDownloadURL(fileRef);
       return { success: true, url: downloadURL };
     } catch (e) {
-      console.error("Storage upload failed, fallback to dataURL:", e);
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve({ success: true, url: reader.result });
-        reader.onerror = () => resolve({ success: false, error: "Failed to read file" });
-        reader.readAsDataURL(file);
-      });
+      return {success:false,error:e.message||'The file could not be uploaded to Cloudflare.'};
     }
   }
 
@@ -1417,4 +1403,3 @@ class FirestoreAPI {
 
 window.FirestoreAPI = FirestoreAPI;
 export default FirestoreAPI;
-

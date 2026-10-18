@@ -1,13 +1,13 @@
-import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { callFunction } from './platform-client.js';
 
 export const ADMIN_AREAS = [
   { id: 'community', label: 'Community projects', description: 'Review project submissions and selection requests.' },
-  { id: 'market', label: 'Market & Stores', description: 'Manage market stores, items, and store admins.' },
   { id: 'events', label: 'Events', description: 'View or manage chapter events.' },
   { id: 'articles', label: 'Magazine', description: 'View or manage magazine articles.' },
   { id: 'library', label: 'Library', description: 'View or manage library resources.' },
   { id: 'models3d', label: '3D models', description: 'View or manage uploaded 3D models.' },
-  { id: 'fbd', label: 'Freedom by Design', description: 'View or manage FBD content and events.' }
+  { id: 'fbd', label: 'Freedom by Design', description: 'View or manage FBD content and events.' },
+  { id: 'market', label: 'Market & stores', description: 'Manage market stores, items, and store administrators.' }
 ];
 
 export const DEFAULT_ROLES = {
@@ -66,65 +66,14 @@ export function clearAccessSession() {
 export async function getAdminAccess(db, email) {
   const normalizedEmail = normalizeEmail(email);
   if (!normalizedEmail) return { allowed:false, isSuperAdmin:false, roleId:null, role:null, permissions:[], roles:{...DEFAULT_ROLES}, assignments:{}, legacyAdmins:[] };
-
-  const [adminsSnapshot, rolesSnapshot, assignmentsSnapshot] = await Promise.all([
-    getDoc(doc(db, 'config', 'admins')).catch(() => null),
-    getDoc(doc(db, 'config', 'roles')).catch(() => null),
-    getDoc(doc(db, 'config', 'userRoles')).catch(() => null)
-  ]);
-  const legacyAdmins = adminsSnapshot?.exists?.() && Array.isArray(adminsSnapshot.data().admins)
-    ? adminsSnapshot.data().admins.map(normalizeEmail)
-    : [];
-  const storedRoles = rolesSnapshot?.exists?.() && rolesSnapshot.data().roles && typeof rolesSnapshot.data().roles === 'object'
-    ? rolesSnapshot.data().roles
-    : {};
-  const roles = { ...DEFAULT_ROLES, ...storedRoles };
-  const assignments = assignmentsSnapshot?.exists?.() && assignmentsSnapshot.data().assignments && typeof assignmentsSnapshot.data().assignments === 'object'
-    ? assignmentsSnapshot.data().assignments
-    : {};
-  const isLegacyAdmin = legacyAdmins.includes(normalizedEmail);
-  const assignedRoleId = normalizeEmail(assignments[normalizedEmail] || '').replace(/[^a-z0-9_-]/g, '');
-  const roleId = isLegacyAdmin ? 'super_admin' : (assignedRoleId || null);
-  const role = roleId ? roles[roleId] : null;
-  const permissions = Array.isArray(role?.permissions) ? [...new Set(role.permissions.map(String))] : [];
-  const isSuperAdmin = isLegacyAdmin || roleId === 'super_admin' || permissions.includes('*');
-  return {
-    allowed: Boolean(isSuperAdmin || (role && permissions.length)),
-    isSuperAdmin,
-    isLegacyAdmin,
-    roleId,
-    role: isSuperAdmin ? roles.super_admin : role,
-    permissions: isSuperAdmin ? ['*'] : permissions,
-    roles,
-    assignments,
-    legacyAdmins
-  };
+  const result = await callFunction('getCommunityAdminAccess', {});
+  return {...result, roles:{...DEFAULT_ROLES, ...(result.roles || {})}};
 }
 
 export async function ensureRoleConfiguration(db, access, actorEmail) {
   if (!access?.isSuperAdmin) return access;
-  try {
-    const roles = { ...DEFAULT_ROLES, ...(access.roles || {}) };
-    if (access.legacyAdmins?.length) {
-      await setDoc(doc(db, 'config', 'admins'), { admins:[...new Set((access.legacyAdmins || []).map(normalizeEmail))] }, { merge:true }).catch(console.warn);
-    }
-    await setDoc(doc(db, 'config', 'roles'), { roles, updatedAt:serverTimestamp(), updatedBy:normalizeEmail(actorEmail) }, { merge:true }).catch(console.warn);
-    const assignmentsSnapshot = await getDoc(doc(db, 'config', 'userRoles')).catch(() => null);
-    if (assignmentsSnapshot && !assignmentsSnapshot.exists()) {
-      await setDoc(doc(db, 'config', 'userRoles'), { assignments:{}, updatedAt:serverTimestamp(), updatedBy:normalizeEmail(actorEmail) }).catch(console.warn);
-    }
-    const typesSnapshot = await getDoc(doc(db, 'config', 'marketTypes')).catch(() => null);
-    if (typesSnapshot && !typesSnapshot.exists()) {
-      await setDoc(doc(db, 'config', 'marketTypes'), { types: [], updatedAt: serverTimestamp(), updatedBy: normalizeEmail(actorEmail) }).catch(console.warn);
-    }
-    const tagsSnapshot = await getDoc(doc(db, 'config', 'marketTags')).catch(() => null);
-    if (tagsSnapshot && !tagsSnapshot.exists()) {
-      await setDoc(doc(db, 'config', 'marketTags'), { tags: [], updatedAt: serverTimestamp(), updatedBy: normalizeEmail(actorEmail) }).catch(console.warn);
-    }
-  } catch (err) {
-    console.warn('[RBAC] ensureRoleConfiguration soft fallback:', err);
-  }
-  return access;
+  await callFunction('manageCommunityRoleConfiguration', {operation:'ensure', defaultRoles:DEFAULT_ROLES});
+  return getAdminAccess(db, actorEmail);
 }
 
 export async function saveRoles(db, roles, actorEmail) {
@@ -138,8 +87,8 @@ export async function saveRoles(db, roles, actorEmail) {
       builtIn:Boolean(DEFAULT_ROLES[id]?.builtIn)
     };
   });
-  await setDoc(doc(db, 'config', 'roles'), { roles:safeRoles, updatedAt:serverTimestamp(), updatedBy:normalizeEmail(actorEmail) });
-  return safeRoles;
+  const result = await callFunction('manageCommunityRoleConfiguration', {operation:'save_roles', roles:safeRoles});
+  return result.roles;
 }
 
 export async function saveAssignments(db, assignments, actorEmail) {
@@ -148,6 +97,6 @@ export async function saveAssignments(db, assignments, actorEmail) {
     const normalized = normalizeEmail(email);
     if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized) && /^[a-z0-9_-]{2,48}$/.test(String(roleId || ''))) safeAssignments[normalized] = String(roleId);
   });
-  await setDoc(doc(db, 'config', 'userRoles'), { assignments:safeAssignments, updatedAt:serverTimestamp(), updatedBy:normalizeEmail(actorEmail) });
-  return safeAssignments;
+  const result = await callFunction('manageCommunityRoleConfiguration', {operation:'save_assignments', assignments:safeAssignments});
+  return result.assignments;
 }

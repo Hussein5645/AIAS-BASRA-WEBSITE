@@ -68,7 +68,7 @@
             pointer-events: none;
         }
     </style>
-    
+
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1957758165451331" crossorigin="anonymous"></script>
   <script async custom-element="amp-auto-ads" src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js"></script>
 </head>
@@ -77,13 +77,13 @@
         data-ad-client="ca-pub-1957758165451331">
   </amp-auto-ads>
 
-    <model-viewer id="model-viewer" 
-        alt="3D model" 
-        auto-rotate 
-        camera-controls 
-        shadow-intensity="1" 
-        exposure="1" 
-        ar 
+    <model-viewer id="model-viewer"
+        alt="3D model"
+        auto-rotate
+        camera-controls
+        shadow-intensity="1"
+        exposure="1"
+        ar
         ar-modes="webxr scene-viewer quick-look"
         ar-status="session-started"
         ar-scale="auto"
@@ -95,7 +95,7 @@
 
     <script type="module">
         import FirestoreAPI from "./js/firestore-api.js";
-        
+
         const firestoreAPI = new FirestoreAPI();
         const modelViewer = document.getElementById('model-viewer');
         const panoViewer = document.getElementById('pano-viewer');
@@ -183,14 +183,14 @@
                 }
 
                 showLoadingScreen(true, 'Processing model data...');
-                
+
                 // Convert base64 data URL to Blob
                 const blob = await base64ToBlob(base64Data);
                 if (blob.size < 4) throw new Error('The GLB file is too small to load.');
-                
+
                 clearCurrentObjectUrl();
                 currentObjectUrl = URL.createObjectURL(blob);
-                
+
                 modelViewer.style.display = 'block';
                 panoViewer.style.display = 'none';
                 const viewerReady = waitForModelViewer();

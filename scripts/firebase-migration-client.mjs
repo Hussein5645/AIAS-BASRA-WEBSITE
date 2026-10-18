@@ -1,0 +1,10 @@
+import {createRequire} from 'node:module';
+import path from 'node:path';
+const require=createRequire(import.meta.url);
+const location=process.env.FIREBASE_TOOLS_PATH || path.join(process.env.APPDATA,'npm/node_modules/firebase-tools/lib');
+const auth=require(path.join(location,'auth.js'));
+const account=auth.findAccountByEmail('sarayspace1@gmail.com');
+if(!account)throw new Error('The existing project-owner Firebase CLI login is required.');
+await require(path.join(location,'requireAuth.js')).requireAuth({...account,project:'space-42d87'});
+const {Client}=require(path.join(location,'apiv2.js'));
+export const client=(urlPrefix,apiVersion)=>new Client({urlPrefix,apiVersion});

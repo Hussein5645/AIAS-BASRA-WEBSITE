@@ -19,23 +19,23 @@
             padding: 8rem 0 4rem;
             text-align: center;
         }
-        
+
         .library-hero h1 {
             font-size: 3rem;
             margin-bottom: 1rem;
         }
-        
+
         .search-section {
             padding: 3rem 0;
             background: var(--light-bg);
         }
-        
+
         .search-box {
             max-width: 600px;
             margin: 0 auto;
             position: relative;
         }
-        
+
         .search-box input {
             width: 100%;
             padding: 1rem 3rem 1rem 1.5rem;
@@ -44,13 +44,13 @@
             font-size: 1rem;
             transition: all 0.3s ease;
         }
-        
+
         .search-box input:focus {
             outline: none;
             border-color: var(--accent-color);
             box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
         }
-        
+
         .search-icon {
             position: absolute;
             right: 1.5rem;
@@ -58,11 +58,11 @@
             transform: translateY(-50%);
             font-size: 1.5rem;
         }
-        
+
         .categories {
             padding: 3rem 0;
         }
-        
+
         .category-filters {
             display: flex;
             gap: 1rem;
@@ -70,7 +70,7 @@
             flex-wrap: wrap;
             margin-bottom: 3rem;
         }
-        
+
         .filter-btn {
             padding: 0.75rem 1.5rem;
             border: 2px solid var(--accent-light);
@@ -81,7 +81,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
-        
+
         .filter-btn:hover,
         .filter-btn.active {
             background: var(--gradient-1);
@@ -89,7 +89,7 @@
             border-color: var(--primary-color);
             transform: translateY(-2px);
         }
-        
+
         .resources-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -109,7 +109,7 @@
         .resources-grid.view-timeline .resource-card { position:relative; display:grid; grid-template-columns:180px 1fr; margin-bottom:1rem; overflow:visible; }
         .resources-grid.view-timeline .resource-card::before { content:''; position:absolute; left:-2.65rem; top:1.5rem; width:.9rem; height:.9rem; border:3px solid var(--white); border-radius:50%; background:var(--accent-color); box-shadow:0 0 0 2px var(--accent-color); }
         .resources-grid.view-timeline .resource-thumbnail { height:100%; min-height:130px; }
-        
+
         .resource-card {
             background: var(--white);
             border-radius: 12px;
@@ -118,12 +118,12 @@
             transition: all 0.3s ease;
             cursor: pointer;
         }
-        
+
         .resource-card:hover {
             transform: translateY(-10px);
             box-shadow: var(--shadow-lg);
         }
-        
+
         .resource-thumbnail {
             height: 200px;
             background: var(--gradient-2);
@@ -133,7 +133,7 @@
             font-size: 4rem;
             position: relative;
         }
-        
+
         .resource-type {
             position: absolute;
             top: 1rem;
@@ -145,25 +145,25 @@
             font-weight: 600;
             color: var(--primary-color);
         }
-        
+
         .resource-content {
             padding: 1.5rem;
         }
-        
+
         .resource-title {
             font-size: 1.25rem;
             color: var(--primary-color);
             margin-bottom: 0.5rem;
             font-weight: 600;
         }
-        
+
         .resource-description {
             color: var(--text-secondary);
             font-size: 0.9rem;
             margin-bottom: 1rem;
             line-height: 1.6;
         }
-        
+
         .resource-meta {
             display: flex;
             justify-content: space-between;
@@ -171,12 +171,12 @@
             padding-top: 1rem;
             border-top: 1px solid #e2e8f0;
         }
-        
+
         .resource-size {
             color: var(--text-light);
             font-size: 0.85rem;
         }
-        
+
         .download-btn {
             padding: 0.5rem 1rem;
             background: var(--gradient-1);
@@ -187,12 +187,12 @@
             font-size: 0.9rem;
             transition: all 0.3s ease;
         }
-        
+
         .download-btn:hover {
             transform: scale(1.05);
             box-shadow: var(--shadow-md);
         }
-        
+
         /* YouTube Modal Styles */
         #youtubeModal {
             display: none;
@@ -203,7 +203,7 @@
             height: 100%;
             z-index: 10000;
         }
-        
+
         .modal-overlay {
             width: 100%;
             height: 100%;
@@ -213,7 +213,7 @@
             justify-content: center;
             padding: 1rem;
         }
-        
+
         .modal-content {
             background: var(--white);
             border-radius: 12px;
@@ -223,7 +223,7 @@
             overflow: auto;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         }
-        
+
         .modal-header {
             padding: 1.5rem;
             border-bottom: 1px solid #e2e8f0;
@@ -231,13 +231,13 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .modal-header h3 {
             margin: 0;
             color: var(--primary-color);
             font-size: 1.25rem;
         }
-        
+
         .modal-close {
             background: none;
             border: none;
@@ -252,22 +252,22 @@
             justify-content: center;
             transition: color 0.3s ease;
         }
-        
+
         .modal-close:hover {
             color: var(--primary-color);
         }
-        
+
         .modal-body {
             padding: 1.5rem;
         }
-        
+
         .video-container {
             position: relative;
             padding-bottom: 56.25%; /* 16:9 aspect ratio */
             height: 0;
             overflow: hidden;
         }
-        
+
         .video-container iframe {
             position: absolute;
             top: 0;
@@ -338,16 +338,16 @@
             color: var(--text-secondary);
             font-size: 0.9rem;
         }
-        
+
         @media (max-width: 768px) {
             .library-hero h1 {
                 font-size: 2rem;
             }
-            
+
             .resources-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .modal-content {
                 max-width: 100%;
                 border-radius: 0;
@@ -431,7 +431,7 @@
                 <button type="button" data-resource-view="compact" data-en="Compact" data-ar="مضغوط">Compact</button>
                 <button type="button" data-resource-view="timeline" data-en="Timeline" data-ar="مخطط زمني">Timeline</button>
             </div>
-            
+
             <div class="resources-grid view-list">
                 <!-- Resources will be loaded dynamically from Firebase Firestore -->
             </div>
@@ -516,43 +516,43 @@
 
         let allResources = [];
         let all3DModels = [];
-        
+
         // Function to detect and extract YouTube video ID
         function getYouTubeVideoId(url) {
             if (!url) return null;
-            
+
             // Regular expression patterns for different YouTube URL formats
             const patterns = [
                 /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
                 /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
                 /youtube\.com\/v\/([a-zA-Z0-9_-]{11})/
             ];
-            
+
             for (const pattern of patterns) {
                 const match = url.match(pattern);
                 if (match && match[1]) {
                     return match[1];
                 }
             }
-            
+
             return null;
         }
-        
+
         // Function to check if URL is a YouTube URL
         function isYouTubeUrl(url) {
             return getYouTubeVideoId(url) !== null;
         }
-        
+
         function loadLibrary(libraryItems) {
             const gridContainer = document.querySelector('.resources-grid');
-            
+
             console.log('[Library] Container element found:', !!gridContainer);
-            
+
             if (!gridContainer) {
                 console.error('[Library] Error: Grid container not found!');
                 return;
             }
-            
+
             // Show loading state
             gridContainer.innerHTML = `
                 <div class="loading-container">
@@ -560,10 +560,10 @@
                     <p class="loading-text">Loading library resources...</p>
                 </div>
             `;
-            
+
             try {
                 console.log(`[Library] ✓ Loaded ${libraryItems.length} library items from Data Loader`);
-                
+
                 // Always log fetched library items for debugging
                 if (libraryItems.length > 0) {
                     console.log('[Library] Fetched library items details:');
@@ -573,13 +573,13 @@
                             name: item.name,
                             type: item.type,
                             tags: (item.tags || []).join(', '),
-                            description: item.description && item.description.length > 50 
-                                ? item.description.substring(0, 50) + '...' 
+                            description: item.description && item.description.length > 50
+                                ? item.description.substring(0, 50) + '...'
                                 : item.description
                         });
                     });
                 }
-                
+
                 // Additional debug logging
                 if (DEBUG && libraryItems.length > 0) {
                     console.log('[Library] Debug mode enabled - Full library details');
@@ -591,18 +591,18 @@
                     }));
                     console.table(debugSummary);
                 }
-                
+
                 if (libraryItems && libraryItems.length > 0) {
                     console.log('[Library] ✓ Library items array has data, proceeding to render...');
                     allResources = libraryItems;
                     gridContainer.innerHTML = '';
-                    
+
                     libraryItems.forEach(item => {
                         const youtubeVideoId = getYouTubeVideoId(item.link);
                         const isYouTube = youtubeVideoId !== null;
                         const category = item.category || 'file';
                         const categoryLabel = category === 'lecture' ? '🎓 Lecture' : '📄 File';
-                        
+
                         const resourceCard = `
                             <div class="resource-card reveal" data-category="${category}">
                                 <div class="resource-thumbnail" style="${item.imageUrl ? `background-image: url('${item.imageUrl}'); background-size: cover; background-position: center;` : ''}">
@@ -614,7 +614,7 @@
                                     <p class="resource-description">${item.description}</p>
                                     <div class="resource-meta">
                                         <span class="resource-size">${categoryLabel}${(item.tags || []).length > 0 ? ' • ' + (item.tags || []).join(', ') : ''}</span>
-                                        ${isYouTube 
+                                        ${isYouTube
                                             ? `<a href="#" class="download-btn" onclick="openYouTubeModal('${youtubeVideoId}', '${item.name.replace(/'/g, "\\'")}'); return false;">Watch Video</a>`
                                             : `<a href="${item.link || '#'}" class="download-btn" target="_blank" rel="noopener noreferrer">Download</a>`
                                         }
@@ -624,11 +624,11 @@
                         `;
                         gridContainer.innerHTML += resourceCard;
                     });
-                    
+
                     console.log('[Library] ✓ Rendered library items to DOM:', {
                         itemsCount: gridContainer.children.length
                     });
-                    
+
                     // Re-initialize filter and search after loading
                     initializeFilters();
                 } else {
@@ -715,18 +715,18 @@
                 // Fetch the model metadata to check if it has a file
                 const models = all3DModels || [];
                 const model = models.find(m => m.code === normalizedCode);
-                
+
                 if (model && model.hasFile) {
                     return true;
                 }
-                
+
                 // Fallback to fetch from Firestore if not in cache
-                const { getFirestore, collection, query, where, getDocs } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-                const { getApp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+                const { getFirestore, collection, query, where, getDocs } = await import("/js/cloudflare-client.js");
+                const { getApp } = await import("/js/cloudflare-client.js");
                 const db = getFirestore(getApp());
                 const q = query(collection(db, 'content/models3d/items'), where('code', '==', normalizedCode));
                 const snap = await getDocs(q);
-                
+
                 if (!snap.empty && snap.docs[0].data().hasFile) {
                     return true;
                 }
@@ -795,11 +795,11 @@
             if (frameEl) frameEl.src = '';
             modal.style.display = 'none';
         };
-        
+
         function initializeFilters() {
             // Filter functionality - this will be called after categories are loaded
             attachFilterListeners();
-            
+
             // Search functionality with debouncing
             const searchInput = document.getElementById('searchInput');
             if (searchInput) {
@@ -807,16 +807,16 @@
                 searchInput.addEventListener('input', (e) => {
                     // Clear previous timeout
                     clearTimeout(searchTimeout);
-                    
+
                     // Set new timeout for debounced search
                     searchTimeout = setTimeout(() => {
                         const searchTerm = e.target.value.toLowerCase();
                         const resourceCards = document.querySelectorAll('.resource-card');
-                        
+
                         resourceCards.forEach(card => {
                             const title = card.querySelector('.resource-title')?.textContent.toLowerCase() || '';
                             const description = card.querySelector('.resource-description')?.textContent.toLowerCase() || '';
-                            
+
                             if (title.includes(searchTerm) || description.includes(searchTerm)) {
                                 card.style.display = 'block';
                             } else {
@@ -827,7 +827,7 @@
                 });
             }
         }
-        
+
         // Function to open YouTube video in a modal
         window.openYouTubeModal = function(videoId, title) {
             // Create modal if it doesn't exist
@@ -844,11 +844,11 @@
                             </div>
                             <div class="modal-body">
                                 <div class="video-container">
-                                    <iframe id="youtubeFrame" 
-                                        width="100%" 
-                                        height="100%" 
-                                        frameborder="0" 
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    <iframe id="youtubeFrame"
+                                        width="100%"
+                                        height="100%"
+                                        frameborder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                         allowfullscreen>
                                     </iframe>
                                 </div>
@@ -858,23 +858,23 @@
                 `;
                 document.body.appendChild(modal);
             }
-            
+
             // Update modal content
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('youtubeFrame').src = `https://www.youtube.com/embed/${videoId}`;
             modal.style.display = 'block';
         };
-        
+
         // Function to populate category filter buttons from JSON
         function populateCategoryFilters(items = allResources) {
             try {
                 const filterContainer = document.querySelector('.category-filters');
-                
+
                 if (!filterContainer) {
                     console.warn('[Library] Category filter container not found');
                     return;
                 }
-                
+
                 // Get current language
                 const currentLang = localStorage.getItem('language') || 'en';
 
@@ -882,7 +882,7 @@
                     .map(item => item.category)
                     .filter(Boolean)))
                     .sort((a, b) => a.localeCompare(b));
-                
+
                 // Build filter buttons HTML
                 let filtersHTML = '<button class="filter-btn active" data-category="all" data-en="All Resources" data-ar="جميع الموارد">All Resources</button>';
 
@@ -890,28 +890,28 @@
                     const label = String(category);
                     filtersHTML += `<button class="filter-btn" data-category="${label}" data-en="${label}" data-ar="${label}">${label}</button>`;
                 });
-                
+
                 filterContainer.innerHTML = filtersHTML;
-                
+
                 // Re-attach event listeners for filters
                 attachFilterListeners();
-                
+
                 console.log('[Library] ✓ Category filters loaded successfully');
             } catch (error) {
                 console.error('[Library] ✗ Error loading category filters:', error);
             }
         }
-        
+
         // Function to attach filter button event listeners
         function attachFilterListeners() {
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-                    
+
                     const category = btn.dataset.category;
                     const cards = document.querySelectorAll('.resource-card');
-                    
+
                     cards.forEach(card => {
                         if (category === 'all' || card.dataset.category === category) {
                             card.style.display = 'block';
@@ -922,7 +922,7 @@
                 });
             });
         }
-        
+
         // Function to close YouTube modal
         window.closeYouTubeModal = function() {
             const modal = document.getElementById('youtubeModal');
@@ -931,7 +931,7 @@
                 document.getElementById('youtubeFrame').src = '';
             }
         };
-        
+
         // Load library and category filters when page loads
         document.querySelectorAll('[data-resource-view]').forEach(button => {
             button.addEventListener('click', () => {

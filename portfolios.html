@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#661f22">
+  <meta name="description" content="Space Professional — Connect with professionals, explore architectural work, and build your professional presence.">
+  <meta property="og:title" content="Space Professional — AIAS Basra">
+  <meta property="og:description" content="Professional identities, selected architectural work, and creative practice from the community.">
+  <meta property="og:image" content="/static/images/branding/LOGO.png">
+  <title>Space Professional — AIAS Basra</title>
+  <link rel="icon" href="static/images/branding/LOGO.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400;1,9..40,600&family=Manrope:wght@600;700;800&family=Noto+Sans+Arabic:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/portfolios.css?v=20260823-task14-profeed-v1">
+</head>
+<body class="pro-shell-body">
+  <!-- Top Navigation Bar -->
+  <header class="pf-topbar pro-topbar">
+    <div class="pf-shell pf-topbar-inner pro-topbar-inner">
+      <a class="pf-brand" href="portfolios.html">
+        <img src="static/images/branding/LOGO.png" alt="AIAS Basra Logo">
+        <span>
+          <span>AIAS BASRA</span>
+          <small>Professional</small>
+        </span>
+      </a>
+
+      <!-- Global Search -->
+      <div class="pro-global-search">
+        <span class="pro-search-icon" aria-hidden="true">⌕</span>
+        <input id="globalSearchInput" type="search" placeholder="Search people, work, businesses, jobs…" aria-label="Search people, work, businesses, jobs">
+      </div>
+
+      <!-- Topbar Actions -->
+      <nav class="pf-nav pro-top-nav">
+        <a class="community-link" href="/community.html">Community</a>
+        <a href="market.html">Market</a>
+        <a id="topBuilderBtn" class="pf-button primary desktop-builder-link" href="portfolio-builder.html">Build Portfolio</a>
+        <button id="mobileNavToggle" class="pro-mobile-nav-toggle" type="button" aria-label="Toggle navigation menu">
+          <span></span><span></span><span></span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Professional Dashboard Layout -->
+  <main class="pf-shell pro-dashboard-shell">
+    <div class="pro-dashboard-layout">
+
+      <!-- LEFT SIDEBAR: Professional Identity & Navigation -->
+      <aside class="pro-sidebar-left" id="proLeftSidebar">
+        <!-- Current Professional Identity Module -->
+        <div id="proIdentityCard" class="pro-identity-card" aria-live="polite">
+          <div class="pro-identity-loading">
+            <div class="pf-shimmer-avatar"></div>
+            <div class="pf-shimmer-line"></div>
+            <div class="pf-shimmer-line short"></div>
+          </div>
+        </div>
+
+        <!-- Main Navigation Menu -->
+        <nav class="pro-main-nav" aria-label="Professional Platform Navigation">
+          <button type="button" class="pro-nav-item active" data-tab="home">
+            <span class="pro-nav-icon">⌂</span>
+            <span class="pro-nav-label">Home</span>
+          </button>
+          <button type="button" class="pro-nav-item" data-tab="work">
+            <span class="pro-nav-icon">▦</span>
+            <span class="pro-nav-label">Work</span>
+          </button>
+          <button type="button" class="pro-nav-item" data-tab="people">
+            <span class="pro-nav-icon">👥</span>
+            <span class="pro-nav-label">People</span>
+          </button>
+          <button type="button" class="pro-nav-item" data-tab="businesses">
+            <span class="pro-nav-icon">🏛</span>
+            <span class="pro-nav-label">Businesses</span>
+            <span class="pro-nav-pill">Soon</span>
+          </button>
+          <button type="button" class="pro-nav-item" data-tab="jobs">
+            <span class="pro-nav-icon">💼</span>
+            <span class="pro-nav-label">Jobs</span>
+            <span class="pro-nav-pill">Soon</span>
+          </button>
+          <button type="button" class="pro-nav-item" data-tab="internships">
+            <span class="pro-nav-icon">🎓</span>
+            <span class="pro-nav-label">Internships</span>
+            <span class="pro-nav-pill">Soon</span>
+          </button>
+          <button type="button" class="pro-nav-item" data-tab="connections">
+            <span class="pro-nav-icon">◎</span>
+            <span class="pro-nav-label">Connections</span>
+            <span id="navConnectionCount" class="pro-nav-count" hidden>0</span>
+          </button>
+          <button type="button" class="pro-nav-item" data-tab="saved">
+            <span class="pro-nav-icon">🔖</span>
+            <span class="pro-nav-label">Saved</span>
+            <span class="pro-nav-pill">Soon</span>
+          </button>
+        </nav>
+      </aside>
+
+      <!-- CENTER CONTENT AREA -->
+      <section class="pro-center-content" id="proCenterArea">
+
+        <!-- Active View Header -->
+        <header class="pro-view-header">
+          <div class="pro-view-header-title">
+            <h1 id="proViewTitle">Professional Space</h1>
+            <p id="proViewSubtitle">Discover architectural practice, published projects, and creative perspectives.</p>
+          </div>
+        </header>
+
+        <!-- Category / Profession Filter Chips -->
+        <div id="proCategoryChipsContainer" class="pro-chips-container" aria-label="Filter by profession">
+          <div id="proCategoryChips" class="pf-chips">
+            <button class="pf-chip active" type="button" data-category="all">All professions</button>
+          </div>
+        </div>
+
+        <!-- TAB PANELS -->
+
+        <!-- 1. HOME PANEL -->
+        <div id="panel-home" class="pro-panel active" role="tabpanel">
+          <!-- Spotlight Banner -->
+          <div class="pro-welcome-banner">
+            <div class="pro-welcome-copy">
+              <div class="pf-eyebrow"><i></i>Professional Network · AIAS Basra</div>
+              <h2>Where architecture practices, talent, and projects converge.</h2>
+              <p>Explore case studies from registered community practitioners, establish verified connections, and discover talent.</p>
+              <div class="pro-welcome-actions">
+                <button type="button" class="pf-button primary" data-navigate-tab="work">Explore Published Work →</button>
+                <button type="button" class="pf-button secondary" data-navigate-tab="people">Find Professionals</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Featured Work Section -->
+          <div class="pro-section-block">
+            <div class="pro-section-head-mini">
+              <h3><span>▦</span> Featured Work</h3>
+              <button type="button" class="pro-see-all-link" data-navigate-tab="work">View all work →</button>
+            </div>
+            <div id="homeFeaturedWorkGrid" class="pf-grid pro-work-grid-compact">
+              <div class="pf-loading"></div>
+            </div>
+          </div>
+
+          <!-- Studio Updates & Announcements -->
+          <div class="pro-section-block" id="homeBizPostsSection">
+            <div class="pro-section-head-mini">
+              <h3><span>📢</span> Studio Updates &amp; Announcements</h3>
+              <button type="button" class="pro-see-all-link" data-navigate-tab="businesses">View all studios →</button>
+            </div>
+            <div id="homeBizPostsGrid" class="pro-biz-posts-grid">
+              <div class="pf-loading"></div>
+            </div>
+          </div>
+
+          <!-- Active Studio Opportunities -->
+          <div class="pro-section-block" id="homeOppsSection">
+            <div class="pro-section-head-mini">
+              <h3><span>💼</span> Studio Openings &amp; Internships</h3>
+              <button type="button" class="pro-see-all-link" data-navigate-tab="jobs">View all jobs →</button>
+            </div>
+            <div id="homeOppsGrid" class="pf-grid pro-jobs-grid">
+              <div class="pf-loading"></div>
+            </div>
+          </div>
+
+          <!-- Featured People Section -->
+          <div class="pro-section-block">
+            <div class="pro-section-head-mini">
+              <h3><span>👥</span> Professional Portfolios</h3>
+              <button type="button" class="pro-see-all-link" data-navigate-tab="people">View all professionals →</button>
+            </div>
+            <div id="homePeopleGrid" class="pf-grid pro-people-grid-compact">
+              <div class="pf-loading"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. WORK PANEL -->
+        <div id="panel-work" class="pro-panel" role="tabpanel" hidden>
+          <div id="workResultsGrid" class="pf-grid">
+            <div class="pf-loading"></div>
+          </div>
+        </div>
+
+        <!-- 3. PEOPLE PANEL -->
+        <div id="panel-people" class="pro-panel" role="tabpanel" hidden>
+          <!-- People Discovery Filter Bar -->
+          <div class="pro-filter-bar" aria-label="People discovery filters">
+            <div class="pro-filter-group">
+              <label for="peopleLocationFilter">Location</label>
+              <select id="peopleLocationFilter" class="pro-select-filter">
+                <option value="all">All Locations</option>
+              </select>
+            </div>
+            <div class="pro-filter-group">
+              <label for="peopleSkillFilter">Skill / Practice</label>
+              <select id="peopleSkillFilter" class="pro-select-filter">
+                <option value="all">All Skills</option>
+              </select>
+            </div>
+            <div class="pro-filter-group">
+              <label for="peopleSortFilter">Sort</label>
+              <select id="peopleSortFilter" class="pro-select-filter">
+                <option value="recent">Recently Updated</option>
+                <option value="projects">Most Projects</option>
+                <option value="name">Name (A-Z)</option>
+              </select>
+            </div>
+            <button id="peopleClearFilters" type="button" class="pro-clear-filter-btn" hidden>Clear filters ✕</button>
+          </div>
+
+          <div id="peopleResultsGrid" class="pf-grid pro-people-grid">
+            <div class="pf-loading"></div>
+          </div>
+        </div>
+
+        <!-- 4. BUSINESSES PANEL -->
+        <div id="panel-businesses" class="pro-panel" role="tabpanel" hidden>
+          <!-- Business Discovery Filter Bar -->
+          <div class="pro-filter-bar" aria-label="Business discovery filters">
+            <div class="pro-filter-group">
+              <label for="businessLocationFilter">Location</label>
+              <select id="businessLocationFilter" class="pro-select-filter">
+                <option value="all">All Locations</option>
+              </select>
+            </div>
+            <div class="pro-filter-group">
+              <label for="businessIndustryFilter">Industry / Focus</label>
+              <select id="businessIndustryFilter" class="pro-select-filter">
+                <option value="all">All Industries</option>
+              </select>
+            </div>
+            <div class="pro-filter-group">
+              <label for="businessSpecializationFilter">Specialization</label>
+              <select id="businessSpecializationFilter" class="pro-select-filter">
+                <option value="all">All Specializations</option>
+              </select>
+            </div>
+            <button id="businessClearFilters" type="button" class="pro-clear-filter-btn" hidden>Clear filters ✕</button>
+          </div>
+
+          <div id="businessesResultsGrid" class="pf-grid pro-businesses-grid">
+            <div class="pf-loading"></div>
+          </div>
+        </div>
+
+        <!-- 5. JOBS PANEL -->
+        <div id="panel-jobs" class="pro-panel" role="tabpanel" hidden>
+          <!-- Jobs Filter Bar -->
+          <div class="pro-filter-bar" aria-label="Job filters">
+            <div class="pro-filter-group">
+              <label for="jobLocationFilter">Location</label>
+              <select id="jobLocationFilter" class="pro-select-filter">
+                <option value="all">All Locations</option>
+              </select>
+            </div>
+            <div class="pro-filter-group">
+              <label for="jobTypeFilter">Employment</label>
+              <select id="jobTypeFilter" class="pro-select-filter">
+                <option value="all">All Types</option>
+                <option value="full-time">Full-time</option>
+                <option value="part-time">Part-time</option>
+                <option value="contract">Contract</option>
+                <option value="freelance">Freelance</option>
+              </select>
+            </div>
+            <div class="pro-filter-group">
+              <label for="jobWorkplaceFilter">Workplace</label>
+              <select id="jobWorkplaceFilter" class="pro-select-filter">
+                <option value="all">All Workplace Types</option>
+                <option value="on-site">On-site</option>
+                <option value="hybrid">Hybrid</option>
+                <option value="remote">Remote</option>
+              </select>
+            </div>
+            <div class="pro-filter-group">
+              <label for="jobExperienceFilter">Experience</label>
+              <select id="jobExperienceFilter" class="pro-select-filter">
+                <option value="all">All Experience Levels</option>
+                <option value="entry">Entry level</option>
+                <option value="1-3">1-3 years</option>
+                <option value="3-5">3-5 years</option>
+                <option value="senior">Senior / Lead</option>
+              </select>
+            </div>
+            <button id="jobClearFilters" type="button" class="pro-clear-filter-btn" hidden>Clear filters ✕</button>
+          </div>
+
+          <div id="jobsResultsGrid" class="pf-grid pro-jobs-grid">
+            <div class="pf-loading"></div>
+          </div>
+        </div>
+
+        <!-- 6. INTERNSHIPS PANEL -->
+        <div id="panel-internships" class="pro-panel" role="tabpanel" hidden>
+          <!-- Internships Filter Bar -->
+          <div class="pro-filter-bar" aria-label="Internship filters">
+            <div class="pro-filter-group">
+              <label for="internshipLocationFilter">Location</label>
+              <select id="internshipLocationFilter" class="pro-select-filter">
+                <option value="all">All Locations</option>
+              </select>
+            </div>
+            <div class="pro-filter-group">
+              <label for="internshipDurationFilter">Duration</label>
+              <select id="internshipDurationFilter" class="pro-select-filter">
+                <option value="all">All Durations</option>
+                <option value="1">1 Month</option>
+                <option value="2">2 Months</option>
+                <option value="3">3 Months</option>
+                <option value="6">6 Months</option>
+              </select>
+            </div>
+            <div class="pro-filter-group">
+              <label for="internshipCompensationFilter">Compensation</label>
+              <select id="internshipCompensationFilter" class="pro-select-filter">
+                <option value="all">All (Paid & Unpaid)</option>
+                <option value="paid">Paid / Stipend</option>
+                <option value="unpaid">Unpaid / Academic</option>
+              </select>
+            </div>
+            <button id="internshipClearFilters" type="button" class="pro-clear-filter-btn" hidden>Clear filters ✕</button>
+          </div>
+
+          <div id="internshipsResultsGrid" class="pf-grid pro-jobs-grid">
+            <div class="pf-loading"></div>
+          </div>
+        </div>
+
+        <!-- 7. CONNECTIONS PANEL -->
+        <div id="panel-connections" class="pro-panel" role="tabpanel" hidden>
+          <div id="connectionsContainer" class="pro-connections-container">
+            <div class="pf-loading"></div>
+          </div>
+        </div>
+
+        <!-- 8. SAVED PANEL (Placeholder Module) -->
+        <div id="panel-saved" class="pro-panel" role="tabpanel" hidden>
+          <div class="pro-placeholder-card">
+            <div class="pro-placeholder-icon">🔖</div>
+            <h3>Saved Items & Bookmarks</h3>
+            <p>Save interesting project case studies, talent portfolios, business profiles, and upcoming job listings for quick reference.</p>
+            <div class="pro-placeholder-note">
+              <span>✦</span> Bookmarking functionality is part of the upcoming platform release.
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT SIDEBAR: Upcoming Modules & Suggested Portfolios -->
+      <aside class="pro-sidebar-right" id="proRightSidebar">
+
+        <!-- Suggested Portfolios Widget -->
+        <div class="pro-widget-card" id="widgetSuggestedPortfolios">
+          <div class="pro-widget-header">
+            <h4><span>✦</span> Suggested Portfolios</h4>
+          </div>
+          <div id="suggestedPortfoliosList" class="pro-suggested-list">
+            <div class="pf-shimmer-line"></div>
+            <div class="pf-shimmer-line"></div>
+          </div>
+        </div>
+
+        <!-- Jobs for You Module -->
+        <div class="pro-widget-card" id="widgetJobsForYou">
+          <div class="pro-widget-header">
+            <h4><span>💼</span> Jobs for You</h4>
+            <span class="pro-badge-upcoming">Upcoming</span>
+          </div>
+          <div class="pro-widget-placeholder-body">
+            <p>Personalized studio role recommendations based on your Portfolio skills and practice area.</p>
+          </div>
+        </div>
+
+        <!-- Businesses Module -->
+        <div class="pro-widget-card" id="widgetBusinesses">
+          <div class="pro-widget-header">
+            <h4><span>🏛</span> Businesses & Practices</h4>
+            <span class="pro-badge-upcoming">Upcoming</span>
+          </div>
+          <div class="pro-widget-placeholder-body">
+            <p>Verified architecture studios and creative companies in the network.</p>
+          </div>
+        </div>
+
+        <!-- Internships Module -->
+        <div class="pro-widget-card" id="widgetInternships">
+          <div class="pro-widget-header">
+            <h4><span>🎓</span> Internships</h4>
+            <span class="pro-badge-upcoming">Upcoming</span>
+          </div>
+          <div class="pro-widget-placeholder-body">
+            <p>Student development, academic mentorship, and early career training programs.</p>
+          </div>
+        </div>
+
+      </aside>
+
+    </div>
+  </main>
+
+  <script type="module" src="js/portfolios.js?v=20260823-task14-profeed-v1"></script>
+</body>
+</html>

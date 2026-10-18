@@ -254,13 +254,8 @@
             }
         }
     </style>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1957758165451331" crossorigin="anonymous"></script>
-  <script async custom-element="amp-auto-ads" src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js"></script>
 </head>
 <body>
-  <amp-auto-ads type="adsense"
-        data-ad-client="ca-pub-1957758165451331">
-  </amp-auto-ads>
     <button class="language-toggle-auth" id="languageToggle" aria-label="Change language">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/>
@@ -273,7 +268,7 @@
         <div class="logo-container">
             <div class="logo-icon">🏛️</div>
         </div>
-        
+
         <h1 data-en="Create Account" data-ar="إنشاء حساب">Create Account</h1>
         <p class="subtitle" data-en="Join the AIAS Basra Chapter community" data-ar="انضم إلى مجتمع AIAS البصرة">Join the AIAS Basra Chapter community</p>
 
@@ -344,21 +339,14 @@
     <!-- Firebase SDK -->
     <script type="module">
         // Import Firebase modules
-        import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithCredential, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { initializeApp, getApp } from "/js/cloudflare-client.js";
+        import { getAuth, signInWithCredential, GoogleAuthProvider, onAuthStateChanged } from "/js/cloudflare-client.js";
+        import { getFirestore, doc, getDoc, setDoc, runTransaction, serverTimestamp } from "/js/cloudflare-client.js";
+        import { getFunctions, httpsCallable } from "/js/cloudflare-client.js";
         import { getAdminAccess, persistAccessSession } from "./js/rbac.js";
 
         // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAvPMOgz1w7SFylBY8cmn9nf9GQvn-IRNI",
-            authDomain: "space-42d87.firebaseapp.com",
-            projectId: "space-42d87",
-            storageBucket: "space-42d87.firebasestorage.app",
-            messagingSenderId: "658382934950",
-            appId: "1:658382934950:web:c61b6fa237b203e6bf7567",
-            measurementId: "G-Q7Y482TMEY"
-        };
+        const firebaseConfig = { projectId: "aias-basra" };
 
         // Initialize Firebase (with error handling for multiple initializations)
         let app;
@@ -369,6 +357,8 @@
         }
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const functions = getFunctions(app, 'us-central1');
+        const callCommunity = data => httpsCallable(functions, 'setCommunitySpaceConnection')(data).then(result => result.data);
 
         const messageDiv = document.getElementById('message');
         const googleSignUpBtn = document.getElementById('googleSignUp');
@@ -452,23 +442,9 @@
             messageDiv.style.display = 'block';
         }
 
-        async function finishRelaySignIn() {
-            const relayResult = new URLSearchParams(window.location.hash.slice(1));
-            const idToken = relayResult.get('google_id_token');
-            const accessToken = relayResult.get('google_access_token');
-            const relayError = relayResult.get('auth_error');
-            if (!idToken && !accessToken && !relayError) return;
 
-            history.replaceState(null, '', window.location.pathname + window.location.search);
-            if (relayError) throw new Error(relayError);
-            await signInWithCredential(auth, GoogleAuthProvider.credential(idToken || null, accessToken || null));
-        }
 
-        finishRelaySignIn().catch((error) => {
-            console.error('Google relay sign-up error:', error);
-            googleSignUpBtn.disabled = false;
-            showMessage('Sign-up failed: ' + error.message, 'error');
-        });
+
 
         // Check if user is already logged in
         onAuthStateChanged(auth, async (user) => {
@@ -492,7 +468,7 @@
         async function checkUserRoleAndRedirect(user) {
             try {
                 const access = await getAdminAccess(db, user.email);
-                
+
                 // Store session data
                 localStorage.setItem('aias_authenticated', 'true');
                 localStorage.setItem('aias_user_email', user.email);
@@ -501,7 +477,10 @@
                 persistAccessSession(access);
                 localStorage.setItem('aias_user_uid', user.uid);
 
-                window.location.href = safeNext(access.allowed ? 'admin-dashboard.html' : 'index.html');
+                const destination = safeNext('/');
+                window.location.href = destination === 'admin-dashboard.html'
+                    ? 'https://aiasbsr.com/admin-dashboard.html'
+                    : destination;
             } catch (error) {
                 console.error('Error checking user role:', error);
                 showMessage('Error checking user permissions. Please try again.', 'error');
@@ -521,7 +500,7 @@
 
                 const returnUrl = new URL(window.location.href);
                 returnUrl.hash = '';
-                const relayUrl = new URL('https://space-42d87.firebaseapp.com/auth-relay.html');
+                const relayUrl = new URL('/api/auth/start', location.origin);
                 relayUrl.searchParams.set('return', returnUrl.href);
                 window.location.assign(relayUrl.href);
 
@@ -537,12 +516,11 @@
             const user = auth.currentUser;
             if (!user || !profileSetupForm.reportValidity()) return;
             try {
-                const username = await claimUsername(user.uid);
-                await setDoc(doc(db, 'users', user.uid), {
-                    email: user.email, username, displayName: profileFields.displayName.value.trim(), photoURL: user.photoURL || '',
+                const username = normalizeUsername(profileFields.username.value);
+                await callCommunity({operation:'complete_profile',
+                    username, displayName: profileFields.displayName.value.trim(), photoURL: user.photoURL || '', bannerURL:'', interests:'',
                     school: profileFields.school.value.trim(), city: profileFields.city.value.trim(), bio: profileFields.bio.value.trim(),
-                    profileComplete: true, createdAt: new Date().toISOString(), lastLogin: new Date().toISOString()
-                }, { merge: true });
+                });
                 sessionStorage.removeItem(pendingProfileKey);
                 await checkUserRoleAndRedirect(user);
             } catch (error) { showMessage('Could not save your profile: ' + error.message, 'error'); }

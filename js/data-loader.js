@@ -1,17 +1,9 @@
 // Data Loader - Centralized Firebase Firestore data fetching
-import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { initializeApp, getApp } from "/js/cloudflare-client.js";
+import { getFirestore, collection, getDocs, doc, getDoc } from "/js/cloudflare-client.js";
 
 // Firebase configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyAvPMOgz1w7SFylBY8cmn9nf9GQvn-IRNI",
-    authDomain: "space-42d87.firebaseapp.com",
-    projectId: "space-42d87",
-    storageBucket: "space-42d87.firebasestorage.app",
-    messagingSenderId: "658382934950",
-    appId: "1:658382934950:web:c61b6fa237b203e6bf7567",
-    measurementId: "G-Q7Y482TMEY"
-};
+const firebaseConfig = { projectId: "aias-basra" };
 
 // Debug toggle: enable via ?debug=true or localStorage.setItem('debug','true')
 const DEBUG =
@@ -189,7 +181,7 @@ class DataLoader {
             }
             let fbdEvents = fbdEventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
             fbdEvents = await Promise.all(fbdEvents.map(item => this.resolveImageChunks(item, fbdEventsPath)));
-            
+
             dlog('Fetching Courses from content/education/courses...');
             const coursesSnap = await getDocs(collection(this.db, 'content/education/courses'));
             let courses = coursesSnap.docs.map(d => ({ id: d.id, ...d.data() }));

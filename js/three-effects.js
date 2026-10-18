@@ -9,7 +9,7 @@ if (heroSection) {
 function initCustomEffects() {
     const heroBackground = document.querySelector('.hero-background');
     if (!heroBackground) return;
-    
+
     // Create canvas for particle effects
     const canvas = document.createElement('canvas');
     canvas.style.position = 'absolute';
@@ -19,12 +19,12 @@ function initCustomEffects() {
     canvas.style.height = '100%';
     canvas.style.pointerEvents = 'none';
     heroBackground.appendChild(canvas);
-    
+
     const ctx = canvas.getContext('2d');
     let width, height;
     let particles = [];
     let mouseX = 0, mouseY = 0;
-    
+
     // Logo colors
     const colors = [
         '#661F22', // Primary red
@@ -33,7 +33,7 @@ function initCustomEffects() {
         '#C09775', // Accent light
         '#CBAE9A'  // Accent lighter
     ];
-    
+
     // Resize canvas
     function resizeCanvas() {
         width = canvas.offsetWidth;
@@ -41,14 +41,14 @@ function initCustomEffects() {
         canvas.width = width;
         canvas.height = height;
     }
-    
+
     // Particle class
     class Particle {
         constructor() {
             this.reset();
             this.y = Math.random() * height;
         }
-        
+
         reset() {
             this.x = Math.random() * width;
             this.y = -10;
@@ -58,26 +58,26 @@ function initCustomEffects() {
             this.color = colors[Math.floor(Math.random() * colors.length)];
             this.opacity = Math.random() * 0.5 + 0.3;
         }
-        
+
         update() {
             this.y += this.speedY;
             this.x += this.speedX;
-            
+
             // Mouse interaction
             const dx = mouseX - this.x;
             const dy = mouseY - this.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
-            
+
             if (distance < 100) {
                 this.x -= dx * 0.01;
                 this.y -= dy * 0.01;
             }
-            
+
             if (this.y > height) {
                 this.reset();
             }
         }
-        
+
         draw() {
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
@@ -87,7 +87,7 @@ function initCustomEffects() {
             ctx.globalAlpha = 1;
         }
     }
-    
+
     // Create 3D-like geometric shapes using CSS
     function createGeometricShapes() {
         for (let i = 0; i < 5; i++) {
@@ -107,44 +107,44 @@ function initCustomEffects() {
             heroBackground.appendChild(shape);
         }
     }
-    
+
     // Initialize
     resizeCanvas();
     createGeometricShapes();
-    
+
     // Create particles
     for (let i = 0; i < 100; i++) {
         particles.push(new Particle());
     }
-    
+
     // Mouse tracking - only for hero section
     heroSection.addEventListener('mousemove', (e) => {
         const rect = canvas.getBoundingClientRect();
         mouseX = e.clientX - rect.left;
         mouseY = e.clientY - rect.top;
     });
-    
+
     // Animation loop
     function animate() {
         ctx.clearRect(0, 0, width, height);
-        
+
         // Update and draw particles
         particles.forEach(particle => {
             particle.update();
             particle.draw();
         });
-        
+
         // Draw connecting lines (optimized - limit connections per particle)
         particles.forEach((p1, i) => {
             let connections = 0;
             const maxConnections = 3; // Limit connections per particle for performance
-            
+
             for (let j = i + 1; j < particles.length && connections < maxConnections; j++) {
                 const p2 = particles[j];
                 const dx = p1.x - p2.x;
                 const dy = p1.y - p2.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
-                
+
                 if (distance < 100) {
                     ctx.beginPath();
                     ctx.moveTo(p1.x, p1.y);
@@ -158,12 +158,12 @@ function initCustomEffects() {
                 }
             }
         });
-        
+
         requestAnimationFrame(animate);
     }
-    
+
     animate();
-    
+
     // Handle resize
     window.addEventListener('resize', resizeCanvas);
 }
@@ -179,7 +179,7 @@ style.textContent = `
             transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg);
         }
     }
-    
+
     .geometric-shape {
         will-change: transform;
     }

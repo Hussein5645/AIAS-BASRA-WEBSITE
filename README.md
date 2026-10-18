@@ -1,5 +1,7 @@
 # AIAS Basra Chapter Website
 
+This branch runs the website and Community backend on Cloudflare Workers, D1, and R2. See [migration status and setup](docs/cloudflare-migration.md) for deployment details.
+
 A modern, animated, and interactive website for the American Institute of Architecture Students (AIAS) Basra Chapter.
 
 ## 🎨 Design Features

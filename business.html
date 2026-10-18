@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#661f22">
+  <meta name="description" content="Verified Business Profile on AIAS Basra Space.">
+  <title>Business Profile — AIAS Basra</title>
+  <link rel="icon" href="static/images/branding/LOGO.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&family=Noto+Sans+Arabic:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/portfolios.css">
+  <link rel="stylesheet" href="css/portfolio-theme-runtime.css">
+  <script>
+    const reqId = new URLSearchParams(location.search).get('id');
+    if (reqId) {
+      location.replace(`portfolio.html?id=${encodeURIComponent(reqId)}`);
+    } else {
+      location.replace('portfolios.html?tab=businesses');
+    }
+  </script>
+</head>
+<body class="portfolio-page pro-business-page">
+  <header class="pf-topbar">
+    <div class="pf-shell pf-topbar-inner">
+      <a class="pf-brand" href="portfolios.html">
+        <img src="static/images/branding/LOGO.png" alt="">
+        <span><span>AIAS BASRA</span><small>Professional</small></span>
+      </a>
+      <nav class="pf-nav">
+        <a href="portfolios.html?tab=businesses">All Businesses</a>
+        <a href="portfolios.html">Explore</a>
+        <a class="community-link" href="/community.html">Community</a>
+        <a class="pf-button primary desktop-builder-link" id="topNavBuilderBtn" href="portfolio-builder.html">My Portfolio</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="businessPage">
+    <section class="pf-shell" style="padding-top: 40px;">
+      <div class="pf-empty">
+        <h3>Loading business profile…</h3>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="js/business.js"></script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "aias-basra-website",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "npm run build && wrangler dev",
+    "deploy": "npm run check:migration && npm run build && wrangler deploy",
+    "check:migration": "node scripts/check-migration.mjs",
+    "media:inventory": "node scripts/media-inventory.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "db:local": "wrangler d1 migrations apply DB --local",
+    "db:remote": "wrangler d1 migrations apply DB --remote"
+  },
+  "devDependencies": {
+    "acorn": "^8.19.0",
+    "miniflare": "^5.20261012.1-beta",
+    "wrangler": "^4.0.0"
+  },
+  "dependencies": {
+    "@google/genai": "^2.30.0",
+    "openai": "^6.49.0",
+    "web-push": "^3.6.7"
+  }
+}

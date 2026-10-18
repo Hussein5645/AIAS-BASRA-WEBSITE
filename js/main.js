@@ -16,7 +16,7 @@ let lastScroll = 0;
 
 window.addEventListener('scroll', () => {
     const currentScroll = window.pageYOffset;
-    
+
     if (navbar) {
         if (currentScroll > 100) {
             navbar.classList.add('scrolled');
@@ -24,7 +24,7 @@ window.addEventListener('scroll', () => {
             navbar.classList.remove('scrolled');
         }
     }
-    
+
     lastScroll = currentScroll;
 });
 
@@ -69,7 +69,7 @@ const revealObserver = new IntersectionObserver((entries) => {
 const observeRevealElement = (element) => {
     if (element.classList.contains('reveal') && !element.classList.contains('active')) {
         revealObserver.observe(element);
-        
+
         // Immediately check if element is already in viewport (for dynamically added elements)
         // Use same logic as IntersectionObserver (150px margin from bottom)
         const rect = element.getBoundingClientRect();
@@ -128,7 +128,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 window.addEventListener('scroll', () => {
     const scrolled = window.pageYOffset;
     const parallaxElements = document.querySelectorAll('.parallax');
-    
+
     parallaxElements.forEach(element => {
         const speed = element.dataset.speed || 0.5;
         element.style.transform = `translateY(${scrolled * speed}px)`;
@@ -142,7 +142,7 @@ cards.forEach(card => {
     card.addEventListener('mouseenter', function() {
         this.style.transform = 'translateY(-10px) scale(1.02)';
     });
-    
+
     card.addEventListener('mouseleave', function() {
         this.style.transform = 'translateY(0) scale(1)';
     });
@@ -154,7 +154,7 @@ const sections = document.querySelectorAll('section[id]');
 if (navLinks) {
     window.addEventListener('scroll', () => {
         let current = '';
-        
+
         sections.forEach(section => {
             const sectionTop = section.offsetTop;
             const sectionHeight = section.clientHeight;
@@ -162,7 +162,7 @@ if (navLinks) {
                 current = section.getAttribute('id');
             }
         });
-        
+
         navLinks.querySelectorAll('a').forEach(link => {
             link.classList.remove('active');
             if (link.getAttribute('href').includes(current)) {
@@ -185,14 +185,14 @@ forms.forEach(form => {
     if (form.hasAttribute('novalidate') || form.closest('.dashboard')) {
         return;
     }
-    
+
     form.addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         // Basic validation
         const inputs = this.querySelectorAll('input[required], textarea[required]');
         let isValid = true;
-        
+
         inputs.forEach(input => {
             if (!input.value.trim()) {
                 isValid = false;
@@ -201,7 +201,7 @@ forms.forEach(form => {
                 input.classList.remove('error');
             }
         });
-        
+
         if (isValid) {
             // Submit form or show success message
             console.log('Form submitted successfully');
@@ -234,7 +234,7 @@ document.querySelectorAll('.fade-in-up, .fade-in-down, .fade-in-left, .fade-in-r
 const animateCounter = (element, target, duration = 2000) => {
     let start = 0;
     const increment = target / (duration / 16);
-    
+
     const timer = setInterval(() => {
         start += increment;
         if (start >= target) {
