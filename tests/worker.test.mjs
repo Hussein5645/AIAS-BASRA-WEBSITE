@@ -196,3 +196,20 @@ test('existing registered members receive Professional accounts on sign-in witho
  await api('/api/auth/session',undefined,'member-session','GET');
  assert.equal(JSON.parse((await db.prepare('SELECT data FROM documents WHERE path=?').bind('portfolioProfiles/member-test').first()).data).tagline,'Keep existing changes');
 });
+
+
+test('library previews D1 folders and records, redacts secrets, and rejects mutations',async()=>{
+ await api('/api/db',{action:'set',path:'content/events/items/preview-only',data:{title:'Preview event',apiKey:'do-not-display',details:{password:'hidden',name:'Visible'}}});
+ assert.equal((await api('/api/admin/library',undefined,'','GET')).status,401);
+ assert.equal((await api('/api/admin/library',undefined,'ordinary-session','GET')).status,403);
+ const root=await (await api('/api/admin/library?source=database',undefined,'admin-session','GET')).json();assert.ok(root.folders.some(folder=>folder.name==='content'));
+ const folder=await (await api('/api/admin/library?source=database&path=content/events/items',undefined,'admin-session','GET')).json();assert.ok(folder.files.some(file=>file.name==='preview-only'));
+ const preview=await (await api('/api/admin/library?source=database&file=content/events/items/preview-only',undefined,'admin-session','GET')).json();assert.equal(preview.data.title,'Preview event');assert.equal(preview.data.apiKey,'[redacted]');assert.equal(preview.data.details.password,'[redacted]');assert.equal(preview.data.details.name,'Visible');
+ for(const method of ['POST','DELETE','PUT'])assert.equal((await api('/api/admin/library',{path:'content/events/items/preview-only'},'admin-session',method)).status,405);
+ assert.equal((await api('/api/admin/library?source=database&path=../sessions',undefined,'admin-session','GET')).status,400);
+ const media=await mf.getR2Bucket('MEDIA');await media.put('uploads/preview/folder/sample.png','image',{httpMetadata:{contentType:'image/png'}});
+ const mediaRoot=await (await api('/api/admin/library?source=media&path=uploads/preview',undefined,'admin-session','GET')).json();assert.ok(mediaRoot.folders.some(folder=>folder.name==='folder'));
+ const mediaFile=await (await api('/api/admin/library?source=media&file=uploads/preview/folder/sample.png',undefined,'admin-session','GET')).json();assert.equal(mediaFile.contentType,'image/png');assert.match(mediaFile.url,/^\/media\//);
+ assert.equal(await (await media.get('uploads/preview/folder/sample.png')).text(),'image');
+ const page=await readFile('admin-storage.html','utf8');assert.doesNotMatch(page,/uploadForm|type="file"|deleteObject/);
+});

@@ -81,3 +81,23 @@ without changing Community verification or posting permissions. The new
 The generated public menu links directly to Professional and Market. Registration
 and public portfolio copy use account terminology. The dashboard, media library,
 article editor, and private moderation tools share the redesigned workspace shell.
+
+
+## Read-only library and bilingual UI (2026-11-06)
+
+The media library is now a read-only folder browser: D1 document paths and R2
+object prefixes are separate tabs. `/api/admin/library` accepts GET only,
+requires administrator permissions, checks each document/file before preview,
+and redacts credential fields from record previews. Upload and delete controls
+are absent from this page; existing content-specific upload flows are preserved.
+Professional account actions use one accessible three-dot dropdown per row.
+The real AIAS logo is used throughout the management shell.
+
+Every production HTML page loads the shared Arabic/English UI layer and RTL
+stylesheet. A domain-scoped `aias_language` cookie carries the preference across
+products. Existing bilingual content attributes remain authoritative. The shared
+catalog adds translations for static and late-rendered UI, placeholders, accessible
+labels, counts, navigation, and page titles. Input values, stored record JSON,
+filenames, and marked user content remain unchanged. The catalog is rebuilt by
+`scripts/build-i18n.mjs` during the normal website build; maintained additions live
+in `data/translations-ar.json`.

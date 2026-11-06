@@ -7608,3 +7608,5 @@ function renderPortfoliosHubGrid() {
       '</div>';
   }
 }
+
+window.addEventListener('aias-language-changed',event=>{if(currentLanguage!==event.detail.language)setCommunityLanguage(event.detail.language);});

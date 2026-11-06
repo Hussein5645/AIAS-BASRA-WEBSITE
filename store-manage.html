@@ -395,6 +395,7 @@
     }
   </style>
 <script type="module" src="/js/product-navigation.js"></script>
+<link rel="stylesheet" href="/css/i18n.css"><script type="module" src="/js/i18n.js"></script>
 </head>
 <body>
 
@@ -613,7 +614,7 @@
       <div class="manage-card">
         <div style="margin-bottom:20px; border-bottom:1px solid var(--line); padding-bottom:14px;">
           <h3 style="margin:0; font-size:1.2rem; color:#1e293b;">Marketplace Tags &amp; Types Management</h3>
-          <p style="margin:4px 0 0; color:var(--muted); font-size:0.82rem;">Store Admins can add new bilingual categories (Tags) and item types saved directly to Firestore (<code>config/marketTags</code> &amp; <code>config/marketTypes</code>). These are instantly available for your items and public explore filters.</p>
+          <p style="margin:4px 0 0; color:var(--muted); font-size:0.82rem;">Store Admins can add new bilingual categories (Tags) and item types saved directly to the database (<code>config/marketTags</code> &amp; <code>config/marketTypes</code>). These are instantly available for your items and public explore filters.</p>
         </div>
 
         <!-- 1. Market Tags Section -->
@@ -623,7 +624,7 @@
           </h4>
           <div style="display:grid; grid-template-columns:minmax(0, 1.4fr) minmax(300px, 0.8fr); gap:20px; align-items:start;">
             <div>
-              <div id="storeTagsList"><p style="color:var(--muted)">Loading tags from Firestore...</p></div>
+              <div id="storeTagsList"><p style="color:var(--muted)">Loading tags from the database...</p></div>
             </div>
 
             <div style="background:#f8fafc; border:1px solid var(--line); border-radius:16px; padding:18px;">
@@ -653,7 +654,7 @@
           </h4>
           <div style="display:grid; grid-template-columns:minmax(0, 1.4fr) minmax(300px, 0.8fr); gap:20px; align-items:start;">
             <div>
-              <div id="storeTypesList"><p style="color:var(--muted)">Loading types from Firestore...</p></div>
+              <div id="storeTypesList"><p style="color:var(--muted)">Loading types from the database...</p></div>
             </div>
 
             <div style="background:#f8fafc; border:1px solid var(--line); border-radius:16px; padding:18px;">

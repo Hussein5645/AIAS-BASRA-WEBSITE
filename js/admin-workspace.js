@@ -37,16 +37,22 @@ function renderAccounts(){
   const row=element('article','professional-account'),avatar=element('span','professional-avatar',(account.displayName||account.username||'P').slice(0,1).toUpperCase()),identity=element('div','professional-identity');
   identity.append(element('h3','',account.displayName||account.username||'Account'),element('p','',`@${account.username||'pending'} · ${account.email}`));
   const badges=element('div','professional-badges');badges.append(element('span','workspace-badge',account.portfolioStatus));if(account.verified)badges.append(element('span','workspace-badge positive','Verified Professional'));if(account.businessStatus!=='none')badges.append(element('span','workspace-badge',`Business: ${account.businessStatus}`));identity.append(badges);
-  const actions=element('div','professional-actions');
-  if(account.portfolioStatus==='published'){const link=element('a','workspace-outline','View portfolio ↗');link.href='https://professional.aiasbsr.com/portfolio.html?id='+encodeURIComponent(account.uid);actions.append(link);}
+  const actions=element('details','professional-actions account-action-menu');
+  const trigger=element('summary','account-action-trigger','⋯');trigger.setAttribute('aria-label','Account actions');trigger.title='Account actions';
+  const menu=element('div','account-action-items');actions.append(trigger,menu);
+  actions.addEventListener('toggle',()=>{if(actions.open)document.querySelectorAll('.account-action-menu[open]').forEach(other=>{if(other!==actions)other.open=false;});});
+  if(account.portfolioStatus==='published'){const link=element('a','workspace-outline','View portfolio ↗');link.href='https://professional.aiasbsr.com/portfolio.html?id='+encodeURIComponent(account.uid);menu.append(link);}
   if(canManage(access,'professional')){
-   const verify=element('button','workspace-outline',account.verified?'Remove verification':'Verify account');verify.addEventListener('click',()=>mutate(account,account.verified?'unverify':'verify',verify));actions.append(verify);
-   const business=element('button','workspace-outline',account.businessStatus==='active'?'Suspend business':account.businessStatus==='suspended'?'Restore business':'Enable business');business.addEventListener('click',()=>mutate(account,account.businessStatus==='active'?'suspend_business':account.businessStatus==='suspended'?'restore_business':'grant_business',business));actions.append(business);
+   const verify=element('button','workspace-outline',account.verified?'Remove verification':'Verify account');verify.addEventListener('click',()=>mutate(account,account.verified?'unverify':'verify',verify));menu.append(verify);
+   const business=element('button','workspace-outline',account.businessStatus==='active'?'Suspend business':account.businessStatus==='suspended'?'Restore business':'Enable business');business.addEventListener('click',()=>mutate(account,account.businessStatus==='active'?'suspend_business':account.businessStatus==='suspended'?'restore_business':'grant_business',business));menu.append(business);
   }
+  if(!menu.childElementCount)actions.hidden=true;
   row.append(avatar,identity,actions);container.append(row);
  }
 }
-async function mutate(account,action,button){button.disabled=true;$('professionalStatus').textContent='Saving changes…';try{await request('/api/admin/professional',{uid:account.uid,action});await loadAccounts();$('professionalStatus').textContent='Account updated.';}catch(error){$('professionalStatus').textContent=error.message;}finally{button.disabled=false;}}
+async function mutate(account,action,button){button.closest('details').open=false;button.disabled=true;$('professionalStatus').textContent='Saving changes…';try{await request('/api/admin/professional',{uid:account.uid,action});await loadAccounts();$('professionalStatus').textContent='Account updated.';}catch(error){$('professionalStatus').textContent=error.message;}finally{button.disabled=false;}}
+document.addEventListener('click',event=>{document.querySelectorAll('.account-action-menu[open]').forEach(menu=>{if(!menu.contains(event.target))menu.open=false;});});
+document.addEventListener('keydown',event=>{if(event.key==='Escape')document.querySelectorAll('.account-action-menu[open]').forEach(menu=>{menu.open=false;menu.querySelector('summary').focus();});});
 $('professionalSearch').addEventListener('input',()=>{accountPage=0;renderAccounts();});$('professionalFilter').addEventListener('change',()=>{accountPage=0;renderAccounts();});$('professionalRefresh').addEventListener('click',loadAccounts);
 
 if(window.aiasWorkspaceState){access=window.aiasWorkspaceState.access;updatePage(window.aiasWorkspaceState.tab);}

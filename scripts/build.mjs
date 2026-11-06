@@ -1,3 +1,4 @@
+import './build-i18n.mjs';
 import { mkdir, readdir, copyFile, writeFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 const root = process.cwd();

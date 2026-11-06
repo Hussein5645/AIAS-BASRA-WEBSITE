@@ -3,6 +3,7 @@ import {runtime,context,configureTriggers} from './platform.js';
 import {canAccessMedia,permissions,isAdministrator} from './access.js';
 import {hosts,canonical,communityPage,safeReturn,authOrigin} from './sites.js';
 import {ensureProfessionalAccount,registerProfessional,professionalAdmin} from './professional.js';
+import {libraryRoute} from './library.js';
 import {communityHandlers} from './community/handlers.js';
 import {databaseRoute,batchRoute,functionRoute,storageRoute,mediaRoute,shareRoute,json} from './routes.js';
 import {pushRoute,sendNotification} from './push.js';
@@ -126,6 +127,7 @@ export default {
      if(url.pathname.startsWith('/api/auth/'))return authRoute(request,env,url);
      if(url.pathname==='/api/professional/register'&&request.method==='POST')return json(await registerProfessional(await request.json()));
      if(url.pathname==='/api/admin/professional')return json(await professionalAdmin(request));
+     if(url.pathname==='/api/admin/library')return libraryRoute(request,url);
      if(url.pathname==='/api/admin/overview'&&request.method==='GET'){
       if(!await isAdministrator())fail(403,'Administrator access is required.');
       const result=await env.DB.prepare("SELECT collection, COUNT(*) AS total, SUM(CASE WHEN json_extract(data,'$.status')='published' THEN 1 ELSE 0 END) AS published FROM documents WHERE collection IN ('users','portfolioProfiles','marketStores') GROUP BY collection").all();

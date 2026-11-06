@@ -311,6 +311,7 @@ function applyTranslations(root = document) {
 
 function setLanguage(lang) {
     currentLanguage = lang === 'ar' ? 'ar' : 'en';
+    if(window.aiasI18n){window.aiasI18n.setLanguage(currentLanguage);return;}
     localStorage.setItem('language', currentLanguage);
 
     document.documentElement.lang = currentLanguage;
@@ -329,7 +330,7 @@ window.applyTranslations = applyTranslations;
 
 // Initialize language on page load
 document.addEventListener('DOMContentLoaded', () => {
-    setLanguage(currentLanguage);
+    setLanguage(window.aiasI18n?.getLanguage() || currentLanguage);
     bindLanguageToggle();
 
     // Translate cards and controls added later by Firestore renderers.
@@ -364,3 +365,5 @@ window.addEventListener('aias-site-shell-ready', () => {
 });
 
 console.log('AIAS Basra Website Loaded Successfully');
+
+window.addEventListener('aias-language-changed',event=>{currentLanguage=event.detail.language;});

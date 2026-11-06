@@ -249,11 +249,12 @@
 <link rel="stylesheet" href="/css/admin-workspace.css">
 
 
+<link rel="stylesheet" href="/css/i18n.css"><script type="module" src="/js/i18n.js"></script>
 </head>
 <body class="admin-workspace">
 
   <header class="workspace-topbar">
-    <a class="workspace-logo" href="/admin-dashboard.html"><span class="workspace-monogram">A</span><span>AIAS BASRA<small>Management workspace</small></span></a>
+    <a class="workspace-logo" href="/admin-dashboard.html"><img class="workspace-brand-logo" src="/static/images/branding/LOGO.png" alt="AIAS Basra"><span>AIAS BASRA<small>Management workspace</small></span></a>
     <label class="workspace-search"><span aria-hidden="true">⌕</span><input type="search" id="workspaceSearch" placeholder="Find a section…" aria-label="Find a dashboard section"><kbd>/</kbd></label>
     <div class="workspace-user"><span id="currentRoleBadge" class="access-badge">Checking access…</span><a href="/" class="workspace-site-link">View website ↗</a><button id="languageToggle" class="language-toggle"><span id="currentLang">EN</span></button><button class="logout-btn" onclick="logout()">Sign out</button></div>
   </header>
@@ -296,7 +297,7 @@
 <a class="product-card" href="https://market.aiasbsr.com/"><span class="product-symbol">M</span><span class="product-status">Live</span><h3>Market</h3><p>Student stores and design resources.</p><strong>market.aiasbsr.com ↗</strong></a>
 </div>
 <div class="workspace-section-title"><h2>Make something happen</h2><span>Quick actions</span></div>
-<div class="workspace-quick-actions"><button data-workspace-tab="events"><span>＋</span><strong>Publish an event</strong><small>Bring your next gathering to life</small></button><button data-workspace-tab="professional"><span>◎</span><strong>Manage Professional</strong><small>Accounts, businesses, and categories</small></button><a href="/admin-storage.html"><span>↑</span><strong>Upload a file</strong><small>Keep your content in one place</small></a></div>
+<div class="workspace-quick-actions"><button data-workspace-tab="events"><span>＋</span><strong>Publish an event</strong><small>Bring your next gathering to life</small></button><button data-workspace-tab="professional"><span>◎</span><strong>Manage Professional</strong><small>Accounts, businesses, and categories</small></button><a href="/admin-storage.html"><span>↑</span><strong>Browse files &amp; records</strong><small>Preview folders and stored content</small></a></div>
 <div class="workspace-private"><div><span class="product-status private">Admin only</span><h3>Community preview</h3><p>Private work in progress. Public users cannot enter.</p></div><a href="https://community.aiasbsr.com/" class="workspace-outline">Open preview ↗</a></div>
 </section>
       <div id="message" class="message"></div>
@@ -550,7 +551,7 @@
           <div class="market-card-shell">
             <div style="margin-bottom:1.4rem;">
               <h3 style="margin:0; font-size:1.15rem; color:#1e293b;" data-en="Marketplace Taxonomy: Types &amp; Tags" data-ar="تصنيفات السوق: الأنواع والوسوم">Marketplace Taxonomy: Types &amp; Tags</h3>
-              <p style="margin:4px 0 0; color:var(--muted); font-size:0.8rem;">Single source of truth on Firestore (<code>config/marketTypes</code> &amp; <code>config/marketTags</code>). Standard taxonomy is automatically shared across store creators, filters, and moderation.</p>
+              <p style="margin:4px 0 0; color:var(--muted); font-size:0.8rem;">Single source of truth in the database (<code>config/marketTypes</code> &amp; <code>config/marketTags</code>). Standard taxonomy is automatically shared across store creators, filters, and moderation.</p>
             </div>
 
             <!-- SECTION A: Standard Item Types -->
@@ -903,12 +904,12 @@
       <section id="settings-tab" class="tab-content">
         <section class="firestore-card" style="margin-bottom:1rem" aria-labelledby="cloudflareMediaTitle">
           <h3 id="cloudflareMediaTitle">Cloudflare media library</h3>
-          <p>Manage images, documents, and 3D files in the new R2 library. This workspace requires its Cloudflare sign-in setup before uploads are available.</p>
+          <p>Browse D1 records and R2 files. This library supports preview only.</p>
           <div class="firestore-actions"><a href="admin-storage.html" class="firestore-button primary">Open media library ↗</a></div>
         </section>
         <div class="firestore-grid">
           <section class="firestore-card" aria-labelledby="firestoreConnectionTitle">
-            <h3 id="firestoreConnectionTitle">Firestore connection</h3>
+            <h3 id="firestoreConnectionTitle">Cloudflare database connection</h3>
             <p>Check the live database and confirm that this administrator can read protected configuration.</p>
             <div id="tokenStatus" class="firestore-status-line" role="status" aria-live="polite">
               <div class="firestore-status-main"><span class="firestore-status-dot" aria-hidden="true"></span><span><strong id="tokenStatusText">Not checked</strong><small id="firestoreProjectText">Project: space-42d87</small></span></div>
